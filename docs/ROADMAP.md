@@ -1,10 +1,10 @@
 # JEDL Studio v2 — Roadmap M1–M8
 
-- **M1 — Project Core:** crear, guardar, cerrar y reabrir un proyecto; prueba JVM de serialización y restauración de escenas.
-- **M2 — Asset & License Registry:** importar recursos locales y validarlos contra el registro; CI falla ante cualquier asset sin licencia permitida.
-- **M3 — Scene & Layer Engine:** crear escenas con varias capas independientes; pruebas de orden Z, visibilidad y transformaciones.
-- **M4 — Character & Motion Engine:** cargar un personaje articulado y reproducir poses/keyframes; pruebas de jerarquía, pivotes y límites articulares.
-- **M5 — Motion Editing:** crear, mover, modificar y eliminar keyframes; pruebas de orden temporal y continuidad.
-- **M6 — Timeline & Audio:** sincronizar varias pistas con audio y subtítulos; pruebas deterministas de tiempos, cortes y mezcla.
-- **M7 — Preview & Export:** previsualizar y exportar un proyecto local a MP4; CI valida contratos y el dispositivo valida reproducción del archivo.
-- **M8 — Release Hardening:** completar diagnóstico, recuperación de errores, accesibilidad y pruebas de rendimiento; checklist de aceptación en el dispositivo objetivo y workflow completo verde.
+- **M1 — Proyecto y capa de foto:** crear, guardar y reabrir proyectos; importar una fotografía y conservarla como capa al restaurar el proyecto.
+- **M2 — Rig y movimientos:** implementar el rig y 22 movimientos; validar jerarquía, pivotes y reproducción con pruebas sobre un maniquí.
+- **M3 — Personaje con arte real:** integrar el personaje articulado con arte original y un banco de PNG; cada recurso debe tener una licencia permitida registrada.
+- **M4 — Personalización:** personalizar el personaje mediante slots independientes y colores configurables.
+- **M5 — Recorte y montaje:** incorporar recorte de fondo y montaje de la cara sobre el rig.
+- **M6 — Estilos propios:** incorporar estilos visuales propios y seleccionables.
+- **M7 — Exportación audiovisual:** exportar el proyecto a MP4 con voz sincronizada.
+- **M8 — Edición audiovisual completa:** incorporar subtítulos, overlays y timeline multipista.
