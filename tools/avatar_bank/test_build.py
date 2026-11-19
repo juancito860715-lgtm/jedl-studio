@@ -1,6 +1,7 @@
 import json
 import sys
 import unittest
+from PIL import Image
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -19,6 +20,24 @@ class AvatarBankBuildTest(unittest.TestCase):
         self.assertEqual(len(ids), len(set(ids)))
         pngs = list((self.output / "png").glob("*.png"))
         self.assertEqual(len(pngs), 42)
+
+
+    def test_body_pngs_contain_filled_silhouettes_and_transparent_exterior(self):
+        body_parts = (
+            "head_skin", "torso_skin", "shirt_tee_torso", "pants_jeans_waist",
+            "armU_skin_L", "armU_skin_R", "thigh_jeans_L", "thigh_jeans_R",
+        )
+        by_id = {part["id"]: part for part in self.manifest["parts"]}
+        for part_id in body_parts:
+            with self.subTest(part=part_id):
+                image = Image.open(self.output / by_id[part_id]["file"]).convert("RGBA")
+                pixels = list(image.getdata())
+                filled = sum(1 for r, g, b, a in pixels if a >= 240 and r >= 245 and g >= 245 and b >= 245)
+                inked = sum(1 for r, g, b, a in pixels if a >= 240 and r <= 35 and g <= 35 and b <= 35)
+                transparent = sum(1 for _, _, _, a in pixels if a == 0)
+                self.assertGreater(filled, 20, f"{part_id} has no solid raster fill")
+                self.assertGreater(inked, 0, f"{part_id} has no preserved ink outline")
+                self.assertGreater(transparent, 0, f"{part_id} lost transparent exterior")
 
     def test_manifest_slots_match_real_kotlin_enum(self):
         allowed = {

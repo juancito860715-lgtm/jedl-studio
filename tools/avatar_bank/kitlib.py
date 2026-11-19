@@ -11,6 +11,8 @@ S = 640
 INK_W = 0.0105
 
 def S_(d, fill="#ffffff", ink=True, lw=1.0, z=0, alpha=1.0):
+    # White is the neutral, fully opaque silhouette fill. Android applies the
+    # part's tint channel with MULTIPLY, preserving black ink and transparency.
     return dict(d=d, fill=fill, ink=ink, lw=lw, z=z, alpha=alpha)
 
 def parse(d):
