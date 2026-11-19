@@ -1,100 +1,226 @@
 package studio.jedl.app
 
 import android.app.Activity
+import android.app.AlertDialog
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Matrix
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
 import android.view.View
-import android.widget.TextView
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import studio.jedl.app.avatar.AvatarRenderer
-import studio.jedl.app.avatar.PieceLibrary
+import android.widget.*
+import kotlinx.coroutines.*
+import studio.jedl.app.avatar.*
 import kotlin.math.min
 
 class MainActivity : Activity() {
-    private val startupScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private lateinit var store: ProjectStore
+    private lateinit var library: PieceLibrary
+    private var project: StudioProject? = null
+    private lateinit var content: LinearLayout
+    private var preview: Preview? = null
+    private var frame = 0
+    private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        window.decorView.setBackgroundColor(Color.rgb(245, 245, 245))
-        showMessage("Cargando recursos del personaje…")
-
-        startupScope.launch {
+        store = ProjectStore(this)
+        showLoading("Preparando JEDL Studio…")
+        scope.launch {
             try {
-                // All manifest parsing and decoding of the 42 PNGs happens off the UI thread.
-                val library = withContext(Dispatchers.IO) {
-                    PieceLibrary.load(applicationContext)
-                }
-                // Renderer construction and View installation return to the main thread.
-                val renderer = AvatarRenderer()
-                setContentView(AvatarPreviewView(this@MainActivity, library, renderer))
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (failure: Exception) {
-                Log.e("Assets", "Error loading avatar assets", failure)
-                val detail = failure.message ?: failure.javaClass.simpleName
-                showMessage("Error cargando assets: $detail")
-            }
+                library = withContext(Dispatchers.IO) { PieceLibrary.load(applicationContext) }
+                home()
+            } catch (e: Exception) { showLoading("Error al cargar recursos: ${e.message}") }
         }
     }
 
-    private fun showMessage(message: String) {
+    private fun showLoading(message: String) {
         setContentView(TextView(this).apply {
-            text = message
-            textSize = 16f
-            setTextColor(Color.DKGRAY)
-            gravity = Gravity.CENTER
-            setPadding(32, 32, 32, 32)
+            text = message; gravity = Gravity.CENTER; textSize = 18f; setPadding(24,24,24,24)
         })
     }
 
-    override fun onDestroy() {
-        startupScope.cancel()
-        super.onDestroy()
+    private fun button(label: String, action: () -> Unit) = Button(this).apply {
+        text = label; isAllCaps = false; setOnClickListener { action() }
     }
+    private fun heading(label: String) = TextView(this).apply {
+        text = label; textSize = 18f; setTextColor(Color.rgb(25,45,70)); setPadding(0,14,0,8)
+    }
+    private fun toast(s: String) = Toast.makeText(this,s,Toast.LENGTH_SHORT).show()
+
+    private fun home() {
+        project = null
+        val root = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL; setPadding(24,30,24,24)
+            setBackgroundColor(Color.rgb(241,245,250))
+        }
+        root.addView(heading("JEDL STUDIO"))
+        root.addView(TextView(this).apply { text = "Estudio de producción de bolsillo"; textSize=15f })
+        root.addView(button("＋ Crear proyecto") {
+            val name = EditText(this).apply { hint = "Nombre del proyecto" }
+            AlertDialog.Builder(this).setTitle("Nuevo proyecto").setView(name)
+                .setNegativeButton("Cancelar",null).setPositiveButton("Crear") { _,_ ->
+                    runCatching { store.create(name.text.toString()) }
+                        .onSuccess { openProject(it) }.onFailure { toast(it.message ?: "Error") }
+                }.show()
+        })
+        root.addView(heading("Abrir proyecto"))
+        val saved = store.list()
+        if (saved.isEmpty()) root.addView(TextView(this).apply {
+            text = "No hay proyectos guardados todavía."; setPadding(0,12,0,12)
+        })
+        saved.forEach { p -> root.addView(button("Abrir: ${p.name}") { openProject(p) }) }
+        setContentView(ScrollView(this).apply { addView(root) })
+    }
+
+    private fun openProject(p: StudioProject) { project=p; frame=0; studio(Tab.SCENE) }
+    private fun save() {
+        project?.let { runCatching { store.save(it) }.onSuccess { toast("Proyecto guardado") }
+            .onFailure { toast("Error al guardar: ${it.message}") } }
+    }
+
+    private fun studio(tab: Tab) {
+        val p = project ?: return home()
+        val root = LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setBackgroundColor(Color.rgb(238,242,248)) }
+        val top = LinearLayout(this).apply { gravity=Gravity.CENTER_VERTICAL; setPadding(8,4,8,4) }
+        top.addView(TextView(this).apply { text=p.name; textSize=18f; setTextColor(Color.BLACK) },
+            LinearLayout.LayoutParams(0,-2,1f))
+        top.addView(button("Guardar") { save() })
+        top.addView(button("Inicio") { save(); home() })
+        root.addView(top)
+        preview = Preview(this, library, p)
+        root.addView(preview, LinearLayout.LayoutParams(-1,0,1f))
+        val tabs=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL }
+        listOf(Tab.SCENE to "Escena",Tab.CHARACTER to "Personaje",Tab.LAYERS to "Capas",Tab.ANIMATION to "Animación")
+            .forEach { (t,label) -> tabs.addView(button(label) { studio(t) },LinearLayout.LayoutParams(0,-2,1f)) }
+        root.addView(tabs)
+        content=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(12,8,12,20) }
+        root.addView(ScrollView(this).apply { addView(content) },LinearLayout.LayoutParams(-1,0,1f))
+        setContentView(root)
+        when(tab) {
+            Tab.SCENE -> {
+                content.addView(heading("Escenario de trabajo"))
+                content.addView(TextView(this).apply { text="Vista del personaje. Usa las pestañas para editar piezas, capas y poses." })
+                content.addView(button("Guardar proyecto") { save() })
+            }
+            Tab.CHARACTER -> characterPanel()
+            Tab.LAYERS -> layersPanel()
+            Tab.ANIMATION -> animationPanel()
+        }
+    }
+
+    private fun characterPanel() {
+        val p=project ?: return
+        content.addView(heading("Seleccionar piezas del personaje"))
+        CharacterLayerSlot.values().forEach { slot ->
+            val choices=library.parts.filter { it.slot==slot }
+            if (choices.size<2) return@forEach
+            val current=p.selectedParts[slot.name] ?: library.defaults[slot]
+            content.addView(button("${slot.name}: ${current ?: "predeterminado"}") {
+                val labels=choices.map { it.id }.toTypedArray()
+                AlertDialog.Builder(this).setTitle("Elegir ${slot.name}")
+                    .setSingleChoiceItems(labels,choices.indexOfFirst { it.id==current }.coerceAtLeast(0)) { dialog,which ->
+                        project=(project ?: p).copy(selectedParts=(project ?: p).selectedParts+(slot.name to choices[which].id))
+                        preview?.update(project!!); dialog.dismiss(); studio(Tab.CHARACTER)
+                    }.setNegativeButton("Cancelar",null).show()
+            })
+        }
+        content.addView(button("Guardar cambios") { save() })
+    }
+
+    private fun layersPanel() {
+        val p=project ?: return
+        val manifestOrder=library.parts.groupBy { it.slot.name }.entries
+            .sortedBy { e -> e.value.minOf { it.zIndex } }.map { it.key }
+        val order=((if(p.layerOrder.isEmpty()) manifestOrder else p.layerOrder+manifestOrder)).distinct().toMutableList()
+        content.addView(heading("Mostrar, ocultar y ordenar capas"))
+        order.toList().forEach { slot ->
+            val row=LinearLayout(this).apply { gravity=Gravity.CENTER_VERTICAL }
+            row.addView(CheckBox(this).apply {
+                text=slot; isChecked=slot !in (project ?: p).hiddenSlots
+                setOnCheckedChangeListener { _,checked ->
+                    val now=project ?: p
+                    project=now.copy(hiddenSlots=if(checked) now.hiddenSlots-slot else now.hiddenSlots+slot,layerOrder=order)
+                    preview?.update(project!!)
+                }
+            },LinearLayout.LayoutParams(0,-2,1f))
+            row.addView(button("↑") {
+                val i=order.indexOf(slot); if(i>0) { val v=order.removeAt(i); order.add(i-1,v); project=(project?:p).copy(layerOrder=order); preview?.update(project!!); layersPanelRefresh() }
+            })
+            row.addView(button("↓") {
+                val i=order.indexOf(slot); if(i<order.lastIndex) { val v=order.removeAt(i); order.add(i+1,v); project=(project?:p).copy(layerOrder=order); preview?.update(project!!); layersPanelRefresh() }
+            })
+            content.addView(row)
+        }
+        content.addView(button("Guardar capas") { save() })
+    }
+    private fun layersPanelRefresh() { studio(Tab.LAYERS) }
+
+    private fun animationPanel() {
+        val p=project ?: return
+        frame=frame.coerceIn(0,p.durationFrames-1)
+        content.addView(heading("Editor de poses y fotogramas"))
+        val frameLabel=TextView(this).apply { text="Fotograma: $frame / ${p.durationFrames-1}" }
+        content.addView(frameLabel)
+        content.addView(SeekBar(this).apply {
+            max=p.durationFrames-1; progress=frame
+            setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(s:SeekBar?,v:Int,user:Boolean) { if(user){frame=v;frameLabel.text="Fotograma: $v / ${p.durationFrames-1}"} }
+                override fun onStartTrackingTouch(s:SeekBar?) {}
+                override fun onStopTrackingTouch(s:SeekBar?) {}
+            })
+        })
+        listOf("head","armUL","foreArmL","armUR","foreArmR","thighL","shinL","thighR","shinR").forEach { bone ->
+            content.addView(TextView(this).apply { text="Rotación $bone" })
+            content.addView(SeekBar(this).apply {
+                max=360; progress=((p.pose[bone]?:0f)+180).toInt().coerceIn(0,360)
+                setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
+                    override fun onProgressChanged(s:SeekBar?,v:Int,user:Boolean) {
+                        if(user){ project=(project?:p).copy(pose=(project?:p).pose+(bone to (v-180).toFloat())); preview?.update(project!!) }
+                    }
+                    override fun onStartTrackingTouch(s:SeekBar?) {}
+                    override fun onStopTrackingTouch(s:SeekBar?) {}
+                })
+            })
+        }
+        content.addView(button("＋ Guardar fotograma clave") {
+            val now=project ?: p
+            project=now.copy(keyframes=(now.keyframes.filterNot{it.frame==frame}+StudioKeyframe(frame,now.pose)).sortedBy{it.frame})
+            studio(Tab.ANIMATION); toast("Fotograma guardado")
+        })
+        content.addView(button("Eliminar fotograma clave actual") {
+            project=(project?:p).copy(keyframes=(project?:p).keyframes.filterNot{it.frame==frame}); studio(Tab.ANIMATION)
+        })
+        (project ?: p).keyframes.sortedBy{it.frame}.forEach { key ->
+            content.addView(button("Cargar fotograma ${key.frame}") {
+                frame=key.frame; project=(project?:p).copy(pose=key.pose); preview?.update(project!!); studio(Tab.ANIMATION)
+            })
+        }
+        content.addView(button("Guardar animación") { save() })
+    }
+
+    override fun onDestroy() { scope.cancel(); super.onDestroy() }
 }
 
-private class AvatarPreviewView(
-    context: android.content.Context,
-    private val library: PieceLibrary,
-    private val renderer: AvatarRenderer
-) : View(context) {
-    private val rig = mapOf(
-        "torso" to (0f to 0f),
-        "head" to (0f to -0.28f),
-        "armUL" to (-0.10f to -0.26f),
-        "foreArmL" to (-0.10f to -0.115f),
-        "armUR" to (0.10f to -0.26f),
-        "foreArmR" to (0.10f to -0.115f),
-        "thighL" to (-0.07f to -0.02f),
-        "shinL" to (-0.07f to 0.17f),
-        "thighR" to (0.07f to -0.02f),
-        "shinR" to (0.07f to 0.17f)
-    ).mapValues { (_, point) ->
-        Matrix().apply { setTranslate(point.first, point.second) }
-    }
-
-    override fun onDraw(canvas: Canvas) {
-        super.onDraw(canvas)
-        canvas.drawColor(Color.rgb(245, 245, 245))
-        if (width == 0 || height == 0) return
-        val scale = min(width / 0.42f, height / 1.52f) * 0.88f
-        val save = canvas.save()
-        try {
-            canvas.translate(width / 2f, height * 0.52f)
-            canvas.scale(scale, scale)
-            renderer.draw(canvas, library, rig)
-        } finally {
-            canvas.restoreToCount(save)
-        }
+private class Preview(context:android.content.Context,private val library:PieceLibrary,initial:StudioProject):View(context) {
+    private var p=initial
+    private val renderer=AvatarRenderer()
+    private val points=mapOf("torso" to (0f to 0f),"head" to (0f to -0.28f),
+        "armUL" to (-0.10f to -0.26f),"foreArmL" to (-0.10f to -0.115f),
+        "armUR" to (0.10f to -0.26f),"foreArmR" to (0.10f to -0.115f),
+        "thighL" to (-0.07f to -0.02f),"shinL" to (-0.07f to 0.17f),
+        "thighR" to (0.07f to -0.02f),"shinR" to (0.07f to 0.17f))
+    fun update(value:StudioProject){p=value;invalidate()}
+    override fun onDraw(c:Canvas){
+        super.onDraw(c); c.drawColor(Color.WHITE); if(width==0||height==0)return
+        val scale=min(width/0.42f,height/1.52f)*0.82f
+        val matrices=points.mapValues{(bone,pt)->Matrix().apply{setRotate(p.pose[bone]?:0f);postTranslate(pt.first,pt.second)}}
+        val save=c.save()
+        try{
+            c.translate(width/2f,height*0.54f);c.scale(scale,scale)
+            val selection=p.selectedParts.mapNotNull{(key,id)->runCatching{CharacterLayerSlot.valueOf(key)}.getOrNull()?.let{it to id}}.toMap()
+            renderer.draw(c,library,matrices,selection,visibleSlots=StudioProject.SLOT_NAMES-p.hiddenSlots,layerOrder=p.layerOrder)
+        }finally{c.restoreToCount(save)}
     }
 }
