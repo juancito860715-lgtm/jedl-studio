@@ -1,0 +1,67 @@
+name: M0 Android CI
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: m0-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  build-test:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install avatar generator dependencies
+        run: python -m pip install --upgrade pip numpy matplotlib pillow
+      - name: Generate and test the 42-piece avatar bank
+        run: |
+          python -m unittest discover -s tools/avatar_bank -p "test_*.py" -v
+          test "$(find tools/avatar_bank/out/png -maxdepth 1 -name '*.png' -type f | wc -l)" -eq 42
+          mkdir -p app/src/main/assets/characters/jedl_master_v1
+          cp tools/avatar_bank/out/manifest.json app/src/main/assets/characters/jedl_master_v1/manifest.json
+          cp -R tools/avatar_bank/out/png app/src/main/assets/characters/jedl_master_v1/png
+          test -s app/src/main/assets/characters/jedl_master_v1/manifest.json
+          test "$(find app/src/main/assets/characters/jedl_master_v1/png -maxdepth 1 -name '*.png' -type f | wc -l)" -eq 42
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+      - name: Unit tests and debug APK
+        run: gradle --no-daemon --stacktrace testDebugUnitTest assembleDebug
+      - name: Verify avatar assets are packaged inside APK
+        run: |
+          python - <<'PY'
+          import zipfile
+          from pathlib import Path
+          apk = Path("app/build/outputs/apk/debug/app-debug.apk")
+          assert apk.is_file(), f"APK not found: {apk}"
+          expected = "assets/characters/jedl_master_v1/manifest.json"
+          with zipfile.ZipFile(apk) as archive:
+              names = set(archive.namelist())
+              assert expected in names, f"Missing from APK: {expected}"
+              pngs = [name for name in names if name.startswith("assets/characters/jedl_master_v1/png/") and name.endswith(".png")]
+              assert len(pngs) == 42, f"Expected 42 packaged PNGs, found {len(pngs)}"
+          print(f"Verified {expected} and {len(pngs)} PNGs inside {apk}")
+          PY
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-studio-v2-m0-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+      - name: Upload generated avatar bank
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-studio-avatar-bank-42-png
+          path: app/src/main/assets/characters/jedl_master_v1/
+          if-no-files-found: error
