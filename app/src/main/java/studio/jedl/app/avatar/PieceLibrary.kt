@@ -3,6 +3,7 @@ package studio.jedl.app.avatar
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.util.Log
 import org.json.JSONObject
 
 enum class CharacterLayerSlot {
@@ -42,6 +43,7 @@ class PieceLibrary private constructor(
 
     companion object {
         private const val ASSET_ROOT = "characters/jedl_master_v1"
+        private const val TAG = "Assets"
         private val SUPPORTED_BONES = setOf(
             "torso", "head", "armUL", "foreArmL", "armUR", "foreArmR",
             "thighL", "shinL", "thighR", "shinR"
@@ -49,8 +51,15 @@ class PieceLibrary private constructor(
 
         fun load(context: Context): PieceLibrary {
             val app = context.applicationContext
-            val text = app.assets.open("$ASSET_ROOT/manifest.json")
-                .bufferedReader(Charsets.UTF_8).use { it.readText() }
+            val manifestPath = "$ASSET_ROOT/manifest.json"
+            val directoryEntries = app.assets.list(ASSET_ROOT)?.joinToString()
+            Log.d(TAG, "Opening $manifestPath; directory entries=[$directoryEntries]")
+            val text = try {
+                app.assets.open(manifestPath).bufferedReader(Charsets.UTF_8).use { it.readText() }
+            } catch (failure: Exception) {
+                Log.e(TAG, "Failed opening $manifestPath", failure)
+                throw IllegalStateException("No se pudo abrir $manifestPath: ${failure.message}", failure)
+            }
             val root = JSONObject(text)
             val id = root.getString("id").also { require(it.isNotBlank()) }
             require(root.getInt("version") == 1) { "Unsupported avatar manifest version" }
@@ -106,18 +115,21 @@ class PieceLibrary private constructor(
             val decoded = linkedMapOf<String, Bitmap>()
             try {
                 parts.forEach { part ->
-                    val bitmap = app.assets.open("$ASSET_ROOT/${part.file}").use {
-                        BitmapFactory.decodeStream(it)
-                    } ?: error("Cannot decode required PNG: ${part.file}")
+                    val pngPath = "$ASSET_ROOT/${part.file}"
+                    Log.d(TAG, "Opening $pngPath")
+                    val bitmap = app.assets.open(pngPath).use { BitmapFactory.decodeStream(it) }
+                        ?: error("Cannot decode required PNG: $pngPath")
                     require(bitmap.width > 0 && bitmap.height > 0 && bitmap.hasAlpha()) {
-                        "PNG must be non-empty and have alpha: ${part.file}"
+                        "PNG must be non-empty and have alpha: $pngPath"
                     }
                     decoded[part.id] = bitmap
                 }
             } catch (failure: Exception) {
                 decoded.values.forEach { if (!it.isRecycled) it.recycle() }
-                throw IllegalStateException("Unable to load the complete 42-piece avatar bank", failure)
+                Log.e(TAG, "Failed loading avatar PNG bank", failure)
+                throw IllegalStateException("Unable to load the complete 42-piece avatar bank: ${failure.message}", failure)
             }
+            Log.d(TAG, "Loaded ${decoded.size} PNG assets for manifest $id")
             return PieceLibrary(id, parts, defaults, decoded)
         }
     }
