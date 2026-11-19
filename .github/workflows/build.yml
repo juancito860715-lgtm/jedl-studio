@@ -24,7 +24,7 @@ jobs:
       - name: Generate and test the 40-piece avatar bank
         run: |
           python -m unittest discover -s tools/avatar_bank -p "test_*.py" -v
-          test "$(find tools/avatar_bank/out/png -maxdepth 1 -name '*.png' -type f | wc -l)" -eq 40
+          test "$(find tools/avatar_bank/out/png -maxdepth 1 -name '*.png' -type f | wc -l)" -eq 42
           mkdir -p app/src/main/assets/characters/jedl_master_v1
           cp tools/avatar_bank/out/manifest.json app/src/main/assets/characters/jedl_master_v1/manifest.json
           cp -R tools/avatar_bank/out/png app/src/main/assets/characters/jedl_master_v1/png
@@ -63,6 +63,6 @@ jobs:
       - name: Upload generated avatar bank
         uses: actions/upload-artifact@v4
         with:
-          name: jedl-studio-avatar-bank-40-png
+          name: jedl-studio-avatar-bank-42-png
           path: app/src/main/assets/characters/jedl_master_v1/
           if-no-files-found: error

@@ -55,8 +55,8 @@ class PieceLibrary private constructor(
             val id = root.getString("id").also { require(it.isNotBlank()) }
             require(root.getInt("version") == 1) { "Unsupported avatar manifest version" }
             val array = root.getJSONArray("parts")
-            require(array.length() == 40) {
-                "Expected exactly 40 avatar parts, found ${array.length()}"
+            require(array.length() == 42) {
+                "Expected exactly 42 avatar parts, found ${array.length()}"
             }
             val parts = (0 until array.length()).map { index ->
                 val item = array.getJSONObject(index)
@@ -116,7 +116,7 @@ class PieceLibrary private constructor(
                 }
             } catch (failure: Exception) {
                 decoded.values.forEach { if (!it.isRecycled) it.recycle() }
-                throw IllegalStateException("Unable to load the complete 40-piece avatar bank", failure)
+                throw IllegalStateException("Unable to load the complete 42-piece avatar bank", failure)
             }
             return PieceLibrary(id, parts, defaults, decoded)
         }
