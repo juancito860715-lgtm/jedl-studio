@@ -49,6 +49,56 @@ class MainActivity : Activity() {
     }
     private fun toast(s: String) = Toast.makeText(this,s,Toast.LENGTH_SHORT).show()
 
+    private fun slotLabel(slot: CharacterLayerSlot): String = when (slot) {
+        CharacterLayerSlot.HEAD -> "Cabeza"
+        CharacterLayerSlot.EYES -> "Ojos"
+        CharacterLayerSlot.EYEBROWS -> "Cejas"
+        CharacterLayerSlot.MOUTH -> "Boca"
+        CharacterLayerSlot.FACIAL_HAIR -> "Detalles del rostro"
+        CharacterLayerSlot.HAIR_BACK -> "Cabello (parte trasera)"
+        CharacterLayerSlot.HAIR_FRONT -> "Cabello (parte delantera)"
+        CharacterLayerSlot.HAT_BACK -> "Gorra (parte trasera)"
+        CharacterLayerSlot.HAT_FRONT -> "Gorra (parte delantera)"
+        CharacterLayerSlot.TORSO -> "Torso"
+        CharacterLayerSlot.SHIRT -> "Camiseta"
+        CharacterLayerSlot.PANTS -> "Pantalón"
+        CharacterLayerSlot.UPPER_ARM_L -> "Brazo superior izquierdo"
+        CharacterLayerSlot.UPPER_ARM_R -> "Brazo superior derecho"
+        CharacterLayerSlot.SLEEVE_L -> "Manga izquierda"
+        CharacterLayerSlot.SLEEVE_R -> "Manga derecha"
+        CharacterLayerSlot.FOREARM_L -> "Antebrazo izquierdo"
+        CharacterLayerSlot.FOREARM_R -> "Antebrazo derecho"
+        CharacterLayerSlot.HAND_L -> "Mano izquierda"
+        CharacterLayerSlot.HAND_R -> "Mano derecha"
+        CharacterLayerSlot.THIGH_L -> "Muslo izquierdo"
+        CharacterLayerSlot.THIGH_R -> "Muslo derecho"
+        CharacterLayerSlot.SHIN_L -> "Pantorrilla izquierda"
+        CharacterLayerSlot.SHIN_R -> "Pantorrilla derecha"
+        CharacterLayerSlot.SHOE_L -> "Calzado izquierdo"
+        CharacterLayerSlot.SHOE_R -> "Calzado derecho"
+    }
+
+    private fun partLabel(id: String): String {
+        val labels = mapOf(
+            "face_eyes_dots" to "Ojos sencillos", "face_eyes_happy" to "Ojos felices",
+            "face_eyes_wide" to "Ojos sorprendidos", "face_mouth_smile" to "Sonrisa",
+            "face_mouth_open" to "Boca abierta", "face_mouth_neutral" to "Boca neutra",
+            "face_mouth_shout" to "Boca gritando", "face_brows_normal" to "Cejas normales",
+            "face_brows_raised" to "Cejas levantadas", "face_brows_angry" to "Cejas enfadadas",
+            "hair_short_back" to "Cabello corto (atrás)", "hair_short_front" to "Cabello corto",
+            "hair_spiky_back" to "Cabello puntiagudo (atrás)", "hair_spiky_front" to "Cabello puntiagudo",
+            "hair_curly_back" to "Cabello rizado (atrás)", "hair_curly_front" to "Cabello rizado",
+            "shirt_tee_torso" to "Camiseta", "pants_jeans_waist" to "Pantalón vaquero",
+            "hat_cap_crown" to "Gorra: corona", "hat_cap_panel" to "Gorra: panel",
+            "hat_cap_brim" to "Gorra: visera",
+            "armU_skin_L" to "Brazo superior izquierdo", "armU_skin_R" to "Brazo superior derecho",
+            "shirt_tee_sleeve_L" to "Manga izquierda", "shirt_tee_sleeve_R" to "Manga derecha",
+            "hand_open_L" to "Mano izquierda abierta", "hand_open_R" to "Mano derecha abierta",
+            "hand_fist_L" to "Mano izquierda cerrada", "hand_fist_R" to "Mano derecha cerrada"
+        )
+        return labels[id] ?: id.replace('_', ' ').replaceFirstChar { it.uppercase() }
+    }
+
     private fun home() {
         project = null
         val root = LinearLayout(this).apply {
@@ -117,10 +167,10 @@ class MainActivity : Activity() {
             val choices=library.parts.filter { it.slot==slot }
             if (choices.size<2) return@forEach
             val current=p.selectedParts[slot.name] ?: library.defaults[slot]
-            content.addView(button("${slot.name}: ${current ?: "predeterminado"}") {
+            content.addView(button("${slotLabel(slot)}: ${current?.let(::partLabel) ?: "predeterminado"}") {
                 val labels=choices.map { it.id }.toTypedArray()
-                AlertDialog.Builder(this).setTitle("Elegir ${slot.name}")
-                    .setSingleChoiceItems(labels,choices.indexOfFirst { it.id==current }.coerceAtLeast(0)) { dialog,which ->
+                AlertDialog.Builder(this).setTitle("Elegir ${slotLabel(slot)}")
+                    .setSingleChoiceItems(choices.map { partLabel(it.id) }.toTypedArray(),choices.indexOfFirst { it.id==current }.coerceAtLeast(0)) { dialog,which ->
                         project=(project ?: p).copy(selectedParts=(project ?: p).selectedParts+(slot.name to choices[which].id))
                         preview?.update(project!!); dialog.dismiss(); studio(Tab.CHARACTER)
                     }.setNegativeButton("Cancelar",null).show()
@@ -172,7 +222,12 @@ class MainActivity : Activity() {
             })
         })
         listOf("head","armUL","foreArmL","armUR","foreArmR","thighL","shinL","thighR","shinR").forEach { bone ->
-            content.addView(TextView(this).apply { text="Rotación $bone" })
+            val boneName = mapOf("head" to "Cabeza", "armUL" to "Brazo superior izquierdo",
+                "foreArmL" to "Antebrazo izquierdo", "armUR" to "Brazo superior derecho",
+                "foreArmR" to "Antebrazo derecho", "thighL" to "Muslo izquierdo",
+                "shinL" to "Pantorrilla izquierda", "thighR" to "Muslo derecho",
+                "shinR" to "Pantorrilla derecha")[bone] ?: bone
+            content.addView(TextView(this).apply { text="Rotación: $boneName" })
             content.addView(SeekBar(this).apply {
                 max=360; progress=((p.pose[bone]?:0f)+180).toInt().coerceIn(0,360)
                 setOnSeekBarChangeListener(object:SeekBar.OnSeekBarChangeListener {
@@ -214,11 +269,11 @@ private class Preview(context:android.content.Context,private val library:PieceL
     fun update(value:StudioProject){p=value;invalidate()}
     override fun onDraw(c:Canvas){
         super.onDraw(c); c.drawColor(Color.WHITE); if(width==0||height==0)return
-        val scale=min(width/0.42f,height/1.52f)*0.82f
+        val scale=min(width/0.42f,height/1.52f)*0.90f
         val matrices=points.mapValues{(bone,pt)->Matrix().apply{setRotate(p.pose[bone]?:0f);postTranslate(pt.first,pt.second)}}
         val save=c.save()
         try{
-            c.translate(width/2f,height*0.54f);c.scale(scale,scale)
+            c.translate(width/2f,height*0.52f);c.scale(scale,scale)
             val selection=p.selectedParts.mapNotNull{(key,id)->runCatching{CharacterLayerSlot.valueOf(key)}.getOrNull()?.let{it to id}}.toMap()
             renderer.draw(c,library,matrices,selection,visibleSlots=StudioProject.SLOT_NAMES-p.hiddenSlots,layerOrder=p.layerOrder)
         }finally{c.restoreToCount(save)}

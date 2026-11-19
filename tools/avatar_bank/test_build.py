@@ -39,6 +39,27 @@ class AvatarBankBuildTest(unittest.TestCase):
                 self.assertGreater(inked, 0, f"{part_id} has no preserved ink outline")
                 self.assertGreater(transparent, 0, f"{part_id} lost transparent exterior")
 
+    def test_both_upper_arms_and_shirt_sleeves_are_generated_and_defaulted(self):
+        by_id = {part["id"]: part for part in self.manifest["parts"]}
+        expected = {
+            "armU_skin_L": ("UPPER_ARM_L", "armUL"),
+            "armU_skin_R": ("UPPER_ARM_R", "armUR"),
+            "shirt_tee_sleeve_L": ("SLEEVE_L", "armUL"),
+            "shirt_tee_sleeve_R": ("SLEEVE_R", "armUR"),
+        }
+        for part_id, (slot, bone) in expected.items():
+            with self.subTest(part=part_id):
+                self.assertIn(part_id, by_id)
+                part = by_id[part_id]
+                self.assertEqual(part["slot"], slot)
+                self.assertEqual(part["boneId"], bone)
+                self.assertEqual(self.manifest["defaults"][slot], part_id)
+                image_path = self.output / part["file"]
+                self.assertTrue(image_path.is_file())
+                with Image.open(image_path) as image:
+                    self.assertEqual(image.mode, "RGBA")
+                    self.assertIsNotNone(image.getchannel("A").getbbox())
+
     def test_manifest_slots_match_real_kotlin_enum(self):
         allowed = {
             "HEAD", "EAR_L", "EAR_R", "EYES", "EYEBROWS", "NOSE", "MOUTH",
