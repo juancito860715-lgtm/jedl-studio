@@ -17,15 +17,15 @@ class LicenseRegistryTest {
         assertTrue("Assets directory is missing: ${assets.path}", assets.isDirectory)
 
         val json = registry.readText()
-        val allowedBlock = Regex("\\\"allowedLicenses\\\"\\s*:\\s*\\[(.*?)]", RegexOption.DOT_MATCHES_ALL)
+        val allowedBlock = Regex(""""allowedLicenses"\s*:\s*\[(.*?)]""", RegexOption.DOT_MATCHES_ALL)
             .find(json)?.groupValues?.get(1).orEmpty()
-        val declaredAllowed = Regex("\\\"([^\\"]+)\\\"")
+        val declaredAllowed = Regex(""""([^"]+)"""")
             .findAll(allowedBlock).map { it.groupValues[1] }.toSet()
         assertEquals("Registry allowed licenses must match the policy", allowed, declaredAllowed)
 
         val entryPattern = Regex("""\{\s*"path"\s*:\s*"([^"]+)"\s*,\s*"license"\s*:\s*"([^"]+)"\s*}""")
         fun readEntries(key: String): Map<String, String> {
-            val block = Regex("\\\"$key\\\"\\s*:\\s*\\[(.*?)]", RegexOption.DOT_MATCHES_ALL)
+            val block = Regex(""""$key"\s*:\s*\[(.*?)]""", RegexOption.DOT_MATCHES_ALL)
                 .find(json)?.groupValues?.get(1).orEmpty()
             val matches = entryPattern.findAll(block).toList()
             val parsed = matches.associate { it.groupValues[1] to it.groupValues[2] }

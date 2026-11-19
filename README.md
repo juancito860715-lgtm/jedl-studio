@@ -1,1 +1,0 @@
-# jedl-studio
