@@ -96,7 +96,26 @@ class MainActivity : Activity() {
             "hand_open_L" to "Mano izquierda abierta", "hand_open_R" to "Mano derecha abierta",
             "hand_fist_L" to "Mano izquierda cerrada", "hand_fist_R" to "Mano derecha cerrada"
         )
-        return labels[id] ?: id.replace('_', ' ').replaceFirstChar { it.uppercase() }
+        return labels[id] ?: run {
+            // Traductor de respaldo: ningún identificador interno del banco debe llegar en inglés a la interfaz.
+            val words = mapOf(
+                "face" to "", "eyes" to "ojos", "mouth" to "boca", "brows" to "cejas",
+                "hair" to "cabello", "short" to "corto", "spiky" to "puntiagudo",
+                "curly" to "rizado", "back" to "trasero", "front" to "delantero",
+                "skin" to "piel", "head" to "cabeza", "torso" to "torso",
+                "shirt" to "camiseta", "tee" to "", "sleeve" to "manga",
+                "pants" to "pantalón", "jeans" to "vaquero", "waist" to "cintura",
+                "armU" to "brazo superior", "forearm" to "antebrazo",
+                "hand" to "mano", "open" to "abierta", "fist" to "cerrada",
+                "thigh" to "muslo", "shin" to "pantorrilla", "shoe" to "calzado",
+                "sneaker" to "deportivo", "upper" to "superior", "sole" to "suela",
+                "cap" to "gorra", "crown" to "corona", "panel" to "panel",
+                "brim" to "visera", "blush" to "rubor", "L" to "izquierdo",
+                "R" to "derecho"
+            )
+            id.split('_').mapNotNull { token -> words[token]?.takeIf { it.isNotBlank() } ?: if (token in words) null else token }
+                .joinToString(" ").replaceFirstChar { it.uppercase() }
+        }
     }
 
     private fun home() {
