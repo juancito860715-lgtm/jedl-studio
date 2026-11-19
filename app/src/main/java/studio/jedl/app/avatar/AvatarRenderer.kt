@@ -15,11 +15,15 @@ class AvatarRenderer {
         library: PieceLibrary,
         boneMatrices: Map<String, Matrix>,
         selection: Map<CharacterLayerSlot, String> = emptyMap(),
-        colors: Map<String, Int> = emptyMap()
+        colors: Map<String, Int> = emptyMap(),
+        visibleSlots: Set<String> = CharacterLayerSlot.values().map { it.name }.toSet(),
+        layerOrder: List<String> = emptyList()
     ) {
+        val orderIndex = layerOrder.withIndex().associate { it.value to it.index }
         val layers = library.resolve(selection)
-        require(layers.isNotEmpty()) { "Avatar manifest resolved to no visible layers" }
-        // Merge overrides instead of disabling channels omitted by the caller.
+            .filter { it.slot.name in visibleSlots }
+            .sortedWith(compareBy<AvatarPiece> { orderIndex[it.slot.name] ?: Int.MAX_VALUE }
+                .thenBy { it.zIndex })
         val activeColors = AvatarColorPalette.DEFAULTS + colors
         layers.forEach { part ->
             val matrix = boneMatrices[part.boneId]
@@ -27,8 +31,6 @@ class AvatarRenderer {
             val bitmap = library.bitmap(part.id)
             val save = canvas.save()
             try {
-                // Apply the bone transform first, then place the PNG so its
-                // normalized manifest pivot coincides with the bone origin.
                 canvas.concat(matrix)
                 canvas.translate(
                     part.offsetX - part.pivotX * part.widthUnits,
@@ -36,11 +38,7 @@ class AvatarRenderer {
                 )
                 canvas.scale(part.widthUnits / bitmap.width, part.heightUnits / bitmap.height)
                 paint.colorFilter = part.tintChannel?.let { key ->
-                    activeColors[key]?.let {
-                        // MULTIPLY colors the white raster fill but keeps black
-                        // outlines and darker facial/clothing details intact.
-                        PorterDuffColorFilter(it, PorterDuff.Mode.MULTIPLY)
-                    }
+                    activeColors[key]?.let { PorterDuffColorFilter(it, PorterDuff.Mode.MULTIPLY) }
                 }
                 canvas.drawBitmap(bitmap, 0f, 0f, paint)
             } finally {
