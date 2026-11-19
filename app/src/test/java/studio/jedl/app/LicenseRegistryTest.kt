@@ -23,7 +23,7 @@ class LicenseRegistryTest {
             .findAll(allowedBlock).map { it.groupValues[1] }.toSet()
         assertEquals("Registry allowed licenses must match the policy", allowed, declaredAllowed)
 
-        val entryPattern = Regex("""\\{\\s*"path"\\s*:\\s*"([^"]+)"\\s*,\\s*"license"\\s*:\\s*"([^"]+)"\\s*}""")
+        val entryPattern = Regex("""\{\s*"path"\s*:\s*"([^"]+)"\s*,\s*"license"\s*:\s*"([^"]+)"\s*}""")
         fun readEntries(key: String): Map<String, String> {
             val block = Regex("\\\"$key\\\"\\s*:\\s*\\[(.*?)]", RegexOption.DOT_MATCHES_ALL)
                 .find(json)?.groupValues?.get(1).orEmpty()
