@@ -43,21 +43,22 @@ jobs:
               assert len(manifest["defaults"]) == 23, style
           print("Both generated styles satisfy the shared humanoid rig and 23-slot default contract.")
           PY
-      - name: Download and inventory Kenney source (not packaged until simplified-rig mapping is validated)
+      - name: Download and inspect RGS_Dev CC0 character archive
         run: |
-          python tools/process_kenney.py --download
-      - name: Upload original Kenney archive for anatomy review
+          set -euo pipefail
+          mkdir -p temp_rgs
+          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 30 --max-time 600 \
+            "https://opengameart.org/sites/default/files/free_2d_animated_vector_game_character_sprites.zip" -o /tmp/rgs_characters.zip
+          test -s /tmp/rgs_characters.zip
+          unzip -q /tmp/rgs_characters.zip -d temp_rgs
+          python tools/inspect_rgs.py --root temp_rgs --output rgs_inventory.json
+      - name: Upload RGS forensic inventory
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kenney-original-source-zip
-          path: build/kenney/kenney.zip
-          if-no-files-found: error
-      - name: Upload Kenney sprite inventory
-        uses: actions/upload-artifact@v4
-        with:
-          name: kenney-modular-character-inventory
-          path: build/kenney/kenney_inventory.json
-          if-no-files-found: error
+          name: rgs-character-png-inventory
+          path: rgs_inventory.json
+          if-no-files-found: warn
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
