@@ -82,7 +82,7 @@ def resolve_download(page_url, page_html):
         if parsed.scheme != "https" or parsed.hostname not in ("kenney.nl", "www.kenney.nl"):
             continue
         lowered = parsed.path.lower()
-        if lowered.endswith(".zip") or "/download/" in lowered:
+        if lowered.endswith(".zip") or lowered.endswith("/download") or "/download/" in lowered:
             candidates.append(absolute)
     if not candidates:
         raise ValueError("No direct Kenney ZIP download link found on the official asset page")
