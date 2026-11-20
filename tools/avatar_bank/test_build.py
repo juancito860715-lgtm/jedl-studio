@@ -29,7 +29,7 @@ class AvatarBankBuildTest(unittest.TestCase):
     def test_body_pngs_contain_filled_silhouettes_and_transparent_exterior(self):
         body_parts = (
             "head_skin", "torso_skin", "shirt_tee_torso", "pants_jeans_waist",
-            "armu_skin_l", "armu_skin_r", "thigh_jeans_l", "thigh_jeans_r",
+            "armU_skin_L", "armU_skin_R", "thigh_jeans_l", "thigh_jeans_r",
         )
         by_id = {part["id"]: part for part in self.manifest["parts"]}
         for part_id in body_parts:
@@ -77,7 +77,7 @@ class AvatarBankBuildTest(unittest.TestCase):
         self.assertIn(" C ", tube(0, -0.2, 0.0, 0.05, 0.04))
         self.assertIn(" C ", P["torso_skin"]["shapes"][0]["d"])
         self.assertIn(" C ", P["shirt_tee_torso"]["shapes"][0]["d"])
-        for part_id in ("shirt_tee_sleeve_l", "shirt_tee_sleeve_r",
+        for part_id in ("shirt_tee_sleeve_L", "shirt_tee_sleeve_R",
                         "armu_skin_l", "armu_skin_r"):
             self.assertIn(" C ", P[part_id]["shapes"][0]["d"])
 
