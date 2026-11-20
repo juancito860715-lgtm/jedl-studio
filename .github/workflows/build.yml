@@ -31,23 +31,6 @@ jobs:
           python tools/avatar_bank/build_style_packs.py
           test "$(find app/src/main/assets/styles/default/characters -name "*.png" -type f | wc -l)" -eq 42
           test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          registry = Path("licenses/REGISTRY.json")
-          data = json.loads(registry.read_text(encoding="utf-8"))
-          assets = Path("app/src/main/assets")
-          entries = {entry["path"]: entry["license"] for entry in data["entries"]}
-          for path in assets.rglob("*"):
-              if path.is_file():
-                  relative = path.relative_to(assets).as_posix()
-                  entries.setdefault(relative, "OWN")
-          data["entries"] = [
-              {"path": path, "license": license}
-              for path, license in sorted(entries.items())
-          ]
-          registry.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-          PY
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
