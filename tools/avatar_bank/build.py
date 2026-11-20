@@ -48,7 +48,10 @@ SUPPORTED_BONES = {
 # differs from the legacy source bucket.
 def get_kotlin_slot(pid, part):
     if pid.startswith("hand_"):
-        return "HAND_L" if pid.endswith("_L") else "HAND_R"
+        side = pid.rsplit("_", 1)[-1].lower()
+        if side not in {"l", "r"}:
+            raise ValueError(f"Hand part has no explicit side: {pid}")
+        return "HAND_L" if side == "l" else "HAND_R"
     key = (part["slot"], part["bone"])
     try:
         return SLOT_BY_SOURCE[key]
@@ -85,7 +88,9 @@ def build():
     PNG_DIR.mkdir(parents=True, exist_ok=True)
     parts = []
     ids = set()
-    for part_id, source in sorted(P.items(), key=lambda item: (item[1]["z"], item[0])):
+    for raw_part_id, source in sorted(P.items(), key=lambda item: (item[1]["z"], item[0])):
+        # Android manifest IDs are canonical lowercase slugs; source art keys may use L/R.
+        part_id = raw_part_id.lower()
         if part_id in ids:
             raise ValueError(f"Duplicate part id: {part_id}")
         ids.add(part_id)
@@ -115,7 +120,8 @@ def build():
 
     by_id = {part["id"]: part for part in parts}
     defaults = {}
-    for slot, part_id in DEFAULT_PARTS.items():
+    for slot, raw_part_id in DEFAULT_PARTS.items():
+        part_id = raw_part_id.lower()
         if part_id not in by_id:
             raise ValueError(f"Default part does not exist: {slot} -> {part_id}")
         if by_id[part_id]["slot"] != slot:

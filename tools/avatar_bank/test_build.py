@@ -20,6 +20,8 @@ class AvatarBankBuildTest(unittest.TestCase):
         self.assertEqual(set(self.manifest["rigBones"]), avatar_build.SUPPORTED_BONES)
         ids = [part["id"] for part in self.manifest["parts"]]
         self.assertEqual(len(ids), len(set(ids)))
+        self.assertTrue(all(part_id == part_id.lower() for part_id in ids))
+        self.assertTrue(all(__import__("re").fullmatch(r"[a-z0-9][a-z0-9_-]{0,79}", part_id) for part_id in ids))
         pngs = list((self.output / "png").glob("*.png"))
         self.assertEqual(len(pngs), 42)
 
@@ -27,7 +29,7 @@ class AvatarBankBuildTest(unittest.TestCase):
     def test_body_pngs_contain_filled_silhouettes_and_transparent_exterior(self):
         body_parts = (
             "head_skin", "torso_skin", "shirt_tee_torso", "pants_jeans_waist",
-            "armU_skin_L", "armU_skin_R", "thigh_jeans_L", "thigh_jeans_R",
+            "armu_skin_l", "armu_skin_r", "thigh_jeans_l", "thigh_jeans_r",
         )
         by_id = {part["id"]: part for part in self.manifest["parts"]}
         for part_id in body_parts:
@@ -44,10 +46,10 @@ class AvatarBankBuildTest(unittest.TestCase):
     def test_both_upper_arms_and_shirt_sleeves_are_generated_and_defaulted(self):
         by_id = {part["id"]: part for part in self.manifest["parts"]}
         expected = {
-            "armU_skin_L": ("UPPER_ARM_L", "armUL"),
-            "armU_skin_R": ("UPPER_ARM_R", "armUR"),
-            "shirt_tee_sleeve_L": ("SLEEVE_L", "armUL"),
-            "shirt_tee_sleeve_R": ("SLEEVE_R", "armUR"),
+            "armu_skin_l": ("UPPER_ARM_L", "armUL"),
+            "armu_skin_r": ("UPPER_ARM_R", "armUR"),
+            "shirt_tee_sleeve_l": ("SLEEVE_L", "armUL"),
+            "shirt_tee_sleeve_r": ("SLEEVE_R", "armUR"),
         }
         for part_id, (slot, bone) in expected.items():
             with self.subTest(part=part_id):

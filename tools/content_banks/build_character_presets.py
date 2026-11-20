@@ -28,7 +28,7 @@ PRESETS = [
         "HAT_BACK": "hat_cap_crown", "HAT_FRONT": "hat_cap_brim"
     }),
     ("closed_hands", "Manos cerradas", "Puños para poses de acción", {
-        "HAND_L": "hand_fist_L", "HAND_R": "hand_fist_R"
+        "HAND_L": "hand_fist_l", "HAND_R": "hand_fist_r"
     }),
 ]
 
