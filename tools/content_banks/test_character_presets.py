@@ -25,7 +25,7 @@ class CharacterPresetBuildTests(unittest.TestCase):
         presets = build_character_presets.build()
         self.assertEqual({p["id"] for p in presets}, {
             "master_default", "hair_spiky", "hair_curly", "expression_happy",
-            "expression_surprised", "urban_cap", "cap_brim", "closed_hands"
+            "expression_surprised", "urban_cap", "cap_brim", "expression_serious"
         })
 
 
