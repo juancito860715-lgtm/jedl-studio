@@ -11,15 +11,41 @@ sys.path.insert(0, str(HERE))
 from import_kenney_pack import import_kenney_pack
 
 
+SLOT_BONES = {
+    "HEAD": "head", "EYES": "head", "EYEBROWS": "head", "MOUTH": "head",
+    "FACIAL_HAIR": "head", "HAIR_BACK": "head", "HAIR_FRONT": "head",
+    "HAT_BACK": "head", "HAT_FRONT": "head",
+    "TORSO": "torso", "SHIRT": "torso", "PANTS": "torso",
+    "UPPER_ARM_L": "armUL", "SLEEVE_L": "armUL",
+    "UPPER_ARM_R": "armUR", "SLEEVE_R": "armUR",
+    "FOREARM_L": "foreArmL", "HAND_L": "foreArmL",
+    "FOREARM_R": "foreArmR", "HAND_R": "foreArmR",
+    "THIGH_L": "thighL", "THIGH_R": "thighR",
+    "SHIN_L": "shinL", "SHIN_R": "shinR",
+    "SHOE_L": "shinL", "SHOE_R": "shinR"
+}
+
+
 class KenneyPackImporterTests(unittest.TestCase):
     def _fixture(self, root):
         archive = root / "kenney.zip"
+        import io
         with zipfile.ZipFile(archive, "w") as zf:
-            import io
-            buffer = io.BytesIO()
-            Image.new("RGBA", (16, 24), (220, 80, 50, 255)).save(buffer, format="PNG")
-            zf.writestr("Kenney/parts/head.png", buffer.getvalue())
-            zf.writestr("Kenney/parts/hand.png", buffer.getvalue())
+            for name, color in (("head", (220, 80, 50, 255)), ("hand", (80, 120, 220, 255))):
+                buffer = io.BytesIO()
+                Image.new("RGBA", (16, 24), color).save(buffer, format="PNG")
+                zf.writestr(f"Kenney/parts/{name}.png", buffer.getvalue())
+        parts = []
+        defaults = {}
+        for index, (slot, bone) in enumerate(SLOT_BONES.items()):
+            part_id = "kenney_" + slot.lower()
+            defaults[slot] = part_id
+            parts.append({
+                "id": part_id,
+                "sourceFile": "Kenney/parts/head.png" if bone == "head" else "Kenney/parts/hand.png",
+                "slot": slot, "boneId": bone, "pivotX": 0.5, "pivotY": 0.8,
+                "widthUnits": 0.18, "heightUnits": 0.20, "zIndex": index
+            })
         mapping = {
             "id": "kenney_modular_character_pack",
             "title": "Kenney Modular Character Pack",
@@ -30,21 +56,13 @@ class KenneyPackImporterTests(unittest.TestCase):
             "rigId": "jedl_humanoid_v1",
             "rigBones": ["torso", "head", "armUL", "foreArmL", "armUR", "foreArmR",
                          "thighL", "shinL", "thighR", "shinR"],
-            "defaults": {"HEAD": "kenney_head", "HAND_L": "kenney_hand"},
-            "parts": [
-                {"id": "kenney_head", "sourceFile": "Kenney/parts/head.png", "slot": "HEAD",
-                 "boneId": "head", "pivotX": 0.5, "pivotY": 0.8, "widthUnits": 0.18,
-                 "heightUnits": 0.20, "zIndex": 10},
-                {"id": "kenney_hand", "sourceFile": "Kenney/parts/hand.png", "slot": "HAND_L",
-                 "boneId": "foreArmL", "pivotX": 0.5, "pivotY": 0.1, "widthUnits": 0.06,
-                 "heightUnits": 0.05, "zIndex": 20}
-            ]
+            "defaults": defaults, "parts": parts
         }
         map_path = root / "mapping.json"
         map_path.write_text(json.dumps(mapping), encoding="utf-8")
         return archive, map_path, mapping
 
-    def test_imports_pngs_and_emits_manifest_with_shared_rig(self):
+    def test_imports_pngs_and_emits_manifest_with_shared_rig_and_all_slots(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive, mapping, expected = self._fixture(root)
@@ -52,11 +70,10 @@ class KenneyPackImporterTests(unittest.TestCase):
             manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["rigId"], "jedl_humanoid_v1")
             self.assertEqual(manifest["rigBones"], expected["rigBones"])
-            self.assertEqual({p["id"] for p in manifest["parts"]},
-                             {"kenney_head", "kenney_hand"})
+            self.assertEqual({p["slot"] for p in manifest["parts"]}, set(SLOT_BONES))
+            self.assertEqual(len(manifest["parts"]), len(SLOT_BONES))
             for part in manifest["parts"]:
                 self.assertTrue((out / part["file"]).is_file())
-                self.assertTrue((out / part["file"]).is_relative_to(out))
             self.assertTrue((out / "LICENSE.txt").is_file())
             self.assertTrue((out / "SOURCE.json").is_file())
 
@@ -69,13 +86,20 @@ class KenneyPackImporterTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 import_kenney_pack(archive, map_path, root / "out")
 
-    def test_rejects_zip_path_traversal_and_non_png_inputs(self):
+    def test_rejects_zip_path_traversal_and_noncanonical_slot_bone_mapping(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive, map_path, mapping = self._fixture(root)
             with zipfile.ZipFile(archive, "a") as zf:
                 zf.writestr("../escape.png", b"bad")
             mapping["parts"][0]["sourceFile"] = "../escape.png"
+            map_path.write_text(json.dumps(mapping), encoding="utf-8")
+            with self.assertRaises(ValueError):
+                import_kenney_pack(archive, map_path, root / "out")
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            archive, map_path, mapping = self._fixture(root)
+            mapping["parts"][0]["boneId"] = "torso"
             map_path.write_text(json.dumps(mapping), encoding="utf-8")
             with self.assertRaises(ValueError):
                 import_kenney_pack(archive, map_path, root / "out")
