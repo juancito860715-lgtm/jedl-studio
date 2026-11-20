@@ -44,22 +44,25 @@ class ContentLibrary private constructor(
     private val cache = LinkedHashMap<String, Bitmap>(24, 0.75f, true)
     private val assetIndex: Map<String, ContentAsset> = banks.flatMap { it.assets }.associateBy { it.id }
 
-    fun bitmap(asset: ContentAsset): Bitmap = synchronized(cache) {
-        cache[asset.id]?.let { return@synchronized it }
-        val decoded = context.assets.open(asset.assetPath).use { BitmapFactory.decodeStream(it) }
+    fun bitmap(asset: ContentAsset): Bitmap = loadBitmap(asset, 512)
+    fun thumbnail(asset: ContentAsset): Bitmap = loadBitmap(asset, 72)
+
+    private fun loadBitmap(asset: ContentAsset, maxDimension: Int): Bitmap = synchronized(cache) {
+        val cacheKey = asset.id + "@" + maxDimension
+        cache[cacheKey]?.let { return@synchronized it }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        context.assets.open(asset.assetPath).use { BitmapFactory.decodeStream(it, null, bounds) }
+        require(bounds.outWidth > 0 && bounds.outHeight > 0) { "Imagen inválida: " + asset.assetPath }
+        var sample = 1
+        while (maxOf(bounds.outWidth, bounds.outHeight) / sample > maxDimension) sample *= 2
+        val options = BitmapFactory.Options().apply { inSampleSize = sample }
+        val decoded = context.assets.open(asset.assetPath).use { BitmapFactory.decodeStream(it, null, options) }
             ?: error("No se pudo decodificar " + asset.assetPath)
-        require(decoded.width > 0 && decoded.height > 0) {
-            "Imagen inválida o sin transparencia: " + asset.assetPath
-        }
-        if (cache.size >= 48) {
+        if (cache.size >= 64) {
             val iterator = cache.entries.iterator()
-            if (iterator.hasNext()) {
-                val old = iterator.next()
-                iterator.remove()
-                if (!old.value.isRecycled) old.value.recycle()
-            }
+            if (iterator.hasNext()) iterator.next().also { iterator.remove() }
         }
-        cache[asset.id] = decoded
+        cache[cacheKey] = decoded
         decoded
     }
 
@@ -92,10 +95,22 @@ class ContentLibrary private constructor(
                     "Permisos de redistribución insuficientes para " + id
                 }
                 val array = json.getJSONArray("assets")
-                val assets = (0 until array.length()).map { index ->
+                val assets = (0 until array.length()).mapNotNull { index ->
                     val item = array.getJSONObject(index)
                     val sourceFile = item.optString("sourceFile", item.getString("file"))
-                    val category = sourceFile.substringBefore('/').takeIf { it != sourceFile } ?: "General"
+                    val lowerName = sourceFile.substringAfterLast('/').lowercase()
+                    if (lowerName.contains("preview") || lowerName.contains("sample") || lowerName.contains("instruction")) {
+                        return@mapNotNull null
+                    }
+                    if (kind == ContentKind.CHARACTER_PART &&
+                        !(sourceFile.startsWith("PNG/") || sourceFile.startsWith("Spritesheet/"))) {
+                        return@mapNotNull null
+                    }
+                    val category = if (kind == ContentKind.CHARACTER_PART) {
+                        sourceFile.split('/').getOrNull(1) ?: "General"
+                    } else {
+                        sourceFile.substringBefore('/').takeIf { it != sourceFile } ?: "General"
+                    }
                     val file = item.getString("file")
                     require(file.startsWith("png/") && !file.contains("..") && !file.startsWith("/")) {
                         "Ruta insegura en " + id + ": " + file
