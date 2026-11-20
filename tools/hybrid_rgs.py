@@ -62,10 +62,7 @@ def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: P
     required_slots = {"HEAD", "EYES", "MOUTH", "HAIR_FRONT", "HAND_L", "HAND_R", "SHOE_L", "SHOE_R"}
     if not required_slots.issubset(defaults):
         raise ValueError(f"Body manifest lacks required defaults: {sorted(required_slots - set(defaults))}")
-    for slot in ("HAND_L", "HAND_R", "SHOE_L", "SHOE_R"):
-        parts = [p for p in parts if p["slot"] != slot]
-
-    character_dir = output / "characters"
+    # Keep generated alternatives as selectable variants; RGS pieces become defaults.\n\n    character_dir = output / "characters"
     character_dir.mkdir(parents=True, exist_ok=True)
     source_prefix = rgs_root / RGS_ROOT_NAME
     copied = []
