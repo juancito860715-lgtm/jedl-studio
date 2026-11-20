@@ -21,8 +21,6 @@ MIRROR = "https://raw.githubusercontent.com/bill2432/kenney-2d-mirror/main/packs
 PACKS = {
     "objects": {"id":"kenney_tiny_town_objects","title":"Kenney Tiny Town","page":"https://kenney.nl/assets/tiny-town","archive":"tiny-town.zip","sha256":"9768692dccff1d706408a5aedd6ca4f6cd1409506cbc84cb2f862919764be977","expected_min_png":100,"kind":"environment-object"},
     "foliage": {"id":"kenney_foliage_objects","title":"Kenney Foliage Pack","page":"https://kenney.nl/assets/foliage-pack","archive":"foliage-pack.zip","sha256":"33bd564f2cebb6a68bee9a798650d669571a389a437b0bd601d257ca2b5e7aed","expected_min_png":80,"kind":"nature-object"},
-    "platformer": {"id":"kenney_new_platformer_objects","title":"Kenney New Platformer Pack","page":"https://kenney.nl/assets/new-platformer-pack","archive":"new-platformer-pack.zip","sha256":"553b907f3f0e505ab65f56f245ccaff3123c8fe3f3a0dfce9373b996bfc18cc2","expected_min_png":50,"kind":"platformer-object"},
-    "pixel": {"id":"kenney_pixel_platformer_objects","title":"Kenney Pixel Platformer Pack","page":"https://kenney.nl/assets/pixel-platformer","archive":"pixel-platformer.zip","sha256":"d01a196dbe3cc964e00d83ba3b987df62f332dc9260c9f941b4fbcc9047130f4","expected_min_png":50,"kind":"platformer-object"},
 }
 CC0_TERMS = "https://creativecommons.org/publicdomain/zero/1.0/"
 USER_AGENT = "JEDL-Studio-CC0-Asset-Importer/1.0"
