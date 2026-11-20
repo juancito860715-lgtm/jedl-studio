@@ -237,7 +237,7 @@ class MainActivity : Activity() {
                         textSize = 14f
                         setPadding(10, 0, 0, 0)
                     }, LinearLayout.LayoutParams(0, -2, 1f))
-                    row
+                    return row
                 }
             }
             list.setOnItemClickListener { _, _, index, _ ->
