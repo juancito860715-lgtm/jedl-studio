@@ -46,6 +46,8 @@ jobs:
               assert len(manifest["defaults"]) == 23, style
           print("Both generated styles satisfy the shared humanoid rig and 23-slot default contract.")
           PY
+      - name: Test Kenney limb segmenter
+        run: python -m unittest discover -s tools -p 'test_segment_kenney.py' -v
       - name: Download and process Kenney Modular Character Pack
         run: |
           python tools/process_kenney.py --download
