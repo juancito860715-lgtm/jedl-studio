@@ -11,7 +11,7 @@ sys.path.insert(0, str(HERE))
 from import_kenney_pack import import_kenney_pack
 
 
-SLOT_BONES = {
+REQUIRED_DEFAULT_SLOTS = {\n    "HEAD", "EYES", "EYEBROWS", "MOUTH", "HAIR_BACK", "HAIR_FRONT",\n    "TORSO", "SHIRT", "PANTS", "UPPER_ARM_L", "UPPER_ARM_R",\n    "SLEEVE_L", "SLEEVE_R", "FOREARM_L", "FOREARM_R",\n    "HAND_L", "HAND_R", "THIGH_L", "THIGH_R", "SHIN_L", "SHIN_R",\n    "SHOE_L", "SHOE_R"\n}\n\nSLOT_BONES = {
     "HEAD": "head", "EYES": "head", "EYEBROWS": "head", "MOUTH": "head",
     "FACIAL_HAIR": "head", "HAIR_BACK": "head", "HAIR_FRONT": "head",
     "HAT_BACK": "head", "HAT_FRONT": "head",
@@ -37,7 +37,7 @@ class KenneyPackImporterTests(unittest.TestCase):
                 zf.writestr(f"Kenney/parts/{name}.png", buffer.getvalue())
         parts = []
         defaults = {}
-        for index, (slot, bone) in enumerate(SLOT_BONES.items()):
+        for index, (slot, bone) in enumerate((slot, SLOT_BONES[slot]) for slot in sorted(REQUIRED_DEFAULT_SLOTS)):
             part_id = "kenney_" + slot.lower()
             defaults[slot] = part_id
             parts.append({
