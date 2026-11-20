@@ -103,7 +103,7 @@ class ContentLibrary private constructor(
                         return@mapNotNull null
                     }
                     if (kind == ContentKind.CHARACTER_PART &&
-                        !(sourceFile.startsWith("PNG/") || sourceFile.startsWith("Spritesheet/"))) {
+                        !sourceFile.startsWith("PNG/")) {
                         return@mapNotNull null
                     }
                     val category = if (kind == ContentKind.CHARACTER_PART) {
