@@ -29,6 +29,7 @@ jobs:
           cp tools/avatar_bank/out/manifest.json app/src/main/assets/characters/jedl_master_v1/manifest.json
           cp -R tools/avatar_bank/out/png app/src/main/assets/characters/jedl_master_v1/png
           python tools/avatar_bank/build_style_packs.py
+          python tools/content_banks/build_character_presets.py
           test "$(find app/src/main/assets/styles/default/characters -name "*.png" -type f | wc -l)" -eq 42
           test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
       - name: Download and package the CC0 Kenney character source bank
@@ -72,6 +73,10 @@ jobs:
           import json
           from pathlib import Path
           root = Path("app/src/main/assets/content")
+          preset_file = root / "character_presets.json"
+          presets = json.loads(preset_file.read_text(encoding="utf-8"))
+          assert presets["presetCount"] == 8
+          assert len(presets["presets"]) == 8
           expected = {
               "characters/kenney_modular_character_pack": 400,
               "kenney_tiny_town_objects": 50,
