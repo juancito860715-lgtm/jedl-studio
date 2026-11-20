@@ -1,7 +1,7 @@
 package studio.jedl.app.avatar
 
 object StylePackContract {
-    const val DEFAULT_STYLE = "default"
+    const val DEFAULT_STYLE = "hybrid"
     private val STYLE_ID = Regex("[a-z0-9][a-z0-9_-]{0,39}")
 
     fun isValidStyleId(value: String): Boolean = STYLE_ID.matches(value)
