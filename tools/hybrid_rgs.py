@@ -179,6 +179,7 @@ def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: P
             source_png = source_png_dir / f'{p["id"]}.png'
             if not source_png.is_file():
                 raise FileNotFoundError(f"Generated body PNG missing: {source_png}")
+            dest.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source_png, dest)
 
     manifest = dict(source)
