@@ -210,7 +210,8 @@ def main():
     parser.add_argument("--rgs-root", default="temp_rgs")
     parser.add_argument("--source-manifest", default="tools/avatar_bank/out/manifest.json")
     parser.add_argument("--source-png-dir", default="tools/avatar_bank/out/png")
-    parser.add_argument("--output", default="app/src/main/assets/styles/hybrid")\n    parser.add_argument("--pivots", default="rgs_auto_pivots.json")
+    parser.add_argument("--output", default="app/src/main/assets/styles/hybrid")
+    parser.add_argument("--pivots", default="rgs_auto_pivots.json")
     args = parser.parse_args()
     build(Path(args.rgs_root), Path(args.source_manifest), Path(args.source_png_dir), Path(args.output), Path(args.pivots))
 
