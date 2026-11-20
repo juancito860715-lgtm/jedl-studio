@@ -378,7 +378,19 @@ class MainActivity : Activity() {
 
     private fun characterPanel() {
         val p=project ?: return
-        content.addView(heading("Seleccionar piezas del personaje"))
+        content.addView(heading("Personajes preconfigurados"))
+        content.addView(TextView(this).apply {
+            text = "Selecciona una apariencia completa y después personaliza sus piezas."
+        })
+        contentLibrary.presets.forEach { preset ->
+            content.addView(button(preset.title) {
+                val current = project ?: p
+                project = current.copy(selectedParts = preset.selectedParts)
+                preview?.update(project!!)
+                toast("Apariencia aplicada: " + preset.title)
+            })
+        }
+        content.addView(heading("Personalizar piezas del personaje"))
         CharacterLayerSlot.values().forEach { slot ->
             val choices=library.parts.filter { it.slot==slot }
             if (choices.size<2) return@forEach
