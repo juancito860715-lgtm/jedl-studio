@@ -7,6 +7,8 @@ class StylePackContractTest {
     @Test fun acceptsOnlySafeStyleIdentifiers() {
         assertTrue(StylePackContract.isValidStyleId("default"))
         assertTrue(StylePackContract.isValidStyleId("boceto"))
+        assertTrue(StylePackContract.isValidStyleId("hybrid"))
+        assertEquals("hybrid", StylePackContract.DEFAULT_STYLE)
         assertTrue(StylePackContract.isValidStyleId("anime_v2"))
         assertFalse(StylePackContract.isValidStyleId("../default"))
         assertFalse(StylePackContract.isValidStyleId("Anime"))
