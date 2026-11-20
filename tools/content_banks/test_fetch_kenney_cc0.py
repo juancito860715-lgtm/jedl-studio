@@ -9,7 +9,7 @@ from fetch_kenney_cc0 import _safe_member, resolve_download, PACKS
 
 class KenneyContentBankTests(unittest.TestCase):
     def test_only_explicit_cc0_environment_packs_are_catalogued(self):
-        self.assertEqual(set(PACKS), {"objects", "foliage", "platformer", "pixel"})
+        self.assertEqual(set(PACKS), {"objects", "foliage"})
         for spec in PACKS.values():
             self.assertIn("kenney.nl/assets/", spec["page"])
             self.assertIn("object", spec["kind"])
