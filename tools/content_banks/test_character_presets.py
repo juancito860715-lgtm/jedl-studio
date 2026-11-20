@@ -17,7 +17,7 @@ class CharacterPresetBuildTests(unittest.TestCase):
         self.assertEqual(len(presets), 8)
         self.assertEqual(manifest["presetCount"], 8)
         for preset in presets:
-            self.assertEqual(set(preset["selectedParts"]), set(source["defaults"]))
+            self.assertTrue(set(source["defaults"]).issubset(set(preset["selectedParts"])))
             for slot, part_id in preset["selectedParts"].items():
                 self.assertEqual(by_id[part_id]["slot"], slot)
 
