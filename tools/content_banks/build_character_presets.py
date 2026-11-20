@@ -27,8 +27,8 @@ PRESETS = [
     ("cap_brim", "Gorra con visera", "Gorra completa con visera", {
         "HAT_BACK": "hat_cap_crown", "HAT_FRONT": "hat_cap_brim"
     }),
-    ("closed_hands", "Manos cerradas", "Puños para poses de acción", {
-        "HAND_L": "hand_fist_l", "HAND_R": "hand_fist_r"
+    ("expression_serious", "Expresión seria", "Cejas marcadas y boca neutra", {
+        "EYEBROWS": "face_brows_angry", "MOUTH": "face_mouth_neutral"
     }),
 ]
 
