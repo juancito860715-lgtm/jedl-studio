@@ -218,11 +218,22 @@ class MainActivity : Activity() {
                 override fun getItemId(position: Int) = position.toLong()
                 override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
                     val item = assets[position]
-                    return (convertView as? TextView ?: TextView(this@MainActivity).apply {
-                        setPadding(14, 12, 14, 12); textSize = 15f
-                    }).apply {
-                        text = item.category + " · " + item.title + " (" + item.width + "×" + item.height + ")"
+                    val row = LinearLayout(this@MainActivity).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        gravity = Gravity.CENTER_VERTICAL
+                        setPadding(8, 6, 8, 6)
                     }
+                    val thumb = ImageView(this@MainActivity).apply {
+                        setImageBitmap(contentLibrary.bitmap(item))
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                    }
+                    row.addView(thumb, LinearLayout.LayoutParams(56, 56))
+                    row.addView(TextView(this@MainActivity).apply {
+                        text = item.category + " · " + item.title + " (" + item.width + "×" + item.height + ")"
+                        textSize = 14f
+                        setPadding(10, 0, 0, 0)
+                    }, LinearLayout.LayoutParams(0, -2, 1f))
+                    row
                 }
             }
             list.setOnItemClickListener { _, _, index, _ ->
@@ -258,12 +269,31 @@ class MainActivity : Activity() {
             val now = project
             now?.sceneObjects?.forEachIndexed { index, item ->
                 val asset = contentLibrary.find(item.assetId)
-                placed.addView(button("Quitar: " + (asset?.title ?: item.assetId)) {
+                val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+                row.addView(TextView(this).apply {
+                    text = asset?.title ?: item.assetId
+                    textSize = 13f
+                }, LinearLayout.LayoutParams(0, -2, 1f))
+                fun adjust(change: (SceneObjectInstance) -> SceneObjectInstance) {
+                    val current = project ?: return
+                    project = current.copy(sceneObjects = current.sceneObjects.mapIndexed { i, value ->
+                        if (i == index) change(value) else value
+                    })
+                    preview?.update(project!!)
+                }
+                row.addView(button("←") { adjust { it.copy(x = (it.x - 0.04f).coerceIn(-2f, 2f)) } })
+                row.addView(button("→") { adjust { it.copy(x = (it.x + 0.04f).coerceIn(-2f, 2f)) } })
+                row.addView(button("↑") { adjust { it.copy(y = (it.y - 0.04f).coerceIn(-2f, 2f)) } })
+                row.addView(button("↓") { adjust { it.copy(y = (it.y + 0.04f).coerceIn(-2f, 2f)) } })
+                row.addView(button("+") { adjust { it.copy(width = (it.width * 1.15f).coerceAtMost(1.5f), height = (it.height * 1.15f).coerceAtMost(1.5f)) } })
+                row.addView(button("−") { adjust { it.copy(width = (it.width / 1.15f).coerceAtLeast(0.01f), height = (it.height / 1.15f).coerceAtLeast(0.01f)) } })
+                row.addView(button("×") {
                     val current = project ?: return@button
                     project = current.copy(sceneObjects = current.sceneObjects.filterIndexed { i, _ -> i != index })
                     preview?.update(project!!)
                     refreshPlaced()
                 })
+                placed.addView(row)
             }
         }
         content.addView(button("Objetos y escenarios") { activeKind = ContentKind.OBJECT; refreshBanks() })
