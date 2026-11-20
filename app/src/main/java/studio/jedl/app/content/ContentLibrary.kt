@@ -27,8 +27,16 @@ data class ContentBank(
     val assets: List<ContentAsset>
 )
 
+data class CharacterPreset(
+    val id: String,
+    val title: String,
+    val description: String,
+    val selectedParts: Map<String, String>
+)
+
 class ContentLibrary private constructor(
     val banks: List<ContentBank>,
+    val presets: List<CharacterPreset>,
     private val context: Context
 ) {
     val characters: List<ContentAsset> get() = banks.filter { it.kind == ContentKind.CHARACTER_PART }.flatMap { it.assets }
@@ -115,7 +123,21 @@ class ContentLibrary private constructor(
             }
             require(banks.any { it.kind == ContentKind.CHARACTER_PART }) { "No se encontró el banco de piezas de personajes" }
             require(banks.any { it.kind == ContentKind.OBJECT }) { "No se encontró el banco de objetos" }
-            return ContentLibrary(banks, app)
+            val presetFile = app.assets.open("content/character_presets.json").bufferedReader(Charsets.UTF_8).use { JSONObject(it.readText()) }
+            require(presetFile.getString("rigId") == "jedl_humanoid_v1") { "Rig incompatible en presets de personaje" }
+            val presetArray = presetFile.getJSONArray("presets")
+            val presets = (0 until presetArray.length()).map { index ->
+                val item = presetArray.getJSONObject(index)
+                val selected = item.getJSONObject("selectedParts")
+                val selectedParts = selected.keys().asSequence().associateWith { selected.getString(it) }
+                require(selectedParts.isNotEmpty()) { "Preset de personaje sin piezas: " + item.getString("id") }
+                CharacterPreset(item.getString("id"), item.getString("title"),
+                    item.optString("description"), selectedParts)
+            }
+            require(presets.isNotEmpty() && presets.map { it.id }.distinct().size == presets.size) {
+                "Banco de presets vacío o con identificadores duplicados"
+            }
+            return ContentLibrary(banks, presets, app)
         }
     }
 }
