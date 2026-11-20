@@ -28,6 +28,9 @@ jobs:
           mkdir -p app/src/main/assets/characters/jedl_master_v1
           cp tools/avatar_bank/out/manifest.json app/src/main/assets/characters/jedl_master_v1/manifest.json
           cp -R tools/avatar_bank/out/png app/src/main/assets/characters/jedl_master_v1/png
+          python tools/avatar_bank/build_style_packs.py
+          test "$(find app/src/main/assets/styles/default/characters -name "*.png" -type f | wc -l)" -eq 42
+          test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
           python - <<'PY'
           import json
           from pathlib import Path
