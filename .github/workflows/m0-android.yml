@@ -32,6 +32,20 @@ jobs:
           test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
           test -s app/src/main/assets/characters/jedl_master_v1/manifest.json
           test "$(find app/src/main/assets/characters/jedl_master_v1/png -maxdepth 1 -name '*.png' -type f | wc -l)" -eq 42
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          expected = {"torso", "head", "armUL", "foreArmL", "armUR", "foreArmR",
+                      "thighL", "shinL", "thighR", "shinR"}
+          for style in ("default", "boceto"):
+              root = Path("app/src/main/assets/styles") / style
+              manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+              assert manifest["rigId"] == "jedl_humanoid_v1", style
+              assert set(manifest["rigBones"]) == expected, style
+              assert len(manifest["parts"]) == 42, style
+              assert len(manifest["defaults"]) == 23, style
+          print("Both generated styles satisfy the shared humanoid rig and 23-slot default contract.")
+          PY
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
