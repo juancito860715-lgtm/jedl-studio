@@ -43,7 +43,7 @@ class ProjectStore(context: Context) {
     private fun fileFor(id: String) = File(directory, "$id.json")
 
     private fun encode(p: StudioProject) = JSONObject().apply {
-        put("schemaVersion", 1)
+        put("schemaVersion", 2)
         put("id", p.id); put("name", p.name)
         put("selectedParts", JSONObject(p.selectedParts))
         put("hiddenSlots", JSONArray(p.hiddenSlots.toList()))
@@ -55,10 +55,17 @@ class ProjectStore(context: Context) {
                 put(JSONObject().put("frame", frame.frame).put("pose", JSONObject(frame.pose)))
             }
         })
+        put("sceneObjects", JSONArray().apply {
+            p.sceneObjects.forEach { item ->
+                put(JSONObject().put("assetId", item.assetId).put("x", item.x).put("y", item.y)
+                    .put("width", item.width).put("height", item.height).put("rotation", item.rotation))
+            }
+        })
     }
 
     private fun decode(json: JSONObject): StudioProject {
-        require(json.getInt("schemaVersion") == 1) { "Unsupported project version" }
+        val schemaVersion = json.getInt("schemaVersion")
+        require(schemaVersion in 1..2) { "Unsupported project version" }
         fun stringMap(obj: JSONObject): Map<String, String> =
             obj.keys().asSequence().associateWith { obj.getString(it) }
         fun floatMap(obj: JSONObject): Map<String, Float> =
@@ -75,7 +82,20 @@ class ProjectStore(context: Context) {
                 val item = frames.getJSONObject(i)
                 StudioKeyframe(item.getInt("frame"), floatMap(item.getJSONObject("pose")))
             },
-            durationFrames = json.optInt("durationFrames", 120)
+            durationFrames = json.optInt("durationFrames", 120),
+            sceneObjects = json.optJSONArray("sceneObjects")?.let { array ->
+                (0 until array.length()).map { index ->
+                    val item = array.getJSONObject(index)
+                    SceneObjectInstance(
+                        assetId = item.getString("assetId"),
+                        x = item.getDouble("x").toFloat(),
+                        y = item.getDouble("y").toFloat(),
+                        width = item.optDouble("width", 0.12).toFloat(),
+                        height = item.optDouble("height", 0.12).toFloat(),
+                        rotation = item.optDouble("rotation", 0.0).toFloat()
+                    )
+                }
+            } ?: emptyList()
         ).validated()
     }
 }
