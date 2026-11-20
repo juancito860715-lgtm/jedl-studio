@@ -41,6 +41,37 @@ jobs:
           test -s /tmp/rgs_characters.zip
           unzip -q /tmp/rgs_characters.zip -d temp_rgs
           python tools/inspect_rgs.py --root temp_rgs --output rgs_inventory.json
+      - name: Build hybrid RGS character style
+        run: |
+          python tools/hybrid_rgs.py --rgs-root temp_rgs
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("app/src/main/assets/styles/hybrid")
+          m = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+          assert m["id"] == "jedl_hybrid_rgs_v1"
+          assert len(m["defaults"]) == 23
+          for slot, expected in {
+              "HEAD": "head_skin", "EYES": "face_eyes_dots", "MOUTH": "face_mouth_smile",
+              "HAIR_FRONT": "hair_short_front", "HAND_L": "rgs_hand_l",
+              "HAND_R": "rgs_hand_r", "SHOE_L": "rgs_shoe_l", "SHOE_R": "rgs_shoe_r"
+          }.items():
+              assert m["defaults"][slot] == expected, (slot, m["defaults"].get(slot))
+          for p in m["parts"]:
+              assert (root / p["file"]).is_file(), p["file"]
+          print("Hybrid RGS manifest and all referenced PNG files validated.")
+          print("HYBRID_PART_COUNT=", len(m["parts"]))
+          PY
+      - name: Upload hybrid style preview and mapping report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-hybrid-rgs-preview-and-report
+          path: |
+            app/src/main/assets/styles/hybrid/manifest.json
+            app/src/main/assets/styles/hybrid/rgs_mapping_report.json
+            app/src/main/assets/styles/hybrid/characters/
+          if-no-files-found: warn
       - name: Upload RGS forensic inventory
         if: always()
         uses: actions/upload-artifact@v4
