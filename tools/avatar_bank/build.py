@@ -48,7 +48,10 @@ SUPPORTED_BONES = {
 # differs from the legacy source bucket.
 def get_kotlin_slot(pid, part):
     if pid.startswith("hand_"):
-        return "HAND_L" if pid.endswith("_L") else "HAND_R"
+        side = pid.rsplit("_", 1)[-1].lower()
+        if side not in {"l", "r"}:
+            raise ValueError(f"Hand part has no explicit side: {pid}")
+        return "HAND_L" if side == "l" else "HAND_R"
     key = (part["slot"], part["bone"])
     try:
         return SLOT_BY_SOURCE[key]
