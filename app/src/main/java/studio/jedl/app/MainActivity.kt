@@ -11,19 +11,21 @@ import android.view.View
 import android.widget.*
 import kotlinx.coroutines.*
 import studio.jedl.app.avatar.*
+import studio.jedl.app.content.*
 import kotlin.math.min
 
 class MainActivity : Activity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var store: ProjectStore
     private lateinit var library: PieceLibrary
+    private lateinit var contentLibrary: ContentLibrary
     private var selectedStyle: String = StylePackContract.DEFAULT_STYLE
     private var styleChangeInProgress = false
     private var project: StudioProject? = null
     private lateinit var content: LinearLayout
     private var preview: Preview? = null
     private var frame = 0
-    private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION, STYLE }
+    private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION, STYLE, LIBRARY }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +33,9 @@ class MainActivity : Activity() {
         showLoading("Preparando JEDL Studio…")
         scope.launch {
             try {
-                library = withContext(Dispatchers.IO) { PieceLibrary.load(applicationContext, selectedStyle) }
+                val loaded = withContext(Dispatchers.IO) { PieceLibrary.load(applicationContext, selectedStyle) to ContentLibrary.load(applicationContext) }
+                library = loaded.first
+                contentLibrary = loaded.second
                 home()
             } catch (e: Exception) { showLoading("Error al cargar recursos: ${e.message}") }
         }
@@ -169,10 +173,10 @@ class MainActivity : Activity() {
         top.addView(button("Guardar") { save() })
         top.addView(button("Inicio") { save(); home() })
         root.addView(top)
-        preview = Preview(this, library, p)
+        preview = Preview(this, library, contentLibrary, p)
         root.addView(preview, LinearLayout.LayoutParams(-1,0,1f))
         val tabs=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL }
-        listOf(Tab.SCENE to "Escena",Tab.CHARACTER to "Personaje",Tab.LAYERS to "Capas",Tab.ANIMATION to "Animación",Tab.STYLE to "Estilo")
+        listOf(Tab.SCENE to "Escena",Tab.CHARACTER to "Personaje",Tab.LAYERS to "Capas",Tab.ANIMATION to "Animación",Tab.STYLE to "Estilo",Tab.LIBRARY to "Biblioteca")
             .forEach { (t,label) -> tabs.addView(button(label) { studio(t) },LinearLayout.LayoutParams(0,-2,1f)) }
         root.addView(tabs)
         content=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(12,8,12,20) }
@@ -188,9 +192,91 @@ class MainActivity : Activity() {
             Tab.LAYERS -> layersPanel()
             Tab.ANIMATION -> animationPanel()
             Tab.STYLE -> stylePanel()
+            Tab.LIBRARY -> libraryPanel()
         }
     }
 
+
+
+    private fun libraryPanel() {
+        content.addView(heading("Biblioteca de contenido"))
+        content.addView(TextView(this).apply {
+            text = "Recursos CC0. Toca un elemento para incorporarlo a la escena."
+        })
+        var activeKind = ContentKind.OBJECT
+        val bankSpinner = Spinner(this)
+        val list = ListView(this)
+        val count = TextView(this)
+        val placed = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        lateinit var refreshPlaced: () -> Unit
+        fun refreshItems(bank: ContentBank) {
+            val assets = bank.assets
+            count.text = assets.size.toString() + " recursos · " + bank.license + " · " + bank.title
+            list.adapter = object : android.widget.BaseAdapter() {
+                override fun getCount() = assets.size
+                override fun getItem(position: Int) = assets[position]
+                override fun getItemId(position: Int) = position.toLong()
+                override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                    val item = assets[position]
+                    return (convertView as? TextView ?: TextView(this@MainActivity).apply {
+                        setPadding(14, 12, 14, 12); textSize = 15f
+                    }).apply {
+                        text = item.category + " · " + item.title + " (" + item.width + "×" + item.height + ")"
+                    }
+                }
+            }
+            list.setOnItemClickListener { _, _, index, _ ->
+                val asset = assets[index]
+                val now = project ?: return@setOnItemClickListener
+                val baseSize = if (asset.kind == ContentKind.CHARACTER_PART) 0.10f else 0.14f
+                val objectItem = SceneObjectInstance(
+                    assetId = asset.id,
+                    x = ((now.sceneObjects.size % 5) - 2) * 0.13f,
+                    y = 0.42f + ((now.sceneObjects.size / 5) % 4) * 0.13f,
+                    width = baseSize,
+                    height = (asset.height.toFloat() / asset.width.coerceAtLeast(1)) * baseSize
+                )
+                project = now.copy(sceneObjects = now.sceneObjects + objectItem)
+                preview?.update(project!!)
+                toast("Recurso añadido a la escena")
+                refreshPlaced()
+            }
+        }
+        fun refreshBanks() {
+            val banks = contentLibrary.banks.filter { it.kind == activeKind }
+            bankSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, banks.map { it.title })
+            bankSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    banks.getOrNull(position)?.let { refreshItems(it) }
+                }
+            }
+            banks.firstOrNull()?.let { refreshItems(it) }
+        }
+        refreshPlaced = {
+            placed.removeAllViews()
+            val now = project
+            now?.sceneObjects?.forEachIndexed { index, item ->
+                val asset = contentLibrary.find(item.assetId)
+                placed.addView(button("Quitar: " + (asset?.title ?: item.assetId)) {
+                    val current = project ?: return@button
+                    project = current.copy(sceneObjects = current.sceneObjects.filterIndexed { i, _ -> i != index })
+                    preview?.update(project!!)
+                    refreshPlaced()
+                })
+            }
+        }
+        content.addView(button("Objetos y escenarios") { activeKind = ContentKind.OBJECT; refreshBanks() })
+        content.addView(button("Piezas de personajes") { activeKind = ContentKind.CHARACTER_PART; refreshBanks() })
+        content.addView(heading("Paquete"))
+        content.addView(bankSpinner)
+        content.addView(count)
+        content.addView(list, LinearLayout.LayoutParams(-1, 520))
+        content.addView(heading("Elementos colocados"))
+        content.addView(placed)
+        refreshBanks()
+        refreshPlaced()
+    }
 
     private fun stylePanel() {
         content.addView(heading("Estilo visual"))
@@ -354,11 +440,12 @@ class MainActivity : Activity() {
     override fun onDestroy() {
         scope.cancel()
         if (::library.isInitialized) library.close()
+        if (::contentLibrary.isInitialized) contentLibrary.close()
         super.onDestroy()
     }
 }
 
-private class Preview(context:android.content.Context,private var library:PieceLibrary,initial:StudioProject):View(context) {
+private class Preview(context:android.content.Context,private var library:PieceLibrary,private val contentLibrary:ContentLibrary,initial:StudioProject):View(context) {
     private var p=initial
     private val renderer=AvatarRenderer()
     private val points=mapOf("torso" to (0f to 0f),"head" to (0f to -0.28f),
@@ -376,6 +463,18 @@ private class Preview(context:android.content.Context,private var library:PieceL
         try{
             c.translate(width/2f,height*0.52f);c.scale(scale,scale)
             val selection=p.selectedParts.mapNotNull{(key,id)->runCatching{CharacterLayerSlot.valueOf(key)}.getOrNull()?.let{it to id}}.toMap()
+            p.sceneObjects.forEach { placed ->
+                val asset = contentLibrary.find(placed.assetId) ?: return@forEach
+                val bitmap = contentLibrary.bitmap(asset)
+                val itemSave = c.save()
+                try {
+                    c.rotate(placed.rotation, placed.x, placed.y)
+                    c.drawBitmap(bitmap, null, android.graphics.RectF(
+                        placed.x - placed.width / 2f, placed.y - placed.height / 2f,
+                        placed.x + placed.width / 2f, placed.y + placed.height / 2f
+                    ), android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG))
+                } finally { c.restoreToCount(itemSave) }
+            }
             renderer.draw(c,library,matrices,selection,visibleSlots=StudioProject.SLOT_NAMES-p.hiddenSlots,layerOrder=p.layerOrder)
         }finally{c.restoreToCount(save)}
     }
