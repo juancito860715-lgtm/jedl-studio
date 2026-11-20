@@ -42,10 +42,10 @@ class PieceLibrary private constructor(
     }
 
     fun compatibleSelection(selection: Map<String, String>): Map<String, String> =
-        selection.filter { (slotName, id) ->
-            val slot = runCatching { CharacterLayerSlot.valueOf(slotName) }.getOrNull()
-            slot != null && parts.any { it.id == id && it.slot == slot }
-        }
+        RigPackCompatibility.preserveCompatibleSelection(
+            selection,
+            parts.associate { it.id to it.slot.name }
+        )
 
     fun requireCompatibleWith(reference: PieceLibrary) {
         RigPackCompatibility.requireCompatible(reference.rigDefinition, rigDefinition)
