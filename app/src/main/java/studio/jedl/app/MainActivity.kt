@@ -80,42 +80,51 @@ class MainActivity : Activity() {
 
     private fun partLabel(id: String): String {
         val labels = mapOf(
-            "face_eyes_dots" to "Ojos sencillos", "face_eyes_happy" to "Ojos felices",
-            "face_eyes_wide" to "Ojos sorprendidos", "face_mouth_smile" to "Sonrisa",
-            "face_mouth_open" to "Boca abierta", "face_mouth_neutral" to "Boca neutra",
-            "face_mouth_shout" to "Boca gritando", "face_brows_normal" to "Cejas normales",
-            "face_brows_raised" to "Cejas levantadas", "face_brows_angry" to "Cejas enfadadas",
-            "hair_short_back" to "Cabello corto (atrás)", "hair_short_front" to "Cabello corto",
-            "hair_spiky_back" to "Cabello puntiagudo (atrás)", "hair_spiky_front" to "Cabello puntiagudo",
-            "hair_curly_back" to "Cabello rizado (atrás)", "hair_curly_front" to "Cabello rizado",
-            "shirt_tee_torso" to "Camiseta", "pants_jeans_waist" to "Pantalón vaquero",
-            "hat_cap_crown" to "Gorra: corona", "hat_cap_panel" to "Gorra: panel",
-            "hat_cap_brim" to "Gorra: visera",
-            "armU_skin_L" to "Brazo superior izquierdo", "armU_skin_R" to "Brazo superior derecho",
-            "shirt_tee_sleeve_L" to "Manga izquierda", "shirt_tee_sleeve_R" to "Manga derecha",
-            "hand_open_L" to "Mano izquierda abierta", "hand_open_R" to "Mano derecha abierta",
-            "hand_fist_L" to "Mano izquierda cerrada", "hand_fist_R" to "Mano derecha cerrada"
+            "head_skin" to "Piel de la cabeza",
+            "face_eyes_dots" to "Ojos sencillos",
+            "face_eyes_happy" to "Ojos alegres",
+            "face_eyes_wide" to "Ojos sorprendidos",
+            "face_mouth_smile" to "Sonrisa",
+            "face_mouth_open" to "Boca abierta",
+            "face_mouth_neutral" to "Boca neutra",
+            "face_mouth_shout" to "Boca expresiva",
+            "face_brows_normal" to "Cejas normales",
+            "face_brows_raised" to "Cejas levantadas",
+            "face_brows_angry" to "Cejas fruncidas",
+            "face_blush" to "Rubor",
+            "hair_short_back" to "Cabello corto, parte trasera",
+            "hair_short_front" to "Cabello corto, parte delantera",
+            "hair_spiky_back" to "Cabello puntiagudo, parte trasera",
+            "hair_spiky_front" to "Cabello puntiagudo, parte delantera",
+            "hair_curly_back" to "Cabello rizado, parte trasera",
+            "hair_curly_front" to "Cabello rizado, parte delantera",
+            "hat_cap_crown" to "Corona de la gorra",
+            "hat_cap_panel" to "Panel de la gorra",
+            "hat_cap_brim" to "Visera de la gorra",
+            "torso_skin" to "Piel del torso",
+            "shirt_tee_torso" to "Camiseta",
+            "pants_jeans_waist" to "Pantalón vaquero",
+            "armU_skin_L" to "Brazo superior izquierdo",
+            "armU_skin_R" to "Brazo superior derecho",
+            "shirt_tee_sleeve_L" to "Manga izquierda",
+            "shirt_tee_sleeve_R" to "Manga derecha",
+            "forearm_skin_open_L" to "Antebrazo izquierdo",
+            "forearm_skin_open_R" to "Antebrazo derecho",
+            "hand_open_L" to "Mano izquierda abierta",
+            "hand_open_R" to "Mano derecha abierta",
+            "hand_fist_L" to "Mano izquierda cerrada",
+            "hand_fist_R" to "Mano derecha cerrada",
+            "thigh_jeans_L" to "Muslo izquierdo",
+            "thigh_jeans_R" to "Muslo derecho",
+            "shin_jeans_L" to "Pantorrilla izquierda",
+            "shin_jeans_R" to "Pantorrilla derecha",
+            "shoe_sneaker_upper_L" to "Parte superior del calzado izquierdo",
+            "shoe_sneaker_upper_R" to "Parte superior del calzado derecho",
+            "shoe_sneaker_sole_L" to "Suela del calzado izquierdo",
+            "shoe_sneaker_sole_R" to "Suela del calzado derecho"
         )
-        return labels[id] ?: run {
-            // Traductor de respaldo: ningún identificador interno del banco debe llegar en inglés a la interfaz.
-            val words = mapOf(
-                "face" to "", "eyes" to "ojos", "mouth" to "boca", "brows" to "cejas",
-                "hair" to "cabello", "short" to "corto", "spiky" to "puntiagudo",
-                "curly" to "rizado", "back" to "trasero", "front" to "delantero",
-                "skin" to "piel", "head" to "cabeza", "torso" to "torso",
-                "shirt" to "camiseta", "tee" to "", "sleeve" to "manga",
-                "pants" to "pantalón", "jeans" to "vaquero", "waist" to "cintura",
-                "armU" to "brazo superior", "forearm" to "antebrazo",
-                "hand" to "mano", "open" to "abierta", "fist" to "cerrada",
-                "thigh" to "muslo", "shin" to "pantorrilla", "shoe" to "calzado",
-                "sneaker" to "deportivo", "upper" to "superior", "sole" to "suela",
-                "cap" to "gorra", "crown" to "corona", "panel" to "panel",
-                "brim" to "visera", "blush" to "rubor", "L" to "izquierdo",
-                "R" to "derecho"
-            )
-            id.split('_').mapNotNull { token -> words[token]?.takeIf { it.isNotBlank() } ?: if (token in words) null else token }
-                .joinToString(" ").replaceFirstChar { it.uppercase() }
-        }
+        // No exponer nunca IDs internos: todos los IDs generados están cubiertos por el diccionario.
+        return labels[id] ?: "Pieza del personaje"
     }
 
     private fun home() {
@@ -288,7 +297,7 @@ private class Preview(context:android.content.Context,private val library:PieceL
     fun update(value:StudioProject){p=value;invalidate()}
     override fun onDraw(c:Canvas){
         super.onDraw(c); c.drawColor(Color.WHITE); if(width==0||height==0)return
-        val scale=min(width/0.42f,height/1.52f)*0.90f
+        val scale=min(width/0.42f,height/1.52f)*0.97f
         val matrices=points.mapValues{(bone,pt)->Matrix().apply{setRotate(p.pose[bone]?:0f);postTranslate(pt.first,pt.second)}}
         val save=c.save()
         try{

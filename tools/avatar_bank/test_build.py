@@ -60,6 +60,23 @@ class AvatarBankBuildTest(unittest.TestCase):
                     self.assertEqual(image.mode, "RGBA")
                     self.assertIsNotNone(image.getchannel("A").getbbox())
 
+
+    def test_every_generated_piece_has_a_human_spanish_ui_label(self):
+        source = (HERE.parent.parent / "app/src/main/java/studio/jedl/app/MainActivity.kt").read_text(encoding="utf-8")
+        for part in self.manifest["parts"]:
+            with self.subTest(part=part["id"]):
+                self.assertIn(f'"{part["id"]}" to "', source,
+                              f"Missing Spanish UI label for {part['id']}")
+
+    def test_limb_and_torso_shapes_use_bezier_curves(self):
+        from pieces import P, tube
+        self.assertIn(" C ", tube(0, -0.2, 0.0, 0.05, 0.04))
+        self.assertIn(" C ", P["torso_skin"]["shapes"][0]["d"])
+        self.assertIn(" C ", P["shirt_tee_torso"]["shapes"][0]["d"])
+        for part_id in ("shirt_tee_sleeve_L", "shirt_tee_sleeve_R",
+                        "armU_skin_L", "armU_skin_R"):
+            self.assertIn(" C ", P[part_id]["shapes"][0]["d"])
+
     def test_manifest_slots_match_real_kotlin_enum(self):
         allowed = {
             "HEAD", "EAR_L", "EAR_R", "EYES", "EYEBROWS", "NOSE", "MOUTH",
