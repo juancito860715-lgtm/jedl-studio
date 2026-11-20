@@ -41,8 +41,10 @@ jobs:
           python -m unittest discover -s tools/content_banks -p "test_*.py" -v
           python tools/content_banks/fetch_kenney_cc0.py --pack objects
           python tools/content_banks/fetch_kenney_cc0.py --pack foliage
-          python tools/content_banks/fetch_kenney_cc0.py --pack tiny-city
-          for pack in kenney_tiny_town_objects kenney_foliage_objects kenney_tiny_city_objects; do
+          python tools/content_banks/fetch_kenney_cc0.py --pack roguelike
+          python tools/content_banks/fetch_kenney_cc0.py --pack urban
+          for pack in kenney_tiny_town_objects kenney_foliage_objects kenney_roguelike_rpg_objects
+              kenney_rpg_urban_objects; do
             test -s "app/src/main/assets/content/$pack/manifest.json"
             test "$(find "app/src/main/assets/content/$pack/png" -type f -name '*.png' | wc -l)" -ge 50
           done
@@ -87,7 +89,7 @@ jobs:
               for asset in manifest["assets"]:
                   file = folder / asset["file"]
                   assert file.is_file(), f"Missing bank asset: {file}"
-          print("Character source bank and three object banks passed manifest/file/license validation.")
+          print("Character source bank and four object banks passed manifest/file/license validation.")
           PY
       - name: Unit tests and debug APK
         run: gradle --no-daemon --stacktrace testDebugUnitTest assembleDebug
