@@ -70,7 +70,7 @@ class KenneyPackImporterTests(unittest.TestCase):
         map_path.write_text(json.dumps(mapping), encoding="utf-8")
         return archive, map_path, mapping
 
-    def test_imports_pngs_and_emits_manifest_with_shared_rig_and_all_slots(self):
+    def test_imports_pngs_and_emits_manifest_with_shared_rig_and_default_slots(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             archive, mapping, expected = self._fixture(root)
@@ -79,7 +79,7 @@ class KenneyPackImporterTests(unittest.TestCase):
             self.assertEqual(manifest["rigId"], "jedl_humanoid_v1")
             self.assertEqual(manifest["rigBones"], sorted(expected["rigBones"]))
             self.assertEqual({p["slot"] for p in manifest["parts"]}, REQUIRED_DEFAULT_SLOTS)
-            self.assertEqual(len(manifest["parts"]), len(SLOT_BONES))
+            self.assertEqual(len(manifest["parts"]), len(REQUIRED_DEFAULT_SLOTS))
             for part in manifest["parts"]:
                 self.assertTrue((out / part["file"]).is_file())
             self.assertTrue((out / "LICENSE.txt").is_file())
