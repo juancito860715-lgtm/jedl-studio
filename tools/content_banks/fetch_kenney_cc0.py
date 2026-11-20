@@ -155,17 +155,17 @@ def fetch_pack(pack_id, output_root):
     }
     target.mkdir(parents=True, exist_ok=True)
     (target / "manifest.json").write_text(
-        json.dumps(manifest, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8"
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     (target / "LICENSE.txt").write_text(
-        f"{spec['title']}\\nLicense: CC0-1.0\\nSource: {spec['page']}\\n"
-        f"License terms: {CC0_TERMS}\\nCommercial use, modification and redistribution permitted.\\n",
+        f"{spec['title']}\nLicense: CC0-1.0\nSource: {spec['page']}\n"
+        f"License terms: {CC0_TERMS}\nCommercial use, modification and redistribution permitted.\n",
         encoding="utf-8",
     )
     (target / "SOURCE.json").write_text(
         json.dumps({"source": spec["page"], "download": archive_url,
                     "license": "CC0-1.0", "archiveSha256": hashlib.sha256(payload).hexdigest()},
-                   indent=2) + "\\n", encoding="utf-8"
+                   indent=2) + "\n", encoding="utf-8"
     )
     print(f"PACK_OK id={spec['id']} png={len(entries)} license=CC0-1.0 output={target}")
     return manifest
