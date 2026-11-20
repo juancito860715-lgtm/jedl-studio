@@ -12,6 +12,7 @@ import android.widget.*
 import kotlinx.coroutines.*
 import studio.jedl.app.avatar.*
 import studio.jedl.app.content.*
+import studio.jedl.app.animation.PoseInterpolator
 import kotlin.math.min
 
 class MainActivity : Activity() {
@@ -25,6 +26,10 @@ class MainActivity : Activity() {
     private lateinit var content: LinearLayout
     private var preview: Preview? = null
     private var frame = 0
+    private var playbackFrame = 0f
+    private var playbackJob: Job? = null
+    private var isPlaying = false
+    private var playbackFrameLabel: TextView? = null
     private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION, STYLE, LIBRARY }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -406,7 +411,77 @@ class MainActivity : Activity() {
                     }.setNegativeButton("Cancelar",null).show()
             })
         }
+        content.addView(heading("Colores del personaje"))
+        val colorLabels = linkedMapOf(
+            "skin" to "Piel", "hair" to "Cabello", "shirt" to "Camiseta",
+            "pants" to "Pantalón", "shoe" to "Zapatos", "sole" to "Suela",
+            "hat_crown" to "Corona de gorra", "hat_panel" to "Panel de gorra",
+            "hat_brim" to "Visera"
+        )
+        colorLabels.forEach { (channel, label) ->
+            val color = p.colors[channel] ?: AvatarColorPalette.DEFAULTS.getValue(channel)
+            content.addView(button(label + " · " + String.format("#%06X", color and 0xFFFFFF)) {
+                showColorPicker(channel, label, color)
+            })
+        }
         content.addView(button("Guardar cambios") { save() })
+    }
+
+    private fun showColorPicker(channel: String, label: String, initialColor: Int) {
+        var red = (initialColor shr 16) and 0xFF
+        var green = (initialColor shr 8) and 0xFF
+        var blue = initialColor and 0xFF
+        var selectedColor = Color.rgb(red, green, blue)
+        val previewColor = TextView(this).apply {
+            text = String.format("#%06X", selectedColor and 0xFFFFFF)
+            textSize = 18f
+            gravity = Gravity.CENTER
+            setPadding(12, 18, 12, 18)
+            setBackgroundColor(selectedColor)
+        }
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 12, 24, 8)
+        }
+        panel.addView(previewColor, LinearLayout.LayoutParams(-1, 72))
+        fun addChannelSlider(name: String, initial: Int, changed: (Int) -> Unit) {
+            panel.addView(TextView(this).apply { text = name })
+            val slider = SeekBar(this).apply {
+                max = 255
+                progress = initial
+            }
+            slider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                    changed(value)
+                    selectedColor = Color.rgb(red, green, blue)
+                    previewColor.text = String.format("#%06X", selectedColor and 0xFFFFFF)
+                    previewColor.setBackgroundColor(selectedColor)
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
+            panel.addView(slider)
+        }
+        addChannelSlider("Rojo", red) { red = it }
+        addChannelSlider("Verde", green) { green = it }
+        addChannelSlider("Azul", blue) { blue = it }
+        AlertDialog.Builder(this)
+            .setTitle("Color: " + label)
+            .setView(panel)
+            .setNegativeButton("Cancelar", null)
+            .setNeutralButton("Restablecer") { _, _ ->
+                val current = project ?: return@setNeutralButton
+                project = current.copy(colors = current.colors + (channel to AvatarColorPalette.DEFAULTS.getValue(channel)))
+                preview?.update(project!!)
+                studio(Tab.CHARACTER)
+            }
+            .setPositiveButton("Aplicar") { _, _ ->
+                val current = project ?: return@setPositiveButton
+                project = current.copy(colors = current.colors + (channel to selectedColor))
+                preview?.update(project!!)
+                studio(Tab.CHARACTER)
+            }
+            .show()
     }
 
     private fun layersPanel() {
@@ -437,11 +512,49 @@ class MainActivity : Activity() {
     }
     private fun layersPanelRefresh() { studio(Tab.LAYERS) }
 
+    private fun togglePlayback() {
+        if (isPlaying) {
+            stopPlayback()
+            return
+        }
+        val current = project ?: return
+        if (current.keyframes.size < 2) {
+            toast("Guarda al menos dos fotogramas clave para reproducir")
+            return
+        }
+        isPlaying = true
+        playbackFrame = frame.toFloat()
+        studio(Tab.ANIMATION)
+        playbackJob = scope.launch {
+            while (isActive) {
+                val active = project ?: break
+                val pose = PoseInterpolator.interpolate(
+                    active.keyframes, playbackFrame, active.durationFrames, loop = true
+                )
+                preview?.update(active.copy(pose = pose))
+                frame = playbackFrame.toInt().coerceIn(0, active.durationFrames - 1)
+                playbackFrameLabel?.text = "Reproduciendo · Fotograma: " + frame + " / " + (active.durationFrames - 1)
+                playbackFrame = (playbackFrame + 1f) % active.durationFrames
+                delay(33L)
+            }
+        }
+    }
+
+    private fun stopPlayback() {
+        playbackJob?.cancel()
+        playbackJob = null
+        isPlaying = false
+        project?.let { preview?.update(it) }
+        studio(Tab.ANIMATION)
+    }
+
     private fun animationPanel() {
         val p=project ?: return
         frame=frame.coerceIn(0,p.durationFrames-1)
         content.addView(heading("Editor de poses y fotogramas"))
         val frameLabel=TextView(this).apply { text="Fotograma: $frame / ${p.durationFrames-1}" }
+        playbackFrameLabel = frameLabel
+        content.addView(button(if (isPlaying) "Stop" else "Play") { togglePlayback() })
         content.addView(frameLabel)
         content.addView(SeekBar(this).apply {
             max=p.durationFrames-1; progress=frame
@@ -486,6 +599,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        playbackJob?.cancel()
         scope.cancel()
         if (::library.isInitialized) library.close()
         if (::contentLibrary.isInitialized) contentLibrary.close()
@@ -518,7 +632,7 @@ private class Preview(context:android.content.Context,private var library:PieceL
                     ), android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG))
                 } finally { c.restoreToCount(itemSave) }
             }
-            renderer.draw(c,library,matrices,selection,visibleSlots=StudioProject.SLOT_NAMES-p.hiddenSlots,layerOrder=p.layerOrder)
+            renderer.draw(c,library,matrices,selection,colors=p.colors,visibleSlots=StudioProject.SLOT_NAMES-p.hiddenSlots,layerOrder=p.layerOrder)
         }finally{c.restoreToCount(save)}
     }
 }

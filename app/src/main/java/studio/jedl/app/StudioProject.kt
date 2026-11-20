@@ -1,6 +1,7 @@
 package studio.jedl.app
 
 import studio.jedl.app.avatar.PoseHierarchy
+import studio.jedl.app.avatar.AvatarColorPalette
 
 data class StudioKeyframe(val frame: Int, val pose: Map<String, Float>)
 
@@ -22,7 +23,8 @@ data class StudioProject(
     val pose: Map<String, Float> = emptyMap(),
     val keyframes: List<StudioKeyframe> = emptyList(),
     val durationFrames: Int = 120,
-    val sceneObjects: List<SceneObjectInstance> = emptyList()
+    val sceneObjects: List<SceneObjectInstance> = emptyList(),
+    val colors: Map<String, Int> = AvatarColorPalette.DEFAULTS
 ) {
     fun validated(): StudioProject {
         require(id.isNotBlank()) { "Project id cannot be blank" }
@@ -32,6 +34,7 @@ data class StudioProject(
         require(layerOrder.distinct().size == layerOrder.size && layerOrder.all { it in SLOT_NAMES }) {
             "Layer order contains an unknown or duplicate slot"
         }
+        require(colors.keys == AvatarColorPalette.DEFAULTS.keys) { "Project colors must define every supported channel" }
         require(pose.keys.all { it in PoseHierarchy.boneNames }) { "Pose contains an unknown bone" }
         require(pose.values.all { it.isFinite() && it in -180f..180f }) { "Pose angle out of range" }
         require(keyframes.all { it.frame in 0 until durationFrames &&
