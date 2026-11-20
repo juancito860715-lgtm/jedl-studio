@@ -17,28 +17,12 @@ import zipfile
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 
+MIRROR = "https://raw.githubusercontent.com/bill2432/kenney-2d-mirror/main/packs/"
 PACKS = {
-    "objects": {
-        "id": "kenney_tiny_town_objects",
-        "title": "Kenney Tiny Town",
-        "page": "https://kenney.nl/assets/tiny-town",
-        "expected_min_png": 50,
-        "kind": "environment-object",
-    },
-    "foliage": {
-        "id": "kenney_foliage_objects",
-        "title": "Kenney Foliage Pack",
-        "page": "https://kenney.nl/assets/foliage-pack",
-        "expected_min_png": 50,
-        "kind": "nature-object",
-    },
-    "tiny-city": {
-        "id": "kenney_tiny_city_objects",
-        "title": "Kenney Tiny City",
-        "page": "https://kenney.nl/assets/tiny-city",
-        "expected_min_png": 50,
-        "kind": "environment-object",
-    },
+    "objects": {"id":"kenney_tiny_town_objects","title":"Kenney Tiny Town","page":"https://kenney.nl/assets/tiny-town","archive":"tiny-town.zip","sha256":"9768692dccff1d706408a5aedd6ca4f6cd1409506cbc84cb2f862919764be977","expected_min_png":100,"kind":"environment-object"},
+    "foliage": {"id":"kenney_foliage_objects","title":"Kenney Foliage Pack","page":"https://kenney.nl/assets/foliage-pack","archive":"foliage-pack.zip","sha256":"33bd564f2cebb6a68bee9a798650d669571a389a437b0bd601d257ca2b5e7aed","expected_min_png":80,"kind":"nature-object"},
+    "roguelike": {"id":"kenney_roguelike_rpg_objects","title":"Kenney Roguelike RPG Pack","page":"https://kenney.nl/assets/roguelike-rpg-pack","archive":"roguelike-rpg-pack.zip","sha256":"8e7d2378f8f794245645f6d7dc7aeeb246791410a7e512293c594b46a5a9524b","expected_min_png":50,"kind":"rpg-object"},
+    "urban": {"id":"kenney_rpg_urban_objects","title":"Kenney RPG Urban Pack","page":"https://kenney.nl/assets/rpg-urban-pack","archive":"rpg-urban-pack.zip","sha256":"4541d89d639fc7d1e905dd925e55b1c4977a41d983516228db1d57173bb9afaf","expected_min_png":50,"kind":"urban-object"},
 }
 CC0_TERMS = "https://creativecommons.org/publicdomain/zero/1.0/"
 USER_AGENT = "JEDL-Studio-CC0-Asset-Importer/1.0"
@@ -93,14 +77,19 @@ def fetch_pack(pack_id, output_root):
     if pack_id not in PACKS:
         raise ValueError(f"Unknown pack: {pack_id}")
     spec = PACKS[pack_id]
-    final_url, page = _request(spec["page"])
+    _, page = _request(spec["page"])
     page_text = page.decode("utf-8", errors="replace")
     if not re.search(r"Creative\s+Commons\s+CC0", page_text, re.IGNORECASE):
         raise ValueError(f"Official page does not explicitly declare CC0: {spec['page']}")
-    download_url = resolve_download(final_url, page)
-    archive_url, payload = _request(download_url)
+    # Kenney serves its Download button dynamically. Fetch the public mirror ZIP
+    # and pin the archive hash published in the mirror manifest.
+    archive_url = MIRROR + spec["archive"]
+    _, payload = _request(archive_url)
+    actual_sha = hashlib.sha256(payload).hexdigest()
+    if actual_sha != spec["sha256"]:
+        raise ValueError(f"Mirror ZIP hash mismatch: expected {spec['sha256']}, got {actual_sha}")
     if not zipfile.is_zipfile(io.BytesIO(payload)):
-        raise ValueError(f"Download endpoint did not return a ZIP: {archive_url}")
+        raise ValueError(f"Mirror did not return a ZIP: {archive_url}")
 
     target = Path(output_root) / spec["id"]
     png_root = target / "png"
@@ -143,6 +132,8 @@ def fetch_pack(pack_id, output_root):
         "publisher": "Kenney",
         "source": spec["page"],
         "downloadSource": archive_url,
+        "mirrorLicense": "https://github.com/bill2432/kenney-2d-mirror/blob/main/LICENSE.md",
+        "sourceArchiveSha256": spec["sha256"],
         "license": "CC0-1.0",
         "licenseTerms": CC0_TERMS,
         "commercialUse": True,
@@ -164,7 +155,8 @@ def fetch_pack(pack_id, output_root):
     )
     (target / "SOURCE.json").write_text(
         json.dumps({"source": spec["page"], "download": archive_url,
-                    "license": "CC0-1.0", "archiveSha256": hashlib.sha256(payload).hexdigest()},
+                    "license": "CC0-1.0", "archiveSha256": actual_sha,
+                    "mirrorLicense": "https://github.com/bill2432/kenney-2d-mirror/blob/main/LICENSE.md"},
                    indent=2) + "\n", encoding="utf-8"
     )
     print(f"PACK_OK id={spec['id']} png={len(entries)} license=CC0-1.0 output={target}")
