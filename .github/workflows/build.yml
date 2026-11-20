@@ -31,9 +31,21 @@ jobs:
           python tools/avatar_bank/build_style_packs.py
           test "$(find app/src/main/assets/styles/default/characters -name "*.png" -type f | wc -l)" -eq 42
           test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
-      - name: Download and inventory Kenney source (not packaged until simplified-rig mapping is validated)
+      - name: Download and package the CC0 Kenney character source bank
         run: |
           python tools/process_kenney.py --download
+          test -s app/src/main/assets/content/characters/kenney_modular_character_pack/manifest.json
+          test "$(find app/src/main/assets/content/characters/kenney_modular_character_pack/png -type f -name '*.png' | wc -l)" -ge 400
+      - name: Download and package CC0 object banks
+        run: |
+          python -m unittest discover -s tools/content_banks -p "test_*.py" -v
+          python tools/content_banks/fetch_kenney_cc0.py --pack objects
+          python tools/content_banks/fetch_kenney_cc0.py --pack foliage
+          python tools/content_banks/fetch_kenney_cc0.py --pack tiny-city
+          for pack in kenney_tiny_town_objects kenney_foliage_objects kenney_tiny_city_objects; do
+            test -s "app/src/main/assets/content/$pack/manifest.json"
+            test "$(find "app/src/main/assets/content/$pack/png" -type f -name '*.png' | wc -l)" -ge 50
+          done
       - name: Upload original Kenney archive for anatomy review
         uses: actions/upload-artifact@v4
         with:
@@ -53,6 +65,30 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
+      - name: Verify packaged content bank manifests
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("app/src/main/assets/content")
+          expected = {
+              "characters/kenney_modular_character_pack": 400,
+              "kenney_tiny_town_objects": 50,
+              "kenney_foliage_objects": 50,
+              "kenney_tiny_city_objects": 50,
+          }
+          for relative, minimum in expected.items():
+              folder = root / relative
+              manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
+              assert manifest["license"] == "CC0-1.0"
+              assert manifest["commercialUse"] and manifest["apkRedistributionAllowed"]
+              assert manifest["assetCount"] >= minimum
+              assert (folder / "LICENSE.txt").is_file()
+              for asset in manifest["assets"]:
+                  file = folder / asset["file"]
+                  assert file.is_file(), f"Missing bank asset: {file}"
+          print("Character source bank and three object banks passed manifest/file/license validation.")
+          PY
       - name: Unit tests and debug APK
         run: gradle --no-daemon --stacktrace testDebugUnitTest assembleDebug
       - name: Upload APK
