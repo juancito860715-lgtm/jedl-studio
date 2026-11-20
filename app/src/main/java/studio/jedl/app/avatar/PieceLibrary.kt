@@ -124,10 +124,21 @@ class PieceLibrary private constructor(
             }
             val parts = (0 until array.length()).map { index ->
                 val item = array.getJSONObject(index)
+                val pieceId = item.optString("id", "<sin-id>")
+                val slotId = item.optString("slot", "<sin-ranura>")
+                val boneId = item.optString("boneId", "<sin-hueso>")
+                val context = { reason: String ->
+                    AvatarResourceDiagnostic.describe(manifestPath, pieceId, slotId, boneId, reason)
+                }
+                val slot = try {
+                    CharacterLayerSlot.valueOf(slotId)
+                } catch (failure: Exception) {
+                    throw IllegalStateException(context("La ranura no existe en CharacterLayerSlot"), failure)
+                }
                 val part = AvatarPiece(
-                    id = item.getString("id"),
-                    slot = CharacterLayerSlot.valueOf(item.getString("slot")),
-                    boneId = item.getString("boneId"),
+                    id = pieceId,
+                    slot = slot,
+                    boneId = boneId,
                     file = item.getString("file"),
                     pivotX = item.getDouble("pivotX").toFloat(),
                     pivotY = item.getDouble("pivotY").toFloat(),
@@ -138,11 +149,14 @@ class PieceLibrary private constructor(
                     offsetY = item.optDouble("offsetY", 0.0).toFloat(),
                     tintChannel = item.optString("tintChannel").takeIf { it.isNotBlank() && it != "null" }
                 )
-                require(part.id.matches(Regex("[a-z0-9][a-z0-9_-]{0,79}")) && part.boneId in rigBones) {
-                    "Identificador o hueso no válido para ${part.id}"
+                if (!part.id.matches(Regex("[a-z0-9][a-z0-9_-]{0,79}"))) {
+                    throw IllegalStateException(context("El ID de pieza debe estar en minúsculas y usar solo letras, números, guion o guion bajo"))
                 }
-                require(RigPackCompatibility.isSlotBoneCompatible(part.slot.name, part.boneId)) {
-                    "La ranura ${part.slot} no puede estar conectada al hueso ${part.boneId}"
+                if (part.boneId !in rigBones) {
+                    throw IllegalStateException(context("El hueso no está declarado en rigBones del manifiesto"))
+                }
+                if (!RigPackCompatibility.isSlotBoneCompatible(part.slot.name, part.boneId)) {
+                    throw IllegalStateException(context("La ranura no admite ese hueso según el contrato del rig"))
                 }
                 require(part.pivotX.isFinite() && part.pivotX in 0f..1f &&
                     part.pivotY.isFinite() && part.pivotY in 0f..1f) {
