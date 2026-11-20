@@ -229,7 +229,7 @@ class MainActivity : Activity() {
                     }
                     row.addView(thumb, LinearLayout.LayoutParams(56, 56))
                     scope.launch {
-                        val bitmap = withContext(Dispatchers.IO) { contentLibrary.bitmap(item) }
+                        val bitmap = withContext(Dispatchers.IO) { contentLibrary.thumbnail(item) }
                         if (thumb.tag == item.id) thumb.setImageBitmap(bitmap)
                     }
                     row.addView(TextView(this@MainActivity).apply {
@@ -249,7 +249,7 @@ class MainActivity : Activity() {
                     x = ((now.sceneObjects.size % 5) - 2) * 0.13f,
                     y = 0.42f + ((now.sceneObjects.size / 5) % 4) * 0.13f,
                     width = baseSize,
-                    height = (asset.height.toFloat() / asset.width.coerceAtLeast(1)) * baseSize
+                    height = ((asset.height.toFloat() / asset.width.coerceAtLeast(1)) * baseSize).coerceIn(0.01f, 1.5f)
                 )
                 project = now.copy(sceneObjects = now.sceneObjects + objectItem)
                 preview?.update(project!!)
@@ -291,6 +291,8 @@ class MainActivity : Activity() {
                 row.addView(button("↓") { adjust { it.copy(y = (it.y + 0.04f).coerceIn(-2f, 2f)) } })
                 row.addView(button("+") { adjust { it.copy(width = (it.width * 1.15f).coerceAtMost(1.5f), height = (it.height * 1.15f).coerceAtMost(1.5f)) } })
                 row.addView(button("−") { adjust { it.copy(width = (it.width / 1.15f).coerceAtLeast(0.01f), height = (it.height / 1.15f).coerceAtLeast(0.01f)) } })
+                row.addView(button("↶") { adjust { it.copy(rotation = (it.rotation - 15f).coerceAtLeast(-360f)) } })
+                row.addView(button("↷") { adjust { it.copy(rotation = (it.rotation + 15f).coerceAtMost(360f)) } })
                 row.addView(button("×") {
                     val current = project ?: return@button
                     project = current.copy(sceneObjects = current.sceneObjects.filterIndexed { i, _ -> i != index })
