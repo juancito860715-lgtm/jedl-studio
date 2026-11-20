@@ -277,7 +277,7 @@ class MainActivity : Activity() {
         order.toList().forEach { slot ->
             val row=LinearLayout(this).apply { gravity=Gravity.CENTER_VERTICAL }
             row.addView(CheckBox(this).apply {
-                text=slot; isChecked=slot !in (project ?: p).hiddenSlots
+                text=slotLabel(CharacterLayerSlot.valueOf(slot)); isChecked=slot !in (project ?: p).hiddenSlots
                 setOnCheckedChangeListener { _,checked ->
                     val now=project ?: p
                     project=now.copy(hiddenSlots=if(checked) now.hiddenSlots-slot else now.hiddenSlots+slot,layerOrder=order)
