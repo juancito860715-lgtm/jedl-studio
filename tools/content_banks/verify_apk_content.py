@@ -10,8 +10,6 @@ BANKS = [
     "characters/kenney_modular_character_pack",
     "kenney_tiny_town_objects",
     "kenney_foliage_objects",
-    "kenney_new_platformer_objects",
-    "kenney_pixel_platformer_objects",
 ]
 
 def verify():
