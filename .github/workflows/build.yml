@@ -121,3 +121,85 @@ jobs:
           name: jedl-studio-avatar-bank-42-png
           path: app/src/main/assets/characters/jedl_master_v1/
           if-no-files-found: error
+
+  mediapipe-standalone:
+    name: Clone and build official MediaPipe Pose Landmarker
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - name: Checkout JEDL orchestration repository
+        uses: actions/checkout@v4
+
+      - name: Clone complete official MediaPipe samples repository
+        uses: actions/checkout@v4
+        with:
+          repository: google-ai-edge/mediapipe-samples
+          ref: main
+          path: mediapipe-samples
+          fetch-depth: 0
+
+      - name: Record upstream revision and license
+        working-directory: mediapipe-samples
+        run: |
+          git rev-parse HEAD | tee ../mediapipe-upstream-commit.txt
+          cp LICENSE ../MEDIAPIPE-LICENSE.txt
+          cp examples/pose_landmarker/android/README.md ../POSE-LANDMARKER-README.md
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Android SDK 36
+        uses: android-actions/setup-android@v4
+
+      - name: Install Android SDK packages
+        run: |
+          sdkmanager "platforms;android-36" "build-tools;36.0.0"
+          yes | sdkmanager --licenses
+
+      - name: Set up Gradle cache
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Verify models, run unit tests, and build debug APK
+        working-directory: mediapipe-samples/examples/pose_landmarker/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon --stacktrace :app:verifyModels :android-common:testing:testDebugUnitTest :app:testDebugUnitTest :app:assembleDebug
+
+      - name: Verify APK and bundled offline models
+        working-directory: mediapipe-samples/examples/pose_landmarker/android
+        run: |
+          set -euo pipefail
+          APK=app/build/outputs/apk/debug/app-debug.apk
+          test -s "$APK"
+          python3 - <<'PY'
+          import hashlib, pathlib, zipfile
+          apk = pathlib.Path("app/build/outputs/apk/debug/app-debug.apk")
+          expected = {
+              "pose_landmarker_lite.task": "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a",
+              "pose_landmarker_full.task": "4eaa5eb7a98365221087693fcc286334cf0858e2eb6e15b506aa4a7ecdcec4ad",
+              "pose_landmarker_heavy.task": "64437af838a65d18e5ba7a0d39b465540069bc8aae8308de3e318aad31fcbc7b",
+          }
+          with zipfile.ZipFile(apk) as z:
+              names = set(z.namelist())
+              for name, digest in expected.items():
+                  matches = [p for p in names if p.endswith("/" + name) or p == "assets/" + name]
+                  assert matches, f"Missing offline model in APK: {name}"
+                  actual = hashlib.sha256(z.read(matches[0])).hexdigest()
+                  assert actual == digest, f"SHA-256 mismatch for {name}: {actual}"
+                  print(f"VERIFIED {name} sha256={actual}")
+          print(f"APK_SIZE_BYTES={apk.stat().st_size}")
+          PY
+
+      - name: Upload standalone APK and provenance
+        uses: actions/upload-artifact@v4
+        with:
+          name: mediapipe-pose-landmarker-android-debug-apk
+          if-no-files-found: error
+          path: |
+            mediapipe-samples/examples/pose_landmarker/android/app/build/outputs/apk/debug/app-debug.apk
+            mediapipe-upstream-commit.txt
+            MEDIAPIPE-LICENSE.txt
+            POSE-LANDMARKER-README.md
