@@ -46,6 +46,15 @@ jobs:
               assert len(manifest["defaults"]) == 23, style
           print("Both generated styles satisfy the shared humanoid rig and 23-slot default contract.")
           PY
+      - name: Download and process Kenney Modular Character Pack
+        run: |
+          python tools/process_kenney.py --download
+      - name: Upload Kenney sprite inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: kenney-modular-character-inventory
+          path: build/kenney/kenney_inventory.json
+          if-no-files-found: error
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
