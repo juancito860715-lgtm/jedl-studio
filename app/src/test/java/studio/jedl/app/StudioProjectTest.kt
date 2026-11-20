@@ -33,6 +33,17 @@ class StudioProjectTest {
         }
     }
 
+    @Test fun rejectsUnknownPoseBones() {
+        assertThrows(IllegalArgumentException::class.java) {
+            StudioProject("p", "Demo", pose = mapOf("wing" to 20f)).validated()
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            StudioProject("p", "Demo", keyframes = listOf(
+                StudioKeyframe(1, mapOf("wing" to 20f))
+            )).validated()
+        }
+    }
+
     @Test fun acceptsAndValidatesPlacedLibraryAssets() {
         val item = SceneObjectInstance("kenney_tiny_town_objects:tree", x = 0.2f, y = 0.4f, width = 0.12f, height = 0.18f)
         val project = StudioProject("p", "Scene", sceneObjects = listOf(item))
