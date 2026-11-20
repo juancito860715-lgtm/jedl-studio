@@ -23,6 +23,7 @@ data class AvatarPiece(
 class PieceLibrary private constructor(
     val selectedStyle: String,
     val manifestId: String,
+    val rigDefinition: RigDefinition,
     val parts: List<AvatarPiece>,
     val defaults: Map<CharacterLayerSlot, String>,
     private val bitmaps: Map<String, Bitmap>
@@ -40,22 +41,20 @@ class PieceLibrary private constructor(
             .sortedBy { it.zIndex }
     }
 
+    fun compatibleSelection(selection: Map<String, String>): Map<String, String> =
+        selection.filter { (slotName, id) ->
+            val slot = runCatching { CharacterLayerSlot.valueOf(slotName) }.getOrNull()
+            slot != null && parts.any { it.id == id && it.slot == slot }
+        }
+
     fun requireCompatibleWith(reference: PieceLibrary) {
-        require(parts.map { it.id }.toSet() == reference.parts.map { it.id }.toSet()) {
-            "El estilo no contiene las mismas piezas que el estilo de referencia"
+        RigPackCompatibility.requireCompatible(reference.rigDefinition, rigDefinition)
+        require(defaults.keys == reference.defaults.keys) {
+            "El paquete no proporciona las mismas ranuras predeterminadas del editor"
         }
-        val referenceById = reference.parts.associateBy { it.id }
-        parts.forEach { part ->
-            val expected = referenceById.getValue(part.id)
-            require(part.slot == expected.slot && part.boneId == expected.boneId &&
-                part.pivotX == expected.pivotX && part.pivotY == expected.pivotY &&
-                part.widthUnits == expected.widthUnits && part.heightUnits == expected.heightUnits &&
-                part.zIndex == expected.zIndex && part.offsetX == expected.offsetX &&
-                part.offsetY == expected.offsetY) {
-                "El estilo cambia el contrato del rig en ${part.id}"
-            }
+        require(parts.map { it.id }.toSet().size == parts.size) {
+            "El paquete contiene identificadores de pieza duplicados"
         }
-        require(defaults == reference.defaults) { "El estilo cambia las piezas predeterminadas" }
     }
 
     override fun close() {
@@ -72,9 +71,7 @@ class PieceLibrary private constructor(
         fun availableStyles(context: Context): List<String> {
             val assets = context.applicationContext.assets
             return StylePackContract.discover(assets.list("styles").orEmpty().asList()) { style ->
-                runCatching {
-                    assets.open(StylePackContract.manifestPath(style)).use { }
-                }.isSuccess
+                runCatching { assets.open(StylePackContract.manifestPath(style)).use { } }.isSuccess
             }
         }
 
@@ -90,8 +87,15 @@ class PieceLibrary private constructor(
             val root = JSONObject(text)
             val id = root.getString("id").also { require(it.isNotBlank()) }
             require(root.getInt("version") == 1) { "Versión de manifiesto no compatible" }
+            val rigId = root.getString("rigId")
+            val rigBonesJson = root.getJSONArray("rigBones")
+            val rigBones = (0 until rigBonesJson.length()).map { rigBonesJson.getString(it) }.toSet()
+            require(rigBones == SUPPORTED_BONES) { "El manifiesto no declara el rig humanoide JEDL completo" }
+
             val array = root.getJSONArray("parts")
-            require(array.length() == 42) { "El paquete $style debe contener 42 piezas; contiene ${array.length()}" }
+            require(array.length() in 1..1000) {
+                "El paquete debe contener entre 1 y 1000 piezas; contiene ${array.length()}"
+            }
             val parts = (0 until array.length()).map { index ->
                 val item = array.getJSONObject(index)
                 val part = AvatarPiece(
@@ -108,7 +112,7 @@ class PieceLibrary private constructor(
                     offsetY = item.optDouble("offsetY", 0.0).toFloat(),
                     tintChannel = item.optString("tintChannel").takeIf { it.isNotBlank() && it != "null" }
                 )
-                require(part.id.isNotBlank() && part.boneId in SUPPORTED_BONES) {
+                require(part.id.matches(Regex("[a-z0-9][a-z0-9_-]{0,79}")) && part.boneId in rigBones) {
                     "Identificador o hueso no válido para ${part.id}"
                 }
                 require(part.pivotX.isFinite() && part.pivotX in 0f..1f &&
@@ -137,6 +141,9 @@ class PieceLibrary private constructor(
                 require(byId[partId]?.slot == slot) { "La pieza predeterminada $partId no coincide con $slot" }
             }
             require(defaults.isNotEmpty()) { "El manifiesto no contiene piezas predeterminadas" }
+            val declaredSlots = parts.map { it.slot.name }.toSet()
+            require(defaults.keys.all { it.name in declaredSlots }) { "Faltan piezas para ranuras predeterminadas" }
+            val rigDefinition = RigDefinition(rigId, rigBones, defaults.keys.map { it.name }.toSet())
 
             val decoded = linkedMapOf<String, Bitmap>()
             try {
@@ -154,7 +161,7 @@ class PieceLibrary private constructor(
                 Log.e(TAG, "No se pudo cargar el paquete completo $style", failure)
                 throw IllegalStateException("No se pudo cargar el paquete completo $style: ${failure.message}", failure)
             }
-            return PieceLibrary(style, id, parts, defaults, decoded)
+            return PieceLibrary(style, id, rigDefinition, parts, defaults, decoded)
         }
     }
 }
