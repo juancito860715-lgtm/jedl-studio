@@ -112,7 +112,7 @@ def _register_in_repository_license_registry(output_root):
     entries.append({"path": relative, "license": "CC0"})
     entries.sort(key=lambda entry: entry["path"])
     registry_path.write_text(
-        json.dumps(registry, indent=2, ensure_ascii=False) + "\\n",
+        json.dumps(registry, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8"
     )
 
