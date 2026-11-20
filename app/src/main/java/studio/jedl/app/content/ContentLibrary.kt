@@ -33,14 +33,32 @@ class ContentLibrary private constructor(
 ) {
     val characters: List<ContentAsset> get() = banks.filter { it.kind == ContentKind.CHARACTER_PART }.flatMap { it.assets }
     val objects: List<ContentAsset> get() = banks.filter { it.kind == ContentKind.OBJECT }.flatMap { it.assets }
+    private val cache = LinkedHashMap<String, Bitmap>(24, 0.75f, true)
 
-    fun bitmap(asset: ContentAsset): Bitmap {
+    fun bitmap(asset: ContentAsset): Bitmap = synchronized(cache) {
+        cache[asset.id]?.let { return@synchronized it }
         val decoded = context.assets.open(asset.assetPath).use { BitmapFactory.decodeStream(it) }
             ?: error("No se pudo decodificar " + asset.assetPath)
         require(decoded.width > 0 && decoded.height > 0 && decoded.hasAlpha()) {
             "Imagen inválida o sin transparencia: " + asset.assetPath
         }
-        return decoded
+        if (cache.size >= 48) {
+            val iterator = cache.entries.iterator()
+            if (iterator.hasNext()) {
+                val old = iterator.next()
+                iterator.remove()
+                if (!old.value.isRecycled) old.value.recycle()
+            }
+        }
+        cache[asset.id] = decoded
+        decoded
+    }
+
+    fun find(assetId: String): ContentAsset? = (characters + objects).firstOrNull { it.id == assetId }
+
+    fun close() = synchronized(cache) {
+        cache.values.forEach { if (!it.isRecycled) it.recycle() }
+        cache.clear()
     }
 
     companion object {
