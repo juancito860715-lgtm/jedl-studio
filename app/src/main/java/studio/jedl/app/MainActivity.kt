@@ -451,8 +451,8 @@ class MainActivity : Activity() {
                 override fun onStopTrackingTouch(s:SeekBar?) {}
             })
         })
-        listOf("head","armUL","foreArmL","armUR","foreArmR","thighL","shinL","thighR","shinR").forEach { bone ->
-            val boneName = mapOf("head" to "Cabeza", "armUL" to "Brazo superior izquierdo",
+        listOf("torso","head","armUL","foreArmL","armUR","foreArmR","thighL","shinL","thighR","shinR").forEach { bone ->
+            val boneName = mapOf("torso" to "Torso", "head" to "Cabeza", "armUL" to "Brazo superior izquierdo",
                 "foreArmL" to "Antebrazo izquierdo", "armUR" to "Brazo superior derecho",
                 "foreArmR" to "Antebrazo derecho", "thighL" to "Muslo izquierdo",
                 "shinL" to "Pantorrilla izquierda", "thighR" to "Muslo derecho",
@@ -496,17 +496,12 @@ class MainActivity : Activity() {
 private class Preview(context:android.content.Context,private var library:PieceLibrary,private val contentLibrary:ContentLibrary,initial:StudioProject):View(context) {
     private var p=initial
     private val renderer=AvatarRenderer()
-    private val points=mapOf("torso" to (0f to 0f),"head" to (0f to -0.28f),
-        "armUL" to (-0.10f to -0.26f),"foreArmL" to (-0.10f to -0.115f),
-        "armUR" to (0.10f to -0.26f),"foreArmR" to (0.10f to -0.115f),
-        "thighL" to (-0.07f to -0.02f),"shinL" to (-0.07f to 0.17f),
-        "thighR" to (0.07f to -0.02f),"shinR" to (0.07f to 0.17f))
     fun update(value:StudioProject){p=value;invalidate()}
     fun replaceLibrary(value: PieceLibrary) { library = value; invalidate() }
     override fun onDraw(c:Canvas){
         super.onDraw(c); c.drawColor(Color.WHITE); if(width==0||height==0)return
         val scale=min(width/0.42f,height/1.52f)*0.97f
-        val matrices=points.mapValues{(bone,pt)->Matrix().apply{setRotate(p.pose[bone]?:0f);postTranslate(pt.first,pt.second)}}
+        val matrices=PoseHierarchy.solve(p.pose).mapValues { (_, transform) -> transform.toAndroidMatrix() }
         val save=c.save()
         try{
             c.translate(width/2f,height*0.52f);c.scale(scale,scale)
