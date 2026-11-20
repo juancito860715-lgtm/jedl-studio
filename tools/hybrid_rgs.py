@@ -45,6 +45,40 @@ def normalized_fit(size, target_width, target_height):
     return round(w * scale, 6), round(h * scale, 6)
 
 
+
+def render_preview(output: Path, manifest: dict):
+    """Render a deterministic neutral front-view assembly from rig joint anchors."""
+    from PIL import ImageDraw
+    joints = {
+        "torso": (0.0, 0.0), "head": (0.0, -0.28),
+        "armUL": (-0.10, -0.26), "foreArmL": (-0.10, -0.115),
+        "armUR": (0.10, -0.26), "foreArmR": (0.10, -0.115),
+        "thighL": (-0.07, -0.02), "shinL": (-0.07, 0.17),
+        "thighR": (0.07, -0.02), "shinR": (0.07, 0.17),
+    }
+    scale, center = 500, (512, 380)
+    canvas = Image.new("RGBA", (1024, 900), (245, 247, 250, 255))
+    ordered = sorted((p for p in manifest["parts"] if manifest["defaults"].get(p["slot"]) == p["id"]),
+                     key=lambda p: p["zIndex"])
+    for part in ordered:
+        path = output / part["file"]
+        with Image.open(path) as source:
+            sprite = source.convert("RGBA")
+        draw_w = max(1, round(part["widthUnits"] * scale))
+        draw_h = max(1, round(part["heightUnits"] * scale))
+        sprite = sprite.resize((draw_w, draw_h), Image.Resampling.LANCZOS)
+        jx, jy = joints[part["boneId"]]
+        anchor_x = center[0] + jx * scale
+        anchor_y = center[1] + jy * scale
+        x = round(anchor_x - part["pivotX"] * draw_w)
+        y = round(anchor_y - part["pivotY"] * draw_h)
+        canvas.alpha_composite(sprite, (x, y))
+    ImageDraw.Draw(canvas).text((24, 24), "JEDL HYBRID RGS — AUTOMATED RIG PREVIEW",
+                                fill=(25, 35, 50, 255))
+    canvas.convert("RGB").save(output / "hybrid_preview.png", quality=95)
+    print(f"HYBRID_VISUAL_PREVIEW={output / 'hybrid_preview.png'}")
+
+
 def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: Path):
     if not rgs_root.is_dir():
         raise FileNotFoundError(f"RGS extraction root missing: {rgs_root}")
@@ -160,6 +194,7 @@ def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: P
     print(f"HYBRID_RGS_PARTS={len(copied)}")
     print(json.dumps(copied, indent=2, ensure_ascii=False))
     print(f"HYBRID_MANIFEST={manifest_path}")
+    render_preview(output, manifest)
     return manifest
 
 
