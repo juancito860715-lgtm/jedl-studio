@@ -71,7 +71,7 @@ class PieceLibrary private constructor(
 
         fun availableStyles(context: Context): List<String> {
             val assets = context.applicationContext.assets
-            return StylePackContract.discover(assets.list("styles").orEmpty()) { style ->
+            return StylePackContract.discover(assets.list("styles").orEmpty().asList()) { style ->
                 runCatching {
                     assets.open(StylePackContract.manifestPath(style)).use { }
                 }.isSuccess
