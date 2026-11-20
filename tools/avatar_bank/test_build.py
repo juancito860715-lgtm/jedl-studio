@@ -15,7 +15,8 @@ class AvatarBankBuildTest(unittest.TestCase):
         cls.output = HERE / "out"
 
     def test_exactly_forty_unique_png_parts_are_generated(self):
-        self.assertEqual(len(self.manifest["parts"]), 42)\n        self.assertEqual(self.manifest["rigId"], "jedl_humanoid_v1")
+        self.assertEqual(len(self.manifest["parts"]), 42)
+        self.assertEqual(self.manifest["rigId"], "jedl_humanoid_v1")
         self.assertEqual(set(self.manifest["rigBones"]), avatar_build.SUPPORTED_BONES)
         ids = [part["id"] for part in self.manifest["parts"]]
         self.assertEqual(len(ids), len(set(ids)))
