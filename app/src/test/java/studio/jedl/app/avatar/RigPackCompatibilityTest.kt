@@ -57,10 +57,6 @@ class RigPackCompatibilityTest {
             "wrong_slot_shoe" to "SHOE_L"
         )
         assertEquals(
-            mapOf("HEAD" to "old_head", "HAND_L" to "old_hand").filterValues { false },
-            emptyMap<String, String>()
-        )
-        assertEquals(
             emptyMap<String, String>(),
             RigPackCompatibility.preserveCompatibleSelection(oldSelection, available)
         )
