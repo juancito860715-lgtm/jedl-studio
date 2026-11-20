@@ -82,7 +82,10 @@ def render_preview(output: Path, manifest: dict):
 def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: Path, pivots_path: Path):
     if not rgs_root.is_dir():
         raise FileNotFoundError(f"RGS extraction root missing: {rgs_root}")
-    source = json.loads(source_manifest.read_text(encoding="utf-8"))\n    if not pivots_path.is_file():\n        raise FileNotFoundError(f"Measured pivot file missing: {pivots_path}; run tools/auto_pivot.py first")\n    measured_pivots = json.loads(pivots_path.read_text(encoding="utf-8"))
+    source = json.loads(source_manifest.read_text(encoding="utf-8"))
+    if not pivots_path.is_file():
+        raise FileNotFoundError(f"Measured pivot file missing: {pivots_path}; run tools/auto_pivot.py first")
+    measured_pivots = json.loads(pivots_path.read_text(encoding="utf-8"))
     if source.get("rigId") != "jedl_humanoid_v1" or set(source.get("rigBones", [])) != RIG_BONES:
         raise ValueError("Generated body manifest does not match JEDL humanoid rig")
     parts = [dict(p) for p in source["parts"]]
@@ -122,7 +125,11 @@ def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: P
                 f"RGS face canvas mismatch for {relative}: {size} != head canvas {overlay_size}; "
                 "refusing to shift facial features automatically"
             )
-        if pivot_key not in measured_pivots:\n            raise KeyError(f"Measured pivot not found: {pivot_key}")\n        pivot = measured_pivots[pivot_key]\n        px, py = float(pivot["pivotX"]), float(pivot["pivotY"])\n        dest_name = f"{part_id}.png"
+        if pivot_key not in measured_pivots:
+            raise KeyError(f"Measured pivot not found: {pivot_key}")
+        pivot = measured_pivots[pivot_key]
+        px, py = float(pivot["pivotX"]), float(pivot["pivotY"])
+        dest_name = f"{part_id}.png"
         dest = character_dir / dest_name
         shutil.copy2(src, dest)
         if mode in ("head", "overlay"):
@@ -135,12 +142,10 @@ def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: P
                 width_units = height_units * size[0] / size[1]
                 width_units = min(width_units, float(body_head["widthUnits"]))
                 height_units = width_units * size[1] / size[0]
-            px, py = pivot
         else:
             target = body_hand if slot.startswith("HAND") else body_shoe
             width_units, height_units = normalized_fit(size, float(target["widthUnits"]) * 2.8,
                                                        float(target["heightUnits"]) * 2.8)
-            px, py = pivot
         item = {
             "id": part_id, "slot": slot, "boneId": bone,
             "file": f"characters/{dest_name}",
