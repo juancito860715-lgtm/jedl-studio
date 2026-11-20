@@ -66,7 +66,7 @@ def main():
     result["hair"] = dict(result["head"], source=SOURCES["head"][0])
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(json.dumps(result, indent=2) + "\\n", encoding="utf-8")
+    output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     head = result["head"]
     print(f"Pivote de Cabeza medido: X={head['pivotX']:.8f} Y={head['pivotY']:.8f}")
     for key in ("hand_l", "hand_r", "foot_l", "foot_r"):
