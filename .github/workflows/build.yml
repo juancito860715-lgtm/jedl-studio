@@ -41,7 +41,8 @@ jobs:
         run: |
           python -m unittest discover -s tools/content_banks -p "test_*.py" -v
           python tools/content_banks/fetch_kenney_cc0.py --pack objects
-          python tools/content_banks/fetch_kenney_cc0.py --pack foliage          for pack in kenney_tiny_town_objects kenney_foliage_objects; do
+          python tools/content_banks/fetch_kenney_cc0.py --pack foliage
+          for pack in kenney_tiny_town_objects kenney_foliage_objects; do
             test -s "app/src/main/assets/content/$pack/manifest.json"
             test "$(find "app/src/main/assets/content/$pack/png" -type f -name '*.png' | wc -l)" -ge 50
           done
