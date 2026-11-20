@@ -115,6 +115,9 @@ class PieceLibrary private constructor(
                 require(part.id.matches(Regex("[a-z0-9][a-z0-9_-]{0,79}")) && part.boneId in rigBones) {
                     "Identificador o hueso no válido para ${part.id}"
                 }
+                require(RigPackCompatibility.isSlotBoneCompatible(part.slot.name, part.boneId)) {
+                    "La ranura ${part.slot} no puede estar conectada al hueso ${part.boneId}"
+                }
                 require(part.pivotX.isFinite() && part.pivotX in 0f..1f &&
                     part.pivotY.isFinite() && part.pivotY in 0f..1f) {
                     "Pivote no normalizado para ${part.id}"
