@@ -130,7 +130,7 @@ def import_kenney_pack(zip_path, mapping_path, output_root):
         "defaults": mapping["defaults"]
     }
     (output_root / "manifest.json").write_text(
-        json.dumps(manifest, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8"
+        json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     source_record = {
         "id": mapping["id"], "title": mapping.get("title", mapping["id"]),
@@ -142,14 +142,14 @@ def import_kenney_pack(zip_path, mapping_path, output_root):
         "attributionNote": "Optional courtesy credit: Kenney.nl"
     }
     (output_root / "SOURCE.json").write_text(
-        json.dumps(source_record, indent=2, ensure_ascii=False) + "\\n", encoding="utf-8"
+        json.dumps(source_record, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
     (output_root / "LICENSE.txt").write_text(
-        "Kenney Modular Character Pack\\n"
-        "License: CC0-1.0 (public domain dedication).\\n"
-        "Source listing and license evidence: " + mapping["licenseEvidence"] + "\\n"
-        "License terms: " + mapping["licenseTerms"] + "\\n"
-        "Attribution to Kenney.nl is appreciated but not required.\\n",
+        "Kenney Modular Character Pack\n"
+        "License: CC0-1.0 (public domain dedication).\n"
+        "Source listing and license evidence: " + mapping["licenseEvidence"] + "\n"
+        "License terms: " + mapping["licenseTerms"] + "\n"
+        "Attribution to Kenney.nl is appreciated but not required.\n",
         encoding="utf-8"
     )
     return output_root
