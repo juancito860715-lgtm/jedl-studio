@@ -67,4 +67,12 @@ class RigPackCompatibilityTest {
         )
     }
 
+    @Test fun validatesSlotToBoneMappingsForImportedPieces() {
+        assertTrue(RigPackCompatibility.isSlotBoneCompatible("HEAD", "head"))
+        assertTrue(RigPackCompatibility.isSlotBoneCompatible("HAND_L", "foreArmL"))
+        assertTrue(RigPackCompatibility.isSlotBoneCompatible("SHOE_R", "shinR"))
+        assertFalse(RigPackCompatibility.isSlotBoneCompatible("HAND_L", "head"))
+        assertFalse(RigPackCompatibility.isSlotBoneCompatible("TORSO", "armUL"))
+    }
+
 }
