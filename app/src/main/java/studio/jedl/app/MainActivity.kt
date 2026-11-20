@@ -213,7 +213,7 @@ class MainActivity : Activity() {
             })
         }
         content.addView(TextView(this).apply {
-            text = "Los paquetes deben conservar las 42 piezas, sus pivotes, huesos y orden de capas."
+            text = "Los paquetes pueden aportar piezas diferentes, pero deben conservar el rig humanoide, sus huesos y las ranuras del editor."
             setPadding(0, 10, 0, 0)
         })
     }
@@ -235,9 +235,16 @@ class MainActivity : Activity() {
                     }
                 }
                 val previous = library
+                val currentProject = project
+                if (currentProject != null) {
+                    project = currentProject.copy(
+                        selectedParts = next.compatibleSelection(currentProject.selectedParts)
+                    )
+                }
                 library = next
                 selectedStyle = next.selectedStyle
                 preview?.replaceLibrary(next)
+                project?.let { preview?.update(it) }
                 previous.close()
                 studio(Tab.STYLE)
                 toast("Estilo aplicado")
