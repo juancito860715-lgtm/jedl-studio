@@ -12,6 +12,7 @@ import android.widget.*
 import kotlinx.coroutines.*
 import studio.jedl.app.avatar.*
 import studio.jedl.app.content.*
+import studio.jedl.app.animation.PoseInterpolator
 import kotlin.math.min
 
 class MainActivity : Activity() {
@@ -25,6 +26,10 @@ class MainActivity : Activity() {
     private lateinit var content: LinearLayout
     private var preview: Preview? = null
     private var frame = 0
+    private var playbackFrame = 0f
+    private var playbackJob: Job? = null
+    private var isPlaying = false
+    private var playbackFrameLabel: TextView? = null
     private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION, STYLE, LIBRARY }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -507,11 +512,49 @@ class MainActivity : Activity() {
     }
     private fun layersPanelRefresh() { studio(Tab.LAYERS) }
 
+    private fun togglePlayback() {
+        if (isPlaying) {
+            stopPlayback()
+            return
+        }
+        val current = project ?: return
+        if (current.keyframes.size < 2) {
+            toast("Guarda al menos dos fotogramas clave para reproducir")
+            return
+        }
+        isPlaying = true
+        playbackFrame = frame.toFloat()
+        studio(Tab.ANIMATION)
+        playbackJob = scope.launch {
+            while (isActive) {
+                val active = project ?: break
+                val pose = PoseInterpolator.interpolate(
+                    active.keyframes, playbackFrame, active.durationFrames, loop = true
+                )
+                preview?.update(active.copy(pose = pose))
+                frame = playbackFrame.toInt().coerceIn(0, active.durationFrames - 1)
+                playbackFrameLabel?.text = "Reproduciendo · Fotograma: " + frame + " / " + (active.durationFrames - 1)
+                playbackFrame = (playbackFrame + 1f) % active.durationFrames
+                delay(33L)
+            }
+        }
+    }
+
+    private fun stopPlayback() {
+        playbackJob?.cancel()
+        playbackJob = null
+        isPlaying = false
+        project?.let { preview?.update(it) }
+        studio(Tab.ANIMATION)
+    }
+
     private fun animationPanel() {
         val p=project ?: return
         frame=frame.coerceIn(0,p.durationFrames-1)
         content.addView(heading("Editor de poses y fotogramas"))
         val frameLabel=TextView(this).apply { text="Fotograma: $frame / ${p.durationFrames-1}" }
+        playbackFrameLabel = frameLabel
+        content.addView(button(if (isPlaying) "Stop" else "Play") { togglePlayback() })
         content.addView(frameLabel)
         content.addView(SeekBar(this).apply {
             max=p.durationFrames-1; progress=frame
@@ -556,6 +599,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        playbackJob?.cancel()
         scope.cancel()
         if (::library.isInitialized) library.close()
         if (::contentLibrary.isInitialized) contentLibrary.close()
