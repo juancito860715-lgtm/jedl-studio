@@ -138,7 +138,7 @@ class PieceLibrary private constructor(
                     offsetY = item.optDouble("offsetY", 0.0).toFloat(),
                     tintChannel = item.optString("tintChannel").takeIf { it.isNotBlank() && it != "null" }
                 )
-                require(part.id.matches(Regex("[a-z0-9][a-z0-9_-]{0,79}")) && part.boneId in rigBones) {
+                require(AvatarPartId.isValid(part.id) && part.boneId in rigBones) {
                     "Identificador o hueso no válido para ${part.id}"
                 }
                 require(RigPackCompatibility.isSlotBoneCompatible(part.slot.name, part.boneId)) {
