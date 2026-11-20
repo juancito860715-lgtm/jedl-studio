@@ -52,8 +52,8 @@ jobs:
           assert m["id"] == "jedl_hybrid_rgs_v1"
           assert len(m["defaults"]) == 23
           for slot, expected in {
-              "HEAD": "head_skin", "EYES": "face_eyes_dots", "MOUTH": "face_mouth_smile",
-              "HAIR_FRONT": "hair_short_front", "HAND_L": "rgs_hand_l",
+              "HEAD": "rgs_head_skin", "EYES": "rgs_face_eyes_dots", "MOUTH": "rgs_face_mouth_smile",
+              "HAIR_FRONT": "rgs_hair_short_front", "HAND_L": "rgs_hand_l",
               "HAND_R": "rgs_hand_r", "SHOE_L": "rgs_shoe_l", "SHOE_R": "rgs_shoe_r"
           }.items():
               assert m["defaults"][slot] == expected, (slot, m["defaults"].get(slot))
