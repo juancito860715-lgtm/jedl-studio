@@ -36,14 +36,12 @@ class RigPackCompatibilityTest {
         }
     }
 
-    @Test fun rejectsDifferentSlotContractsButDoesNotRequireIdenticalPieceIds() {
+    @Test fun rejectsDifferentSlotContracts() {
         val master = RigDefinition("jedl_humanoid_v1", requiredBones, requiredSlots)
         val missingSlot = RigDefinition("jedl_humanoid_v1", requiredBones, requiredSlots - "HAND_R")
         assertThrows(IllegalArgumentException::class.java) {
             RigPackCompatibility.requireCompatible(master, missingSlot)
         }
-        assertNotEquals("same rig contract must not depend on source-art IDs",
-            "kenney_hand_open_r", "hand_open_R")
     }
     @Test fun preservesOnlySelectionsThatExistInTheNewPackAndMatchTheirSlot() {
         val oldSelection = mapOf(
