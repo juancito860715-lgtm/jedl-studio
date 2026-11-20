@@ -33,6 +33,32 @@ class StudioProjectTest {
         }
     }
 
+    @Test fun acceptsCustomArgbColorsForEverySupportedChannel() {
+        val colors = studio.jedl.app.avatar.AvatarColorPalette.DEFAULTS +
+            ("skin" to 0xFF123456.toInt())
+        val project = StudioProject("p", "Color test", colors = colors)
+        assertEquals(colors, project.validated().colors)
+    }
+
+    @Test fun rejectsUnknownColorChannels() {
+        assertThrows(IllegalArgumentException::class.java) {
+            StudioProject("p", "Color test",
+                colors = studio.jedl.app.avatar.AvatarColorPalette.DEFAULTS + ("unknown" to 0xFFFFFFFF.toInt())
+            ).validated()
+        }
+    }
+
+    @Test fun rejectsUnknownPoseBones() {
+        assertThrows(IllegalArgumentException::class.java) {
+            StudioProject("p", "Demo", pose = mapOf("wing" to 20f)).validated()
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            StudioProject("p", "Demo", keyframes = listOf(
+                StudioKeyframe(1, mapOf("wing" to 20f))
+            )).validated()
+        }
+    }
+
     @Test fun acceptsAndValidatesPlacedLibraryAssets() {
         val item = SceneObjectInstance("kenney_tiny_town_objects:tree", x = 0.2f, y = 0.4f, width = 0.12f, height = 0.18f)
         val project = StudioProject("p", "Scene", sceneObjects = listOf(item))
