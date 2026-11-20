@@ -16,16 +16,16 @@ RIG_BONES = {"torso", "head", "armUL", "foreArmL", "armUR", "foreArmR",
              "thighL", "shinL", "thighR", "shinR"}
 
 # source path relative to extracted archive, destination id, Kotlin slot, bone,
-# z-order, normalized pivot. Coordinates are measured in the full PNG canvas.
+# z-order, measured pivot key. Coordinates are measured in the full PNG canvas.
 RGS_PARTS = [
-    ("Heads/head1/idle_0.png", "rgs_head_skin", "HEAD", "head", 10, (0.50, 0.96), "head"),
-    ("Eyes/eyes1/idle_0.png", "rgs_face_eyes_dots", "EYES", "head", 20, (0.50, 0.96), "overlay"),
-    ("Mouths/mouth1/idle_0.png", "rgs_face_mouth_smile", "MOUTH", "head", 22, (0.50, 0.96), "overlay"),
-    ("Hairs/hair1/idle_0.png", "rgs_hair_short_front", "HAIR_FRONT", "head", 30, (0.50, 0.96), "overlay"),
-    ("Left hands/handL1/idle_0.png", "rgs_hand_l", "HAND_L", "foreArmL", 60, (0.12, 0.52), "fit"),
-    ("Right hands/handR1/idle_0.png", "rgs_hand_r", "HAND_R", "foreArmR", 61, (0.88, 0.52), "fit"),
-    ("Left feet/footL1/idle_0.png", "rgs_shoe_l", "SHOE_L", "shinL", 18, (0.50, 0.12), "fit"),
-    ("Right feet/footR1/idle_0.png", "rgs_shoe_r", "SHOE_R", "shinR", 19, (0.50, 0.12), "fit"),
+    ("Heads/head1/idle_0.png", "rgs_head_skin", "HEAD", "head", 10, "head", "head"),
+    ("Eyes/eyes1/idle_0.png", "rgs_face_eyes_dots", "EYES", "head", 20, "eyes", "overlay"),
+    ("Mouths/mouth1/idle_0.png", "rgs_face_mouth_smile", "MOUTH", "head", 22, "mouth", "overlay"),
+    ("Hairs/hair1/idle_0.png", "rgs_hair_short_front", "HAIR_FRONT", "head", 30, "hair", "overlay"),
+    ("Left hands/handL1/idle_0.png", "rgs_hand_l", "HAND_L", "foreArmL", 60, "hand_l", "fit"),
+    ("Right hands/handR1/idle_0.png", "rgs_hand_r", "HAND_R", "foreArmR", 61, "hand_r", "fit"),
+    ("Left feet/footL1/idle_0.png", "rgs_shoe_l", "SHOE_L", "shinL", 18, "foot_l", "fit"),
+    ("Right feet/footR1/idle_0.png", "rgs_shoe_r", "SHOE_R", "shinR", 19, "foot_r", "fit"),
 ]
 
 
@@ -79,10 +79,10 @@ def render_preview(output: Path, manifest: dict):
     print(f"HYBRID_VISUAL_PREVIEW={output / 'hybrid_preview.png'}")
 
 
-def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: Path):
+def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: Path, pivots_path: Path):
     if not rgs_root.is_dir():
         raise FileNotFoundError(f"RGS extraction root missing: {rgs_root}")
-    source = json.loads(source_manifest.read_text(encoding="utf-8"))
+    source = json.loads(source_manifest.read_text(encoding="utf-8"))\n    if not pivots_path.is_file():\n        raise FileNotFoundError(f"Measured pivot file missing: {pivots_path}; run tools/auto_pivot.py first")\n    measured_pivots = json.loads(pivots_path.read_text(encoding="utf-8"))
     if source.get("rigId") != "jedl_humanoid_v1" or set(source.get("rigBones", [])) != RIG_BONES:
         raise ValueError("Generated body manifest does not match JEDL humanoid rig")
     parts = [dict(p) for p in source["parts"]]
@@ -109,7 +109,7 @@ def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: P
     # Require shared full-canvas dimensions for head/eyes/mouth/hair so
     # transparent offsets remain aligned exactly as authored by RGS.
     overlay_size = None
-    for relative, part_id, slot, bone, z, pivot, mode in RGS_PARTS:
+    for relative, part_id, slot, bone, z, pivot_key, mode in RGS_PARTS:
         src = source_prefix / relative
         if not src.is_file():
             raise FileNotFoundError(f"Required RGS idle sprite missing: {src}")
@@ -122,7 +122,7 @@ def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: P
                 f"RGS face canvas mismatch for {relative}: {size} != head canvas {overlay_size}; "
                 "refusing to shift facial features automatically"
             )
-        dest_name = f"{part_id}.png"
+        if pivot_key not in measured_pivots:\n            raise KeyError(f"Measured pivot not found: {pivot_key}")\n        pivot = measured_pivots[pivot_key]\n        px, py = float(pivot["pivotX"]), float(pivot["pivotY"])\n        dest_name = f"{part_id}.png"
         dest = character_dir / dest_name
         shutil.copy2(src, dest)
         if mode in ("head", "overlay"):
@@ -152,7 +152,7 @@ def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: P
         defaults[slot] = part_id
         copied.append({"source": relative, "file": item["file"], "slot": slot,
                        "boneId": bone, "dimensionsPx": list(size), "alphaBounds": list(bbox),
-                       "pivot": [px, py]})
+                       "pivot": [px, py], "pivotMeasurement": pivot})
 
     # Validate every file, slot, bone, ID and default before publishing.
     ids = [p["id"] for p in parts]
@@ -205,9 +205,9 @@ def main():
     parser.add_argument("--rgs-root", default="temp_rgs")
     parser.add_argument("--source-manifest", default="tools/avatar_bank/out/manifest.json")
     parser.add_argument("--source-png-dir", default="tools/avatar_bank/out/png")
-    parser.add_argument("--output", default="app/src/main/assets/styles/hybrid")
+    parser.add_argument("--output", default="app/src/main/assets/styles/hybrid")\n    parser.add_argument("--pivots", default="rgs_auto_pivots.json")
     args = parser.parse_args()
-    build(Path(args.rgs_root), Path(args.source_manifest), Path(args.source_png_dir), Path(args.output))
+    build(Path(args.rgs_root), Path(args.source_manifest), Path(args.source_png_dir), Path(args.output), Path(args.pivots))
 
 
 if __name__ == "__main__":
