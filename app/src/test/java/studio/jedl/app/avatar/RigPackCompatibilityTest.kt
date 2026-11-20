@@ -45,4 +45,30 @@ class RigPackCompatibilityTest {
         assertNotEquals("same rig contract must not depend on source-art IDs",
             "kenney_hand_open_r", "hand_open_R")
     }
+    @Test fun preservesOnlySelectionsThatExistInTheNewPackAndMatchTheirSlot() {
+        val oldSelection = mapOf(
+            "HEAD" to "old_head",
+            "HAND_L" to "old_hand",
+            "SHOE_R" to "old_shoe"
+        )
+        val available = mapOf(
+            "new_head" to "HEAD",
+            "new_hand" to "HAND_L",
+            "wrong_slot_shoe" to "SHOE_L"
+        )
+        assertEquals(
+            mapOf("HEAD" to "old_head", "HAND_L" to "old_hand").filterValues { false },
+            emptyMap<String, String>()
+        )
+        assertEquals(
+            emptyMap<String, String>(),
+            RigPackCompatibility.preserveCompatibleSelection(oldSelection, available)
+        )
+        val matchingIds = mapOf("HEAD" to "new_head", "HAND_L" to "new_hand")
+        assertEquals(
+            matchingIds,
+            RigPackCompatibility.preserveCompatibleSelection(matchingIds, available)
+        )
+    }
+
 }
