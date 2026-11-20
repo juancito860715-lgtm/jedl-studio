@@ -19,18 +19,25 @@ from pathlib import Path, PurePosixPath
 
 PACKS = {
     "objects": {
-        "id": "kenney_roguelike_rpg_objects",
-        "title": "Kenney Roguelike/RPG Pack",
-        "page": "https://kenney.nl/assets/roguelike-rpg-pack",
-        "expected_min_png": 100,
-        "kind": "object",
+        "id": "kenney_tiny_town_objects",
+        "title": "Kenney Tiny Town",
+        "page": "https://kenney.nl/assets/tiny-town",
+        "expected_min_png": 50,
+        "kind": "environment-object",
     },
-    "characters": {
-        "id": "kenney_modular_character_pack",
-        "title": "Kenney Modular Character Pack",
-        "page": "https://opengameart.org/content/modular-character-pack",
-        "expected_min_png": 100,
-        "kind": "character-part",
+    "foliage": {
+        "id": "kenney_foliage_objects",
+        "title": "Kenney Foliage Pack",
+        "page": "https://kenney.nl/assets/foliage-pack",
+        "expected_min_png": 50,
+        "kind": "nature-object",
+    },
+    "tiny-city": {
+        "id": "kenney_tiny_city_objects",
+        "title": "Kenney Tiny City",
+        "page": "https://kenney.nl/assets/tiny-city",
+        "expected_min_png": 50,
+        "kind": "environment-object",
     },
 }
 CC0_TERMS = "https://creativecommons.org/publicdomain/zero/1.0/"
@@ -59,7 +66,7 @@ def _request(url):
 
 def _safe_member(name):
     path = PurePosixPath(name)
-    if (not name or path.is_absolute() or "\\\\" in name or
+    if (not name or path.is_absolute() or "\\" in name or
             any(part in ("", ".", "..") for part in path.parts)):
         raise ValueError(f"Unsafe ZIP path: {name!r}")
     return path.as_posix()
@@ -88,7 +95,7 @@ def fetch_pack(pack_id, output_root):
     spec = PACKS[pack_id]
     final_url, page = _request(spec["page"])
     page_text = page.decode("utf-8", errors="replace")
-    if not re.search(r"Creative\\s+Commons\\s+CC0", page_text, re.IGNORECASE):
+    if not re.search(r"Creative\s+Commons\s+CC0", page_text, re.IGNORECASE):
         raise ValueError(f"Official page does not explicitly declare CC0: {spec['page']}")
     download_url = resolve_download(final_url, page)
     archive_url, payload = _request(download_url)
