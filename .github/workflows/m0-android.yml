@@ -58,6 +58,7 @@ jobs:
       - name: Verify avatar assets are packaged inside APK
         run: |
           python - <<'PY'
+          import json
           import zipfile
           from pathlib import Path
           apk = Path("app/build/outputs/apk/debug/app-debug.apk")
