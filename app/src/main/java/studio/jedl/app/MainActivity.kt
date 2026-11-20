@@ -17,11 +17,13 @@ class MainActivity : Activity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var store: ProjectStore
     private lateinit var library: PieceLibrary
+    private var selectedStyle: String = StylePackContract.DEFAULT_STYLE
+    private var styleChangeInProgress = false
     private var project: StudioProject? = null
     private lateinit var content: LinearLayout
     private var preview: Preview? = null
     private var frame = 0
-    private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION }
+    private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION, STYLE }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,7 +31,7 @@ class MainActivity : Activity() {
         showLoading("Preparando JEDL Studio…")
         scope.launch {
             try {
-                library = withContext(Dispatchers.IO) { PieceLibrary.load(applicationContext) }
+                library = withContext(Dispatchers.IO) { PieceLibrary.load(applicationContext, selectedStyle) }
                 home()
             } catch (e: Exception) { showLoading("Error al cargar recursos: ${e.message}") }
         }
@@ -170,7 +172,7 @@ class MainActivity : Activity() {
         preview = Preview(this, library, p)
         root.addView(preview, LinearLayout.LayoutParams(-1,0,1f))
         val tabs=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL }
-        listOf(Tab.SCENE to "Escena",Tab.CHARACTER to "Personaje",Tab.LAYERS to "Capas",Tab.ANIMATION to "Animación")
+        listOf(Tab.SCENE to "Escena",Tab.CHARACTER to "Personaje",Tab.LAYERS to "Capas",Tab.ANIMATION to "Animación",Tab.STYLE to "Estilo")
             .forEach { (t,label) -> tabs.addView(button(label) { studio(t) },LinearLayout.LayoutParams(0,-2,1f)) }
         root.addView(tabs)
         content=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(12,8,12,20) }
@@ -185,6 +187,65 @@ class MainActivity : Activity() {
             Tab.CHARACTER -> characterPanel()
             Tab.LAYERS -> layersPanel()
             Tab.ANIMATION -> animationPanel()
+            Tab.STYLE -> stylePanel()
+        }
+    }
+
+
+    private fun stylePanel() {
+        content.addView(heading("Estilo visual"))
+        content.addView(TextView(this).apply {
+            text = "Cambia la apariencia sin modificar las poses, las capas ni la animación."
+        })
+        val styles = PieceLibrary.availableStyles(this)
+        if (styles.isEmpty()) {
+            content.addView(TextView(this).apply { text = "No hay paquetes de estilos disponibles." })
+            return
+        }
+        styles.forEach { style ->
+            val label = when (style) {
+                "default" -> "Color original"
+                "boceto" -> "Boceto en blanco y negro"
+                else -> "Estilo " + style.replace('_', ' ')
+            }
+            content.addView(button((if (style == selectedStyle) "✓ " else "") + label) {
+                if (style != selectedStyle) applyStyle(style)
+            })
+        }
+        content.addView(TextView(this).apply {
+            text = "Los paquetes deben conservar las 42 piezas, sus pivotes, huesos y orden de capas."
+            setPadding(0, 10, 0, 0)
+        })
+    }
+
+    private fun applyStyle(style: String) {
+        if (styleChangeInProgress) return
+        styleChangeInProgress = true
+        toast("Cargando estilo…")
+        scope.launch {
+            try {
+                val next = withContext(Dispatchers.IO) {
+                    PieceLibrary.load(applicationContext, style).also { candidate ->
+                        try {
+                            candidate.requireCompatibleWith(library)
+                        } catch (failure: Exception) {
+                            candidate.close()
+                            throw failure
+                        }
+                    }
+                }
+                val previous = library
+                library = next
+                selectedStyle = next.selectedStyle
+                preview?.replaceLibrary(next)
+                previous.close()
+                studio(Tab.STYLE)
+                toast("Estilo aplicado")
+            } catch (failure: Exception) {
+                toast("No se pudo aplicar el estilo: ${failure.message}")
+            } finally {
+                styleChangeInProgress = false
+            }
         }
     }
 
@@ -283,10 +344,14 @@ class MainActivity : Activity() {
         content.addView(button("Guardar animación") { save() })
     }
 
-    override fun onDestroy() { scope.cancel(); super.onDestroy() }
+    override fun onDestroy() {
+        scope.cancel()
+        if (::library.isInitialized) library.close()
+        super.onDestroy()
+    }
 }
 
-private class Preview(context:android.content.Context,private val library:PieceLibrary,initial:StudioProject):View(context) {
+private class Preview(context:android.content.Context,private var library:PieceLibrary,initial:StudioProject):View(context) {
     private var p=initial
     private val renderer=AvatarRenderer()
     private val points=mapOf("torso" to (0f to 0f),"head" to (0f to -0.28f),
@@ -295,6 +360,7 @@ private class Preview(context:android.content.Context,private val library:PieceL
         "thighL" to (-0.07f to -0.02f),"shinL" to (-0.07f to 0.17f),
         "thighR" to (0.07f to -0.02f),"shinR" to (0.07f to 0.17f))
     fun update(value:StudioProject){p=value;invalidate()}
+    fun replaceLibrary(value: PieceLibrary) { library = value; invalidate() }
     override fun onDraw(c:Canvas){
         super.onDraw(c); c.drawColor(Color.WHITE); if(width==0||height==0)return
         val scale=min(width/0.42f,height/1.52f)*0.97f
