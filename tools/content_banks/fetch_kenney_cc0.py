@@ -118,7 +118,7 @@ def fetch_pack(pack_id, output_root):
                     "sourceFile": member,
                     "width": rgba.width,
                     "height": rgba.height,
-                    "sha256": hashlib.sha256(raw).hexdigest(),
+                    "sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
                     "kind": spec["kind"],
                     "category": member.split("/")[0] if "/" in member else "General",
                 })
