@@ -42,9 +42,9 @@ jobs:
           python -m unittest discover -s tools/content_banks -p "test_*.py" -v
           python tools/content_banks/fetch_kenney_cc0.py --pack objects
           python tools/content_banks/fetch_kenney_cc0.py --pack foliage
-          python tools/content_banks/fetch_kenney_cc0.py --pack roguelike
-          python tools/content_banks/fetch_kenney_cc0.py --pack urban
-          for pack in kenney_tiny_town_objects kenney_foliage_objects kenney_roguelike_rpg_objects kenney_rpg_urban_objects; do
+          python tools/content_banks/fetch_kenney_cc0.py --pack platformer
+          python tools/content_banks/fetch_kenney_cc0.py --pack bit
+          for pack in kenney_tiny_town_objects kenney_foliage_objects kenney_new_platformer_objects kenney_1_bit_objects; do
             test -s "app/src/main/assets/content/$pack/manifest.json"
             test "$(find "app/src/main/assets/content/$pack/png" -type f -name '*.png' | wc -l)" -ge 50
           done
@@ -81,8 +81,8 @@ jobs:
               "characters/kenney_modular_character_pack": 400,
               "kenney_tiny_town_objects": 50,
               "kenney_foliage_objects": 50,
-              "kenney_roguelike_rpg_objects": 50,
-              "kenney_rpg_urban_objects": 50,
+              "kenney_new_platformer_objects": 50,
+              "kenney_1_bit_objects": 50,
           }
           for relative, minimum in expected.items():
               folder = root / relative
