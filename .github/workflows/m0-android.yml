@@ -27,6 +27,9 @@ jobs:
           mkdir -p app/src/main/assets/characters/jedl_master_v1
           cp tools/avatar_bank/out/manifest.json app/src/main/assets/characters/jedl_master_v1/manifest.json
           cp -R tools/avatar_bank/out/png app/src/main/assets/characters/jedl_master_v1/png
+          python tools/avatar_bank/build_style_packs.py
+          test "$(find app/src/main/assets/styles/default/characters -name "*.png" -type f | wc -l)" -eq 42
+          test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
           test -s app/src/main/assets/characters/jedl_master_v1/manifest.json
           test "$(find app/src/main/assets/characters/jedl_master_v1/png -maxdepth 1 -name '*.png' -type f | wc -l)" -eq 42
       - uses: actions/setup-java@v4
@@ -45,13 +48,18 @@ jobs:
           from pathlib import Path
           apk = Path("app/build/outputs/apk/debug/app-debug.apk")
           assert apk.is_file(), f"APK not found: {apk}"
-          expected = "assets/characters/jedl_master_v1/manifest.json"
+          expected = [
+              "assets/styles/default/manifest.json",
+              "assets/styles/boceto/manifest.json",
+          ]
           with zipfile.ZipFile(apk) as archive:
               names = set(archive.namelist())
-              assert expected in names, f"Missing from APK: {expected}"
-              pngs = [name for name in names if name.startswith("assets/characters/jedl_master_v1/png/") and name.endswith(".png")]
-              assert len(pngs) == 42, f"Expected 42 packaged PNGs, found {len(pngs)}"
-          print(f"Verified {expected} and {len(pngs)} PNGs inside {apk}")
+              for item in expected:
+                  assert item in names, f"Missing from APK: {item}"
+              for style in ("default", "boceto"):
+                  pngs = [name for name in names if name.startswith(f"assets/styles/{style}/characters/") and name.endswith(".png")]
+                  assert len(pngs) == 42, f"Expected 42 {style} PNGs, found {len(pngs)}"
+          print(f"Verified both style manifests and 84 rig-compatible PNGs inside {apk}")
           PY
       - name: Upload APK
         uses: actions/upload-artifact@v4
