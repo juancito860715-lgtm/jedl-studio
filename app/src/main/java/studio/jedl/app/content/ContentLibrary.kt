@@ -34,6 +34,7 @@ class ContentLibrary private constructor(
     val characters: List<ContentAsset> get() = banks.filter { it.kind == ContentKind.CHARACTER_PART }.flatMap { it.assets }
     val objects: List<ContentAsset> get() = banks.filter { it.kind == ContentKind.OBJECT }.flatMap { it.assets }
     private val cache = LinkedHashMap<String, Bitmap>(24, 0.75f, true)
+    private val assetIndex: Map<String, ContentAsset> = banks.flatMap { it.assets }.associateBy { it.id }
 
     fun bitmap(asset: ContentAsset): Bitmap = synchronized(cache) {
         cache[asset.id]?.let { return@synchronized it }
@@ -54,7 +55,7 @@ class ContentLibrary private constructor(
         decoded
     }
 
-    fun find(assetId: String): ContentAsset? = (characters + objects).firstOrNull { it.id == assetId }
+    fun find(assetId: String): ContentAsset? = assetIndex[assetId]
 
     fun close() = synchronized(cache) {
         cache.values.forEach { if (!it.isRecycled) it.recycle() }
