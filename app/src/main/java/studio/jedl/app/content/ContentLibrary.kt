@@ -39,7 +39,7 @@ class ContentLibrary private constructor(
         cache[asset.id]?.let { return@synchronized it }
         val decoded = context.assets.open(asset.assetPath).use { BitmapFactory.decodeStream(it) }
             ?: error("No se pudo decodificar " + asset.assetPath)
-        require(decoded.width > 0 && decoded.height > 0 && decoded.hasAlpha()) {
+        require(decoded.width > 0 && decoded.height > 0) {
             "Imagen inválida o sin transparencia: " + asset.assetPath
         }
         if (cache.size >= 48) {
