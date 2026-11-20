@@ -208,7 +208,7 @@ class MainActivity : Activity() {
         val list = ListView(this)
         val count = TextView(this)
         val placed = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
-        lateinit var refreshPlaced: () -> Unit
+        var refreshPlaced: () -> Unit = {}
         fun refreshItems(bank: ContentBank) {
             val assets = bank.assets
             count.text = assets.size.toString() + " recursos · " + bank.license + " · " + bank.title
