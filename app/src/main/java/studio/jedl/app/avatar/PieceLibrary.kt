@@ -1,6 +1,7 @@
 package studio.jedl.app.avatar
 
 import android.content.Context
+import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
@@ -26,9 +27,31 @@ class PieceLibrary private constructor(
     val rigDefinition: RigDefinition,
     val parts: List<AvatarPiece>,
     val defaults: Map<CharacterLayerSlot, String>,
-    private val bitmaps: Map<String, Bitmap>
+    private val assets: AssetManager
 ) : AutoCloseable {
-    fun bitmap(partId: String): Bitmap = bitmaps[partId] ?: error("Falta la imagen PNG: $partId")
+    private val bitmapCache = LinkedHashMap<String, Bitmap>(32, 0.75f, true)
+    private val cacheLimit = 32
+
+    fun bitmap(partId: String): Bitmap = synchronized(bitmapCache) {
+        bitmapCache[partId]?.let { return@synchronized it }
+        val part = parts.firstOrNull { it.id == partId } ?: error("Pieza desconocida: $partId")
+        val assetPath = StylePackContract.characterAssetPath(selectedStyle, part.file)
+        val decoded = assets.open(assetPath).use { BitmapFactory.decodeStream(it) }
+            ?: error("No se pudo decodificar $assetPath")
+        require(decoded.width > 0 && decoded.height > 0 && decoded.hasAlpha()) {
+            "La imagen debe tener dimensiones y transparencia: $assetPath"
+        }
+        if (bitmapCache.size >= cacheLimit) {
+            val eldest = bitmapCache.entries.iterator()
+            if (eldest.hasNext()) {
+                val old = eldest.next()
+                eldest.remove()
+                if (!old.value.isRecycled) old.value.recycle()
+            }
+        }
+        bitmapCache[partId] = decoded
+        decoded
+    }
 
     fun resolve(selection: Map<CharacterLayerSlot, String> = emptyMap()): List<AvatarPiece> {
         val chosen = defaults.toMutableMap()
@@ -58,7 +81,10 @@ class PieceLibrary private constructor(
     }
 
     override fun close() {
-        bitmaps.values.forEach { if (!it.isRecycled) it.recycle() }
+        synchronized(bitmapCache) {
+            bitmapCache.values.forEach { if (!it.isRecycled) it.recycle() }
+            bitmapCache.clear()
+        }
     }
 
     companion object {
@@ -148,23 +174,27 @@ class PieceLibrary private constructor(
             require(defaults.keys.all { it.name in declaredSlots }) { "Faltan piezas para ranuras predeterminadas" }
             val rigDefinition = RigDefinition(rigId, rigBones, defaults.keys.map { it.name }.toSet())
 
-            val decoded = linkedMapOf<String, Bitmap>()
             try {
                 parts.forEach { part ->
                     val assetPath = StylePackContract.characterAssetPath(style, part.file)
-                    val bitmap = app.assets.open(assetPath).use { BitmapFactory.decodeStream(it) }
-                        ?: error("No se pudo decodificar $assetPath")
-                    require(bitmap.width > 0 && bitmap.height > 0 && bitmap.hasAlpha()) {
-                        "La imagen debe tener dimensiones y transparencia: $assetPath"
+                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    app.assets.open(assetPath).use { BitmapFactory.decodeStream(it, null, options) }
+                    require(options.outWidth > 0 && options.outHeight > 0 && options.outMimeType == "image/png") {
+                        "Recurso PNG inexistente o inválido: $assetPath"
                     }
-                    decoded[part.id] = bitmap
                 }
             } catch (failure: Exception) {
-                decoded.values.forEach { if (!it.isRecycled) it.recycle() }
-                Log.e(TAG, "No se pudo cargar el paquete completo $style", failure)
-                throw IllegalStateException("No se pudo cargar el paquete completo $style: ${failure.message}", failure)
+                Log.e(TAG, "No se pudo validar el paquete $style", failure)
+                throw IllegalStateException("No se pudo validar el paquete $style: ${failure.message}", failure)
             }
-            return PieceLibrary(style, id, rigDefinition, parts, defaults, decoded)
+            val library = PieceLibrary(style, id, rigDefinition, parts, defaults, app.assets)
+            try {
+                defaults.values.forEach { library.bitmap(it) }
+            } catch (failure: Exception) {
+                library.close()
+                throw IllegalStateException("No se pudieron precargar las piezas predeterminadas: ${failure.message}", failure)
+            }
+            return library
         }
     }
 }
