@@ -70,10 +70,19 @@ jobs:
               names = set(archive.namelist())
               for item in expected:
                   assert item in names, f"Missing from APK: {item}"
+              manifests = {}
               for style in ("default", "boceto"):
+                  manifest_path = f"assets/styles/{style}/manifest.json"
+                  manifest = json.loads(archive.read(manifest_path))
+                  manifests[style] = manifest
                   pngs = [name for name in names if name.startswith(f"assets/styles/{style}/characters/") and name.endswith(".png")]
                   assert len(pngs) == 42, f"Expected 42 {style} PNGs, found {len(pngs)}"
-          print(f"Verified both style manifests and 84 rig-compatible PNGs inside {apk}")
+                  assert manifest["rigId"] == "jedl_humanoid_v1", style
+                  assert len(manifest["rigBones"]) == 10, style
+                  assert len(manifest["defaults"]) == 23, style
+              assert manifests["default"]["rigBones"] == manifests["boceto"]["rigBones"]
+              assert manifests["default"]["defaults"] == manifests["boceto"]["defaults"]
+          print(f"Verified both style manifests, shared rig contract and 84 PNGs inside {apk}")
           PY
       - name: Upload APK
         uses: actions/upload-artifact@v4
