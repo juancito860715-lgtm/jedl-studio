@@ -33,6 +33,25 @@ class StudioProjectTest {
         }
     }
 
+    @Test fun acceptsAndValidatesPlacedLibraryAssets() {
+        val item = SceneObjectInstance("kenney_tiny_town_objects:tree", x = 0.2f, y = 0.4f, width = 0.12f, height = 0.18f)
+        val project = StudioProject("p", "Scene", sceneObjects = listOf(item))
+        assertEquals(listOf(item), project.validated().sceneObjects)
+    }
+
+    @Test fun rejectsInvalidPlacedAssetGeometry() {
+        assertThrows(IllegalArgumentException::class.java) {
+            StudioProject("p", "Scene", sceneObjects = listOf(
+                SceneObjectInstance("asset", x = Float.NaN, y = 0f)
+            )).validated()
+        }
+        assertThrows(IllegalArgumentException::class.java) {
+            StudioProject("p", "Scene", sceneObjects = listOf(
+                SceneObjectInstance("asset", x = 0f, y = 0f, width = 0f)
+            )).validated()
+        }
+    }
+
     @Test fun rejectsKeyframeOutsideDuration() {
         assertThrows(IllegalArgumentException::class.java) {
             StudioProject("p", "Demo", keyframes = listOf(StudioKeyframe(120, emptyMap()))).validated()
