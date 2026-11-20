@@ -25,6 +25,19 @@ SLOTS = {
     "THIGH_L", "THIGH_R", "SHIN_L", "SHIN_R", "SHOE_L", "SHOE_R"
 }
 ID_RE = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}")
+SLOT_BONES = {
+    "HEAD": "head", "EYES": "head", "EYEBROWS": "head", "MOUTH": "head",
+    "FACIAL_HAIR": "head", "HAIR_BACK": "head", "HAIR_FRONT": "head",
+    "HAT_BACK": "head", "HAT_FRONT": "head",
+    "TORSO": "torso", "SHIRT": "torso", "PANTS": "torso",
+    "UPPER_ARM_L": "armUL", "SLEEVE_L": "armUL",
+    "UPPER_ARM_R": "armUR", "SLEEVE_R": "armUR",
+    "FOREARM_L": "foreArmL", "HAND_L": "foreArmL",
+    "FOREARM_R": "foreArmR", "HAND_R": "foreArmR",
+    "THIGH_L": "thighL", "THIGH_R": "thighR",
+    "SHIN_L": "shinL", "SHIN_R": "shinR",
+    "SHOE_L": "shinL", "SHOE_R": "shinR"
+}
 
 
 def _safe_source_path(value):
@@ -58,8 +71,8 @@ def _validate_mapping(data):
         if slot not in SLOTS or part_id not in by_id or by_id[part_id].get("slot") != slot:
             raise ValueError(f"Invalid default mapping: {slot} -> {part_id}")
     for part in parts:
-        if part.get("slot") not in SLOTS or part.get("boneId") not in RIG_BONES:
-            raise ValueError(f"Unsupported slot or bone for {part.get('id')}")
+        if part.get("slot") not in SLOTS or part.get("boneId") != SLOT_BONES.get(part.get("slot")):
+            raise ValueError(f"Slot/bone mapping is incompatible for {part.get('id')}")
         for key in ("pivotX", "pivotY"):
             value = part.get(key)
             if not isinstance(value, (int, float)) or not 0 <= value <= 1:
