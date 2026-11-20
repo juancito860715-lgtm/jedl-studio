@@ -25,6 +25,7 @@ SLOTS = {
     "THIGH_L", "THIGH_R", "SHIN_L", "SHIN_R", "SHOE_L", "SHOE_R"
 }
 ID_RE = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}")
+REQUIRED_DEFAULT_SLOTS = set(SLOTS)
 SLOT_BONES = {
     "HEAD": "head", "EYES": "head", "EYEBROWS": "head", "MOUTH": "head",
     "FACIAL_HAIR": "head", "HAIR_BACK": "head", "HAIR_FRONT": "head",
@@ -65,6 +66,8 @@ def _validate_mapping(data):
         raise ValueError("Duplicate part IDs")
     by_id = {p["id"]: p for p in parts}
     defaults = data.get("defaults", {})
+    if set(defaults) != REQUIRED_DEFAULT_SLOTS:
+        raise ValueError("Mapping must provide a default part for every JEDL editor slot")
     if not defaults:
         raise ValueError("Mapping must declare default parts")
     for slot, part_id in defaults.items():
