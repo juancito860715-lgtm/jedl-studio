@@ -120,7 +120,7 @@ def fetch_pack(pack_id, output_root):
                     "height": rgba.height,
                     "sha256": hashlib.sha256(raw).hexdigest(),
                     "kind": spec["kind"],
-                    "category": "uncategorized",
+                    "category": member.split("/")[0] if "/" in member else "General",
                 })
     if len(entries) < spec["expected_min_png"]:
         raise ValueError(f"Pack incomplete: expected at least {spec['expected_min_png']} PNGs, got {len(entries)}")
