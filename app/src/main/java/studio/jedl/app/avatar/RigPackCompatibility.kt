@@ -21,4 +21,11 @@ object RigPackCompatibility {
             "El paquete no respeta las ranuras del rig ${reference.id}"
         }
     }
+
+    fun preserveCompatibleSelection(
+        selection: Map<String, String>,
+        availableParts: Map<String, String>
+    ): Map<String, String> = selection.filter { (slot, partId) ->
+        availableParts[partId] == slot
+    }
 }
