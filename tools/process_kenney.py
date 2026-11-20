@@ -11,6 +11,7 @@ import json
 import os
 import stat
 import sys
+sys.path.insert(0, str(Path(__file__).resolve().parent / "avatar_bank"))
 import urllib.error
 import urllib.request
 import zipfile
