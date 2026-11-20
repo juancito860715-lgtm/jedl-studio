@@ -9,10 +9,12 @@ from fetch_kenney_cc0 import _safe_member, resolve_download, PACKS
 
 class KenneyContentBankTests(unittest.TestCase):
     def test_only_explicit_cc0_environment_packs_are_catalogued(self):
-        self.assertEqual(set(PACKS), {"objects", "foliage", "tiny-city"})
+        self.assertEqual(set(PACKS), {"objects", "foliage", "roguelike", "urban"})
         for spec in PACKS.values():
             self.assertIn("kenney.nl/assets/", spec["page"])
             self.assertIn("object", spec["kind"])
+            self.assertEqual(len(spec["sha256"]), 64)
+            self.assertTrue(spec["archive"].endswith(".zip"))
 
     def test_resolves_only_https_kenney_download_links(self):
         page = b"""
