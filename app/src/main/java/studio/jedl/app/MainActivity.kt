@@ -406,7 +406,77 @@ class MainActivity : Activity() {
                     }.setNegativeButton("Cancelar",null).show()
             })
         }
+        content.addView(heading("Colores del personaje"))
+        val colorLabels = linkedMapOf(
+            "skin" to "Piel", "hair" to "Cabello", "shirt" to "Camiseta",
+            "pants" to "Pantalón", "shoe" to "Zapatos", "sole" to "Suela",
+            "hat_crown" to "Corona de gorra", "hat_panel" to "Panel de gorra",
+            "hat_brim" to "Visera"
+        )
+        colorLabels.forEach { (channel, label) ->
+            val color = p.colors[channel] ?: AvatarColorPalette.DEFAULTS.getValue(channel)
+            content.addView(button(label + " · " + String.format("#%06X", color and 0xFFFFFF)) {
+                showColorPicker(channel, label, color)
+            })
+        }
         content.addView(button("Guardar cambios") { save() })
+    }
+
+    private fun showColorPicker(channel: String, label: String, initialColor: Int) {
+        var red = (initialColor shr 16) and 0xFF
+        var green = (initialColor shr 8) and 0xFF
+        var blue = initialColor and 0xFF
+        var selectedColor = Color.rgb(red, green, blue)
+        val previewColor = TextView(this).apply {
+            text = String.format("#%06X", selectedColor and 0xFFFFFF)
+            textSize = 18f
+            gravity = Gravity.CENTER
+            setPadding(12, 18, 12, 18)
+            setBackgroundColor(selectedColor)
+        }
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 12, 24, 8)
+        }
+        panel.addView(previewColor, LinearLayout.LayoutParams(-1, 72))
+        fun addChannelSlider(name: String, initial: Int, changed: (Int) -> Unit) {
+            panel.addView(TextView(this).apply { text = name })
+            val slider = SeekBar(this).apply {
+                max = 255
+                progress = initial
+            }
+            slider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                    changed(value)
+                    selectedColor = Color.rgb(red, green, blue)
+                    previewColor.text = String.format("#%06X", selectedColor and 0xFFFFFF)
+                    previewColor.setBackgroundColor(selectedColor)
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
+            panel.addView(slider)
+        }
+        addChannelSlider("Rojo", red) { red = it }
+        addChannelSlider("Verde", green) { green = it }
+        addChannelSlider("Azul", blue) { blue = it }
+        AlertDialog.Builder(this)
+            .setTitle("Color: " + label)
+            .setView(panel)
+            .setNegativeButton("Cancelar", null)
+            .setNeutralButton("Restablecer") { _, _ ->
+                val current = project ?: return@setNeutralButton
+                project = current.copy(colors = current.colors + (channel to AvatarColorPalette.DEFAULTS.getValue(channel)))
+                preview?.update(project!!)
+                studio(Tab.CHARACTER)
+            }
+            .setPositiveButton("Aplicar") { _, _ ->
+                val current = project ?: return@setPositiveButton
+                project = current.copy(colors = current.colors + (channel to selectedColor))
+                preview?.update(project!!)
+                studio(Tab.CHARACTER)
+            }
+            .show()
     }
 
     private fun layersPanel() {
@@ -518,7 +588,7 @@ private class Preview(context:android.content.Context,private var library:PieceL
                     ), android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG))
                 } finally { c.restoreToCount(itemSave) }
             }
-            renderer.draw(c,library,matrices,selection,visibleSlots=StudioProject.SLOT_NAMES-p.hiddenSlots,layerOrder=p.layerOrder)
+            renderer.draw(c,library,matrices,selection,colors=p.colors,visibleSlots=StudioProject.SLOT_NAMES-p.hiddenSlots,layerOrder=p.layerOrder)
         }finally{c.restoreToCount(save)}
     }
 }
