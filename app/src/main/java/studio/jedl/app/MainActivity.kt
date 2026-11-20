@@ -11,19 +11,26 @@ import android.view.View
 import android.widget.*
 import kotlinx.coroutines.*
 import studio.jedl.app.avatar.*
+import studio.jedl.app.content.*
+import studio.jedl.app.animation.PoseInterpolator
 import kotlin.math.min
 
 class MainActivity : Activity() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var store: ProjectStore
     private lateinit var library: PieceLibrary
+    private lateinit var contentLibrary: ContentLibrary
     private var selectedStyle: String = StylePackContract.DEFAULT_STYLE
     private var styleChangeInProgress = false
     private var project: StudioProject? = null
     private lateinit var content: LinearLayout
     private var preview: Preview? = null
     private var frame = 0
-    private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION, STYLE }
+    private var playbackFrame = 0f
+    private var playbackJob: Job? = null
+    private var isPlaying = false
+    private var playbackFrameLabel: TextView? = null
+    private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION, STYLE, LIBRARY }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,7 +38,9 @@ class MainActivity : Activity() {
         showLoading("Preparando JEDL Studio…")
         scope.launch {
             try {
-                library = withContext(Dispatchers.IO) { PieceLibrary.load(applicationContext, selectedStyle) }
+                val loaded = withContext(Dispatchers.IO) { PieceLibrary.load(applicationContext, selectedStyle) to ContentLibrary.load(applicationContext) }
+                library = loaded.first
+                contentLibrary = loaded.second
                 home()
             } catch (e: Exception) { showLoading("Error al cargar recursos: ${e.message}") }
         }
@@ -169,10 +178,10 @@ class MainActivity : Activity() {
         top.addView(button("Guardar") { save() })
         top.addView(button("Inicio") { save(); home() })
         root.addView(top)
-        preview = Preview(this, library, p)
+        preview = Preview(this, library, contentLibrary, p)
         root.addView(preview, LinearLayout.LayoutParams(-1,0,1f))
         val tabs=LinearLayout(this).apply { orientation=LinearLayout.HORIZONTAL }
-        listOf(Tab.SCENE to "Escena",Tab.CHARACTER to "Personaje",Tab.LAYERS to "Capas",Tab.ANIMATION to "Animación",Tab.STYLE to "Estilo")
+        listOf(Tab.SCENE to "Escena",Tab.CHARACTER to "Personaje",Tab.LAYERS to "Capas",Tab.ANIMATION to "Animación",Tab.STYLE to "Estilo",Tab.LIBRARY to "Biblioteca")
             .forEach { (t,label) -> tabs.addView(button(label) { studio(t) },LinearLayout.LayoutParams(0,-2,1f)) }
         root.addView(tabs)
         content=LinearLayout(this).apply { orientation=LinearLayout.VERTICAL; setPadding(12,8,12,20) }
@@ -188,9 +197,127 @@ class MainActivity : Activity() {
             Tab.LAYERS -> layersPanel()
             Tab.ANIMATION -> animationPanel()
             Tab.STYLE -> stylePanel()
+            Tab.LIBRARY -> libraryPanel()
         }
     }
 
+
+
+    private fun libraryPanel() {
+        content.addView(heading("Biblioteca de contenido"))
+        content.addView(TextView(this).apply {
+            text = "Recursos CC0. Toca un elemento para incorporarlo a la escena."
+        })
+        var activeKind = ContentKind.OBJECT
+        val bankSpinner = Spinner(this)
+        val list = ListView(this)
+        val count = TextView(this)
+        val placed = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
+        var refreshPlaced: () -> Unit = {}
+        fun refreshItems(bank: ContentBank) {
+            val assets = bank.assets
+            count.text = assets.size.toString() + " recursos · " + bank.license + " · " + bank.title
+            list.adapter = object : android.widget.BaseAdapter() {
+                override fun getCount() = assets.size
+                override fun getItem(position: Int) = assets[position]
+                override fun getItemId(position: Int) = position.toLong()
+                override fun getView(position: Int, convertView: View?, parent: android.view.ViewGroup): View {
+                    val item = assets[position]
+                    val row = LinearLayout(this@MainActivity).apply {
+                        orientation = LinearLayout.HORIZONTAL
+                        gravity = Gravity.CENTER_VERTICAL
+                        setPadding(8, 6, 8, 6)
+                    }
+                    val thumb = ImageView(this@MainActivity).apply {
+                        tag = item.id
+                        scaleType = ImageView.ScaleType.FIT_CENTER
+                    }
+                    row.addView(thumb, LinearLayout.LayoutParams(56, 56))
+                    scope.launch {
+                        val bitmap = withContext(Dispatchers.IO) { contentLibrary.thumbnail(item) }
+                        if (thumb.tag == item.id) thumb.setImageBitmap(bitmap)
+                    }
+                    row.addView(TextView(this@MainActivity).apply {
+                        text = item.category + " · " + item.title + " (" + item.width + "×" + item.height + ")"
+                        textSize = 14f
+                        setPadding(10, 0, 0, 0)
+                    }, LinearLayout.LayoutParams(0, -2, 1f))
+                    return row
+                }
+            }
+            list.setOnItemClickListener { _, _, index, _ ->
+                val asset = assets[index]
+                val now = project ?: return@setOnItemClickListener
+                val baseSize = if (asset.kind == ContentKind.CHARACTER_PART) 0.10f else 0.14f
+                val objectItem = SceneObjectInstance(
+                    assetId = asset.id,
+                    x = ((now.sceneObjects.size % 5) - 2) * 0.13f,
+                    y = 0.42f + ((now.sceneObjects.size / 5) % 4) * 0.13f,
+                    width = baseSize,
+                    height = ((asset.height.toFloat() / asset.width.coerceAtLeast(1)) * baseSize).coerceIn(0.01f, 1.5f)
+                )
+                project = now.copy(sceneObjects = now.sceneObjects + objectItem)
+                preview?.update(project!!)
+                toast("Recurso añadido a la escena")
+                refreshPlaced()
+            }
+        }
+        fun refreshBanks() {
+            val banks = contentLibrary.banks.filter { it.kind == activeKind }
+            bankSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, banks.map { it.title })
+            bankSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                    banks.getOrNull(position)?.let { refreshItems(it) }
+                }
+            }
+            banks.firstOrNull()?.let { refreshItems(it) }
+        }
+        refreshPlaced = {
+            placed.removeAllViews()
+            val now = project
+            now?.sceneObjects?.forEachIndexed { index, item ->
+                val asset = contentLibrary.find(item.assetId)
+                val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
+                row.addView(TextView(this).apply {
+                    text = asset?.title ?: item.assetId
+                    textSize = 13f
+                }, LinearLayout.LayoutParams(0, -2, 1f))
+                fun adjust(change: (SceneObjectInstance) -> SceneObjectInstance) {
+                    val current = project ?: return
+                    project = current.copy(sceneObjects = current.sceneObjects.mapIndexed { i, value ->
+                        if (i == index) change(value) else value
+                    })
+                    preview?.update(project!!)
+                }
+                row.addView(button("←") { adjust { it.copy(x = (it.x - 0.04f).coerceIn(-2f, 2f)) } })
+                row.addView(button("→") { adjust { it.copy(x = (it.x + 0.04f).coerceIn(-2f, 2f)) } })
+                row.addView(button("↑") { adjust { it.copy(y = (it.y - 0.04f).coerceIn(-2f, 2f)) } })
+                row.addView(button("↓") { adjust { it.copy(y = (it.y + 0.04f).coerceIn(-2f, 2f)) } })
+                row.addView(button("+") { adjust { it.copy(width = (it.width * 1.15f).coerceAtMost(1.5f), height = (it.height * 1.15f).coerceAtMost(1.5f)) } })
+                row.addView(button("−") { adjust { it.copy(width = (it.width / 1.15f).coerceAtLeast(0.01f), height = (it.height / 1.15f).coerceAtLeast(0.01f)) } })
+                row.addView(button("↶") { adjust { it.copy(rotation = (it.rotation - 15f).coerceAtLeast(-360f)) } })
+                row.addView(button("↷") { adjust { it.copy(rotation = (it.rotation + 15f).coerceAtMost(360f)) } })
+                row.addView(button("×") {
+                    val current = project ?: return@button
+                    project = current.copy(sceneObjects = current.sceneObjects.filterIndexed { i, _ -> i != index })
+                    preview?.update(project!!)
+                    refreshPlaced()
+                })
+                placed.addView(row)
+            }
+        }
+        content.addView(button("Objetos y escenarios") { activeKind = ContentKind.OBJECT; refreshBanks() })
+        content.addView(button("Piezas de personajes") { activeKind = ContentKind.CHARACTER_PART; refreshBanks() })
+        content.addView(heading("Paquete"))
+        content.addView(bankSpinner)
+        content.addView(count)
+        content.addView(list, LinearLayout.LayoutParams(-1, 520))
+        content.addView(heading("Elementos colocados"))
+        content.addView(placed)
+        refreshBanks()
+        refreshPlaced()
+    }
 
     private fun stylePanel() {
         content.addView(heading("Estilo visual"))
@@ -258,7 +385,19 @@ class MainActivity : Activity() {
 
     private fun characterPanel() {
         val p=project ?: return
-        content.addView(heading("Seleccionar piezas del personaje"))
+        content.addView(heading("Personajes preconfigurados"))
+        content.addView(TextView(this).apply {
+            text = "Selecciona una apariencia completa y después personaliza sus piezas."
+        })
+        contentLibrary.presets.forEach { preset ->
+            content.addView(button(preset.title) {
+                val current = project ?: p
+                project = current.copy(selectedParts = preset.selectedParts)
+                preview?.update(project!!)
+                toast("Apariencia aplicada: " + preset.title)
+            })
+        }
+        content.addView(heading("Personalizar piezas del personaje"))
         CharacterLayerSlot.values().forEach { slot ->
             val choices=library.parts.filter { it.slot==slot }
             if (choices.size<2) return@forEach
@@ -272,7 +411,77 @@ class MainActivity : Activity() {
                     }.setNegativeButton("Cancelar",null).show()
             })
         }
+        content.addView(heading("Colores del personaje"))
+        val colorLabels = linkedMapOf(
+            "skin" to "Piel", "hair" to "Cabello", "shirt" to "Camiseta",
+            "pants" to "Pantalón", "shoe" to "Zapatos", "sole" to "Suela",
+            "hat_crown" to "Corona de gorra", "hat_panel" to "Panel de gorra",
+            "hat_brim" to "Visera"
+        )
+        colorLabels.forEach { (channel, label) ->
+            val color = p.colors[channel] ?: AvatarColorPalette.DEFAULTS.getValue(channel)
+            content.addView(button(label + " · " + String.format("#%06X", color and 0xFFFFFF)) {
+                showColorPicker(channel, label, color)
+            })
+        }
         content.addView(button("Guardar cambios") { save() })
+    }
+
+    private fun showColorPicker(channel: String, label: String, initialColor: Int) {
+        var red = (initialColor shr 16) and 0xFF
+        var green = (initialColor shr 8) and 0xFF
+        var blue = initialColor and 0xFF
+        var selectedColor = Color.rgb(red, green, blue)
+        val previewColor = TextView(this).apply {
+            text = String.format("#%06X", selectedColor and 0xFFFFFF)
+            textSize = 18f
+            gravity = Gravity.CENTER
+            setPadding(12, 18, 12, 18)
+            setBackgroundColor(selectedColor)
+        }
+        val panel = LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            setPadding(24, 12, 24, 8)
+        }
+        panel.addView(previewColor, LinearLayout.LayoutParams(-1, 72))
+        fun addChannelSlider(name: String, initial: Int, changed: (Int) -> Unit) {
+            panel.addView(TextView(this).apply { text = name })
+            val slider = SeekBar(this).apply {
+                max = 255
+                progress = initial
+            }
+            slider.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, value: Int, fromUser: Boolean) {
+                    changed(value)
+                    selectedColor = Color.rgb(red, green, blue)
+                    previewColor.text = String.format("#%06X", selectedColor and 0xFFFFFF)
+                    previewColor.setBackgroundColor(selectedColor)
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
+            panel.addView(slider)
+        }
+        addChannelSlider("Rojo", red) { red = it }
+        addChannelSlider("Verde", green) { green = it }
+        addChannelSlider("Azul", blue) { blue = it }
+        AlertDialog.Builder(this)
+            .setTitle("Color: " + label)
+            .setView(panel)
+            .setNegativeButton("Cancelar", null)
+            .setNeutralButton("Restablecer") { _, _ ->
+                val current = project ?: return@setNeutralButton
+                project = current.copy(colors = current.colors + (channel to AvatarColorPalette.DEFAULTS.getValue(channel)))
+                preview?.update(project!!)
+                studio(Tab.CHARACTER)
+            }
+            .setPositiveButton("Aplicar") { _, _ ->
+                val current = project ?: return@setPositiveButton
+                project = current.copy(colors = current.colors + (channel to selectedColor))
+                preview?.update(project!!)
+                studio(Tab.CHARACTER)
+            }
+            .show()
     }
 
     private fun layersPanel() {
@@ -303,11 +512,49 @@ class MainActivity : Activity() {
     }
     private fun layersPanelRefresh() { studio(Tab.LAYERS) }
 
+    private fun togglePlayback() {
+        if (isPlaying) {
+            stopPlayback()
+            return
+        }
+        val current = project ?: return
+        if (current.keyframes.size < 2) {
+            toast("Guarda al menos dos fotogramas clave para reproducir")
+            return
+        }
+        isPlaying = true
+        playbackFrame = frame.toFloat()
+        studio(Tab.ANIMATION)
+        playbackJob = scope.launch {
+            while (isActive) {
+                val active = project ?: break
+                val pose = PoseInterpolator.interpolate(
+                    active.keyframes, playbackFrame, active.durationFrames, loop = true
+                )
+                preview?.update(active.copy(pose = pose))
+                frame = playbackFrame.toInt().coerceIn(0, active.durationFrames - 1)
+                playbackFrameLabel?.text = "Reproduciendo · Fotograma: " + frame + " / " + (active.durationFrames - 1)
+                playbackFrame = (playbackFrame + 1f) % active.durationFrames
+                delay(33L)
+            }
+        }
+    }
+
+    private fun stopPlayback() {
+        playbackJob?.cancel()
+        playbackJob = null
+        isPlaying = false
+        project?.let { preview?.update(it) }
+        studio(Tab.ANIMATION)
+    }
+
     private fun animationPanel() {
         val p=project ?: return
         frame=frame.coerceIn(0,p.durationFrames-1)
         content.addView(heading("Editor de poses y fotogramas"))
         val frameLabel=TextView(this).apply { text="Fotograma: $frame / ${p.durationFrames-1}" }
+        playbackFrameLabel = frameLabel
+        content.addView(button(if (isPlaying) "Stop" else "Play") { togglePlayback() })
         content.addView(frameLabel)
         content.addView(SeekBar(this).apply {
             max=p.durationFrames-1; progress=frame
@@ -317,8 +564,8 @@ class MainActivity : Activity() {
                 override fun onStopTrackingTouch(s:SeekBar?) {}
             })
         })
-        listOf("head","armUL","foreArmL","armUR","foreArmR","thighL","shinL","thighR","shinR").forEach { bone ->
-            val boneName = mapOf("head" to "Cabeza", "armUL" to "Brazo superior izquierdo",
+        listOf("torso","head","armUL","foreArmL","armUR","foreArmR","thighL","shinL","thighR","shinR").forEach { bone ->
+            val boneName = mapOf("torso" to "Torso", "head" to "Cabeza", "armUL" to "Brazo superior izquierdo",
                 "foreArmL" to "Antebrazo izquierdo", "armUR" to "Brazo superior derecho",
                 "foreArmR" to "Antebrazo derecho", "thighL" to "Muslo izquierdo",
                 "shinL" to "Pantorrilla izquierda", "thighR" to "Muslo derecho",
@@ -352,31 +599,40 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        playbackJob?.cancel()
         scope.cancel()
         if (::library.isInitialized) library.close()
+        if (::contentLibrary.isInitialized) contentLibrary.close()
         super.onDestroy()
     }
 }
 
-private class Preview(context:android.content.Context,private var library:PieceLibrary,initial:StudioProject):View(context) {
+private class Preview(context:android.content.Context,private var library:PieceLibrary,private val contentLibrary:ContentLibrary,initial:StudioProject):View(context) {
     private var p=initial
     private val renderer=AvatarRenderer()
-    private val points=mapOf("torso" to (0f to 0f),"head" to (0f to -0.28f),
-        "armUL" to (-0.10f to -0.26f),"foreArmL" to (-0.10f to -0.115f),
-        "armUR" to (0.10f to -0.26f),"foreArmR" to (0.10f to -0.115f),
-        "thighL" to (-0.07f to -0.02f),"shinL" to (-0.07f to 0.17f),
-        "thighR" to (0.07f to -0.02f),"shinR" to (0.07f to 0.17f))
     fun update(value:StudioProject){p=value;invalidate()}
     fun replaceLibrary(value: PieceLibrary) { library = value; invalidate() }
     override fun onDraw(c:Canvas){
         super.onDraw(c); c.drawColor(Color.WHITE); if(width==0||height==0)return
         val scale=min(width/0.42f,height/1.52f)*0.97f
-        val matrices=points.mapValues{(bone,pt)->Matrix().apply{setRotate(p.pose[bone]?:0f);postTranslate(pt.first,pt.second)}}
+        val matrices=PoseHierarchy.solve(p.pose).mapValues { (_, transform) -> transform.toAndroidMatrix() }
         val save=c.save()
         try{
             c.translate(width/2f,height*0.52f);c.scale(scale,scale)
             val selection=p.selectedParts.mapNotNull{(key,id)->runCatching{CharacterLayerSlot.valueOf(key)}.getOrNull()?.let{it to id}}.toMap()
-            renderer.draw(c,library,matrices,selection,visibleSlots=StudioProject.SLOT_NAMES-p.hiddenSlots,layerOrder=p.layerOrder)
+            p.sceneObjects.forEach { placed ->
+                val asset = contentLibrary.find(placed.assetId) ?: return@forEach
+                val bitmap = contentLibrary.bitmap(asset)
+                val itemSave = c.save()
+                try {
+                    c.rotate(placed.rotation, placed.x, placed.y)
+                    c.drawBitmap(bitmap, null, android.graphics.RectF(
+                        placed.x - placed.width / 2f, placed.y - placed.height / 2f,
+                        placed.x + placed.width / 2f, placed.y + placed.height / 2f
+                    ), android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG or android.graphics.Paint.FILTER_BITMAP_FLAG))
+                } finally { c.restoreToCount(itemSave) }
+            }
+            renderer.draw(c,library,matrices,selection,colors=p.colors,visibleSlots=StudioProject.SLOT_NAMES-p.hiddenSlots,layerOrder=p.layerOrder)
         }finally{c.restoreToCount(save)}
     }
 }

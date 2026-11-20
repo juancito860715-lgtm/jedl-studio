@@ -9,6 +9,7 @@ import hashlib
 import io
 import json
 import os
+import shutil
 import stat
 import sys
 import urllib.error
@@ -54,7 +55,7 @@ def safe_member(name: str) -> str:
     return path.as_posix()
 
 
-def inventory_archive(zip_path: Path, output_dir: Path) -> dict:
+def inventory_archive(zip_path: Path, output_dir: Path, bank_output: Path = None) -> dict:
     rows = []
     with zipfile.ZipFile(zip_path) as archive:
         for info in archive.infolist():
@@ -93,6 +94,57 @@ def inventory_archive(zip_path: Path, output_dir: Path) -> dict:
     (output_dir / "kenney_inventory.json").write_text(
         json.dumps(inventory, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+    if bank_output is not None:
+        bank_output = Path(bank_output)
+        png_root = bank_output / "png"
+        if png_root.exists():
+            shutil.rmtree(png_root)
+        png_root.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(zip_path) as archive:
+            for row in rows:
+                source_name = row["sourceFile"]
+                destination = png_root / source_name
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                destination.write_bytes(archive.read(source_name))
+        bank_manifest = {
+            "schemaVersion": 1,
+            "id": "kenney_modular_character_pack",
+            "title": "Kenney Modular Character Pack",
+            "publisher": "Kenney",
+            "source": SOURCE_PAGE,
+            "license": "CC0-1.0",
+            "licenseTerms": LICENSE_URL,
+            "commercialUse": True,
+            "modificationAllowed": True,
+            "apkRedistributionAllowed": True,
+            "attributionRequired": False,
+            "attributionNote": "Optional courtesy credit: Kenney.nl",
+            "assetCount": len(rows),
+            "assets": [
+                {"id": hashlib.sha256(row["sourceFile"].encode("utf-8")).hexdigest()[:16],
+                 "file": "png/" + row["sourceFile"], "sourceFile": row["sourceFile"],
+                 "width": row["width"], "height": row["height"],
+                 "sha256": row["sha256"], "kind": "character-part"}
+                for row in rows
+            ],
+        }
+        bank_output.mkdir(parents=True, exist_ok=True)
+        (bank_output / "manifest.json").write_text(
+            json.dumps(bank_manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        (bank_output / "LICENSE.txt").write_text(
+            "Kenney Modular Character Pack\nLicense: CC0-1.0\nSource: " + SOURCE_PAGE +
+            "\nLicense terms: " + LICENSE_URL +
+            "\nCommercial use, modification and redistribution permitted.\n",
+            encoding="utf-8"
+        )
+        (bank_output / "SOURCE.json").write_text(
+            json.dumps({"source": SOURCE_PAGE, "license": "CC0-1.0",
+                        "licenseTerms": LICENSE_URL,
+                        "archiveSha256": inventory["archiveSha256"]},
+                       indent=2) + "\n", encoding="utf-8"
+        )
+        print(f"KENNEY CHARACTER BANK: {len(rows)} source PNG assets packaged at {bank_output}")
     print(f"KENNEY INVENTORY: {len(rows)} PNG files")
     for row in rows:
         print(f"PNG {row['width']}x{row['height']} {row['sourceFile']}")
@@ -104,6 +156,7 @@ def main():
     parser.add_argument("--zip", default="build/kenney/kenney.zip")
     parser.add_argument("--out", default="app/src/main/assets/styles/kenney")
     parser.add_argument("--mapping", default="tools/avatar_bank/external_packs/kenney_modular_character_pack.mapping.json")
+    parser.add_argument("--bank-out", default="app/src/main/assets/content/characters/kenney_modular_character_pack")
     parser.add_argument("--download", action="store_true")
     args = parser.parse_args()
 
@@ -113,7 +166,7 @@ def main():
     else:
         source_url = "provided-local-archive"
     print(f"Archive source: {source_url}")
-    inventory = inventory_archive(zip_path, Path("build/kenney"))
+    inventory = inventory_archive(zip_path, Path("build/kenney"), Path(args.bank_out))
     mapping_path = Path(args.mapping)
     if not mapping_path.is_file():
         print(
