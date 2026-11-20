@@ -23,7 +23,8 @@ class StylePackBuildTest(unittest.TestCase):
                     "offsetX": 0.0, "offsetY": 0.0
                 })
                 Image.new("RGBA", (8, 8), (220, 30, 40, 255)).save(pngs / f"{part_id}.png")
-            manifest = {"id": "test", "version": 1, "rigId": "jedl_humanoid_v1",\n                        "rigBones": ["torso", "head", "armUL", "foreArmL", "armUR", "foreArmR",\n                                     "thighL", "shinL", "thighR", "shinR"],\n                        "parts": parts, "defaults": {"HEAD": "part_0"}}
+            manifest = {"id": "test", "version": 1, "rigId": "jedl_humanoid_v1",\n                        "rigBones": ["torso", "head", "armUL", "foreArmL", "armUR", "foreArmR",\n                                     "thighL", "shinL", "thighR", "shinR"],
+                        "parts": parts, "defaults": {"HEAD": "part_0"}}
             manifest_path = source / "manifest.json"
             manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
             output = build_style_packs(manifest_path, pngs, root / "styles")
