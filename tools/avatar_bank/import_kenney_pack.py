@@ -96,6 +96,27 @@ def _validate_mapping(data):
     return by_id
 
 
+def _register_in_repository_license_registry(output_root):
+    repository_root = Path(__file__).resolve().parents[2]
+    assets_root = repository_root / "app" / "src" / "main" / "assets"
+    try:
+        relative = Path(output_root).resolve().relative_to(assets_root.resolve()).as_posix().rstrip("/") + "/"
+    except ValueError:
+        return
+    registry_path = repository_root / "licenses" / "REGISTRY.json"
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    if "CC0" not in registry.get("allowedLicenses", []):
+        raise ValueError("CC0 is not allowed by the repository license policy")
+    entries = registry.setdefault("directoryEntries", [])
+    entries[:] = [entry for entry in entries if entry.get("path") != relative]
+    entries.append({"path": relative, "license": "CC0"})
+    entries.sort(key=lambda entry: entry["path"])
+    registry_path.write_text(
+        json.dumps(registry, indent=2, ensure_ascii=False) + "\\n",
+        encoding="utf-8"
+    )
+
+
 def import_kenney_pack(zip_path, mapping_path, output_root):
     zip_path, mapping_path, output_root = Path(zip_path), Path(mapping_path), Path(output_root)
     mapping = json.loads(mapping_path.read_text(encoding="utf-8"))
@@ -158,6 +179,7 @@ def import_kenney_pack(zip_path, mapping_path, output_root):
         "Attribution to Kenney.nl is appreciated but not required.\n",
         encoding="utf-8"
     )
+    _register_in_repository_license_registry(output_root)
     return output_root
 
 
