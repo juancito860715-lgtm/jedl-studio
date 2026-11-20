@@ -224,10 +224,14 @@ class MainActivity : Activity() {
                         setPadding(8, 6, 8, 6)
                     }
                     val thumb = ImageView(this@MainActivity).apply {
-                        setImageBitmap(contentLibrary.bitmap(item))
+                        tag = item.id
                         scaleType = ImageView.ScaleType.FIT_CENTER
                     }
                     row.addView(thumb, LinearLayout.LayoutParams(56, 56))
+                    scope.launch {
+                        val bitmap = withContext(Dispatchers.IO) { contentLibrary.bitmap(item) }
+                        if (thumb.tag == item.id) thumb.setImageBitmap(bitmap)
+                    }
                     row.addView(TextView(this@MainActivity).apply {
                         text = item.category + " · " + item.title + " (" + item.width + "×" + item.height + ")"
                         textSize = 14f
