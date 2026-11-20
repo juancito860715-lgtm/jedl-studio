@@ -10,8 +10,17 @@ J = dict(
 )
 
 def tube(cx,y0,y1,w0,w1):
+    """Tapered organic limb with cubic Bézier sides and rounded ends."""
     a=w0/2; b=w1/2
-    return f"M {cx-a:.4f} {y0:.4f} L {cx+a:.4f} {y0:.4f} L {cx+b:.4f} {y1:.4f} L {cx-b:.4f} {y1:.4f} Z"
+    dy=y1-y0
+    cap=max(min(w0,w1)*0.22,0.004)
+    return (
+        f"M {cx-a:.4f} {y0:.4f} "
+        f"C {cx-a*1.02:.4f} {y0+dy*0.34:.4f} {cx-b*1.02:.4f} {y1-dy*0.34:.4f} {cx-b:.4f} {y1:.4f} "
+        f"C {cx-b:.4f} {y1+cap:.4f} {cx+b:.4f} {y1+cap:.4f} {cx+b:.4f} {y1:.4f} "
+        f"C {cx+b*1.02:.4f} {y1-dy*0.34:.4f} {cx+a*1.02:.4f} {y0+dy*0.34:.4f} {cx+a:.4f} {y0:.4f} "
+        f"C {cx+a:.4f} {y0-cap:.4f} {cx-a:.4f} {y0-cap:.4f} {cx-a:.4f} {y0:.4f} Z"
+    )
 
 def ell(cx,cy,rx,ry):
     return (
@@ -39,8 +48,26 @@ add("face_eyes_dots","eyes","head",None,20,[S_(ell(0,-0.4,0.01,0.01),fill="black
 add("face_mouth_smile","mouth","head",None,22,[S_("M -0.02 -0.35 Q 0 -0.33 0.02 -0.35",fill=None,lw=1.0,z=0)],variant="smile")
 add("hair_short_back","hair_back","head","hair",5,[S_(ell(0,-0.42,0.095,0.09),z=0)],variant="short")
 add("hair_short_front","hair_front","head","hair",30,[S_("M -0.1 -0.4 Q 0 -0.52 0.1 -0.4 Z",z=0)],variant="short")
-add("torso_skin","torso","torso","skin",10,[S_(tube(0,-0.3,0,0.2,0.2),z=0)],variant="boy")
-add("shirt_tee_torso","shirt","torso","shirt",20,[S_("M -0.1 -0.28 L 0.1 -0.28 L 0.1 0 L -0.1 0 Z",z=0)],variant="tee")
+# Torso and shirt use soft shoulders, rounded side seams and a shaped neckline.
+TORSO_SHAPE = (
+    "M -0.070 -0.300 "
+    "C -0.088 -0.298 -0.100 -0.278 -0.100 -0.252 "
+    "L -0.100 -0.025 C -0.100 -0.006 -0.086 0.006 -0.066 0.006 "
+    "L 0.066 0.006 C 0.086 0.006 0.100 -0.006 0.100 -0.025 "
+    "L 0.100 -0.252 C 0.100 -0.278 0.088 -0.298 0.070 -0.300 "
+    "L 0.030 -0.300 C 0.022 -0.278 0.012 -0.267 0 -0.267 "
+    "C -0.012 -0.267 -0.022 -0.278 -0.030 -0.300 Z"
+)
+SHIRT_SHAPE = (
+    "M -0.070 -0.286 C -0.087 -0.284 -0.096 -0.267 -0.096 -0.244 "
+    "L -0.096 -0.020 C -0.096 -0.004 -0.083 0.004 -0.064 0.004 "
+    "L 0.064 0.004 C 0.083 0.004 0.096 -0.004 0.096 -0.020 "
+    "L 0.096 -0.244 C 0.096 -0.267 0.087 -0.284 0.070 -0.286 "
+    "L 0.030 -0.286 C 0.023 -0.267 0.013 -0.258 0 -0.258 "
+    "C -0.013 -0.258 -0.023 -0.267 -0.030 -0.286 Z"
+)
+add("torso_skin","torso","torso","skin",10,[S_(TORSO_SHAPE,z=0)],variant="boy")
+add("shirt_tee_torso","shirt","torso","shirt",20,[S_(SHIRT_SHAPE,z=0)],variant="tee")
 add("pants_jeans_waist","pants","torso","pants",15,[S_("M -0.1 0 L 0.1 0 L 0.1 0.05 L -0.1 0.05 Z",z=0)],variant="jeans")
 for side, sign in (("L",-1),("R",1)):
     add(f"armU_skin_{side}","arm_skin",f"armU{side}","skin",12 if side=="R" else 52,[S_(tube(sign*0.1,-0.26,-0.1,0.05,0.05),z=0)],variant="boy")

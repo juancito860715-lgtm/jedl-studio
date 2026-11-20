@@ -28,23 +28,24 @@ jobs:
           mkdir -p app/src/main/assets/characters/jedl_master_v1
           cp tools/avatar_bank/out/manifest.json app/src/main/assets/characters/jedl_master_v1/manifest.json
           cp -R tools/avatar_bank/out/png app/src/main/assets/characters/jedl_master_v1/png
-          python - <<'PY'
-          import json
-          from pathlib import Path
-          registry = Path("licenses/REGISTRY.json")
-          data = json.loads(registry.read_text(encoding="utf-8"))
-          assets = Path("app/src/main/assets")
-          entries = {entry["path"]: entry["license"] for entry in data["entries"]}
-          for path in assets.rglob("*"):
-              if path.is_file():
-                  relative = path.relative_to(assets).as_posix()
-                  entries.setdefault(relative, "OWN")
-          data["entries"] = [
-              {"path": path, "license": license}
-              for path, license in sorted(entries.items())
-          ]
-          registry.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-          PY
+          python tools/avatar_bank/build_style_packs.py
+          test "$(find app/src/main/assets/styles/default/characters -name "*.png" -type f | wc -l)" -eq 42
+          test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
+      - name: Download and inventory Kenney source (not packaged until simplified-rig mapping is validated)
+        run: |
+          python tools/process_kenney.py --download
+      - name: Upload original Kenney archive for anatomy review
+        uses: actions/upload-artifact@v4
+        with:
+          name: kenney-original-source-zip
+          path: build/kenney/kenney.zip
+          if-no-files-found: error
+      - name: Upload Kenney sprite inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: kenney-modular-character-inventory
+          path: build/kenney/kenney_inventory.json
+          if-no-files-found: error
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

@@ -27,8 +27,40 @@ jobs:
           mkdir -p app/src/main/assets/characters/jedl_master_v1
           cp tools/avatar_bank/out/manifest.json app/src/main/assets/characters/jedl_master_v1/manifest.json
           cp -R tools/avatar_bank/out/png app/src/main/assets/characters/jedl_master_v1/png
+          python tools/avatar_bank/build_style_packs.py
+          test "$(find app/src/main/assets/styles/default/characters -name "*.png" -type f | wc -l)" -eq 42
+          test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
           test -s app/src/main/assets/characters/jedl_master_v1/manifest.json
           test "$(find app/src/main/assets/characters/jedl_master_v1/png -maxdepth 1 -name '*.png' -type f | wc -l)" -eq 42
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          expected = {"torso", "head", "armUL", "foreArmL", "armUR", "foreArmR",
+                      "thighL", "shinL", "thighR", "shinR"}
+          for style in ("default", "boceto"):
+              root = Path("app/src/main/assets/styles") / style
+              manifest = json.loads((root / "manifest.json").read_text(encoding="utf-8"))
+              assert manifest["rigId"] == "jedl_humanoid_v1", style
+              assert set(manifest["rigBones"]) == expected, style
+              assert len(manifest["parts"]) == 42, style
+              assert len(manifest["defaults"]) == 23, style
+          print("Both generated styles satisfy the shared humanoid rig and 23-slot default contract.")
+          PY
+      - name: Download and inventory Kenney source (not packaged until simplified-rig mapping is validated)
+        run: |
+          python tools/process_kenney.py --download
+      - name: Upload original Kenney archive for anatomy review
+        uses: actions/upload-artifact@v4
+        with:
+          name: kenney-original-source-zip
+          path: build/kenney/kenney.zip
+          if-no-files-found: error
+      - name: Upload Kenney sprite inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: kenney-modular-character-inventory
+          path: build/kenney/kenney_inventory.json
+          if-no-files-found: error
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -41,17 +73,33 @@ jobs:
       - name: Verify avatar assets are packaged inside APK
         run: |
           python - <<'PY'
+          import json
           import zipfile
           from pathlib import Path
           apk = Path("app/build/outputs/apk/debug/app-debug.apk")
           assert apk.is_file(), f"APK not found: {apk}"
-          expected = "assets/characters/jedl_master_v1/manifest.json"
+          expected = [
+              "assets/styles/default/manifest.json",
+              "assets/styles/boceto/manifest.json",
+          ]
           with zipfile.ZipFile(apk) as archive:
               names = set(archive.namelist())
-              assert expected in names, f"Missing from APK: {expected}"
-              pngs = [name for name in names if name.startswith("assets/characters/jedl_master_v1/png/") and name.endswith(".png")]
-              assert len(pngs) == 42, f"Expected 42 packaged PNGs, found {len(pngs)}"
-          print(f"Verified {expected} and {len(pngs)} PNGs inside {apk}")
+              for item in expected:
+                  assert item in names, f"Missing from APK: {item}"
+              assert not any(name.startswith("assets/styles/kenney/") for name in names), "Unvalidated Kenney art must not enter the APK"
+              manifests = {}
+              for style in ("default", "boceto"):
+                  manifest_path = f"assets/styles/{style}/manifest.json"
+                  manifest = json.loads(archive.read(manifest_path))
+                  manifests[style] = manifest
+                  pngs = [name for name in names if name.startswith(f"assets/styles/{style}/characters/") and name.endswith(".png")]
+                  assert len(pngs) == 42, f"Expected 42 {style} PNGs, found {len(pngs)}"
+                  assert manifest["rigId"] == "jedl_humanoid_v1", style
+                  assert len(manifest["rigBones"]) == 10, style
+                  assert len(manifest["defaults"]) == 23, style
+              assert manifests["default"]["rigBones"] == manifests["boceto"]["rigBones"]
+              assert manifests["default"]["defaults"] == manifests["boceto"]["defaults"]
+          print(f"Verified both style manifests, shared rig contract and 84 PNGs inside {apk}")
           PY
       - name: Upload APK
         uses: actions/upload-artifact@v4

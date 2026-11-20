@@ -1,6 +1,7 @@
 package studio.jedl.app.avatar
 
 import android.content.Context
+import android.content.res.AssetManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
@@ -21,51 +22,105 @@ data class AvatarPiece(
 )
 
 class PieceLibrary private constructor(
-    val manifestId: String, val parts: List<AvatarPiece>,
-    val defaults: Map<CharacterLayerSlot, String>, private val bitmaps: Map<String, Bitmap>
-) {
-    fun bitmap(partId: String): Bitmap =
-        bitmaps[partId] ?: error("Required avatar PNG not loaded: $partId")
+    val selectedStyle: String,
+    val manifestId: String,
+    val rigDefinition: RigDefinition,
+    val parts: List<AvatarPiece>,
+    val defaults: Map<CharacterLayerSlot, String>,
+    private val assets: AssetManager
+) : AutoCloseable {
+    private val bitmapCache = LinkedHashMap<String, Bitmap>(32, 0.75f, true)
+    private val cacheLimit = 32
+
+    fun bitmap(partId: String): Bitmap = synchronized(bitmapCache) {
+        bitmapCache[partId]?.let { return@synchronized it }
+        val part = parts.firstOrNull { it.id == partId } ?: error("Pieza desconocida: $partId")
+        val assetPath = StylePackContract.characterAssetPath(selectedStyle, part.file)
+        val decoded = assets.open(assetPath).use { BitmapFactory.decodeStream(it) }
+            ?: error("No se pudo decodificar $assetPath")
+        require(decoded.width > 0 && decoded.height > 0 && decoded.hasAlpha()) {
+            "La imagen debe tener dimensiones y transparencia: $assetPath"
+        }
+        if (bitmapCache.size >= cacheLimit) {
+            val eldest = bitmapCache.entries.iterator()
+            if (eldest.hasNext()) {
+                val old = eldest.next()
+                eldest.remove()
+                if (!old.value.isRecycled) old.value.recycle()
+            }
+        }
+        bitmapCache[partId] = decoded
+        decoded
+    }
 
     fun resolve(selection: Map<CharacterLayerSlot, String> = emptyMap()): List<AvatarPiece> {
         val chosen = defaults.toMutableMap()
         selection.forEach { (slot, id) ->
-            require(parts.any { it.id == id && it.slot == slot }) {
-                "Part $id does not belong to slot $slot"
-            }
+            require(parts.any { it.id == id && it.slot == slot }) { "La pieza $id no pertenece a $slot" }
             chosen[slot] = id
         }
         val byId = parts.associateBy { it.id }
-        return chosen.values.map { id ->
-            byId[id] ?: error("Manifest default references missing part: $id")
-        }.sortedBy { it.zIndex }
+        return chosen.values.map { id -> byId[id] ?: error("El manifiesto referencia una pieza inexistente: $id") }
+            .sortedBy { it.zIndex }
+    }
+
+    fun compatibleSelection(selection: Map<String, String>): Map<String, String> =
+        RigPackCompatibility.preserveCompatibleSelection(
+            selection,
+            parts.associate { it.id to it.slot.name }
+        )
+
+    fun requireCompatibleWith(reference: PieceLibrary) {
+        RigPackCompatibility.requireCompatible(reference.rigDefinition, rigDefinition)
+        require(defaults.keys == reference.defaults.keys) {
+            "El paquete no proporciona las mismas ranuras predeterminadas del editor"
+        }
+        require(parts.map { it.id }.toSet().size == parts.size) {
+            "El paquete contiene identificadores de pieza duplicados"
+        }
+    }
+
+    override fun close() {
+        synchronized(bitmapCache) {
+            bitmapCache.values.forEach { if (!it.isRecycled) it.recycle() }
+            bitmapCache.clear()
+        }
     }
 
     companion object {
-        private const val ASSET_ROOT = "characters/jedl_master_v1"
-        private const val TAG = "Assets"
+        private const val TAG = "StylePacks"
         private val SUPPORTED_BONES = setOf(
             "torso", "head", "armUL", "foreArmL", "armUR", "foreArmR",
             "thighL", "shinL", "thighR", "shinR"
         )
 
-        fun load(context: Context): PieceLibrary {
+        fun availableStyles(context: Context): List<String> {
+            val assets = context.applicationContext.assets
+            return StylePackContract.discover(assets.list("styles").orEmpty().asList()) { style ->
+                runCatching { assets.open(StylePackContract.manifestPath(style)).use { } }.isSuccess
+            }
+        }
+
+        fun load(context: Context, selectedStyle: String = StylePackContract.DEFAULT_STYLE): PieceLibrary {
+            val style = StylePackContract.requireStyleId(selectedStyle)
             val app = context.applicationContext
-            val manifestPath = "$ASSET_ROOT/manifest.json"
-            val directoryEntries = app.assets.list(ASSET_ROOT)?.joinToString()
-            Log.d(TAG, "Opening $manifestPath; directory entries=[$directoryEntries]")
+            val manifestPath = StylePackContract.manifestPath(style)
             val text = try {
                 app.assets.open(manifestPath).bufferedReader(Charsets.UTF_8).use { it.readText() }
             } catch (failure: Exception) {
-                Log.e(TAG, "Failed opening $manifestPath", failure)
-                throw IllegalStateException("No se pudo abrir $manifestPath: ${failure.message}", failure)
+                throw IllegalStateException("No se pudo abrir el paquete de estilo $style: ${failure.message}", failure)
             }
             val root = JSONObject(text)
             val id = root.getString("id").also { require(it.isNotBlank()) }
-            require(root.getInt("version") == 1) { "Unsupported avatar manifest version" }
+            require(root.getInt("version") == 1) { "Versión de manifiesto no compatible" }
+            val rigId = root.getString("rigId")
+            val rigBonesJson = root.getJSONArray("rigBones")
+            val rigBones = (0 until rigBonesJson.length()).map { rigBonesJson.getString(it) }.toSet()
+            require(rigBones == SUPPORTED_BONES) { "El manifiesto no declara el rig humanoide JEDL completo" }
+
             val array = root.getJSONArray("parts")
-            require(array.length() == 42) {
-                "Expected exactly 42 avatar parts, found ${array.length()}"
+            require(array.length() in 1..1000) {
+                "El paquete debe contener entre 1 y 1000 piezas; contiene ${array.length()}"
             }
             val parts = (0 until array.length()).map { index ->
                 val item = array.getJSONObject(index)
@@ -83,22 +138,26 @@ class PieceLibrary private constructor(
                     offsetY = item.optDouble("offsetY", 0.0).toFloat(),
                     tintChannel = item.optString("tintChannel").takeIf { it.isNotBlank() && it != "null" }
                 )
-                require(part.id.isNotBlank() && part.boneId in SUPPORTED_BONES) {
-                    "Invalid id or rig bone for ${part.id}"
+                require(part.id.matches(Regex("[a-z0-9][a-z0-9_-]{0,79}")) && part.boneId in rigBones) {
+                    "Identificador o hueso no válido para ${part.id}"
+                }
+                require(RigPackCompatibility.isSlotBoneCompatible(part.slot.name, part.boneId)) {
+                    "La ranura ${part.slot} no puede estar conectada al hueso ${part.boneId}"
                 }
                 require(part.pivotX.isFinite() && part.pivotX in 0f..1f &&
                     part.pivotY.isFinite() && part.pivotY in 0f..1f) {
-                    "Non-normalized pivot for ${part.id}"
+                    "Pivote no normalizado para ${part.id}"
                 }
                 require(part.widthUnits.isFinite() && part.widthUnits > 0f &&
                     part.heightUnits.isFinite() && part.heightUnits > 0f) {
-                    "Invalid dimensions for ${part.id}"
+                    "Dimensiones no válidas para ${part.id}"
                 }
-                require(part.file.startsWith("png/") && part.file.endsWith(".png") &&
-                    !part.file.contains("..")) { "Unsafe PNG path for ${part.id}" }
+                require(StylePackContract.isSafeCharacterPath(part.file)) {
+                    "Ruta de imagen no segura para ${part.id}"
+                }
                 part
             }
-            require(parts.map { it.id }.toSet().size == parts.size) { "Duplicate avatar part id" }
+            require(parts.map { it.id }.toSet().size == parts.size) { "Hay identificadores de pieza duplicados" }
             val defaultsJson = root.getJSONObject("defaults")
             val defaults = mutableMapOf<CharacterLayerSlot, String>()
             val keys = defaultsJson.keys()
@@ -108,29 +167,34 @@ class PieceLibrary private constructor(
             }
             val byId = parts.associateBy { it.id }
             defaults.forEach { (slot, partId) ->
-                require(byId[partId]?.slot == slot) { "Default $partId does not match slot $slot" }
+                require(byId[partId]?.slot == slot) { "La pieza predeterminada $partId no coincide con $slot" }
             }
-            require(defaults.isNotEmpty()) { "Avatar manifest has no defaults" }
+            require(defaults.isNotEmpty()) { "El manifiesto no contiene piezas predeterminadas" }
+            val declaredSlots = parts.map { it.slot.name }.toSet()
+            require(defaults.keys.all { it.name in declaredSlots }) { "Faltan piezas para ranuras predeterminadas" }
+            val rigDefinition = RigDefinition(rigId, rigBones, defaults.keys.map { it.name }.toSet())
 
-            val decoded = linkedMapOf<String, Bitmap>()
             try {
                 parts.forEach { part ->
-                    val pngPath = "$ASSET_ROOT/${part.file}"
-                    Log.d(TAG, "Opening $pngPath")
-                    val bitmap = app.assets.open(pngPath).use { BitmapFactory.decodeStream(it) }
-                        ?: error("Cannot decode required PNG: $pngPath")
-                    require(bitmap.width > 0 && bitmap.height > 0 && bitmap.hasAlpha()) {
-                        "PNG must be non-empty and have alpha: $pngPath"
+                    val assetPath = StylePackContract.characterAssetPath(style, part.file)
+                    val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                    app.assets.open(assetPath).use { BitmapFactory.decodeStream(it, null, options) }
+                    require(options.outWidth > 0 && options.outHeight > 0 && options.outMimeType == "image/png") {
+                        "Recurso PNG inexistente o inválido: $assetPath"
                     }
-                    decoded[part.id] = bitmap
                 }
             } catch (failure: Exception) {
-                decoded.values.forEach { if (!it.isRecycled) it.recycle() }
-                Log.e(TAG, "Failed loading avatar PNG bank", failure)
-                throw IllegalStateException("Unable to load the complete 42-piece avatar bank: ${failure.message}", failure)
+                Log.e(TAG, "No se pudo validar el paquete $style", failure)
+                throw IllegalStateException("No se pudo validar el paquete $style: ${failure.message}", failure)
             }
-            Log.d(TAG, "Loaded ${decoded.size} PNG assets for manifest $id")
-            return PieceLibrary(id, parts, defaults, decoded)
+            val library = PieceLibrary(style, id, rigDefinition, parts, defaults, app.assets)
+            try {
+                defaults.values.forEach { library.bitmap(it) }
+            } catch (failure: Exception) {
+                library.close()
+                throw IllegalStateException("No se pudieron precargar las piezas predeterminadas: ${failure.message}", failure)
+            }
+            return library
         }
     }
 }

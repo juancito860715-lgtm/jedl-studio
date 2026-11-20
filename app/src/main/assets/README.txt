@@ -1,1 +1,1 @@
-M0 ships no bundled media assets. Any future file added under this directory must have a matching entry in licenses/REGISTRY.json.
+Los paquetes de personaje propios se generan en CI y se empaquetan en el APK. Cada recurso debe estar cubierto por licenses/REGISTRY.json. Los paquetes externos deben conservar su manifiesto SOURCE.json y LICENSE.txt y registrar su licencia real; nunca se clasifican automáticamente como OWN.

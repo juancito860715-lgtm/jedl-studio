@@ -1,6 +1,7 @@
 import json
 import sys
 import unittest
+from PIL import Image
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -15,10 +16,68 @@ class AvatarBankBuildTest(unittest.TestCase):
 
     def test_exactly_forty_unique_png_parts_are_generated(self):
         self.assertEqual(len(self.manifest["parts"]), 42)
+        self.assertEqual(self.manifest["rigId"], "jedl_humanoid_v1")
+        self.assertEqual(set(self.manifest["rigBones"]), avatar_build.SUPPORTED_BONES)
         ids = [part["id"] for part in self.manifest["parts"]]
         self.assertEqual(len(ids), len(set(ids)))
         pngs = list((self.output / "png").glob("*.png"))
         self.assertEqual(len(pngs), 42)
+
+
+    def test_body_pngs_contain_filled_silhouettes_and_transparent_exterior(self):
+        body_parts = (
+            "head_skin", "torso_skin", "shirt_tee_torso", "pants_jeans_waist",
+            "armU_skin_L", "armU_skin_R", "thigh_jeans_L", "thigh_jeans_R",
+        )
+        by_id = {part["id"]: part for part in self.manifest["parts"]}
+        for part_id in body_parts:
+            with self.subTest(part=part_id):
+                image = Image.open(self.output / by_id[part_id]["file"]).convert("RGBA")
+                pixels = list(image.getdata())
+                filled = sum(1 for r, g, b, a in pixels if a >= 240 and r >= 245 and g >= 245 and b >= 245)
+                inked = sum(1 for r, g, b, a in pixels if a >= 240 and r <= 35 and g <= 35 and b <= 35)
+                transparent = sum(1 for _, _, _, a in pixels if a == 0)
+                self.assertGreater(filled, 20, f"{part_id} has no solid raster fill")
+                self.assertGreater(inked, 0, f"{part_id} has no preserved ink outline")
+                self.assertGreater(transparent, 0, f"{part_id} lost transparent exterior")
+
+    def test_both_upper_arms_and_shirt_sleeves_are_generated_and_defaulted(self):
+        by_id = {part["id"]: part for part in self.manifest["parts"]}
+        expected = {
+            "armU_skin_L": ("UPPER_ARM_L", "armUL"),
+            "armU_skin_R": ("UPPER_ARM_R", "armUR"),
+            "shirt_tee_sleeve_L": ("SLEEVE_L", "armUL"),
+            "shirt_tee_sleeve_R": ("SLEEVE_R", "armUR"),
+        }
+        for part_id, (slot, bone) in expected.items():
+            with self.subTest(part=part_id):
+                self.assertIn(part_id, by_id)
+                part = by_id[part_id]
+                self.assertEqual(part["slot"], slot)
+                self.assertEqual(part["boneId"], bone)
+                self.assertEqual(self.manifest["defaults"][slot], part_id)
+                image_path = self.output / part["file"]
+                self.assertTrue(image_path.is_file())
+                with Image.open(image_path) as image:
+                    self.assertEqual(image.mode, "RGBA")
+                    self.assertIsNotNone(image.getchannel("A").getbbox())
+
+
+    def test_every_generated_piece_has_a_human_spanish_ui_label(self):
+        source = (HERE.parent.parent / "app/src/main/java/studio/jedl/app/MainActivity.kt").read_text(encoding="utf-8")
+        for part in self.manifest["parts"]:
+            with self.subTest(part=part["id"]):
+                self.assertIn(f'"{part["id"]}" to "', source,
+                              f"Missing Spanish UI label for {part['id']}")
+
+    def test_limb_and_torso_shapes_use_bezier_curves(self):
+        from pieces import P, tube
+        self.assertIn(" C ", tube(0, -0.2, 0.0, 0.05, 0.04))
+        self.assertIn(" C ", P["torso_skin"]["shapes"][0]["d"])
+        self.assertIn(" C ", P["shirt_tee_torso"]["shapes"][0]["d"])
+        for part_id in ("shirt_tee_sleeve_L", "shirt_tee_sleeve_R",
+                        "armU_skin_L", "armU_skin_R"):
+            self.assertIn(" C ", P[part_id]["shapes"][0]["d"])
 
     def test_manifest_slots_match_real_kotlin_enum(self):
         allowed = {
