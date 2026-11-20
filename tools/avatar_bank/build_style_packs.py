@@ -34,7 +34,7 @@ def build_style_packs(manifest_path: Path, png_dir: Path, output_root: Path):
             with Image.open(source) as original:
                 rgba = original.convert("RGBA")
                 if style == "boceto":
-                    gray = ImageOps.grayscale(rgba.getchannel("RGB"))
+                    gray = ImageOps.grayscale(rgba.convert("RGB"))
                     rgba = Image.merge("RGBA", (gray, gray, gray, rgba.getchannel("A")))
                 rgba.save(characters / f'{part["id"]}.png', optimize=True)
             part["file"] = f'characters/{part["id"]}.png'
