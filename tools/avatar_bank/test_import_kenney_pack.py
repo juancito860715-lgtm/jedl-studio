@@ -11,7 +11,15 @@ sys.path.insert(0, str(HERE))
 from import_kenney_pack import import_kenney_pack
 
 
-REQUIRED_DEFAULT_SLOTS = {\n    "HEAD", "EYES", "EYEBROWS", "MOUTH", "HAIR_BACK", "HAIR_FRONT",\n    "TORSO", "SHIRT", "PANTS", "UPPER_ARM_L", "UPPER_ARM_R",\n    "SLEEVE_L", "SLEEVE_R", "FOREARM_L", "FOREARM_R",\n    "HAND_L", "HAND_R", "THIGH_L", "THIGH_R", "SHIN_L", "SHIN_R",\n    "SHOE_L", "SHOE_R"\n}\n\nSLOT_BONES = {
+REQUIRED_DEFAULT_SLOTS = {
+    "HEAD", "EYES", "EYEBROWS", "MOUTH", "HAIR_BACK", "HAIR_FRONT",
+    "TORSO", "SHIRT", "PANTS", "UPPER_ARM_L", "UPPER_ARM_R",
+    "SLEEVE_L", "SLEEVE_R", "FOREARM_L", "FOREARM_R",
+    "HAND_L", "HAND_R", "THIGH_L", "THIGH_R", "SHIN_L", "SHIN_R",
+    "SHOE_L", "SHOE_R"
+}
+
+SLOT_BONES = {
     "HEAD": "head", "EYES": "head", "EYEBROWS": "head", "MOUTH": "head",
     "FACIAL_HAIR": "head", "HAIR_BACK": "head", "HAIR_FRONT": "head",
     "HAT_BACK": "head", "HAT_FRONT": "head",
