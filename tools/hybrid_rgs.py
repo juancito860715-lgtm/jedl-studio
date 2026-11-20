@@ -148,7 +148,7 @@ def build(rgs_root: Path, source_manifest: Path, source_png_dir: Path, output: P
                                                        float(target["heightUnits"]) * 2.8)
         item = {
             "id": part_id, "slot": slot, "boneId": bone,
-            "file": f"characters/{dest_name}",
+            "file": f"{'characters' if part_id.startswith('rgs_') else 'png'}/{dest_name}",
             "pivotX": float(px), "pivotY": float(py),
             "widthUnits": round(width_units, 6), "heightUnits": round(height_units, 6),
             "zIndex": int(z), "offsetX": 0.0, "offsetY": 0.0,
