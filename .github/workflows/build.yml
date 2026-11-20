@@ -43,8 +43,8 @@ jobs:
           python tools/content_banks/fetch_kenney_cc0.py --pack objects
           python tools/content_banks/fetch_kenney_cc0.py --pack foliage
           python tools/content_banks/fetch_kenney_cc0.py --pack platformer
-          python tools/content_banks/fetch_kenney_cc0.py --pack bit
-          for pack in kenney_tiny_town_objects kenney_foliage_objects kenney_new_platformer_objects kenney_1_bit_objects; do
+          python tools/content_banks/fetch_kenney_cc0.py --pack pixel
+          for pack in kenney_tiny_town_objects kenney_foliage_objects kenney_new_platformer_objects kenney_pixel_platformer_objects; do
             test -s "app/src/main/assets/content/$pack/manifest.json"
             test "$(find "app/src/main/assets/content/$pack/png" -type f -name '*.png' | wc -l)" -ge 50
           done
@@ -82,7 +82,7 @@ jobs:
               "kenney_tiny_town_objects": 50,
               "kenney_foliage_objects": 50,
               "kenney_new_platformer_objects": 50,
-              "kenney_1_bit_objects": 50,
+              "kenney_pixel_platformer_objects": 50,
           }
           for relative, minimum in expected.items():
               folder = root / relative
