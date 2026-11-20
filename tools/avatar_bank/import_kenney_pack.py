@@ -25,7 +25,13 @@ SLOTS = {
     "THIGH_L", "THIGH_R", "SHIN_L", "SHIN_R", "SHOE_L", "SHOE_R"
 }
 ID_RE = re.compile(r"[a-z0-9][a-z0-9_-]{0,79}")
-REQUIRED_DEFAULT_SLOTS = set(SLOTS)
+REQUIRED_DEFAULT_SLOTS = {
+    "HEAD", "EYES", "EYEBROWS", "MOUTH", "HAIR_BACK", "HAIR_FRONT",
+    "TORSO", "SHIRT", "PANTS", "UPPER_ARM_L", "UPPER_ARM_R",
+    "SLEEVE_L", "SLEEVE_R", "FOREARM_L", "FOREARM_R",
+    "HAND_L", "HAND_R", "THIGH_L", "THIGH_R", "SHIN_L", "SHIN_R",
+    "SHOE_L", "SHOE_R"
+}
 SLOT_BONES = {
     "HEAD": "head", "EYES": "head", "EYEBROWS": "head", "MOUTH": "head",
     "FACIAL_HAIR": "head", "HAIR_BACK": "head", "HAIR_FRONT": "head",
