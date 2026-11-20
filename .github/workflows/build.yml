@@ -41,9 +41,11 @@ jobs:
           test -s /tmp/rgs_characters.zip
           unzip -q /tmp/rgs_characters.zip -d temp_rgs
           python tools/inspect_rgs.py --root temp_rgs --output rgs_inventory.json
+      - name: Measure RGS attachment pivots from alpha pixels
+        run: python tools/auto_pivot.py --rgs-root temp_rgs --output rgs_auto_pivots.json
       - name: Build hybrid RGS character style
         run: |
-          python tools/hybrid_rgs.py --rgs-root temp_rgs
+          python tools/hybrid_rgs.py --rgs-root temp_rgs --pivots rgs_auto_pivots.json
           python - <<'PY'
           import json
           from pathlib import Path
