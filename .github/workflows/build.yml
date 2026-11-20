@@ -32,32 +32,22 @@ jobs:
           python tools/content_banks/build_character_presets.py
           test "$(find app/src/main/assets/styles/default/characters -name "*.png" -type f | wc -l)" -eq 42
           test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
-      - name: Download and package the CC0 Kenney character source bank
+      - name: Download and inspect RGS_Dev CC0 character archive
         run: |
-          python tools/process_kenney.py --download
-          test -s app/src/main/assets/content/characters/kenney_modular_character_pack/manifest.json
-          test "$(find app/src/main/assets/content/characters/kenney_modular_character_pack/png -type f -name '*.png' | wc -l)" -ge 400
-      - name: Download and package CC0 object banks
-        run: |
-          python -m unittest discover -s tools/content_banks -p "test_*.py" -v
-          python tools/content_banks/fetch_kenney_cc0.py --pack objects
-          python tools/content_banks/fetch_kenney_cc0.py --pack foliage
-          for pack in kenney_tiny_town_objects kenney_foliage_objects; do
-            test -s "app/src/main/assets/content/$pack/manifest.json"
-            test "$(find "app/src/main/assets/content/$pack/png" -type f -name '*.png' | wc -l)" -ge 50
-          done
-      - name: Upload original Kenney archive for anatomy review
+          set -euo pipefail
+          mkdir -p temp_rgs
+          curl --fail --location --retry 4 --retry-all-errors --connect-timeout 30 --max-time 600 \
+            "https://opengameart.org/sites/default/files/free_2d_animated_vector_game_character_sprites.zip" -o /tmp/rgs_characters.zip
+          test -s /tmp/rgs_characters.zip
+          unzip -q /tmp/rgs_characters.zip -d temp_rgs
+          python tools/inspect_rgs.py --root temp_rgs --output rgs_inventory.json
+      - name: Upload RGS forensic inventory
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: kenney-original-source-zip
-          path: build/kenney/kenney.zip
-          if-no-files-found: error
-      - name: Upload Kenney sprite inventory
-        uses: actions/upload-artifact@v4
-        with:
-          name: kenney-modular-character-inventory
-          path: build/kenney/kenney_inventory.json
-          if-no-files-found: error
+          name: rgs-character-png-inventory
+          path: rgs_inventory.json
+          if-no-files-found: warn
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -65,32 +55,15 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: "8.7"
-      - name: Verify packaged content bank manifests
+      - name: Verify generated character presets
         run: |
           python - <<'PY'
           import json
           from pathlib import Path
-          root = Path("app/src/main/assets/content")
-          preset_file = root / "character_presets.json"
-          presets = json.loads(preset_file.read_text(encoding="utf-8"))
+          presets = json.loads(Path("app/src/main/assets/content/character_presets.json").read_text(encoding="utf-8"))
           assert presets["presetCount"] == 8
           assert len(presets["presets"]) == 8
-          expected = {
-              "characters/kenney_modular_character_pack": 400,
-              "kenney_tiny_town_objects": 50,
-              "kenney_foliage_objects": 50,
-              }
-          for relative, minimum in expected.items():
-              folder = root / relative
-              manifest = json.loads((folder / "manifest.json").read_text(encoding="utf-8"))
-              assert manifest["license"] == "CC0-1.0"
-              assert manifest["commercialUse"] and manifest["apkRedistributionAllowed"]
-              assert manifest["assetCount"] >= minimum
-              assert (folder / "LICENSE.txt").is_file()
-              for asset in manifest["assets"]:
-                  file = folder / asset["file"]
-                  assert file.is_file(), f"Missing bank asset: {file}"
-          print("Character source bank and four object banks passed manifest/file/license validation.")
+          print("Generated character presets passed validation.")
           PY
       - name: Diagnose asset license registry coverage
         run: |
