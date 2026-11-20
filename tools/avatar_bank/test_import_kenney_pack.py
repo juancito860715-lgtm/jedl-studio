@@ -77,7 +77,7 @@ class KenneyPackImporterTests(unittest.TestCase):
             out = import_kenney_pack(archive, mapping, root / "out")
             manifest = json.loads((out / "manifest.json").read_text(encoding="utf-8"))
             self.assertEqual(manifest["rigId"], "jedl_humanoid_v1")
-            self.assertEqual(manifest["rigBones"], expected["rigBones"])
+            self.assertEqual(manifest["rigBones"], sorted(expected["rigBones"]))
             self.assertEqual({p["slot"] for p in manifest["parts"]}, set(SLOT_BONES))
             self.assertEqual(len(manifest["parts"]), len(SLOT_BONES))
             for part in manifest["parts"]:
