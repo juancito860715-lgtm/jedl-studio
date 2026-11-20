@@ -122,7 +122,7 @@ def build():
             raise ValueError(f"Default slot mismatch: {slot} -> {part_id} ({by_id[part_id]['slot']})")
         defaults[slot] = part_id
 
-    manifest = {"id": "jedl_master_v1", "version": 1, "parts": parts, "defaults": defaults}
+    manifest = {"id": "jedl_master_v1", "version": 1, "rigId": "jedl_humanoid_v1",\n                "rigBones": sorted(SUPPORTED_BONES), "parts": parts, "defaults": defaults}
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "manifest.json").write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
