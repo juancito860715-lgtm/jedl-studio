@@ -1,5 +1,7 @@
 package studio.jedl.app
 
+import studio.jedl.app.avatar.PoseHierarchy
+
 data class StudioKeyframe(val frame: Int, val pose: Map<String, Float>)
 
 data class SceneObjectInstance(
@@ -30,8 +32,10 @@ data class StudioProject(
         require(layerOrder.distinct().size == layerOrder.size && layerOrder.all { it in SLOT_NAMES }) {
             "Layer order contains an unknown or duplicate slot"
         }
+        require(pose.keys.all { it in PoseHierarchy.boneNames }) { "Pose contains an unknown bone" }
         require(pose.values.all { it.isFinite() && it in -180f..180f }) { "Pose angle out of range" }
         require(keyframes.all { it.frame in 0 until durationFrames &&
+            it.pose.keys.all { bone -> bone in PoseHierarchy.boneNames } &&
             it.pose.values.all { angle -> angle.isFinite() && angle in -180f..180f } }) {
             "Invalid keyframe"
         }
