@@ -96,6 +96,19 @@ jobs:
                   assert file.is_file(), f"Missing bank asset: {file}"
           print("Character source bank and four object banks passed manifest/file/license validation.")
           PY
+      - name: Diagnose asset license registry coverage
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("app/src/main/assets")
+          registry = json.loads(Path("licenses/REGISTRY.json").read_text())
+          entries = {x["path"] for x in registry["entries"]}
+          dirs = [x["path"] for x in registry["directoryEntries"]]
+          files = {p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file()}
+          missing = sorted(p for p in files if p not in entries and not any(p.startswith(d) for d in dirs))
+          print("LICENSE_REGISTRY_UNREGISTERED:", json.dumps(missing, ensure_ascii=False))
+          PY
       - name: Unit tests and debug APK
         run: gradle --no-daemon --stacktrace testDebugUnitTest assembleDebug
       - name: Upload APK
