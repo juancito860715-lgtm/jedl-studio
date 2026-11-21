@@ -32,61 +32,67 @@ KENNEY_PACKS = {
         "id": "kenney-animal-pack", "title": "Animal Pack",
         "category": "animals", "dimension": "2d", "expected_files": 80,
         "page": "https://kenney.nl/assets/animal-pack",
+        "download": "https://kenney.nl/media/pages/assets/animal-pack/480cf9f223-1677669996/kenney_animal-pack.zip",
     },
     "animal-pack-remastered": {
         "id": "kenney-animal-pack-remastered", "title": "Animal Pack Remastered",
         "category": "animals", "dimension": "2d", "expected_files": 240,
         "page": "https://kenney.nl/assets/animal-pack-remastered",
-    },
-    "fish-pack": {
-        "id": "kenney-fish-pack", "title": "Fish Pack",
-        "category": "animals", "dimension": "2d", "expected_files": 1,
-        "page": "https://kenney.nl/assets/fish-pack",
+        "download": "https://kenney.nl/media/pages/assets/animal-pack-remastered/54a307a369-1774771709/kenney_animal-pack-remastered.zip",
     },
     "furniture-kit": {
         "id": "kenney-furniture-kit", "title": "Furniture Kit",
         "category": "furniture", "dimension": "3d", "expected_files": 140,
         "page": "https://kenney.nl/assets/furniture-kit",
+        "download": "https://kenney.nl/media/pages/assets/furniture-kit/440e0608a4-1677580847/kenney_furniture-kit.zip",
     },
     "mini-characters": {
         "id": "kenney-mini-characters", "title": "Mini Characters",
         "category": "characters", "dimension": "3d", "expected_files": 25,
         "page": "https://kenney.nl/assets/mini-characters",
+        "download": "https://kenney.nl/media/pages/assets/mini-characters/bfc7e272b4-1774770718/kenney_mini-characters.zip",
     },
     "city-kit-suburban": {
         "id": "kenney-city-kit-suburban", "title": "City Kit Suburban",
         "category": "environment", "dimension": "3d", "expected_files": 40,
         "page": "https://kenney.nl/assets/city-kit-suburban",
+        "download": "https://kenney.nl/media/pages/assets/city-kit-suburban/2c871b7af2-1745479373/kenney_city-kit-suburban_20.zip",
     },
     "nature-kit": {
         "id": "kenney-nature-kit", "title": "Nature Kit",
         "category": "environment", "dimension": "3d", "expected_files": 330,
         "page": "https://kenney.nl/assets/nature-kit",
+        "download": "https://kenney.nl/media/pages/assets/nature-kit/37ac38a37b-1677698939/kenney_nature-kit.zip",
     },
     "food-kit": {
         "id": "kenney-food-kit", "title": "Food Kit",
         "category": "food", "dimension": "3d", "expected_files": 200,
         "page": "https://kenney.nl/assets/food-kit",
+        "download": "https://kenney.nl/media/pages/assets/food-kit/83086fa91c-1719418518/kenney_food-kit.zip",
     },
     "toy-car-kit": {
         "id": "kenney-toy-car-kit", "title": "Toy Car Kit",
         "category": "vehicles", "dimension": "3d", "expected_files": 100,
         "page": "https://kenney.nl/assets/toy-car-kit",
+        "download": "https://kenney.nl/media/pages/assets/toy-car-kit/42e19cc426-1736346027/kenney_toy-car-kit.zip",
     },
     "building-kit": {
         "id": "kenney-building-kit", "title": "Building Kit",
         "category": "environment", "dimension": "3d", "expected_files": 80,
         "page": "https://kenney.nl/assets/building-kit",
+        "download": "https://kenney.nl/media/pages/assets/building-kit/0de7aaa492-1743244741/kenney_building-kit.zip",
     },
     "music-jingles": {
         "id": "kenney-music-jingles", "title": "Music Jingles",
         "category": "audio", "dimension": "audio", "expected_files": 85,
         "page": "https://kenney.nl/assets/music-jingles",
+        "download": "https://kenney.nl/media/pages/assets/music-jingles/f37e530b9e-1677590399/kenney_music-jingles.zip",
     },
     "interface-sounds": {
         "id": "kenney-interface-sounds", "title": "Interface Sounds",
         "category": "audio", "dimension": "audio", "expected_files": 100,
         "page": "https://kenney.nl/assets/interface-sounds",
+        "download": "https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip",
     },
 }
 
@@ -136,8 +142,10 @@ def _request(url: str) -> tuple[str, bytes]:
         with urllib.request.urlopen(request, timeout=90) as response:
             final_url = response.geturl()
             parsed = urllib.parse.urlparse(final_url)
-            if parsed.scheme != "https":
-                raise AssetPackError("Download redirect did not remain on HTTPS")
+            if parsed.scheme != "https" or not (
+                parsed.hostname == "kenney.nl" or (parsed.hostname or "").endswith(".kenney.nl")
+            ):
+                raise AssetPackError("Download redirect left the official Kenney HTTPS domain")
             return final_url, response.read(MAX_ARCHIVE_BYTES + 1)
     except AssetPackError:
         raise
@@ -207,7 +215,9 @@ def download_kenney_pack(pack_key: str, output_root: Path) -> dict:
     _, page = _request(spec["page"])
     page_text = page.decode("utf-8", errors="replace")
     validate_cc0_source(page_text)
-    download_url = _resolve_kenney_download(spec["page"], page)
+    download_url = spec["download"]
+    if not download_url.startswith("https://kenney.nl/media/pages/assets/"):
+        raise AssetPackError(f"Unapproved Kenney download URL for {pack_key}")
     final_url, payload = _request(download_url)
     archive_info = _inspect_zip(payload)
 
