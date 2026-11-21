@@ -202,18 +202,18 @@ func _show_gallery(kind: String) -> void:
         var item_row := HBoxContainer.new()
         item_row.add_theme_constant_override("separation", 10)
         gallery_list.add_child(item_row)
-        if kind == "2d":
+        if item.has("preview_path"):
             var preview := TextureRect.new()
-            preview.custom_minimum_size = Vector2(64, 64)
+            preview.custom_minimum_size = Vector2(124, 88)
             preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-            preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-            preview.texture = load(String(item["path"])) as Texture2D
+            preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+            preview.texture = load(String(item["preview_path"])) as Texture2D
             item_row.add_child(preview)
         var add_button := Button.new()
         add_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         add_button.custom_minimum_size = Vector2(0, 64)
         add_button.add_theme_font_size_override("font_size", 17)
-        add_button.text = String(item["title"]) + " · " + String(item["category"])
+        add_button.text = String(item["title"]) + " · " + String(item["category"]) + "\\n" + String(item.get("license", ""))
         var resource_path := String(item["path"])
         add_button.pressed.connect(_add_gallery_asset.bind(resource_path))
         item_row.add_child(add_button)
