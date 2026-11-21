@@ -213,7 +213,7 @@ func _show_gallery(kind: String) -> void:
         add_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         add_button.custom_minimum_size = Vector2(0, 64)
         add_button.add_theme_font_size_override("font_size", 17)
-        add_button.text = String(item["title"]) + " · " + String(item["category"]) + "\\n" + String(item.get("license", ""))
+        add_button.text = String(item["title"]) + " · " + String(item["category"]) + "\n" + String(item.get("license", ""))
         var resource_path := String(item["path"])
         add_button.pressed.connect(_add_gallery_asset.bind(resource_path))
         item_row.add_child(add_button)
