@@ -63,11 +63,18 @@ jobs:
           test -s assets/characters/Fox.glb
           grep -q "CC0-1.0" assets/characters/Fox.LICENSE.md
           grep -q "CC-BY-4.0" assets/characters/Fox.LICENSE.md
-      - name: Import project resources and validate scripts
+      - name: Import project resources before tests
         run: |
           set -euo pipefail
+          test -s project.godot
           test -s export_presets.cfg
+          test -s scripts/SceneParser.gd
+          test -s tests/scene_parser_test.gd
           "$GODOT_BIN" --headless --editor --path "$GITHUB_WORKSPACE" --quit
+          test -d .godot
+      - name: Run Godot parser and scene tests
+        run: |
+          set -euo pipefail
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/scene_parser_test.gd
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/scene_parser_smoke.gd
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --quit-after 5
