@@ -10,6 +10,7 @@ var audio_player: AudioStreamPlayer
 var catalog_manager: Node
 var gallery_panel: PanelContainer
 var gallery_list: VBoxContainer
+var gallery_title: Label
 
 
 func _ready() -> void:
