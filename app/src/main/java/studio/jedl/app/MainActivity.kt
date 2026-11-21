@@ -22,6 +22,8 @@ import kotlin.math.min
 class MainActivity : ComponentActivity() {
     private lateinit var startupViewModel: StudioStartupViewModel
     internal val startupViewModelForTest: StudioStartupViewModel get() = startupViewModel
+    @Volatile internal var startupCollectorActiveForTest: Boolean = false
+        private set
     private lateinit var store: ProjectStore
     private lateinit var library: PieceLibrary
     private lateinit var contentLibrary: ContentLibrary
@@ -44,7 +46,9 @@ class MainActivity : ComponentActivity() {
         showLoading("Preparando JEDL Studio…")
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                startupViewModel.state.collect { state ->
+                startupCollectorActiveForTest = true
+                try {
+                    startupViewModel.state.collect { state ->
                     when (state) {
                         StudioStartupState.Loading -> showLoading("Preparando JEDL Studio…")
                         is StudioStartupState.Ready -> {
@@ -62,6 +66,9 @@ class MainActivity : ComponentActivity() {
                             showLoading("Error al cargar recursos: ${state.message}")
                         StudioStartupState.Cleared -> Unit
                     }
+                }
+                } finally {
+                    startupCollectorActiveForTest = false
                 }
             }
         }
@@ -395,6 +402,8 @@ class MainActivity : ComponentActivity() {
                 startupViewModel.adoptLibrary(next)
                 studio(Tab.STYLE)
                 toast("Estilo aplicado")
+            } catch (cancelled: CancellationException) {
+                throw cancelled
             } catch (failure: Exception) {
                 toast("No se pudo aplicar el estilo: ${failure.message}")
             } finally {
