@@ -98,6 +98,10 @@ jobs:
           test -s "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
           test -n "$GODOT_ANDROID_KEYSTORE_DEBUG_USER"
           test -n "$GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD"
+      - name: Install Android build template
+        run: |
+          set -euo pipefail
+          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --install-android-build-template
       - name: Export installable Android debug APK
         run: |
           set -euo pipefail
