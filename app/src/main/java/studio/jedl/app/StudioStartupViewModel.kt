@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import studio.jedl.app.avatar.PieceLibrary
+import studio.jedl.app.avatar.StylePackContract
 import studio.jedl.app.content.ContentLibrary
 
 sealed interface StudioStartupState {
@@ -35,7 +36,7 @@ class StudioStartupViewModel(application: Application) : AndroidViewModel(applic
         viewModelScope.launch {
             try {
                 val loaded = withContext(Dispatchers.IO) {
-                    val pieces = PieceLibrary.load(getApplication(), "default")
+                    val pieces = PieceLibrary.load(getApplication(), StylePackContract.DEFAULT_STYLE)
                     try {
                         pieces to ContentLibrary.load(getApplication())
                     } catch (failure: Throwable) {
