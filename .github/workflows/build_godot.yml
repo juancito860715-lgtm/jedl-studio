@@ -84,7 +84,8 @@ jobs:
           test -s export_presets.cfg
           test -s scripts/SceneParser.gd
           test -s tests/scene_parser_test.gd
-          test -s tests/catalog_manager_test.gd\n          test -s assets/gallery/catalog.json
+          test -s tests/catalog_manager_test.gd
+          test -s assets/gallery/catalog.json
           "$GODOT_BIN" --headless --editor --path "$GITHUB_WORKSPACE" --quit
           test -d .godot
       - name: Run Godot parser and scene tests
