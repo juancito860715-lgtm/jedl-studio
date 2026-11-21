@@ -63,9 +63,19 @@ jobs:
           test -s assets/characters/Fox.glb
           grep -q "CC0-1.0" assets/characters/Fox.LICENSE.md
           grep -q "CC-BY-4.0" assets/characters/Fox.LICENSE.md
+      - name: Verify Android export preset
+        run: |
+          set -euo pipefail
+          test -s export_presets.cfg
+          grep -Fq 'platform="Android"' export_presets.cfg
+          grep -Fq 'architectures/arm64-v8a=true' export_presets.cfg
+          grep -Fq 'package/unique_name="studio.jedl.app"' export_presets.cfg
+          grep -Fq 'keystore/debug="/home/runner/.android/debug.keystore"' export_presets.cfg
+          test -s "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
       - name: Import project resources and validate scripts
         run: |
           set -euo pipefail
+          test -s export_presets.cfg
           "$GODOT_BIN" --headless --editor --path "$GITHUB_WORKSPACE" --quit
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/scene_parser_test.gd
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/scene_parser_smoke.gd
