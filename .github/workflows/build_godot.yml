@@ -20,8 +20,8 @@ jobs:
     runs-on: ubuntu-22.04
     timeout-minutes: 50
     env:
-      ANDROID_HOME: ${{ runner.temp }}/android-sdk
-      ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
+      ANDROID_HOME: /usr/local/lib/android/sdk
+      ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     steps:
       - uses: actions/checkout@v4
       - name: Set up Java 17
@@ -54,7 +54,7 @@ jobs:
           TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.4.1.stable"
           mkdir -p "$TEMPLATE_DIR"
           cp -a "$RUNNER_TEMP/godot/templates/templates/." "$TEMPLATE_DIR/"
-      - name: Download attributed animated GLB test character
+      - name: Download animated Fox GLB test character and license
         run: |
           set -euo pipefail
           mkdir -p assets/characters
@@ -63,11 +63,12 @@ jobs:
           test -s assets/characters/Fox.glb
           grep -q "CC0-1.0" assets/characters/Fox.LICENSE.md
           grep -q "CC-BY-4.0" assets/characters/Fox.LICENSE.md
-      - name: Import project resources and validate GDScript
+      - name: Import project resources and validate scripts
         run: |
           set -euo pipefail
           "$GODOT_BIN" --headless --editor --path "$GITHUB_WORKSPACE" --quit
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/scene_parser_smoke.gd
+          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --quit-after 5
       - name: Prepare Android debug signing key
         run: |
           mkdir -p "$HOME/.android"
