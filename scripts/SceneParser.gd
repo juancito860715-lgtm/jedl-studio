@@ -10,6 +10,7 @@ var _events: Array[Dictionary] = []
 var _playing := false
 var _playback_time := 0.0
 var _next_event := 0
+var _active_animation_players: Array[Dictionary] = []
 
 
 func load_scene_file(path: String) -> bool:
@@ -71,7 +72,8 @@ func _instantiate_entries(entries: Array) -> bool:
         active_instances.append(node)
         var animation_name := String(entry.get("animation", ""))
         if not animation_name.is_empty():
-            _play_animation(node, animation_name)
+            var should_loop := bool(entry.get("animation_loop", true))
+            _play_animation(node, animation_name, should_loop)
     return true
 
 
@@ -81,13 +83,41 @@ func _vector3_from(value: Variant) -> Vector3:
     return Vector3.ZERO
 
 
-func _play_animation(instance: Node, animation_name: String) -> void:
+func _play_animation(instance: Node, animation_name: String, should_loop: bool = true) -> void:
     var players := instance.find_children("*", "AnimationPlayer", true, false)
     for candidate in players:
         var player := candidate as AnimationPlayer
-        if player != null and player.has_animation(animation_name):
+        if player == null or not player.has_animation(animation_name):
+            continue
+        var animation := player.get_animation(animation_name)
+        if animation != null:
+            _configure_animation_loop(animation, should_loop)
+        _active_animation_players.append({"player": player, "name": animation_name})
+        player.play(animation_name)
+        player.seek(0.0, true)
+        return
+
+
+func _configure_animation_loop(animation: Animation, should_loop: bool) -> void:
+    if animation == null:
+        return
+    animation.loop_mode = Animation.LOOP_LINEAR if should_loop else Animation.LOOP_NONE
+
+
+func _restart_animations() -> void:
+    for item in _active_animation_players:
+        var player := item.get("player") as AnimationPlayer
+        var animation_name := String(item.get("name", ""))
+        if is_instance_valid(player) and player.has_animation(animation_name):
             player.play(animation_name)
-            return
+            player.seek(0.0, true)
+
+
+func _stop_animations() -> void:
+    for item in _active_animation_players:
+        var player := item.get("player") as AnimationPlayer
+        if is_instance_valid(player):
+            player.stop()
 
 
 func _build_timeline() -> void:
@@ -114,6 +144,7 @@ func _build_timeline() -> void:
 
 
 func play_scene() -> void:
+    _restart_animations()
     _playback_time = 0.0
     _next_event = 0
     _playing = true
@@ -125,6 +156,7 @@ func play_scene() -> void:
 func stop_scene() -> void:
     _playing = false
     set_process(false)
+    _stop_animations()
 
 
 func _process(delta: float) -> void:
@@ -159,3 +191,4 @@ func _clear_instances() -> void:
         if is_instance_valid(instance):
             instance.queue_free()
     active_instances.clear()
+    _active_animation_players.clear()
