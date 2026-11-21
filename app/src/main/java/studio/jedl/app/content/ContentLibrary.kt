@@ -211,7 +211,7 @@ class ContentLibrary private constructor(
                         if (assets.isEmpty()) null else ContentBank(bankId,
                             packId.replace('-', ' ').replaceFirstChar { it.uppercase() },
                             "CC0-1.0", pack.optString("sourceUrl"),
-                            kind, assets, packageVersion, installed = true)
+                            ContentKind.OBJECT, assets, packageVersion, installed = true)
                     }
                 } else emptyList()
                 communityBanks + loadInstalledManifestBanks(packageDir, packageVersion)
