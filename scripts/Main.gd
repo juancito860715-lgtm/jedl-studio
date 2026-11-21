@@ -7,6 +7,9 @@ var world_root: Node3D
 var camera: Camera3D
 var subtitle_label: Label
 var audio_player: AudioStreamPlayer
+var catalog_manager: Node
+var gallery_panel: PanelContainer
+var gallery_list: VBoxContainer
 
 
 func _ready() -> void:
@@ -17,6 +20,8 @@ func _ready() -> void:
         world_root = self
     camera = get_node_or_null("World/Camera3D") as Camera3D
     _build_overlay()
+    catalog_manager = CatalogManager.new()
+    add_child(catalog_manager)
     scene_parser = SceneParserScript.new()
     add_child(scene_parser)
     scene_parser.world_root = world_root
@@ -49,6 +54,40 @@ func _build_overlay() -> void:
     play_button.text = "Reproducir"
     play_button.pressed.connect(_play_scene)
     row.add_child(play_button)
+    var gallery_row := HBoxContainer.new()
+    column.add_child(gallery_row)
+    var gallery_2d_button := Button.new()
+    gallery_2d_button.text = "Galería 2D"
+    gallery_2d_button.pressed.connect(func(): _show_gallery("2d"))
+    gallery_row.add_child(gallery_2d_button)
+    var gallery_3d_button := Button.new()
+    gallery_3d_button.text = "Galería 3D"
+    gallery_3d_button.pressed.connect(func(): _show_gallery("3d"))
+    gallery_row.add_child(gallery_3d_button)
+    gallery_panel = PanelContainer.new()
+    gallery_panel.position = Vector2(16, 150)
+    gallery_panel.custom_minimum_size = Vector2(340, 420)
+    gallery_panel.visible = false
+    layer.add_child(gallery_panel)
+    var gallery_column := VBoxContainer.new()
+    gallery_panel.add_child(gallery_column)
+    var gallery_header := HBoxContainer.new()
+    gallery_column.add_child(gallery_header)
+    var gallery_title := Label.new()
+    gallery_title.text = "Galería"
+    gallery_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    gallery_header.add_child(gallery_title)
+    var close_gallery := Button.new()
+    close_gallery.text = "Cerrar"
+    close_gallery.pressed.connect(func(): gallery_panel.visible = false)
+    gallery_header.add_child(close_gallery)
+    var gallery_scroll := ScrollContainer.new()
+    gallery_scroll.custom_minimum_size = Vector2(320, 370)
+    gallery_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    gallery_column.add_child(gallery_scroll)
+    gallery_list = VBoxContainer.new()
+    gallery_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    gallery_scroll.add_child(gallery_list)
     audio_player = AudioStreamPlayer.new()
     add_child(audio_player)
 
@@ -107,3 +146,41 @@ func _frame_camera_to_content() -> void:
 func _play_scene() -> void:
     if scene_parser != null:
         scene_parser.play_scene()
+
+func _show_gallery(kind: String) -> void:
+    if gallery_panel == null or gallery_list == null or catalog_manager == null:
+        return
+    for child in gallery_list.get_children():
+        child.queue_free()
+    var root_path := "res://assets/gallery/2d" if kind == "2d" else "res://assets/characters"
+    var entries: Array[Dictionary] = catalog_manager.scan_catalog(root_path)
+    var heading_label := Label.new()
+    heading_label.text = "Recursos 2D · %d" % entries.size() if kind == "2d" else "Modelos 3D · %d" % entries.size()
+    gallery_list.add_child(heading_label)
+    if entries.is_empty():
+        var empty_label := Label.new()
+        empty_label.text = "No hay recursos disponibles en esta galería."
+        gallery_list.add_child(empty_label)
+    for index in range(mini(entries.size(), 100)):
+        var item: Dictionary = entries[index]
+        var item_row := HBoxContainer.new()
+        gallery_list.add_child(item_row)
+        if kind == "2d":
+            var preview := TextureRect.new()
+            preview.custom_minimum_size = Vector2(52, 52)
+            preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+            preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+            preview.texture = load(String(item["path"])) as Texture2D
+            item_row.add_child(preview)
+        var add_button := Button.new()
+        add_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        add_button.text = String(item["title"]) + " · " + String(item["category"])
+        var resource_path := String(item["path"])
+        add_button.pressed.connect(_add_gallery_asset.bind(resource_path))
+        item_row.add_child(add_button)
+    gallery_panel.visible = true
+
+
+func _add_gallery_asset(resource_path: String) -> void:
+    if scene_parser != null and scene_parser.add_catalog_asset(resource_path):
+        _frame_camera_to_content()
