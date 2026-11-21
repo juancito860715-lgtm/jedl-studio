@@ -3,6 +3,7 @@ package studio.jedl.app
 import androidx.lifecycle.Lifecycle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -85,4 +86,38 @@ class StartupLifecycleInstrumentedTest {
         )
         scenario.close()
     }
+    @Test
+    fun repeatOnLifecycleStopsAndRestartsCollectionWithActivityVisibility() {
+        ActivityScenario.launch(MainActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                assertTrue("Collector should be active while Activity is RESUMED",
+                    activity.startupCollectorActiveForTest)
+            }
+
+            scenario.moveToState(Lifecycle.State.CREATED)
+            runBlocking {
+                withTimeout(5_000) {
+                    while (scenarioIsCollecting(scenario)) delay(10)
+                }
+            }
+
+            scenario.moveToState(Lifecycle.State.RESUMED)
+            runBlocking {
+                withTimeout(5_000) {
+                    while (!scenarioIsCollecting(scenario)) delay(10)
+                }
+            }
+            scenario.onActivity { activity ->
+                assertTrue("Collector should restart when Activity returns to RESUMED",
+                    activity.startupCollectorActiveForTest)
+            }
+        }
+    }
+
+    private fun scenarioIsCollecting(scenario: ActivityScenario<MainActivity>): Boolean {
+        var active = false
+        scenario.onActivity { active = it.startupCollectorActiveForTest }
+        return active
+    }
+
 }
