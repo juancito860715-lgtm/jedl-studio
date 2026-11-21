@@ -109,7 +109,7 @@ jobs:
           entries.append({"id": "model:fox", "title": "Fox - Walk", "path": "res://" + fox.as_posix(), "kind": "3d", "category": "Personajes animados"})
           output = Path("assets/gallery/catalog.json")
           output.parent.mkdir(parents=True, exist_ok=True)
-          output.write_text(json.dumps({"schemaVersion": 1, "assets": entries}, indent=2) + "\\n", encoding="utf-8")
+          output.write_text(json.dumps({"schemaVersion": 1, "assets": entries}, indent=2) + "\n", encoding="utf-8")
           count2d = sum(item["kind"] == "2d" for item in entries)
           count3d = sum(item["kind"] == "3d" for item in entries)
           assert count2d >= 222 and count3d >= 1, (count2d, count3d)
