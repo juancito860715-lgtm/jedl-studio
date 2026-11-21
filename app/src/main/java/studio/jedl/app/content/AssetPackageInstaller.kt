@@ -49,6 +49,15 @@ object AssetPackageInstaller {
             }
             val evidence = manifest.optJSONArray("licenseEvidence")
             require(evidence != null && evidence.length() > 0) { "Falta evidencia de licencia" }
+            val evidenceUrls = (0 until evidence.length()).map { evidence.getString(it) }
+            require(evidenceUrls.all { it.startsWith("https://") } &&
+                evidenceUrls.any { it.startsWith("https://creativecommons.org/publicdomain/zero/1.0/") }) {
+                "La evidencia no acredita una licencia CC0 verificable"
+            }
+            val bankInventory = manifest.optJSONArray("banks")
+            if (bankInventory != null) require(manifest.optInt("bankCount") == bankInventory.length()) {
+                "El inventario de bancos no coincide con bankCount"
+            }
 
             val records = manifest.getJSONArray("files")
             require(records.length() in 1..MAX_FILES) { "Cantidad de archivos no permitida" }
@@ -75,7 +84,7 @@ object AssetPackageInstaller {
                 if (entry.isDirectory) {
                     safePath(entry.name.removeSuffix("/"))
                 } else {
-                    zipFiles += safePath(entry.name)
+                    require(zipFiles.add(safePath(entry.name))) { "Entrada ZIP duplicada: " + entry.name }
                 }
             }
             require(zipFiles.size == expected.size + 1 &&
@@ -117,6 +126,7 @@ object AssetPackageInstaller {
                 File(staging, "JEDL-PACKAGE.json").writeText(manifest.toString(), Charsets.UTF_8)
                 val community = File(staging, COMMUNITY_ARCHIVE)
                 if (community.isFile) extractCommunity(community, File(staging, "community-2d"))
+                validateInstalledBanks(staging, bankInventory)
                 val backup = File(stagingRoot, ".$id.previous")
                 deleteRecursively(backup)
                 if (target.exists()) check(target.renameTo(backup)) { "No se pudo respaldar la biblioteca anterior" }
@@ -135,6 +145,68 @@ object AssetPackageInstaller {
         }
     }
 
+    private fun validateInstalledBanks(staging: File, inventory: org.json.JSONArray?) {
+        val banksRoot = File(staging, "banks")
+        val manifests = if (banksRoot.isDirectory) {
+            banksRoot.walkTopDown().filter { it.isFile && it.name == "manifest.json" }.toList()
+        } else emptyList()
+        val expectedCounts = LinkedHashMap<String, Int>()
+        if (inventory != null) {
+            for (index in 0 until inventory.length()) {
+                val item = inventory.getJSONObject(index)
+                val id = item.getString("id")
+                val count = item.getInt("assetCount")
+                require(id.isNotBlank() && count > 0 && expectedCounts.put(id, count) == null) {
+                    "Inventario de bancos inválido o duplicado"
+                }
+            }
+        }
+        require(manifests.size == expectedCounts.size) {
+            "Los manifiestos de bancos no coinciden con el inventario raíz"
+        }
+        val actualCounts = LinkedHashMap<String, Int>()
+        for (manifestFile in manifests) {
+            val bankRoot = manifestFile.parentFile ?: error("Directorio de banco inválido")
+            val bank = JSONObject(manifestFile.readText(Charsets.UTF_8))
+            val id = bank.getString("id")
+            require(bank.getString("license") == "CC0-1.0" &&
+                bank.optBoolean("commercialUse") &&
+                bank.optBoolean("modificationAllowed") &&
+                bank.optBoolean("apkRedistributionAllowed") &&
+                bank.optString("source").startsWith("https://") &&
+                bank.optString("licenseTerms").startsWith("https://creativecommons.org/publicdomain/zero/1.0/")) {
+                "El banco no acredita permisos CC0 y redistribución: " + id
+            }
+            require(File(bankRoot, "LICENSE.txt").isFile && File(bankRoot, "SOURCE.json").isFile) {
+                "Falta evidencia de licencia del banco: " + id
+            }
+            val assets = bank.getJSONArray("assets")
+            require(assets.length() > 0 && assets.length() == bank.optInt("assetCount")) {
+                "Cantidad de recursos incorrecta en el banco: " + id
+            }
+            require(actualCounts.put(id, assets.length()) == null) { "ID de banco duplicado: " + id }
+            for (index in 0 until assets.length()) {
+                val item = assets.getJSONObject(index)
+                require(item.getString("id").isNotBlank()) { "ID de recurso vacío en " + id }
+                val relative = safePath(item.getString("file"))
+                require(relative.startsWith("png/") && relative.lowercase().endsWith(".png")) {
+                    "Solo se admiten PNG en bancos instalables: " + id
+                }
+                val file = destination(bankRoot, relative)
+                val expectedHash = item.getString("sha256").lowercase()
+                require(file.isFile && file.length() > 0L &&
+                    expectedHash.matches(Regex("[a-f0-9]{64}")) &&
+                    sha256(file) == expectedHash) {
+                    "Hash de recurso incorrecto en el banco: " + id
+                }
+                require(item.optInt("width") > 0 && item.optInt("height") > 0) {
+                    "Dimensiones inválidas en el banco: " + id
+                }
+            }
+        }
+        require(actualCounts == expectedCounts) { "Los bancos instalados no coinciden con el inventario raíz" }
+    }
+
     private fun extractCommunity(archive: File, outputRoot: File) {
         ZipFile(archive).use { zip ->
             val manifestEntry = zip.getEntry("JEDL-PACKAGE.json")
@@ -146,12 +218,18 @@ object AssetPackageInstaller {
             val files = manifest.getJSONArray("files")
             require(files.length() <= MAX_FILES) { "Demasiados recursos comunitarios" }
             val declaredPaths = LinkedHashSet<String>()
-            for (i in 0 until files.length()) declaredPaths += safePath(files.getJSONObject(i).getString("path"))
+            for (i in 0 until files.length()) {
+                require(declaredPaths.add(safePath(files.getJSONObject(i).getString("path")))) {
+                    "Ruta comunitaria duplicada"
+                }
+            }
             val archivePaths = LinkedHashSet<String>()
             val allEntries = zip.entries()
             while (allEntries.hasMoreElements()) {
                 val entry = allEntries.nextElement()
-                if (!entry.isDirectory) archivePaths += safePath(entry.name)
+                if (!entry.isDirectory) require(archivePaths.add(safePath(entry.name))) {
+                    "Entrada comunitaria duplicada"
+                }
             }
             require(archivePaths == declaredPaths + "JEDL-PACKAGE.json") {
                 "El inventario comunitario no coincide con las entradas ZIP"
