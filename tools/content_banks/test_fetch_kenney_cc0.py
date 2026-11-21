@@ -1,10 +1,12 @@
 import sys
 import unittest
+from unittest import mock
+import urllib.error
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 sys.path.insert(0, str(HERE))
-from fetch_kenney_cc0 import _safe_member, resolve_download, PACKS
+from fetch_kenney_cc0 import _safe_member, resolve_download, PACKS, _request, MAX_REQUEST_ATTEMPTS
 
 
 class KenneyContentBankTests(unittest.TestCase):
@@ -42,6 +44,39 @@ class KenneyContentBankTests(unittest.TestCase):
 
     def test_accepts_nested_relative_paths(self):
         self.assertEqual(_safe_member("Tiles/Tree.png"), "Tiles/Tree.png")
+
+    @mock.patch("fetch_kenney_cc0.time.sleep")
+    @mock.patch("fetch_kenney_cc0.urllib.request.urlopen")
+    def test_retries_transient_503_then_returns_download(self, urlopen, sleep):
+        failure = urllib.error.HTTPError(
+            "https://example.test/pack.zip", 503, "busy", {"Retry-After": "0"}, None
+        )
+        response = mock.MagicMock()
+        response.__enter__.return_value = response
+        response.geturl.return_value = "https://example.test/pack.zip"
+        response.read.return_value = b"archive"
+        urlopen.side_effect = [failure, response]
+
+        self.assertEqual(
+            _request("https://example.test/pack.zip"),
+            ("https://example.test/pack.zip", b"archive")
+        )
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once_with(0.0)
+
+    @mock.patch("fetch_kenney_cc0.time.sleep")
+    @mock.patch("fetch_kenney_cc0.urllib.request.urlopen")
+    def test_stops_after_bounded_transient_failures(self, urlopen, sleep):
+        failure = urllib.error.HTTPError(
+            "https://example.test/pack.zip", 503, "busy", {}, None
+        )
+        urlopen.side_effect = failure
+
+        with self.assertRaises(urllib.error.HTTPError):
+            _request("https://example.test/pack.zip")
+
+        self.assertEqual(urlopen.call_count, MAX_REQUEST_ATTEMPTS)
+        self.assertEqual(sleep.call_count, MAX_REQUEST_ATTEMPTS - 1)
 
 
 if __name__ == "__main__":
