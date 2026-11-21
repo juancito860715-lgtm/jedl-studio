@@ -3,6 +3,9 @@ class_name CatalogManager
 
 signal catalog_updated(category: String, entries: Array[Dictionary])
 
+const IMAGE_EXTENSIONS := ["png", "jpg", "jpeg", "webp"]
+const MODEL_EXTENSIONS := ["glb", "gltf", "tscn"]
+
 
 func scan_catalog(folder_path: String) -> Array[Dictionary]:
     var entries: Array[Dictionary] = []
@@ -27,12 +30,19 @@ func _scan_directory(root_path: String, current_path: String, entries: Array[Dic
         var full_path := current_path.path_join(item)
         if directory.current_is_dir():
             _scan_directory(root_path, full_path, entries)
-        elif item.get_extension().to_lower() in ["glb", "gltf", "tscn"]:
-            entries.append({
-                "id": item.get_basename(),
-                "title": item.get_basename().replace("_", " ").capitalize(),
-                "path": full_path,
-                "category": full_path.trim_prefix(root_path).trim_prefix("/")
-            })
+        else:
+            var extension := item.get_extension().to_lower()
+            if extension in IMAGE_EXTENSIONS or extension in MODEL_EXTENSIONS:
+                var relative_path := full_path.trim_prefix(root_path).trim_prefix("/")
+                var kind := "2d" if extension in IMAGE_EXTENSIONS else "3d"
+                entries.append({
+                    "id": relative_path.to_lower().replace("/", ":"),
+                    "title": item.get_basename().replace("_", " ").replace("-", " ").capitalize(),
+                    "path": full_path,
+                    "relative_path": relative_path,
+                    "category": relative_path.get_base_dir(),
+                    "kind": kind,
+                    "extension": extension
+                })
         item = directory.get_next()
     directory.list_dir_end()
