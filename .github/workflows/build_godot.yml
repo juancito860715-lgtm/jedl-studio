@@ -63,6 +63,36 @@ jobs:
           test -s assets/characters/Fox.glb
           grep -q "CC0-1.0" assets/characters/Fox.LICENSE.md
           grep -q "CC-BY-4.0" assets/characters/Fox.LICENSE.md
+      - name: Set up Python for offline 2D asset banks
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install asset-bank build dependencies
+        run: python -m pip install --disable-pip-version-check numpy matplotlib pillow
+      - name: Generate original character pieces and licensed 2D object galleries
+        run: |
+          set -euo pipefail
+          python -m unittest discover -s tools/avatar_bank -p "test_*.py" -v
+          mkdir -p assets/gallery/2d/characters/jedl_master_v1
+          cp tools/avatar_bank/out/manifest.json assets/gallery/2d/characters/jedl_master_v1/manifest.json
+          cp -R tools/avatar_bank/out/png assets/gallery/2d/characters/jedl_master_v1/png
+          python tools/content_banks/fetch_kenney_cc0.py --pack objects --out assets/gallery/2d/objects
+          python tools/content_banks/fetch_kenney_cc0.py --pack foliage --out assets/gallery/2d/objects
+          test "$(find assets/gallery/2d/characters/jedl_master_v1/png -type f -name '*.png' | wc -l)" -eq 42
+          test "$(find assets/gallery/2d/objects -type f -name '*.png' | wc -l)" -ge 180
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("assets/gallery/2d")
+          for manifest_path in root.rglob("manifest.json"):
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+              if manifest.get("id", "").startswith("kenney_"):
+                  assert manifest["license"] == "CC0-1.0"
+                  assert manifest["commercialUse"] and manifest["apkRedistributionAllowed"]
+                  for asset in manifest["assets"]:
+                      assert (manifest_path.parent / asset["file"]).is_file()
+          print("GALLERY_2D_BANKS_OK: 42 original rig pieces plus CC0 object/foliage assets")
+          PY
       - name: Import project resources before tests
         run: |
           set -euo pipefail
