@@ -106,8 +106,15 @@ class ContentLibrary private constructor(
                     val lowerName = sourceFile.substringAfterLast('/').lowercase()
                     if (lowerName.contains("preview") || lowerName.contains("sample") || lowerName.contains("instruction")) return@mapNotNull null
                     if (kind == ContentKind.CHARACTER_PART && !sourceFile.startsWith("PNG/")) return@mapNotNull null
-                    val category = if (kind == ContentKind.CHARACTER_PART) sourceFile.split('/').getOrNull(1) ?: "General"
-                        else sourceFile.substringBefore('/').takeIf { it != sourceFile } ?: "General"
+                    val category = if (kind == ContentKind.CHARACTER_PART) {
+                        val folder = sourceFile.split('/').getOrNull(1) ?: "General"
+                        if (folder.lowercase() !in SAFE_CHARACTER_FOLDERS) return@mapNotNull null
+                        folder
+                    } else {
+                        val parts = sourceFile.split('/')
+                        if (parts.firstOrNull() == "PNG") parts.getOrNull(1) ?: "General"
+                        else parts.firstOrNull() ?: "General"
+                    }
                     val file = item.getString("file")
                     require(file.startsWith("png/") && !file.contains("..") && !file.startsWith("/")) {
                         "Ruta insegura en " + id + ": " + file
@@ -128,7 +135,8 @@ class ContentLibrary private constructor(
                 ContentBank(id, json.getString("title"), json.getString("license"), json.getString("source"), kind, assets)
             }.toMutableList()
 
-            banks += loadInstalledBanks(app)
+            val embeddedBankIds = banks.map { it.id }.toSet()
+            banks += loadInstalledBanks(app).filterNot { it.id in embeddedBankIds }
             require(banks.any { it.kind == ContentKind.CHARACTER_PART }) { "No se encontró el banco de piezas de personajes" }
             require(banks.any { it.kind == ContentKind.OBJECT }) { "No se encontró el banco de objetos" }
 
@@ -148,45 +156,113 @@ class ContentLibrary private constructor(
             return ContentLibrary(banks, presets, app)
         }
 
+        private val SAFE_CHARACTER_FOLDERS = setOf(
+            "face", "skin", "body", "clothing", "clothes", "outfit", "outfits",
+            "hair", "hat", "hats", "shirt", "shirts", "pants", "shoes",
+            "eyebrows", "eyes", "mouth", "nose", "sleeves", "arms", "legs", "hands"
+        )
+
         private fun loadInstalledBanks(context: Context): List<ContentBank> {
             val installedRoot = File(context.filesDir, "installed-libraries")
             return installedRoot.listFiles()?.filter { it.isDirectory }?.flatMap { packageDir ->
                 val rootManifest = File(packageDir, "JEDL-PACKAGE.json")
-                val communityManifest = File(packageDir, "community-2d/JEDL-PACKAGE.json")
-                if (!rootManifest.isFile || !communityManifest.isFile) return@flatMap emptyList()
+                if (!rootManifest.isFile) return@flatMap emptyList()
                 val packageJson = JSONObject(rootManifest.readText(Charsets.UTF_8))
                 val packageVersion = packageJson.getString("packageVersion")
-                val community = JSONObject(communityManifest.readText(Charsets.UTF_8))
-                require(community.getString("license") == "CC0-1.0") { "Licencia comunitaria no admitida" }
-                val records = community.getJSONArray("files")
-                val packs = community.getJSONArray("packs")
-                (0 until packs.length()).mapNotNull { packIndex ->
-                    val pack = packs.getJSONObject(packIndex)
-                    val packId = pack.getString("pack")
-                    val category = pack.optString("category", "General")
-                    val bankId = packageJson.getString("id") + ":" + packId
-                    val assets = (0 until records.length()).mapNotNull { fileIndex ->
-                        val record = records.getJSONObject(fileIndex)
-                        if (record.optString("pack") != packId) return@mapNotNull null
-                        val relative = record.getString("path")
-                        if (!relative.lowercase().endsWith(".png")) return@mapNotNull null
-                        val file = File(packageDir, "community-2d/" + relative)
-                        val digest = record.getString("sha256")
+                val communityManifest = File(packageDir, "community-2d/JEDL-PACKAGE.json")
+                val communityBanks = if (communityManifest.isFile) {
+                    val community = JSONObject(communityManifest.readText(Charsets.UTF_8))
+                    require(community.getString("license") == "CC0-1.0") { "Licencia comunitaria no admitida" }
+                    val records = community.getJSONArray("files")
+                    val packs = community.getJSONArray("packs")
+                    for (packIndex in 0 until packs.length()) {
+                        val pack = packs.getJSONObject(packIndex)
+                        val evidencePath = pack.optString("sourceEvidenceFile", "")
+                        require(pack.optString("sourceLicenseStatement", "").contains("CC0", true) &&
+                            pack.optString("sourceUrl", "").startsWith("https://") &&
+                            evidencePath.isNotBlank() && !evidencePath.startsWith("/") &&
+                            !evidencePath.contains("..") && evidencePath.indexOf(92) < 0 &&
+                            File(packageDir, "community-2d/" + evidencePath).isFile) {
+                            "Evidencia CC0 incompleta para un banco comunitario"
+                        }
+                    }
+                    (0 until packs.length()).mapNotNull { packIndex ->
+                        val pack = packs.getJSONObject(packIndex)
+                        val packId = pack.getString("pack")
+                        val category = pack.optString("category", "General")
+                        val bankId = packageJson.getString("id") + ":" + packId
+                        val assets = (0 until records.length()).mapNotNull { fileIndex ->
+                            val record = records.getJSONObject(fileIndex)
+                            if (record.optString("pack") != packId) return@mapNotNull null
+                            val relative = record.getString("path")
+                            if (!relative.lowercase().endsWith(".png") || relative.startsWith("/") ||
+                                relative.contains("..") || relative.indexOf(92) >= 0) return@mapNotNull null
+                            val file = File(packageDir, "community-2d/" + relative)
+                            val digest = record.getString("sha256")
+                            if (!file.isFile || !digest.matches(Regex("[a-fA-F0-9]{64}"))) return@mapNotNull null
+                            val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+                            FileInputStream(file).use { BitmapFactory.decodeStream(it, null, options) }
+                            if (options.outWidth <= 0 || options.outHeight <= 0) return@mapNotNull null
+                            val id = bankId + ":" + digest.take(16)
+                            ContentAsset(id, file.nameWithoutExtension.replace('_', ' '), category,
+                                ContentKind.OBJECT, bankId, file.absolutePath, options.outWidth, options.outHeight,
+                                digest, packageVersion, installed = true)
+                        }
+                        if (assets.isEmpty()) null else ContentBank(bankId,
+                            packId.replace('-', ' ').replaceFirstChar { it.uppercase() },
+                            "CC0-1.0", pack.optString("sourceUrl"),
+                            ContentKind.OBJECT, assets, packageVersion, installed = true)
+                    }
+                } else emptyList()
+                communityBanks + loadInstalledManifestBanks(packageDir, packageVersion)
+            }.orEmpty()
+        }
+
+        private fun loadInstalledManifestBanks(packageDir: File, packageVersion: String): List<ContentBank> {
+            val banksRoot = File(packageDir, "banks")
+            if (!banksRoot.isDirectory) return emptyList()
+            return banksRoot.walkTopDown().maxDepth(5).filter { it.isFile && it.name == "manifest.json" }
+                .mapNotNull { manifestFile ->
+                    val manifest = runCatching { JSONObject(manifestFile.readText(Charsets.UTF_8)) }.getOrNull()
+                        ?: return@mapNotNull null
+                    val records = manifest.optJSONArray("assets") ?: return@mapNotNull null
+                    if (manifest.optString("license") != "CC0-1.0" ||
+                        !manifest.optBoolean("commercialUse") ||
+                        !(manifest.optBoolean("apkRedistributionAllowed") || manifest.optBoolean("redistributionAllowed"))) {
+                        return@mapNotNull null
+                    }
+                    val bankId = manifest.optString("id")
+                    if (bankId.isBlank()) return@mapNotNull null
+                    val bankRoot = manifestFile.parentFile ?: return@mapNotNull null
+                    if (!manifest.optString("source").startsWith("https://") ||
+                        !manifest.optString("licenseTerms").startsWith("https://creativecommons.org/publicdomain/zero/1.0/") ||
+                        !File(bankRoot, "LICENSE.txt").isFile || !File(bankRoot, "SOURCE.json").isFile) {
+                        return@mapNotNull null
+                    }
+                    val assets = (0 until records.length()).mapNotNull { index ->
+                        val item = records.getJSONObject(index)
+                        val relative = item.optString("file", "")
+                        if (!relative.startsWith("png/") || !relative.lowercase().endsWith(".png") ||
+                            relative.contains("..") || relative.startsWith("/") || relative.indexOf(92) >= 0) {
+                            return@mapNotNull null
+                        }
+                        val file = File(bankRoot, relative)
+                        val digest = item.optString("sha256", "")
                         if (!file.isFile || !digest.matches(Regex("[a-fA-F0-9]{64}"))) return@mapNotNull null
                         val options = BitmapFactory.Options().apply { inJustDecodeBounds = true }
                         FileInputStream(file).use { BitmapFactory.decodeStream(it, null, options) }
                         if (options.outWidth <= 0 || options.outHeight <= 0) return@mapNotNull null
-                        val id = bankId + ":" + digest.take(16)
-                        ContentAsset(id, file.nameWithoutExtension.replace('_', ' '), category,
-                            ContentKind.OBJECT, bankId, file.absolutePath, options.outWidth, options.outHeight,
-                            digest, packageVersion, installed = true)
+                        val sourceFile = item.optString("sourceFile", relative.removePrefix("png/"))
+                        val category = item.optString("category", sourceFile.split('/').getOrNull(1) ?: sourceFile.substringBefore('/'))
+                        ContentAsset(bankId + ":" + item.getString("id"),
+                            item.optString("title", file.nameWithoutExtension.replace('_', ' ')),
+                            category, ContentKind.OBJECT, bankId, file.absolutePath,
+                            options.outWidth, options.outHeight, digest, packageVersion, installed = true)
                     }
                     if (assets.isEmpty()) null else ContentBank(bankId,
-                        packId.replace('-', ' ').replaceFirstChar { it.uppercase() },
-                        "CC0-1.0", pack.optString("sourceUrl", "https://github.com/Tiddybub/2d-assets"),
+                        manifest.optString("title", bankId), "CC0-1.0", manifest.optString("source"),
                         ContentKind.OBJECT, assets, packageVersion, installed = true)
-                }
-            }.orEmpty()
+                }.toList()
         }
 
         private fun sha256(file: File): String {

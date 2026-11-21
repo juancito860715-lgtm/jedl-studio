@@ -46,6 +46,10 @@ jobs:
         run: |
           python -m unittest discover -s tools/content_banks -p "test_instrument_bank.py" -v
           python tools/content_banks/generate_instrument_bank.py
+      - name: Generate original CC0 clothing graphics
+        run: |
+          python -m unittest discover -s tools/content_banks -p "test_clothing_bank.py" -v
+          python tools/content_banks/generate_clothing_bank.py
       - name: Download and package the CC0 Kenney character source bank
         run: |
           python tools/process_kenney.py --download
@@ -75,24 +79,14 @@ jobs:
           python tools/content_banks/asset_pack_pipeline.py download-kenney --out build/asset-library/kenney
           python tools/content_banks/asset_pack_pipeline.py package-community --source build/upstream/2d-assets --out build/asset-library/community-2d.zip
           git -C build/upstream/2d-assets rev-parse HEAD > build/asset-library/community-2d-source-commit.txt
-          mkdir -p build/asset-library/instruments
-          cp -R app/src/main/assets/content/instruments/jedl_original_instruments_v1 build/asset-library/instruments/
+          mkdir -p build/asset-library/banks/instruments/jedl_original_instruments_v1
+          cp -R app/src/main/assets/content/instruments/jedl_original_instruments_v1/. build/asset-library/banks/instruments/jedl_original_instruments_v1/
+          mkdir -p build/asset-library/banks/clothing/jedl_original_clothing_v1
+          cp -R app/src/main/assets/content/clothing/jedl_original_clothing_v1/. build/asset-library/banks/clothing/jedl_original_clothing_v1/
           mkdir -p app/src/main/assets/offline_library
           python -m unittest discover -s tools/content_banks -p "test_build_offline_bundle.py" -v
           python tools/content_banks/build_offline_bundle.py --source build/asset-library --out app/src/main/assets/offline_library/jedl-library-bundle.zip
           test -s app/src/main/assets/offline_library/jedl-library-bundle.zip
-      - name: Upload original Kenney archive for anatomy review
-        uses: actions/upload-artifact@v4
-        with:
-          name: kenney-original-source-zip
-          path: build/kenney/kenney.zip
-          if-no-files-found: error
-      - name: Upload Kenney sprite inventory
-        uses: actions/upload-artifact@v4
-        with:
-          name: kenney-modular-character-inventory
-          path: build/kenney/kenney_inventory.json
-          if-no-files-found: error
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -115,6 +109,7 @@ jobs:
               "kenney_tiny_town_objects": 50,
               "kenney_foliage_objects": 50,
               "instruments/jedl_original_instruments_v1": 11,
+              "clothing/jedl_original_clothing_v1": 6,
               }
           for relative, minimum in expected.items():
               folder = root / relative
@@ -126,7 +121,7 @@ jobs:
               for asset in manifest["assets"]:
                   file = folder / asset["file"]
                   assert file.is_file(), f"Missing bank asset: {file}"
-          print("Character source bank and four object banks passed manifest/file/license validation.")
+          print("Character, instrument and clothing banks passed manifest/file/license validation.")
           PY
       - name: Diagnose asset license registry coverage
         run: |

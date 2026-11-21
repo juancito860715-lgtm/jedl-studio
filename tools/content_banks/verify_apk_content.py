@@ -12,6 +12,7 @@ BANKS = [
     "kenney_tiny_town_objects",
     "kenney_foliage_objects",
     "instruments/jedl_original_instruments_v1",
+    "clothing/jedl_original_clothing_v1",
 ]
 
 def verify():

@@ -224,13 +224,14 @@ class MainActivity : Activity() {
             startActivityForResult(intent, requestImportPackage)
         })
         var activeKind = ContentKind.OBJECT
+        var activeCategory: String? = null
         val bankSpinner = Spinner(this)
         val list = ListView(this)
         val count = TextView(this)
         val placed = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }
         var refreshPlaced: () -> Unit = {}
         fun refreshItems(bank: ContentBank) {
-            val assets = bank.assets
+            val assets = bank.assets.filter { activeCategory == null || it.category.equals(activeCategory, true) }
             count.text = assets.size.toString() + " recursos · " + bank.license + " · " + bank.title
             list.adapter = object : android.widget.BaseAdapter() {
                 override fun getCount() = assets.size
@@ -281,7 +282,9 @@ class MainActivity : Activity() {
             }
         }
         fun refreshBanks() {
-            val banks = contentLibrary.banks.filter { it.kind == activeKind }
+            val banks = contentLibrary.banks.filter { bank ->
+                bank.kind == activeKind && (activeCategory == null || bank.assets.any { it.category.equals(activeCategory, true) })
+            }
             bankSpinner.adapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, banks.map { it.title })
             bankSpinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
                 override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
@@ -325,8 +328,10 @@ class MainActivity : Activity() {
                 placed.addView(row)
             }
         }
-        content.addView(button("Objetos y escenarios") { activeKind = ContentKind.OBJECT; refreshBanks() })
-        content.addView(button("Piezas de personajes") { activeKind = ContentKind.CHARACTER_PART; refreshBanks() })
+        content.addView(button("Instrumentos") { activeKind = ContentKind.OBJECT; activeCategory = "Instruments"; refreshBanks() })
+        content.addView(button("Vestuario") { activeKind = ContentKind.OBJECT; activeCategory = "Clothing"; refreshBanks() })
+        content.addView(button("Objetos y escenarios") { activeKind = ContentKind.OBJECT; activeCategory = null; refreshBanks() })
+        content.addView(button("Piezas de personajes") { activeKind = ContentKind.CHARACTER_PART; activeCategory = null; refreshBanks() })
         content.addView(heading("Paquete"))
         content.addView(bankSpinner)
         content.addView(count)

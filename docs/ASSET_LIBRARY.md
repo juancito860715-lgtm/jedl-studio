@@ -4,7 +4,7 @@
 
 This pipeline expands the downloadable content library without placing every source archive inside the Android APK. GitHub Actions downloads source archives, checks their published license evidence, validates ZIP integrity and paths, computes SHA-256 digests, and publishes a versioned artifact.
 
-The current Android `ContentLibrary` reads PNG manifests from APK assets. It does not yet import arbitrary external ZIPs or render GLB/FBX models. Therefore this phase publishes offline-ready archives separately; it must not be described as full in-editor integration.
+The Android `ContentLibrary` reads verified PNG manifests from APK assets and from installed packages in app-private storage. The ZIP installer validates the root manifest, CC0 permissions, safe paths, file inventory, sizes and SHA-256 values before atomically activating a package. GLB/FBX files remain staged because the current editor does not render them.
 
 ## Initial source batches
 
@@ -13,6 +13,8 @@ The current Android `ContentLibrary` reads PNG manifests from APK assets. It doe
 - Kenney modular character source bank
 - Kenney Tiny Town objects
 - Kenney Foliage objects
+- Original CC0 instrument illustrations (11 PNGs)
+- Original CC0 clothing illustrations (6 PNGs)
 
 These existing banks must not be downloaded a second time under a duplicate ID.
 
@@ -50,7 +52,7 @@ GitHub Actions checks out only the `modern-urban` and `nature` directories from 
 
 - Keep the APK lean; source packs are uploaded as a separate GitHub Actions artifact.
 - Do not load the full catalog into RAM.
-- The future Android installer must unpack only selected packs into app-private local storage, verify their manifests and hashes, and expose them offline.
+- The Android installer unpacks verified packages into app-private local storage. Community CC0 packs and PNG banks under `banks/` are discovered by the offline catalog.
 - 2D PNG packs can be connected to the current content library after their manifests are normalized.
 - GLB/FBX packs remain staged until the corresponding 3D renderer/importer is implemented and tested.
 
@@ -78,3 +80,12 @@ from its upstream SOURCE.md, and whether a separate license file exists.
 Packs with a non-neutral theme are excluded from the bundled library. A missing
 standalone license file remains a review flag, not a claim that the original
 license text was preserved.
+
+
+## Scene props and motion capture
+
+The built-in library has separate **Instrumentos** and **Vestuario** filters. The original CC0 instrument and clothing banks are copied into the installable ZIP under `banks/`, so the same manifests and PNG hashes are available after local installation.
+
+MediaPipe Pose Landmarker Lite runs in VIDEO mode. The capture action samples a selected video at 500 ms intervals for up to 12 seconds, converts visible shoulder, elbow, wrist, hip, knee and ankle landmarks into `PoseHierarchy` angles, and creates editable `StudioKeyframe` entries. Frames below the landmark-confidence threshold are rejected rather than filled with guessed poses.
+
+Scene objects persist their bank ID, package version and asset SHA-256. On reopen, the catalog resolves only the matching revision; a missing or changed resource is shown as unavailable instead of silently substituting another image.

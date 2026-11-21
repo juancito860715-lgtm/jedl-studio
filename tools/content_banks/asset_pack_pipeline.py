@@ -46,12 +46,6 @@ KENNEY_PACKS = {
         "page": "https://kenney.nl/assets/furniture-kit",
         "download": "https://kenney.nl/media/pages/assets/furniture-kit/440e0608a4-1677580847/kenney_furniture-kit.zip",
     },
-    "mini-characters": {
-        "id": "kenney-mini-characters", "title": "Mini Characters",
-        "category": "characters", "dimension": "3d", "expected_files": 25,
-        "page": "https://kenney.nl/assets/mini-characters",
-        "download": "https://kenney.nl/media/pages/assets/mini-characters/bfc7e272b4-1774770718/kenney_mini-characters.zip",
-    },
     "city-kit-suburban": {
         "id": "kenney-city-kit-suburban", "title": "City Kit Suburban",
         "category": "environment", "dimension": "3d", "expected_files": 40,
