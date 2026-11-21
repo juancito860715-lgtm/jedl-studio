@@ -73,10 +73,9 @@ jobs:
           sparse-checkout: |
             modern-urban
             nature
-      - name: Download expanded Kenney library and package community assets
+      - name: Package community CC0 assets and installable scene banks
         run: |
           mkdir -p build/asset-library
-          python tools/content_banks/asset_pack_pipeline.py download-kenney --out build/asset-library/kenney
           python tools/content_banks/asset_pack_pipeline.py package-community --source build/upstream/2d-assets --out build/asset-library/community-2d.zip
           git -C build/upstream/2d-assets rev-parse HEAD > build/asset-library/community-2d-source-commit.txt
           mkdir -p build/asset-library/banks/instruments/jedl_original_instruments_v1
@@ -157,6 +156,12 @@ jobs:
         with:
           name: jedl-expanded-offline-asset-library
           path: build/asset-library/
+          if-no-files-found: error
+      - name: Upload installable offline library ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-installable-offline-library-zip
+          path: app/src/main/assets/offline_library/jedl-library-bundle.zip
           if-no-files-found: error
 
   mediapipe-standalone:

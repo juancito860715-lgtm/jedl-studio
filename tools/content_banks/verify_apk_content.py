@@ -48,6 +48,11 @@ def verify():
                 raise AssertionError("Unexpected offline library package ID")
             if package_manifest.get("license") != "CC0-1.0" or not package_manifest.get("redistributionAllowed"):
                 raise AssertionError("Offline package license/redistribution contract invalid")
+            expected_banks = {"jedl_original_instruments_v1", "jedl_original_clothing_v1"}
+            if package_manifest.get("bankCount") != 2 or {item.get("id") for item in package_manifest.get("banks", [])} != expected_banks:
+                raise AssertionError("Offline package bank inventory is incomplete")
+            if any(item["path"].startswith("kenney/") for item in package_manifest.get("files", [])):
+                raise AssertionError("Unneeded raw source archives found in installable package")
             for item in package_manifest.get("files", []):
                 raw = bundle.read(item["path"])
                 if len(raw) != item["bytes"] or hashlib.sha256(raw).hexdigest() != item["sha256"]:

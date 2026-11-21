@@ -4,7 +4,7 @@
 
 This pipeline expands the downloadable content library without placing every source archive inside the Android APK. GitHub Actions downloads source archives, checks their published license evidence, validates ZIP integrity and paths, computes SHA-256 digests, and publishes a versioned artifact.
 
-The Android `ContentLibrary` reads verified PNG manifests from APK assets and from installed packages in app-private storage. The ZIP installer validates the root manifest, CC0 permissions, safe paths, file inventory, sizes and SHA-256 values before atomically activating a package. GLB/FBX files remain staged because the current editor does not render them.
+The Android `ContentLibrary` reads verified PNG manifests from APK assets and from installed packages in app-private storage. The ZIP installer validates the root manifest, CC0 permissions, safe paths, file inventory, sizes and SHA-256 values before atomically activating a package. The installable ZIP contains only the community CC0 collection and the original instrument/clothing PNG banks that the Android catalog can load; raw source archives are excluded. GLB/FBX files remain staged because the current editor does not render them.
 
 ## Initial source batches
 
@@ -53,6 +53,7 @@ GitHub Actions checks out only the `modern-urban` and `nature` directories from 
 - Keep the APK lean; source packs are uploaded as a separate GitHub Actions artifact.
 - Do not load the full catalog into RAM.
 - The Android installer unpacks verified packages into app-private local storage. Community CC0 packs and PNG banks under `banks/` are discovered by the offline catalog.
+- The compact package root manifest lists every payload file with byte size and SHA-256, and inventories each installable PNG bank separately.
 - 2D PNG packs can be connected to the current content library after their manifests are normalized.
 - GLB/FBX packs remain staged until the corresponding 3D renderer/importer is implemented and tested.
 
