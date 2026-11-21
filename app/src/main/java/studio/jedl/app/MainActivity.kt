@@ -215,6 +215,9 @@ class MainActivity : Activity() {
         content.addView(TextView(this).apply {
             text = "Recursos CC0 integrados e importados. Toca un elemento para incorporarlo a la escena."
         })
+        content.addView(button("＋ Instalar biblioteca completa incluida en el APK") {
+            installBundledLibrary()
+        })
         content.addView(button("＋ Instalar paquete ZIP local") {
             val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                 addCategory(Intent.CATEGORY_OPENABLE)
@@ -298,10 +301,11 @@ class MainActivity : Activity() {
             placed.removeAllViews()
             val now = project
             now?.sceneObjects?.forEachIndexed { index, item ->
-                val asset = contentLibrary.find(item.assetId)
+                val asset = contentLibrary.resolve(item)
                 val row = LinearLayout(this).apply { gravity = Gravity.CENTER_VERTICAL }
                 row.addView(TextView(this).apply {
-                    text = asset?.title ?: item.assetId
+                    text = asset?.title ?: "⚠ Recurso ausente o sustituido · " + item.assetId
+                    setTextColor(if (asset == null) Color.RED else Color.DKGRAY)
                     textSize = 13f
                 }, LinearLayout.LayoutParams(0, -2, 1f))
                 fun adjust(change: (SceneObjectInstance) -> SceneObjectInstance) {
@@ -636,6 +640,29 @@ class MainActivity : Activity() {
         when (requestCode) {
             requestImportPackage -> importAssetPackage(uri)
             requestMotionVideo -> captureMotionFromVideo(uri)
+        }
+    }
+
+    private fun installBundledLibrary() {
+        scope.launch {
+            val temporary = File(cacheDir, "jedl-library-bundle.zip")
+            try {
+                withContext(Dispatchers.IO) {
+                    assets.open("offline_library/jedl-library-bundle.zip").use { input ->
+                        temporary.outputStream().use { output -> input.copyTo(output) }
+                    }
+                    AssetPackageInstaller.install(temporary, filesDir)
+                }
+                val previous = contentLibrary
+                contentLibrary = withContext(Dispatchers.IO) { ContentLibrary.load(applicationContext) }
+                previous.close()
+                studio(Tab.LIBRARY)
+                toast("Biblioteca completa instalada: Kenney, instrumentos, vestuario y comunidad")
+            } catch (failure: Exception) {
+                toast("No se pudo instalar la biblioteca incluida: " + (failure.message ?: "error"))
+            } finally {
+                temporary.delete()
+            }
         }
     }
 

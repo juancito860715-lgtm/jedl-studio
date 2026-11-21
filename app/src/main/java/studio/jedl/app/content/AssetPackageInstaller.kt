@@ -55,7 +55,8 @@ object AssetPackageInstaller {
                 "La evidencia no acredita una licencia CC0 verificable"
             }
             val bankInventory = manifest.optJSONArray("banks")
-            if (bankInventory != null) require(manifest.optInt("bankCount") == bankInventory.length()) {
+                ?: throw IllegalArgumentException("Falta el inventario de bancos del manifiesto raíz")
+            require(manifest.has("bankCount") && manifest.optInt("bankCount", -1) == bankInventory.length()) {
                 "El inventario de bancos no coincide con bankCount"
             }
 
@@ -125,7 +126,12 @@ object AssetPackageInstaller {
                 }
                 File(staging, "JEDL-PACKAGE.json").writeText(manifest.toString(), Charsets.UTF_8)
                 val community = File(staging, COMMUNITY_ARCHIVE)
-                if (community.isFile) extractCommunity(community, File(staging, "community-2d"))
+                val extractedCommunityPacks = if (community.isFile) {
+                    extractCommunity(community, File(staging, "community-2d"))
+                } else 0
+                require(manifest.optInt("communityPackCount", 0) == extractedCommunityPacks) {
+                    "La cantidad de paquetes comunitarios no coincide con el manifiesto raíz"
+                }
                 validateInstalledBanks(staging, bankInventory)
                 val backup = File(stagingRoot, ".$id.previous")
                 deleteRecursively(backup)
@@ -177,8 +183,17 @@ object AssetPackageInstaller {
                 bank.optString("licenseTerms").startsWith("https://creativecommons.org/publicdomain/zero/1.0/")) {
                 "El banco no acredita permisos CC0 y redistribución: " + id
             }
-            require(File(bankRoot, "LICENSE.txt").isFile && File(bankRoot, "SOURCE.json").isFile) {
+            val licenseFile = File(bankRoot, "LICENSE.txt")
+            val sourceFile = File(bankRoot, "SOURCE.json")
+            require(licenseFile.isFile && sourceFile.isFile) {
                 "Falta evidencia de licencia del banco: " + id
+            }
+            val licenseText = licenseFile.readText(Charsets.UTF_8)
+            val sourceEvidence = JSONObject(sourceFile.readText(Charsets.UTF_8))
+            require(licenseText.contains("CC0", ignoreCase = true) &&
+                sourceEvidence.optString("license") == "CC0-1.0" &&
+                sourceEvidence.optString("source") == bank.optString("source")) {
+                "La evidencia documental no coincide con el manifiesto del banco: " + id
             }
             val assets = bank.getJSONArray("assets")
             require(assets.length() > 0 && assets.length() == bank.optInt("assetCount")) {
@@ -207,7 +222,7 @@ object AssetPackageInstaller {
         require(actualCounts == expectedCounts) { "Los bancos instalados no coinciden con el inventario raíz" }
     }
 
-    private fun extractCommunity(archive: File, outputRoot: File) {
+    private fun extractCommunity(archive: File, outputRoot: File): Int {
         ZipFile(archive).use { zip ->
             val manifestEntry = zip.getEntry("JEDL-PACKAGE.json")
                 ?: throw IllegalArgumentException("El subpaquete comunitario no contiene manifiesto")
@@ -235,14 +250,28 @@ object AssetPackageInstaller {
                 "El inventario comunitario no coincide con las entradas ZIP"
             }
             val packs = manifest.getJSONArray("packs")
+            require(packs.length() > 0 && manifest.optInt("packCount", -1) == packs.length()) {
+                "El inventario de paquetes comunitarios no coincide con packCount"
+            }
+            val seenPackIds = HashSet<String>()
             for (i in 0 until packs.length()) {
                 val pack = packs.getJSONObject(i)
+                val packId = pack.optString("pack", "")
                 val licenseStatement = pack.optString("sourceLicenseStatement", "")
                 val sourceUrl = pack.optString("sourceUrl", "")
                 val evidenceFile = safePath(pack.optString("sourceEvidenceFile", ""))
-                require(licenseStatement.contains("CC0", ignoreCase = true) &&
-                    sourceUrl.startsWith("https://") && evidenceFile in declaredPaths) {
-                    "Evidencia CC0 incompleta para el banco comunitario " + pack.optString("pack")
+                require(packId.isNotBlank() && seenPackIds.add(packId) &&
+                    licenseStatement.contains("CC0", ignoreCase = true) &&
+                    sourceUrl.startsWith("https://") && evidenceFile in declaredPaths &&
+                    evidenceFile.endsWith("$packId/SOURCE.md")) {
+                    "Evidencia CC0 incompleta para el banco comunitario " + packId
+                }
+                val sourceEvidence = zip.getInputStream(zip.getEntry(evidenceFile)
+                    ?: error("Falta evidencia de licencia: " + evidenceFile))
+                    .bufferedReader(Charsets.UTF_8).use { it.readText() }
+                require(sourceEvidence.contains("CC0", ignoreCase = true) &&
+                    sourceEvidence.contains(sourceUrl)) {
+                    "La evidencia de origen no confirma CC0 y URL declaradas para " + packId
                 }
             }
             var expanded = 0L
@@ -276,6 +305,7 @@ object AssetPackageInstaller {
                 require(copied == entry.size && hex(digest.digest()) == expectedHash) { "SHA-256 comunitario incorrecto: $path" }
             }
             File(outputRoot, "JEDL-PACKAGE.json").writeText(manifest.toString(), Charsets.UTF_8)
+            return packs.length()
         }
     }
 

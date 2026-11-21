@@ -8,6 +8,13 @@ import zipfile
 
 LICENSE = "CC0-1.0"
 CC0_URL = "https://creativecommons.org/publicdomain/zero/1.0/"
+REQUIRED_BANK_IDS = {
+    "kenney_modular_character_pack",
+    "kenney_tiny_town_objects",
+    "kenney_foliage_objects",
+    "jedl_original_instruments_v1",
+    "jedl_original_clothing_v1",
+}
 
 def safe_path(value: str) -> str:
     p = PurePosixPath(value)
@@ -28,11 +35,20 @@ def verify_community(path: Path) -> int:
         if not packs or not records:
             raise ValueError("Community package has no verified packs or file inventory")
         names = set(archive.namelist())
+        pack_ids = set()
         for pack in packs:
+            pack_id = pack.get("pack", "")
             evidence = safe_path(pack.get("sourceEvidenceFile", ""))
-            if ("CC0" not in pack.get("sourceLicenseStatement", "").upper() or
-                    not pack.get("sourceUrl", "").startswith("https://") or evidence not in names):
+            source_url = pack.get("sourceUrl", "")
+            if (not pack_id or pack_id in pack_ids or
+                    "CC0" not in pack.get("sourceLicenseStatement", "").upper() or
+                    not source_url.startswith("https://") or evidence not in names or
+                    not evidence.endswith(pack_id + "/SOURCE.md")):
                 raise ValueError("Community pack is missing CC0 source evidence")
+            evidence_text = archive.read(evidence).decode("utf-8", errors="replace")
+            if "CC0" not in evidence_text.upper() or source_url not in evidence_text:
+                raise ValueError("Community SOURCE.md does not substantiate its CC0 declaration")
+            pack_ids.add(pack_id)
         seen = set()
         for item in records:
             relative = safe_path(item["path"])
@@ -69,6 +85,11 @@ def verify_banks(source: Path) -> list:
             raise ValueError("Bank license or redistribution contract is incomplete: " + bank_id)
         if not (bank_root / "LICENSE.txt").is_file() or not (bank_root / "SOURCE.json").is_file():
             raise ValueError("Bank license evidence files are missing: " + bank_id)
+        license_text = (bank_root / "LICENSE.txt").read_text(encoding="utf-8", errors="replace")
+        source_evidence = json.loads((bank_root / "SOURCE.json").read_text(encoding="utf-8"))
+        if ("CC0" not in license_text.upper() or source_evidence.get("license") != LICENSE or
+                source_evidence.get("source") != manifest.get("source")):
+            raise ValueError("Bank evidence files do not match the CC0 manifest: " + bank_id)
         assets = manifest.get("assets", [])
         if not assets or len(assets) != manifest.get("assetCount"):
             raise ValueError("Bank asset count does not match manifest: " + bank_id)
@@ -87,6 +108,9 @@ def verify_banks(source: Path) -> list:
             "assetCount": len(assets),
             "source": manifest["source"],
         })
+    missing = REQUIRED_BANK_IDS - seen_ids
+    if missing:
+        raise ValueError("Offline package is missing required scene banks: " + ", ".join(sorted(missing)))
     return result
 
 def build(source: Path, output: Path, package_version: str = "1.0.0") -> dict:

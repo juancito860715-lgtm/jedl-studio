@@ -211,7 +211,7 @@ class ContentLibrary private constructor(
                         if (assets.isEmpty()) null else ContentBank(bankId,
                             packId.replace('-', ' ').replaceFirstChar { it.uppercase() },
                             "CC0-1.0", pack.optString("sourceUrl"),
-                            ContentKind.OBJECT, assets, packageVersion, installed = true)
+                            kind, assets, packageVersion, installed = true)
                     }
                 } else emptyList()
                 communityBanks + loadInstalledManifestBanks(packageDir, packageVersion)
@@ -234,6 +234,8 @@ class ContentLibrary private constructor(
                     val bankId = manifest.optString("id")
                     if (bankId.isBlank()) return@mapNotNull null
                     val bankRoot = manifestFile.parentFile ?: return@mapNotNull null
+                    val kind = if (bankRoot.parentFile?.name == "characters" ||
+                        manifest.optString("kind") == "character-part") ContentKind.CHARACTER_PART else ContentKind.OBJECT
                     if (!manifest.optString("source").startsWith("https://") ||
                         !manifest.optString("licenseTerms").startsWith("https://creativecommons.org/publicdomain/zero/1.0/") ||
                         !File(bankRoot, "LICENSE.txt").isFile || !File(bankRoot, "SOURCE.json").isFile) {
@@ -256,7 +258,7 @@ class ContentLibrary private constructor(
                         val category = item.optString("category", sourceFile.split('/').getOrNull(1) ?: sourceFile.substringBefore('/'))
                         ContentAsset(bankId + ":" + item.getString("id"),
                             item.optString("title", file.nameWithoutExtension.replace('_', ' ')),
-                            category, ContentKind.OBJECT, bankId, file.absolutePath,
+                            category, kind, bankId, file.absolutePath,
                             options.outWidth, options.outHeight, digest, packageVersion, installed = true)
                     }
                     if (assets.isEmpty()) null else ContentBank(bankId,

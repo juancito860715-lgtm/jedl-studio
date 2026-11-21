@@ -7,27 +7,39 @@ import zipfile
 
 from build_offline_bundle import build
 
-def make_bank(root):
-    bank=root/"banks"/"instruments"/"test-instruments"
-    (bank/"png"/"Instruments").mkdir(parents=True)
-    raw=b"test-png-bytes"
-    (bank/"png"/"Instruments"/"timbales.png").write_bytes(raw)
+REQUIRED_BANKS = [
+    ("kenney_modular_character_pack", "characters", "Kenney Modular Character Pack"),
+    ("kenney_tiny_town_objects", "objects", "Kenney Tiny Town"),
+    ("kenney_foliage_objects", "objects", "Kenney Foliage Pack"),
+    ("jedl_original_instruments_v1", "instruments", "Instrumentos JEDL originales"),
+    ("jedl_original_clothing_v1", "clothing", "Vestuario JEDL original"),
+]
+
+def make_bank(root, bank_id, group, title):
+    bank=root/"banks"/group/bank_id
+    (bank/"png"/"General").mkdir(parents=True)
+    raw=("png:"+bank_id).encode()
+    (bank/"png"/"General"/"asset.png").write_bytes(raw)
     source="https://github.com/juancito860715-lgtm/jedl-studio"
     manifest={
-        "schemaVersion":1,"id":"test-instruments","title":"Test instruments",
-        "source":source,"license":"CC0-1.0",
+        "schemaVersion":1,"id":bank_id,"title":title,"source":source,
+        "license":"CC0-1.0",
         "licenseTerms":"https://creativecommons.org/publicdomain/zero/1.0/",
         "commercialUse":True,"modificationAllowed":True,"apkRedistributionAllowed":True,
-        "assetCount":1,"assets":[{"id":"timbales","file":"png/Instruments/timbales.png",
-        "sourceFile":"PNG/Instruments/timbales.png","category":"Instruments",
+        "assetCount":1,"assets":[{"id":"asset","file":"png/General/asset.png",
+        "sourceFile":"PNG/General/asset.png","category":"General",
         "width":128,"height":128,"sha256":hashlib.sha256(raw).hexdigest()}]
     }
     (bank/"manifest.json").write_text(json.dumps(manifest),encoding="utf-8")
     (bank/"LICENSE.txt").write_text("CC0-1.0",encoding="utf-8")
     (bank/"SOURCE.json").write_text(json.dumps({"source":source,"license":"CC0-1.0"}),encoding="utf-8")
 
-def make_community(path):
-    evidence=b"License: CC0-1.0\nSource: https://example.org/source\n"
+def make_all_banks(root):
+    for bank_id, group, title in REQUIRED_BANKS:
+        make_bank(root, bank_id, group, title)
+
+def make_community(path, evidence=None):
+    evidence=evidence or b"License: CC0-1.0\nSource: https://example.org/source\n"
     with zipfile.ZipFile(path,"w") as archive:
         archive.writestr("pack/SOURCE.md",evidence)
         manifest={
@@ -40,22 +52,21 @@ def make_community(path):
         archive.writestr("JEDL-PACKAGE.json",json.dumps(manifest))
 
 class OfflineBundleTests(unittest.TestCase):
-    def test_builds_root_manifest_with_every_payload_hash_and_bank_license(self):
+    def test_builds_root_manifest_with_all_kenney_and_jedl_bank_hashes(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp)/"source"; root.mkdir()
-            make_bank(root)
+            make_all_banks(root)
             make_community(root/"community-2d.zip")
             out=Path(temp)/"bundle.zip"
             manifest=build(root,out)
             self.assertEqual("jedl-offline-library",manifest["id"])
-            self.assertEqual(1,manifest["bankCount"])
-            self.assertEqual("test-instruments",manifest["banks"][0]["id"])
-            self.assertNotIn("kenneyPackCount",manifest)
-            self.assertFalse(any(x["path"].startswith("kenney/") for x in manifest["files"]))
+            self.assertEqual(5,manifest["bankCount"])
+            self.assertEqual({x[0] for x in REQUIRED_BANKS},{x["id"] for x in manifest["banks"]})
+            self.assertEqual(1,manifest["communityPackCount"])
             with zipfile.ZipFile(out) as archive:
                 self.assertIsNone(archive.testzip())
                 root_manifest=json.loads(archive.read("JEDL-PACKAGE.json"))
-                self.assertEqual(1,root_manifest["bankCount"])
+                self.assertEqual(5,root_manifest["bankCount"])
                 for item in root_manifest["files"]:
                     data=archive.read(item["path"])
                     self.assertEqual(item["bytes"],len(data))
@@ -67,9 +78,25 @@ class OfflineBundleTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 build(root,root/"out.zip")
 
+    def test_rejects_community_metadata_that_disagrees_with_source_evidence(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp); make_all_banks(root)
+            make_community(root/"community-2d.zip", b"License: CC-BY-NC\nSource: https://example.org/source\n")
+            with self.assertRaises(ValueError):
+                build(root,root/"out.zip")
+
+    def test_rejects_package_missing_kenney_scene_banks(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp)
+            make_bank(root,"jedl_original_instruments_v1","instruments","Instruments")
+            make_bank(root,"jedl_original_clothing_v1","clothing","Clothing")
+            make_community(root/"community-2d.zip")
+            with self.assertRaises(ValueError):
+                build(root,root/"out.zip")
+
     def test_rejects_raw_source_archive_directory(self):
         with tempfile.TemporaryDirectory() as temp:
-            root=Path(temp); make_bank(root); make_community(root/"community-2d.zip")
+            root=Path(temp); make_all_banks(root); make_community(root/"community-2d.zip")
             (root/"kenney").mkdir()
             (root/"kenney"/"unreviewed.zip").write_bytes(b"not included")
             with self.assertRaises(ValueError):

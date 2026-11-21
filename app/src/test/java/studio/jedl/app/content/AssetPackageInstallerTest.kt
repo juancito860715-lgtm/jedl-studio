@@ -19,6 +19,7 @@ class AssetPackageInstallerTest {
             .put("packageVersion", "1.0.0").put("license", license)
             .put("commercialUse", true).put("modificationAllowed", true).put("redistributionAllowed", true)
             .put("licenseEvidence", JSONArray().put("https://creativecommons.org/publicdomain/zero/1.0/"))
+            .put("bankCount", 0).put("banks", JSONArray())
             .put("files", JSONArray().put(JSONObject().put("path", path).put("bytes", payload.size)
                 .put("sha256", sha(payload))))
         val file = File(root, "test.zip")
@@ -96,10 +97,10 @@ class AssetPackageInstallerTest {
     @Test fun installedAssetAndSceneReferenceSurviveSaveCloseAndReopen() {
         val temp = createTempDir()
         try {
-            val installed = AssetPackageInstaller.install(packageZip(temp), temp)
-            val assetFile = File(installed.directory, "asset.png")
+            val installed = AssetPackageInstaller.install(packageWithBank(temp), temp)
+            val assetFile = File(installed.directory, "banks/test-instruments/png/Instruments/timbales.png")
             val reference = studio.jedl.app.SceneObjectInstance(
-                "test-library:asset", 0.1f, 0.2f, bankId = installed.id,
+                "test-instruments:timbales", 0.1f, 0.2f, bankId = "test-instruments",
                 assetSha256 = sha(assetFile.readBytes()), packageVersion = installed.version
             )
             val project = studio.jedl.app.StudioProject(
@@ -111,8 +112,9 @@ class AssetPackageInstallerTest {
             assertEquals(project, restored)
             assertTrue(assetFile.isFile)
             assertTrue(AssetReferenceValidator.matches(restored.sceneObjects.single(),
-                ContentAsset("test-library:asset", "Asset", "General", ContentKind.OBJECT,
-                    installed.id, assetFile.absolutePath, 1, 1, sha(assetFile.readBytes()), installed.version, true)))
+                ContentAsset("test-instruments:timbales", "Timbales", "Instruments", ContentKind.OBJECT,
+                    "test-instruments", assetFile.absolutePath, 128, 128,
+                    sha(assetFile.readBytes()), installed.version, true)))
         } finally { temp.deleteRecursively() }
     }
 
