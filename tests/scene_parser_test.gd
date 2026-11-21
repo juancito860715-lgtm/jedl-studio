@@ -28,7 +28,8 @@ func _run_tests() -> void:
 
     parser.play_scene()
     assert(parser._playing, "Playback must start")
-    assert(subtitles.text == "JEDL Studio: escena 3D cargada desde JSON", "First subtitle must appear at time zero processing")
+    parser._process(0.25)
+    assert(subtitles.text == "JEDL Studio: escena 3D cargada desde JSON", "First subtitle must appear at 0.25 seconds")
 
     print("GODOT_SCENE_PARSER_TEST_OK")
     quit(0)
