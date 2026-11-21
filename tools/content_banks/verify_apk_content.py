@@ -48,8 +48,16 @@ def verify():
                 raise AssertionError("Unexpected offline library package ID")
             if package_manifest.get("license") != "CC0-1.0" or not package_manifest.get("redistributionAllowed"):
                 raise AssertionError("Offline package license/redistribution contract invalid")
-            expected_banks = {"jedl_original_instruments_v1", "jedl_original_clothing_v1"}
-            if package_manifest.get("bankCount") != 2 or {item.get("id") for item in package_manifest.get("banks", [])} != expected_banks:
+            expected_banks = {
+                "kenney_modular_character_pack",
+                "kenney_tiny_town_objects",
+                "kenney_foliage_objects",
+                "jedl_original_instruments_v1",
+                "jedl_original_clothing_v1",
+            }
+            if package_manifest.get("bankCount") != len(expected_banks) or {
+                    item.get("id") for item in package_manifest.get("banks", [])
+            } != expected_banks:
                 raise AssertionError("Offline package bank inventory is incomplete")
             if any(item["path"].startswith("kenney/") for item in package_manifest.get("files", [])):
                 raise AssertionError("Unneeded raw source archives found in installable package")
@@ -57,6 +65,29 @@ def verify():
                 raw = bundle.read(item["path"])
                 if len(raw) != item["bytes"] or hashlib.sha256(raw).hexdigest() != item["sha256"]:
                     raise AssertionError("Offline package SHA-256 mismatch: " + item["path"])
+
+            community_bytes = bundle.read("community-2d.zip")
+            with zipfile.ZipFile(BytesIO(community_bytes)) as community:
+                if community.testzip() is not None:
+                    raise AssertionError("Community package ZIP CRC failure")
+                community_manifest = json.loads(community.read("JEDL-PACKAGE.json"))
+                packs = community_manifest.get("packs", [])
+                if (community_manifest.get("license") != "CC0-1.0" or not packs or
+                        len(packs) != package_manifest.get("communityPackCount") or
+                        community_manifest.get("packCount") != len(packs)):
+                    raise AssertionError("Community package count/license does not match root manifest")
+                for pack in packs:
+                    evidence_path = pack.get("sourceEvidenceFile", "")
+                    source_url = pack.get("sourceUrl", "")
+                    evidence = community.read(evidence_path).decode("utf-8", errors="replace")
+                    if ("CC0" not in pack.get("sourceLicenseStatement", "").upper() or
+                            "CC0" not in evidence.upper() or not source_url.startswith("https://") or
+                            source_url not in evidence):
+                        raise AssertionError("Community source evidence mismatch: " + pack.get("pack", ""))
+                for item in community_manifest.get("files", []):
+                    raw = community.read(item["path"])
+                    if len(raw) != item["bytes"] or hashlib.sha256(raw).hexdigest() != item["sha256"]:
+                        raise AssertionError("Community SHA-256 mismatch: " + item["path"])
         print("APK_OFFLINE_PACKAGE_OK files=", len(package_manifest["files"]),
               "sha256=", hashlib.sha256(bundle_bytes).hexdigest())
         print("APK_MEDIAPIPE_LITE_OK sha256=", model_sha)
