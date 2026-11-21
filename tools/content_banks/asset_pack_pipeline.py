@@ -97,6 +97,8 @@ KENNEY_PACKS = {
 }
 
 SAFE_COMMUNITY_CATEGORIES = ("modern-urban", "nature")
+# Keep the offline library focused on neutral creative assets.
+EXCLUDED_COMMUNITY_PACKS = {"top-down-shooter", "oga-dirty-railshooter"}
 
 
 class AssetPackError(ValueError):
@@ -317,6 +319,9 @@ def package_community_assets(source_root: Path, output_zip: Path) -> dict:
             if not category_root.is_dir():
                 raise AssetPackError(f"Required source category is missing: {category}")
             for pack_root in sorted(path for path in category_root.iterdir() if path.is_dir()):
+                if pack_root.name in EXCLUDED_COMMUNITY_PACKS:
+                    print(f"COMMUNITY_PACK_EXCLUDED name={pack_root.name} reason=non-neutral-theme")
+                    continue
                 source_file = pack_root / "SOURCE.md"
                 if not source_file.is_file():
                     raise AssetPackError(f"Missing per-pack source/license evidence: {source_file}")
@@ -342,6 +347,25 @@ def package_community_assets(source_root: Path, output_zip: Path) -> dict:
                     })
         if not file_records or not pack_count:
             raise AssetPackError("No CC0 community packs were found")
+        pack_evidence = []
+        for category in SAFE_COMMUNITY_CATEGORIES:
+            category_root = source_root / category
+            for pack_root in sorted(path for path in category_root.iterdir() if path.is_dir()):
+                if pack_root.name in EXCLUDED_COMMUNITY_PACKS:
+                    continue
+                source_file = pack_root / "SOURCE.md"
+                source_text = source_file.read_text(encoding="utf-8", errors="replace")
+                source_match = re.search(r"\*\*Source:\*\*\s*\[[^]]+\]\((https?://[^)]+)\)", source_text)
+                license_match = re.search(r"\*\*License:\*\*\s*([^\r\n]+)", source_text)
+                separate_license = any(p.is_file() and p.name.lower().startswith("license") for p in pack_root.iterdir())
+                pack_evidence.append({
+                    "pack": pack_root.name,
+                    "category": category,
+                    "sourceUrl": source_match.group(1) if source_match else None,
+                    "sourceLicenseStatement": license_match.group(1).strip() if license_match else None,
+                    "separateLicenseFilePresent": separate_license,
+                    "sourceEvidenceFile": f"{category}/{pack_root.name}/SOURCE.md",
+                })
         index = {
             "schemaVersion": 1,
             "publisher": "Tiddybub/2d-assets",
@@ -351,6 +375,7 @@ def package_community_assets(source_root: Path, output_zip: Path) -> dict:
             "licenseEvidence": "Each included pack retains its original SOURCE.md",
             "packCount": pack_count,
             "fileCount": len(file_records),
+            "packs": pack_evidence,
             "files": file_records,
         }
         archive.writestr(

@@ -12,6 +12,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   build-test:
+    needs: mediapipe-standalone
     runs-on: ubuntu-22.04
     timeout-minutes: 40
     steps:
@@ -19,8 +20,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Download verified offline MediaPipe Lite model
+        uses: actions/download-artifact@v4
+        with:
+          name: jedl-mediapipe-lite-model
+          path: build/mediapipe-model
       - name: Install avatar generator dependencies
-        run: python -m pip install --upgrade pip numpy matplotlib pillow
+        run: |
+          python -m pip install --upgrade pip numpy matplotlib pillow
+          mkdir -p app/src/main/assets/models
+          cp build/mediapipe-model/pose_landmarker_lite.task app/src/main/assets/models/pose_landmarker_lite.task
+          echo "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a  app/src/main/assets/models/pose_landmarker_lite.task" | sha256sum -c -
       - name: Generate and test the 42-piece avatar bank
         run: |
           python -m unittest discover -s tools/avatar_bank -p "test_*.py" -v
@@ -61,6 +71,9 @@ jobs:
           python tools/content_banks/asset_pack_pipeline.py download-kenney --out build/asset-library/kenney
           python tools/content_banks/asset_pack_pipeline.py package-community --source build/upstream/2d-assets --out build/asset-library/community-2d.zip
           git -C build/upstream/2d-assets rev-parse HEAD > build/asset-library/community-2d-source-commit.txt
+          mkdir -p app/src/main/assets/offline_library
+          (cd build/asset-library && zip -0 -q -r "$GITHUB_WORKSPACE/app/src/main/assets/offline_library/jedl-library-bundle.zip" .)
+          test -s app/src/main/assets/offline_library/jedl-library-bundle.zip
       - name: Upload original Kenney archive for anatomy review
         uses: actions/upload-artifact@v4
         with:
@@ -213,6 +226,29 @@ jobs:
                   print(f"VERIFIED {name} sha256={actual}")
           print(f"APK_SIZE_BYTES={apk.stat().st_size}")
           PY
+
+      - name: Extract verified Lite model for JEDL app
+        working-directory: mediapipe-samples/examples/pose_landmarker/android
+        run: |
+          python3 - <<'PY'
+          import zipfile, hashlib
+          apk = "app/build/outputs/apk/debug/app-debug.apk"
+          expected = "59929e1d1ee95287735ddd833b19cf4ac46d29bc7afddbbf6753c459690d574a"
+          with zipfile.ZipFile(apk) as z:
+              data = z.read("assets/pose_landmarker_lite.task")
+          actual = hashlib.sha256(data).hexdigest()
+          assert actual == expected, (actual, expected)
+          import pathlib
+          out = pathlib.Path("../../../../build/mediapipe-model")
+          out.mkdir(parents=True, exist_ok=True)
+          (out / "pose_landmarker_lite.task").write_bytes(data)
+          PY
+      - name: Upload verified Lite model for JEDL
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-mediapipe-lite-model
+          path: build/mediapipe-model/pose_landmarker_lite.task
+          if-no-files-found: error
 
       - name: Upload standalone APK and provenance
         uses: actions/upload-artifact@v4

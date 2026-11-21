@@ -9,6 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from asset_pack_pipeline import (
     KENNEY_PACKS,
     SAFE_COMMUNITY_CATEGORIES,
+    EXCLUDED_COMMUNITY_PACKS,
     AssetPackError,
     safe_archive_member,
     validate_cc0_source,
@@ -28,6 +29,7 @@ class AssetPackPipelineTests(unittest.TestCase):
 
     def test_only_reviewed_community_categories_are_included(self):
         self.assertEqual(SAFE_COMMUNITY_CATEGORIES, ("modern-urban", "nature"))
+        self.assertEqual(len(EXCLUDED_COMMUNITY_PACKS), 2)
 
     def test_cc0_source_evidence_is_required(self):
         self.assertTrue(validate_cc0_source("License: CC0 1.0 Universal"))
@@ -56,6 +58,8 @@ class AssetPackPipelineTests(unittest.TestCase):
                 (folder / "asset.txt").write_text("licensed content", encoding="utf-8")
             result = package_community_assets(source, output)
             self.assertEqual(result["packCount"], 2)
+            self.assertEqual(len(result["packs"]), 2)
+            self.assertTrue(all(p["sourceLicenseStatement"] for p in result["packs"]))
             with zipfile.ZipFile(output) as archive:
                 names = set(archive.namelist())
                 self.assertIn("nature/trees/SOURCE.md", names)

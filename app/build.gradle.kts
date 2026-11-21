@@ -35,6 +35,7 @@ kotlin {
 
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
+    implementation("com.google.mediapipe:tasks-vision:0.10.35")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.json:json:20240303")
 }

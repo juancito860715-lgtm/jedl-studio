@@ -61,3 +61,20 @@ GitHub Actions checks out only the `modern-urban` and `nature` directories from 
 - `integrated-in-editor`: only after the app imports it, lists it, loads it, and passes runtime tests on the target device.
 
 A successful APK build alone does not promote a staged pack to editor-integrated status.
+
+
+## Bundled offline library and MediaPipe
+
+The Android build now bundles the generated library bundle at
+`assets/offline_library/jedl-library-bundle.zip`. This is a one-time offline
+payload; the app installer must unpack selected packs into app-private storage.
+The build also bundles the verified Pose Landmarker Lite model at
+`assets/models/pose_landmarker_lite.task` and includes the MediaPipe Tasks
+Vision Android runtime. Full and Heavy models remain separate CI artifacts to
+avoid adding unnecessary weight to the Redmi-targeted APK.
+
+Community intake records each pack's original source URL, the CC0 statement
+from its upstream SOURCE.md, and whether a separate license file exists.
+Packs with a non-neutral theme are excluded from the bundled library. A missing
+standalone license file remains a review flag, not a claim that the original
+license text was preserved.
