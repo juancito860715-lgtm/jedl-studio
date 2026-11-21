@@ -169,6 +169,19 @@ def build_3d(api_assets: dict) -> list[dict]:
 def main() -> None:
     api_assets = get_json("https://api.polyhaven.com/assets")
     entries = build_2d(api_assets) + build_3d(api_assets)
+    fox_path = ROOT / "assets/characters/Fox.glb"
+    if not fox_path.is_file():
+        raise FileNotFoundError("The Khronos Fox GLB test character was not downloaded")
+    entries.append({
+        "id": "character.fox.khronos.v1", "title": "Zorro animado · Walk / Run",
+        "description": "Personaje 3D riggeado de muestra con animaciones Walk, Run y Survey",
+        "path": "res://" + fox_path.relative_to(ROOT).as_posix(),
+        "kind": "3d", "category": "Personajes animados",
+        "format": "GLB", "license": "CC0-1.0 + CC-BY-4.0",
+        "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Fox",
+        "publisher": "Khronos glTF Sample Assets",
+        "offline": True, "placeable": True,
+    })
     catalog = {
         "schemaVersion": 2,
         "catalogId": "jedl_offline_realistic_assets_v1",
@@ -177,10 +190,10 @@ def main() -> None:
         "assets": entries,
     }
     CATALOG.parent.mkdir(parents=True, exist_ok=True)
-    CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+    CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     count_2d = sum(item["kind"] == "2d" for item in entries)
     count_3d = sum(item["kind"] == "3d" for item in entries)
-    assert count_2d == len(HDRIS) and count_3d == len(MODELS)
+    assert count_2d == len(HDRIS) and count_3d == len(MODELS) + 1
     print(f"POLYHAVEN_BANK_OK: photoreal_2d={count_2d} realistic_3d={count_3d} license=CC0-1.0")
     print(f"CATALOG_SHA256={sha256(CATALOG)}")
 
