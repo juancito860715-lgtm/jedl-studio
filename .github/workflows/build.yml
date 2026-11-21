@@ -42,6 +42,10 @@ jobs:
           python tools/content_banks/build_character_presets.py
           test "$(find app/src/main/assets/styles/default/characters -name "*.png" -type f | wc -l)" -eq 42
           test "$(find app/src/main/assets/styles/boceto/characters -name "*.png" -type f | wc -l)" -eq 42
+      - name: Generate original CC0 instrument graphics
+        run: |
+          python -m unittest discover -s tools/content_banks -p "test_instrument_bank.py" -v
+          python tools/content_banks/generate_instrument_bank.py
       - name: Download and package the CC0 Kenney character source bank
         run: |
           python tools/process_kenney.py --download
@@ -71,6 +75,8 @@ jobs:
           python tools/content_banks/asset_pack_pipeline.py download-kenney --out build/asset-library/kenney
           python tools/content_banks/asset_pack_pipeline.py package-community --source build/upstream/2d-assets --out build/asset-library/community-2d.zip
           git -C build/upstream/2d-assets rev-parse HEAD > build/asset-library/community-2d-source-commit.txt
+          mkdir -p build/asset-library/instruments
+          cp -R app/src/main/assets/content/instruments/jedl_original_instruments_v1 build/asset-library/instruments/
           mkdir -p app/src/main/assets/offline_library
           python -m unittest discover -s tools/content_banks -p "test_build_offline_bundle.py" -v
           python tools/content_banks/build_offline_bundle.py --source build/asset-library --out app/src/main/assets/offline_library/jedl-library-bundle.zip
@@ -108,6 +114,7 @@ jobs:
               "characters/kenney_modular_character_pack": 400,
               "kenney_tiny_town_objects": 50,
               "kenney_foliage_objects": 50,
+              "instruments/jedl_original_instruments_v1": 11,
               }
           for relative, minimum in expected.items():
               folder = root / relative

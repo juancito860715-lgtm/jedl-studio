@@ -11,6 +11,7 @@ BANKS = [
     "characters/kenney_modular_character_pack",
     "kenney_tiny_town_objects",
     "kenney_foliage_objects",
+    "instruments/jedl_original_instruments_v1",
 ]
 
 def verify():
