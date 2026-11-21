@@ -92,6 +92,28 @@ jobs:
                   for asset in manifest["assets"]:
                       assert (manifest_path.parent / asset["file"]).is_file()
           print("GALLERY_2D_BANKS_OK: 42 original rig pieces plus CC0 object/foliage assets")
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("assets/gallery/2d")
+          entries = []
+          for path in sorted((root / "characters/jedl_master_v1/png").rglob("*.png")):
+              entries.append({"id": "character:" + path.stem, "title": path.stem.replace("_", " ").title(), "path": "res://" + path.as_posix(), "kind": "2d", "category": "Personaje"})
+          for manifest_path in sorted((root / "objects").rglob("manifest.json")):
+              manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+              for asset in manifest["assets"]:
+                  path = manifest_path.parent / asset["file"]
+                  entries.append({"id": manifest["id"] + ":" + asset["id"], "title": path.stem.replace("_", " ").title(), "path": "res://" + path.as_posix(), "kind": "2d", "category": asset.get("category", manifest["title"])})
+          fox = Path("assets/characters/Fox.glb")
+          entries.append({"id": "model:fox", "title": "Fox - Walk", "path": "res://" + fox.as_posix(), "kind": "3d", "category": "Personajes animados"})
+          output = Path("assets/gallery/catalog.json")
+          output.parent.mkdir(parents=True, exist_ok=True)
+          output.write_text(json.dumps({"schemaVersion": 1, "assets": entries}, indent=2) + "\\n", encoding="utf-8")
+          count2d = sum(item["kind"] == "2d" for item in entries)
+          count3d = sum(item["kind"] == "3d" for item in entries)
+          assert count2d >= 222 and count3d >= 1, (count2d, count3d)
+          print("PACKAGED_CATALOG_OK: 2D=%d 3D=%d" % (count2d, count3d))
+          PY
           PY
       - name: Import project resources before tests
         run: |
