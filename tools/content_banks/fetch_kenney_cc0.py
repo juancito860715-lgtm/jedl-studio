@@ -11,8 +11,10 @@ import io
 import json
 import re
 import stat
+import urllib.error
 import urllib.parse
 import urllib.request
+import time
 import zipfile
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
@@ -24,6 +26,8 @@ PACKS = {
 }
 CC0_TERMS = "https://creativecommons.org/publicdomain/zero/1.0/"
 USER_AGENT = "JEDL-Studio-CC0-Asset-Importer/1.0"
+RETRYABLE_HTTP_CODES = {429, 500, 502, 503, 504}
+MAX_REQUEST_ATTEMPTS = 5
 
 
 class DownloadLinkParser(HTMLParser):
@@ -41,9 +45,26 @@ class DownloadLinkParser(HTMLParser):
 
 
 def _request(url):
+    """Fetch a URL with bounded retries for transient upstream/network failures."""
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=60) as response:
-        return response.geturl(), response.read()
+    for attempt in range(MAX_REQUEST_ATTEMPTS):
+        try:
+            with urllib.request.urlopen(request, timeout=60) as response:
+                return response.geturl(), response.read()
+        except urllib.error.HTTPError as error:
+            if error.code not in RETRYABLE_HTTP_CODES or attempt == MAX_REQUEST_ATTEMPTS - 1:
+                raise
+            retry_after = error.headers.get("Retry-After") if error.headers else None
+            try:
+                delay = min(30.0, max(0.0, float(retry_after))) if retry_after else 2 ** attempt
+            except ValueError:
+                delay = 2 ** attempt
+            time.sleep(delay)
+        except urllib.error.URLError:
+            if attempt == MAX_REQUEST_ATTEMPTS - 1:
+                raise
+            time.sleep(2 ** attempt)
+    raise RuntimeError(f"Download retry loop exhausted unexpectedly: {url}")
 
 
 def _safe_member(name):
