@@ -110,7 +110,7 @@ func add_catalog_asset(resource_path: String) -> bool:
         return false
 
     var placement_index := active_instances.size()
-    instance.position = Vector3(float((placement_index % 3) - 1) * 1.6, 0.0, 0.0)
+    instance.position = Vector3(float(placement_index) * 1.6, 0.0, 0.0)
     world_root.add_child(instance)
     active_instances.append(instance)
     return true
