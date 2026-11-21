@@ -10,6 +10,8 @@ var audio_player: AudioStreamPlayer
 
 
 func _ready() -> void:
+    # Solicita orientación automática vertical y horizontal al iniciar.
+    DisplayServer.screen_set_orientation(DisplayServer.SCREEN_SENSOR)
     world_root = get_node_or_null("World") as Node3D
     if world_root == null:
         world_root = self
