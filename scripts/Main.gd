@@ -191,7 +191,7 @@ func _show_gallery(kind: String) -> void:
     for child in gallery_list.get_children():
         child.queue_free()
     var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind)
-    gallery_title.text = ("Galería 2D · %d recursos" % entries.size()) if kind == "2d" else ("Galería 3D · %d modelos" % entries.size())
+    gallery_title.text = (("Galería 2D · %d fondos fotográficos" % entries.size()) if kind == "2d" else ("Galería 3D · %d modelos" % entries.size())) + " · Poly Haven / CC0"
     if entries.is_empty():
         var empty_label := Label.new()
         empty_label.text = "No se encontraron recursos empaquetados."
