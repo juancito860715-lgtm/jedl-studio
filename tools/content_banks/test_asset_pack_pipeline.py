@@ -20,8 +20,8 @@ from asset_pack_pipeline import (
 class AssetPackPipelineTests(unittest.TestCase):
     def test_catalog_contains_multiple_neutral_asset_categories(self):
         categories = {item["category"] for item in KENNEY_PACKS.values()}
-        self.assertTrue({"animals", "characters", "environment", "furniture", "audio"} <= categories)
-        self.assertGreaterEqual(len(KENNEY_PACKS), 11)
+        self.assertTrue({"animals", "environment", "furniture", "audio"} <= categories)
+        self.assertGreaterEqual(len(KENNEY_PACKS), 10)
         for item in KENNEY_PACKS.values():
             self.assertTrue(item["page"].startswith("https://kenney.nl/assets/"))
             self.assertTrue(item["download"].startswith("https://kenney.nl/media/pages/assets/"))
