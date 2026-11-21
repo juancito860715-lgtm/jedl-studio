@@ -38,10 +38,10 @@ KENNEY_PACKS = {
         "category": "animals", "dimension": "2d", "expected_files": 240,
         "page": "https://kenney.nl/assets/animal-pack-remastered",
     },
-    "foliage-pack": {
-        "id": "kenney-foliage-pack", "title": "Foliage Pack",
-        "category": "environment", "dimension": "2d", "expected_files": 100,
-        "page": "https://kenney.nl/assets/foliage-pack",
+    "fish-pack": {
+        "id": "kenney-fish-pack", "title": "Fish Pack",
+        "category": "animals", "dimension": "2d", "expected_files": 1,
+        "page": "https://kenney.nl/assets/fish-pack",
     },
     "furniture-kit": {
         "id": "kenney-furniture-kit", "title": "Furniture Kit",
