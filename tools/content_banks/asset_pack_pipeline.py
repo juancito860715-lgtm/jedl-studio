@@ -355,8 +355,8 @@ def package_community_assets(source_root: Path, output_zip: Path) -> dict:
                     continue
                 source_file = pack_root / "SOURCE.md"
                 source_text = source_file.read_text(encoding="utf-8", errors="replace")
-                source_match = re.search(r"\*\*Source:\*\*\s*\[[^]]+\]\((https?://[^)]+)\)", source_text)
-                license_match = re.search(r"\*\*License:\*\*\s*([^\r\n]+)", source_text)
+                source_match = re.search(r"\*{0,2}Source:\*{0,2}\s*\[[^]]+\]\((https?://[^)]+)\)", source_text, re.IGNORECASE)
+                license_match = re.search(r"\*{0,2}License:\*{0,2}\s*([^\r\n]+)", source_text, re.IGNORECASE)
                 separate_license = any(p.is_file() and p.name.lower().startswith("license") for p in pack_root.iterdir())
                 pack_evidence.append({
                     "pack": pack_root.name,
