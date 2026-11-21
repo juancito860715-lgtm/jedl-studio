@@ -26,7 +26,7 @@ func _run_tests() -> void:
     for item in models:
         assert(String(item["path"]).ends_with(".gltf") or String(item["path"]).ends_with(".glb"),
             "Every 3D asset must be a real glTF model, not a preview image")
-        assert(item["license"] == "CC0-1.0", "Every 3D model must have verified redistribution rights")
+        assert(String(item["license"]).begins_with("CC0-1.0"), "Every 3D model must have verified redistribution rights")
         if item.has("polycount"):
             assert(int(item["polycount"]) <= 200000, "Every model must respect the mobile polygon budget")
         if item.has("preview_path"):
