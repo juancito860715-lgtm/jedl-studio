@@ -76,6 +76,7 @@ jobs:
         run: |
           set -euo pipefail
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/scene_parser_test.gd
+          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/camera_framing_test.gd
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/scene_parser_smoke.gd
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --quit-after 5
       - name: Prepare Android debug signing key
