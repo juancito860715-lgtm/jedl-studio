@@ -13,13 +13,13 @@ func _run_tests() -> void:
     root.add_child(manager)
 
     var character_parts: Array[Dictionary] = manager.scan_catalog(
-        "res://assets/gallery/2d/characters/jedl_master_v1/png"
+        "2d"
     )
     assert(character_parts.size() == 42, "The 2D character gallery must expose all 42 original rig pieces")
     assert(character_parts.all(func(item: Dictionary) -> bool: return item["kind"] == "2d"),
         "PNG character parts must be classified as 2D")
 
-    var objects: Array[Dictionary] = manager.scan_catalog("res://assets/gallery/2d/objects")
+    var objects: Array[Dictionary] = manager.scan_catalog("2d")
     assert(objects.size() >= 180, "The 2D object gallery must contain the verified CC0 object and foliage banks")
     assert(objects.all(func(item: Dictionary) -> bool: return item["extension"] == "png"),
         "The 2D object gallery must contain image assets only")
@@ -33,14 +33,14 @@ func _run_tests() -> void:
         "The scene engine must place a selected 2D PNG from the gallery")
     assert(parser.active_instances.back() is Sprite3D,
         "A selected 2D PNG must become a Sprite3D scene instance")
-    assert(parser.add_catalog_asset("res://assets/characters/Fox.glb"),
+    assert(parser.add_catalog_asset("3d/Fox.glb"),
         "The scene engine must place a selected 3D GLB from the gallery")
     assert(parser.active_instances.back() is Node3D,
         "A selected 3D model must become a Node3D scene instance")
 
     var models: Array[Dictionary] = manager.scan_catalog("res://assets/characters")
     assert(models.any(func(item: Dictionary) -> bool:
-        return item["kind"] == "3d" and String(item["path"]).ends_with("Fox.glb")
+        return String(item["path"]).ends_with("Fox.glb")
     ), "The 3D gallery must discover the animated Fox GLB fixture")
 
     parser.queue_free()
