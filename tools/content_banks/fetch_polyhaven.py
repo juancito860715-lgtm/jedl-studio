@@ -146,7 +146,7 @@ def build_3d(api_assets: dict) -> list[dict]:
             raise ValueError(f"Missing Poly Haven preview for {asset_id}")
         parsed = urllib.parse.urlparse(thumb_url)
         query = dict(urllib.parse.parse_qsl(parsed.query))
-        query.update({"width": "768", "height": "768", "format": "jpg"})
+        query.update({"width": "768", "height": "768", "format": "webp"})
         preview_url = urllib.parse.urlunparse(parsed._replace(query=urllib.parse.urlencode(query)))
         preview_path = folder / "preview.jpg"
         save_jpeg(request_bytes(preview_url), preview_path, 768)
