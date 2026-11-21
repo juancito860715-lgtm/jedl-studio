@@ -27,6 +27,13 @@ func _run_tests() -> void:
     assert(parser._events.size() == 4, "Two subtitles must create four timeline events")
     assert(parser._events[0]["kind"] == "subtitle", "Timeline must be sorted by time")
 
+    var looping_animation := Animation.new()
+    parser._configure_animation_loop(looping_animation, true)
+    assert(looping_animation.loop_mode == Animation.LOOP_LINEAR, "Walk animation must loop continuously by default")
+    parser._configure_animation_loop(looping_animation, false)
+    assert(looping_animation.loop_mode == Animation.LOOP_NONE, "One-shot animations must remain supported")
+    looping_animation.free()
+
     parser.play_scene()
     assert(parser._playing, "Playback must start")
     parser._process(0.25)
