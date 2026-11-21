@@ -641,7 +641,9 @@ private class Preview(context:android.content.Context,private var library:PieceL
     override fun onDraw(c:Canvas){
         super.onDraw(c); c.drawColor(Color.WHITE); if(width==0||height==0)return
         val scale=min(width/0.42f,height/1.52f)*0.97f
-        val matrices=PoseHierarchy.solve(p.pose).mapValues { (_, transform) -> transform.toAndroidMatrix() }
+        val matrices: Map<String, Matrix> = PoseHierarchy.solve(p.pose).mapValues { (_, transform) ->
+            Matrix().apply { setValues(transform.toAndroidValues()) }
+        }
         val save=c.save()
         try{
             c.translate(width/2f,height*0.52f);c.scale(scale,scale)
