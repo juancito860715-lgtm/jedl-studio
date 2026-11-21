@@ -1,6 +1,10 @@
 package studio.jedl.app
 
-import android.app.Activity
+import androidx.activity.ComponentActivity
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import android.app.AlertDialog
 import android.graphics.Canvas
 import android.graphics.Color
@@ -15,8 +19,9 @@ import studio.jedl.app.content.*
 import studio.jedl.app.animation.PoseInterpolator
 import kotlin.math.min
 
-class MainActivity : Activity() {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+class MainActivity : ComponentActivity() {
+    private lateinit var startupViewModel: StudioStartupViewModel
+    internal val startupViewModelForTest: StudioStartupViewModel get() = startupViewModel
     private lateinit var store: ProjectStore
     private lateinit var library: PieceLibrary
     private lateinit var contentLibrary: ContentLibrary
@@ -35,14 +40,30 @@ class MainActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         store = ProjectStore(this)
+        startupViewModel = ViewModelProvider(this)[StudioStartupViewModel::class.java]
         showLoading("Preparando JEDL Studio…")
-        scope.launch {
-            try {
-                val loaded = withContext(Dispatchers.IO) { PieceLibrary.load(applicationContext, selectedStyle) to ContentLibrary.load(applicationContext) }
-                library = loaded.first
-                contentLibrary = loaded.second
-                home()
-            } catch (e: Exception) { showLoading("Error al cargar recursos: ${e.message}") }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                startupViewModel.state.collect { state ->
+                    when (state) {
+                        StudioStartupState.Loading -> showLoading("Preparando JEDL Studio…")
+                        is StudioStartupState.Ready -> {
+                            library = state.pieceLibrary
+                            contentLibrary = state.contentLibrary
+                            selectedStyle = state.pieceLibrary.selectedStyle
+                            if (project == null) {
+                                home()
+                            } else {
+                                preview?.replaceLibrary(library)
+                                preview?.update(project!!)
+                            }
+                        }
+                        is StudioStartupState.Failed ->
+                            showLoading("Error al cargar recursos: ${state.message}")
+                        StudioStartupState.Cleared -> Unit
+                    }
+                }
+            }
         }
     }
 
@@ -233,7 +254,7 @@ class MainActivity : Activity() {
                         scaleType = ImageView.ScaleType.FIT_CENTER
                     }
                     row.addView(thumb, LinearLayout.LayoutParams(56, 56))
-                    scope.launch {
+                    lifecycleScope.launch {
                         val bitmap = withContext(Dispatchers.IO) { contentLibrary.thumbnail(item) }
                         if (thumb.tag == item.id) thumb.setImageBitmap(bitmap)
                     }
@@ -361,7 +382,6 @@ class MainActivity : Activity() {
                         }
                     }
                 }
-                val previous = library
                 val currentProject = project
                 if (currentProject != null) {
                     project = currentProject.copy(
@@ -372,7 +392,7 @@ class MainActivity : Activity() {
                 selectedStyle = next.selectedStyle
                 preview?.replaceLibrary(next)
                 project?.let { preview?.update(it) }
-                previous.close()
+                startupViewModel.adoptLibrary(next)
                 studio(Tab.STYLE)
                 toast("Estilo aplicado")
             } catch (failure: Exception) {
@@ -600,9 +620,6 @@ class MainActivity : Activity() {
 
     override fun onDestroy() {
         playbackJob?.cancel()
-        scope.cancel()
-        if (::library.isInitialized) library.close()
-        if (::contentLibrary.isInitialized) contentLibrary.close()
         super.onDestroy()
     }
 }
