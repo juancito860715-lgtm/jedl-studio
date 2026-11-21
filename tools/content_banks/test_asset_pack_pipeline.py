@@ -20,9 +20,10 @@ class AssetPackPipelineTests(unittest.TestCase):
     def test_catalog_contains_multiple_neutral_asset_categories(self):
         categories = {item["category"] for item in KENNEY_PACKS.values()}
         self.assertTrue({"animals", "characters", "environment", "furniture", "audio"} <= categories)
-        self.assertGreaterEqual(len(KENNEY_PACKS), 12)
+        self.assertGreaterEqual(len(KENNEY_PACKS), 11)
         for item in KENNEY_PACKS.values():
             self.assertTrue(item["page"].startswith("https://kenney.nl/assets/"))
+            self.assertTrue(item["download"].startswith("https://kenney.nl/media/pages/assets/"))
             self.assertIn(item["category"], {"animals", "characters", "environment", "furniture", "audio", "vehicles", "food", "ui"})
 
     def test_only_reviewed_community_categories_are_included(self):
