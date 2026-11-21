@@ -77,6 +77,45 @@ func _instantiate_entries(entries: Array) -> bool:
     return true
 
 
+func add_catalog_asset(resource_path: String) -> bool:
+    if world_root == null or resource_path.is_empty():
+        return false
+
+    var extension := resource_path.get_extension().to_lower()
+    var instance: Node3D
+    if extension in ["png", "jpg", "jpeg", "webp"]:
+        var texture := load(resource_path) as Texture2D
+        if texture == null:
+            push_error("Catalog image could not be loaded: " + resource_path)
+            return false
+        var sprite := Sprite3D.new()
+        sprite.texture = texture
+        sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+        var largest_dimension := maxf(float(texture.get_width()), float(texture.get_height()))
+        sprite.pixel_size = 1.2 / maxf(largest_dimension, 1.0)
+        instance = sprite
+    elif extension in ["glb", "gltf", "tscn"]:
+        var packed := load(resource_path) as PackedScene
+        if packed == null:
+            push_error("Catalog model is not an imported PackedScene: " + resource_path)
+            return false
+        var candidate := packed.instantiate()
+        if not candidate is Node3D:
+            candidate.queue_free()
+            push_error("Catalog model root must be Node3D: " + resource_path)
+            return false
+        instance = candidate as Node3D
+    else:
+        push_error("Unsupported catalog asset type: " + resource_path)
+        return false
+
+    var placement_index := active_instances.size()
+    instance.position = Vector3(float((placement_index % 3) - 1) * 1.6, 0.0, 0.0)
+    world_root.add_child(instance)
+    active_instances.append(instance)
+    return true
+
+
 func _vector3_from(value: Variant) -> Vector3:
     if typeof(value) == TYPE_ARRAY and value.size() >= 3:
         return Vector3(float(value[0]), float(value[1]), float(value[2]))
