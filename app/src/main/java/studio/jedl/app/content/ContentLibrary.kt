@@ -181,7 +181,7 @@ class ContentLibrary private constructor(
                         require(pack.optString("sourceLicenseStatement", "").contains("CC0", true) &&
                             pack.optString("sourceUrl", "").startsWith("https://") &&
                             evidencePath.isNotBlank() && !evidencePath.startsWith("/") &&
-                            !evidencePath.contains("..") && evidencePath.indexOf(92) < 0 &&
+                            !evidencePath.contains("..") && evidencePath.indexOf(92.toChar()) < 0 &&
                             File(packageDir, "community-2d/" + evidencePath).isFile) {
                             "Evidencia CC0 incompleta para un banco comunitario"
                         }
@@ -196,7 +196,7 @@ class ContentLibrary private constructor(
                             if (record.optString("pack") != packId) return@mapNotNull null
                             val relative = record.getString("path")
                             if (!relative.lowercase().endsWith(".png") || relative.startsWith("/") ||
-                                relative.contains("..") || relative.indexOf(92) >= 0) return@mapNotNull null
+                                relative.contains("..") || relative.indexOf(92.toChar()) >= 0) return@mapNotNull null
                             val file = File(packageDir, "community-2d/" + relative)
                             val digest = record.getString("sha256")
                             if (!file.isFile || !digest.matches(Regex("[a-fA-F0-9]{64}"))) return@mapNotNull null
@@ -243,7 +243,7 @@ class ContentLibrary private constructor(
                         val item = records.getJSONObject(index)
                         val relative = item.optString("file", "")
                         if (!relative.startsWith("png/") || !relative.lowercase().endsWith(".png") ||
-                            relative.contains("..") || relative.startsWith("/") || relative.indexOf(92) >= 0) {
+                            relative.contains("..") || relative.startsWith("/") || relative.indexOf(92.toChar()) >= 0) {
                             return@mapNotNull null
                         }
                         val file = File(bankRoot, relative)
