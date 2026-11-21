@@ -92,6 +92,7 @@ jobs:
           grep -Fq 'platform="Android"' export_presets.cfg
           grep -Fq 'architectures/arm64-v8a=true' export_presets.cfg
           grep -Fq 'package/unique_name="studio.jedl.app"' export_presets.cfg
+          grep -Fq 'textures/vram_compression/import_etc2_astc=true' project.godot
           grep -Fq 'gradle_build/use_gradle_build=false' export_presets.cfg
           ! grep -Eq '^gradle_build/(min_sdk|target_sdk)=' export_presets.cfg
           test -s "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
