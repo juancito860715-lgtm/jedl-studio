@@ -121,13 +121,24 @@ jobs:
           name: jedl-studio-avatar-bank-42-png
           path: app/src/main/assets/characters/jedl_master_v1/
           if-no-files-found: error
+      - name: Upload generated Android assets for emulator tests
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-studio-generated-assets
+          path: app/src/main/assets/
+          if-no-files-found: error
 
   android-lifecycle-instrumented:
     name: Android lifecycle instrumentation tests
+    needs: build-test
     runs-on: ubuntu-22.04
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: jedl-studio-generated-assets
+          path: app/src/main/assets
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
