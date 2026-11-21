@@ -92,6 +92,7 @@ jobs:
                   for asset in manifest["assets"]:
                       assert (manifest_path.parent / asset["file"]).is_file()
           print("GALLERY_2D_BANKS_OK: 42 original rig pieces plus CC0 object/foliage assets")
+          PY
           python - <<'PY'
           import json
           from pathlib import Path
@@ -113,7 +114,6 @@ jobs:
           count3d = sum(item["kind"] == "3d" for item in entries)
           assert count2d >= 222 and count3d >= 1, (count2d, count3d)
           print("PACKAGED_CATALOG_OK: 2D=%d 3D=%d" % (count2d, count3d))
-          PY
           PY
       - name: Import project resources before tests
         run: |
