@@ -377,7 +377,7 @@ class MainActivity : ComponentActivity() {
         if (styleChangeInProgress) return
         styleChangeInProgress = true
         toast("Cargando estilo…")
-        scope.launch {
+        lifecycleScope.launch {
             try {
                 val next = withContext(Dispatchers.IO) {
                     PieceLibrary.load(applicationContext, style).also { candidate ->
@@ -554,7 +554,7 @@ class MainActivity : ComponentActivity() {
         isPlaying = true
         playbackFrame = frame.toFloat()
         studio(Tab.ANIMATION)
-        playbackJob = scope.launch {
+        playbackJob = lifecycleScope.launch {
             while (isActive) {
                 val active = project ?: break
                 val pose = PoseInterpolator.interpolate(
