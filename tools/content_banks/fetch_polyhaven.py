@@ -9,7 +9,6 @@ from __future__ import annotations
 import hashlib
 import io
 import json
-import re
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -71,7 +70,7 @@ def save_jpeg(payload: bytes, path: Path, max_width: int = 2048) -> tuple[int, i
 
 
 def safe_relative_path(value: str) -> Path:
-    normalized = value.replace("\\\\", "/")
+    normalized = value.replace("\\", "/")
     path = Path(normalized)
     if path.is_absolute() or any(part in ("", ".", "..") for part in path.parts):
         raise ValueError(f"Unsafe model include path: {value}")
