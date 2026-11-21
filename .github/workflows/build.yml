@@ -46,6 +46,21 @@ jobs:
             test -s "app/src/main/assets/content/$pack/manifest.json"
             test "$(find "app/src/main/assets/content/$pack/png" -type f -name '*.png' | wc -l)" -ge 50
           done
+      - name: Checkout community CC0 2D asset collection
+        uses: actions/checkout@v4
+        with:
+          repository: Tiddybub/2d-assets
+          ref: main
+          path: build/upstream/2d-assets
+          sparse-checkout: |
+            modern-urban
+            nature
+      - name: Download expanded Kenney library and package community assets
+        run: |
+          mkdir -p build/asset-library
+          python tools/content_banks/asset_pack_pipeline.py download-kenney --out build/asset-library/kenney
+          python tools/content_banks/asset_pack_pipeline.py package-community --source build/upstream/2d-assets --out build/asset-library/community-2d.zip
+          git -C build/upstream/2d-assets rev-parse HEAD > build/asset-library/community-2d-source-commit.txt
       - name: Upload original Kenney archive for anatomy review
         uses: actions/upload-artifact@v4
         with:
@@ -120,6 +135,12 @@ jobs:
         with:
           name: jedl-studio-avatar-bank-42-png
           path: app/src/main/assets/characters/jedl_master_v1/
+          if-no-files-found: error
+      - name: Upload expanded offline asset library
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-expanded-offline-asset-library
+          path: build/asset-library/
           if-no-files-found: error
 
   mediapipe-standalone:
