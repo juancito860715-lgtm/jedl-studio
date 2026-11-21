@@ -22,7 +22,6 @@ The intake catalog currently checks these official asset pages at build time:
 
 - Animal Pack
 - Animal Pack Remastered
-- Fish Pack
 - Furniture Kit
 - Mini Characters
 - City Kit Suburban
