@@ -72,7 +72,8 @@ jobs:
           python tools/content_banks/asset_pack_pipeline.py package-community --source build/upstream/2d-assets --out build/asset-library/community-2d.zip
           git -C build/upstream/2d-assets rev-parse HEAD > build/asset-library/community-2d-source-commit.txt
           mkdir -p app/src/main/assets/offline_library
-          (cd build/asset-library && zip -0 -q -r "$GITHUB_WORKSPACE/app/src/main/assets/offline_library/jedl-library-bundle.zip" .)
+          python -m unittest discover -s tools/content_banks -p "test_build_offline_bundle.py" -v
+          python tools/content_banks/build_offline_bundle.py --source build/asset-library --out app/src/main/assets/offline_library/jedl-library-bundle.zip
           test -s app/src/main/assets/offline_library/jedl-library-bundle.zip
       - name: Upload original Kenney archive for anatomy review
         uses: actions/upload-artifact@v4
