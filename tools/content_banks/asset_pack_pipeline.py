@@ -136,8 +136,14 @@ def safe_archive_member(name: str) -> str:
     return path.as_posix()
 
 
-def _request(url: str) -> tuple[str, bytes]:
-    request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
+def _request(url: str, referer: str | None = None) -> tuple[str, bytes]:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0 Safari/537.36",
+        "Accept": "application/zip, application/octet-stream, */*",
+    }
+    if referer:
+        headers["Referer"] = referer
+    request = urllib.request.Request(url, headers=headers)
     try:
         with urllib.request.urlopen(request, timeout=90) as response:
             final_url = response.geturl()
@@ -218,7 +224,8 @@ def download_kenney_pack(pack_key: str, output_root: Path) -> dict:
     download_url = spec["download"]
     if not download_url.startswith("https://kenney.nl/media/pages/assets/"):
         raise AssetPackError(f"Unapproved Kenney download URL for {pack_key}")
-    final_url, payload = _request(download_url)
+    print(f"KENNEY_DOWNLOAD_START id={spec['id']}")
+    final_url, payload = _request(download_url, referer=spec["page"])
     archive_info = _inspect_zip(payload)
 
     target = Path(output_root) / spec["id"]
