@@ -92,8 +92,12 @@ jobs:
           grep -Fq 'platform="Android"' export_presets.cfg
           grep -Fq 'architectures/arm64-v8a=true' export_presets.cfg
           grep -Fq 'package/unique_name="studio.jedl.app"' export_presets.cfg
-          grep -Fq 'keystore/debug="/home/runner/.android/debug.keystore"' export_presets.cfg
+          grep -Fq 'gradle_build/use_gradle_build=true' export_presets.cfg
+          grep -Fq 'gradle_build/min_sdk="21"' export_presets.cfg
+          grep -Fq 'gradle_build/target_sdk="34"' export_presets.cfg
           test -s "$GODOT_ANDROID_KEYSTORE_DEBUG_PATH"
+          test -n "$GODOT_ANDROID_KEYSTORE_DEBUG_USER"
+          test -n "$GODOT_ANDROID_KEYSTORE_DEBUG_PASSWORD"
       - name: Export installable Android debug APK
         run: |
           set -euo pipefail
