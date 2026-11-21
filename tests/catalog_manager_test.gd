@@ -15,11 +15,14 @@ func _run_tests() -> void:
     var character_parts: Array[Dictionary] = manager.scan_catalog(
         "2d"
     )
-    assert(character_parts.size() == 42, "The 2D character gallery must expose all 42 original rig pieces")
+    assert(character_parts.size() >= 222, "The 2D gallery must expose character pieces and object banks")
+    var character_entries := character_parts.filter(func(item: Dictionary) -> bool: return item["category"] == "Personaje")
+    assert(character_entries.size() == 42, "The 2D gallery must expose all 42 original rig pieces")
     assert(character_parts.all(func(item: Dictionary) -> bool: return item["kind"] == "2d"),
         "PNG character parts must be classified as 2D")
 
     var objects: Array[Dictionary] = manager.scan_catalog("2d")
+    var objects := character_parts.filter(func(item: Dictionary) -> bool: return item["category"] != "Personaje")
     assert(objects.size() >= 180, "The 2D object gallery must contain the verified CC0 object and foliage banks")
     assert(objects.all(func(item: Dictionary) -> bool: return item["extension"] == "png"),
         "The 2D object gallery must contain image assets only")
