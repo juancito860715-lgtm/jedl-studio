@@ -11,7 +11,10 @@ data class SceneObjectInstance(
     val y: Float,
     val width: Float = 0.12f,
     val height: Float = 0.12f,
-    val rotation: Float = 0f
+    val rotation: Float = 0f,
+    val bankId: String = "",
+    val assetSha256: String = "",
+    val packageVersion: String = ""
 )
 
 data class StudioProject(
@@ -48,12 +51,14 @@ data class StudioProject(
         require(sceneObjects.size <= 500) { "Scene supports at most 500 placed assets" }
         require(sceneObjects.all { item ->
             item.assetId.isNotBlank() && item.assetId.length <= 180 &&
+                item.bankId.length <= 120 && item.packageVersion.length <= 40 &&
+                (item.assetSha256.isEmpty() || item.assetSha256.matches(Regex("[a-fA-F0-9]{64}"))) &&
                 item.x.isFinite() && item.x in -2f..2f &&
                 item.y.isFinite() && item.y in -2f..2f &&
                 item.width.isFinite() && item.width in 0.01f..1.5f &&
                 item.height.isFinite() && item.height in 0.01f..1.5f &&
                 item.rotation.isFinite() && item.rotation in -360f..360f
-        }) { "Invalid scene object placement" }
+        }) { "Invalid scene object placement or resource fingerprint" }
         return this
     }
 

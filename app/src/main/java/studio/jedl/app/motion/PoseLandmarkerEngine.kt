@@ -7,6 +7,7 @@ import com.google.mediapipe.tasks.core.BaseOptions
 import com.google.mediapipe.tasks.vision.core.RunningMode
 import com.google.mediapipe.tasks.vision.poselandmarker.PoseLandmarker
 import java.io.Closeable
+import studio.jedl.app.StudioKeyframe
 
 data class PosePoint(
     val x: Float,
@@ -15,20 +16,13 @@ data class PosePoint(
     val visibility: Float
 )
 
-/**
- * On-device pose inference. The Lite model is bundled in app assets so detection
- * works offline. Call detectVideoFrame from a worker dispatcher, never the UI thread.
- */
+/** Offline MediaPipe inference; call from a worker dispatcher, never the UI thread. */
 class PoseLandmarkerEngine(context: Context) : Closeable {
     private val landmarker: PoseLandmarker
 
     init {
         val options = PoseLandmarker.PoseLandmarkerOptions.builder()
-            .setBaseOptions(
-                BaseOptions.builder()
-                    .setModelAssetPath("models/pose_landmarker_lite.task")
-                    .build()
-            )
+            .setBaseOptions(BaseOptions.builder().setModelAssetPath("models/pose_landmarker_lite.task").build())
             .setRunningMode(RunningMode.VIDEO)
             .setNumPoses(1)
             .build()
@@ -40,14 +34,12 @@ class PoseLandmarkerEngine(context: Context) : Closeable {
         val image = BitmapImageBuilder(bitmap).build()
         val result = landmarker.detectForVideo(image, timestampMs)
         return result.landmarks().firstOrNull().orEmpty().map { point ->
-            PosePoint(
-                x = point.x(),
-                y = point.y(),
-                z = point.z(),
-                visibility = point.visibility().orElse(0f)
-            )
+            PosePoint(point.x(), point.y(), point.z(), point.visibility().orElse(0f))
         }
     }
+
+    fun detectVideoKeyframe(bitmap: Bitmap, timestampMs: Long, frame: Int): StudioKeyframe? =
+        MotionPoseMapper.toKeyframe(detectVideoFrame(bitmap, timestampMs), frame)
 
     override fun close() = landmarker.close()
 }

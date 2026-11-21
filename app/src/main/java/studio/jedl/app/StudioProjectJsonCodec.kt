@@ -4,12 +4,12 @@ import org.json.JSONArray
 import org.json.JSONObject
 import studio.jedl.app.avatar.AvatarColorPalette
 
-/** Project JSON v2 codec with v1/v2 default-color migration. */
+/** Project JSON v3 stores resource provenance; v1/v2 projects remain readable. */
 object StudioProjectJsonCodec {
     fun encode(project: StudioProject): JSONObject {
         val p = project.validated()
         return JSONObject().apply {
-            put("schemaVersion", 2)
+            put("schemaVersion", 3)
             put("id", p.id)
             put("name", p.name)
             put("selectedParts", JSONObject(p.selectedParts))
@@ -26,7 +26,9 @@ object StudioProjectJsonCodec {
             put("sceneObjects", JSONArray().apply {
                 p.sceneObjects.forEach { item ->
                     put(JSONObject().put("assetId", item.assetId).put("x", item.x).put("y", item.y)
-                        .put("width", item.width).put("height", item.height).put("rotation", item.rotation))
+                        .put("width", item.width).put("height", item.height).put("rotation", item.rotation)
+                        .put("bankId", item.bankId).put("assetSha256", item.assetSha256)
+                        .put("packageVersion", item.packageVersion))
                 }
             })
         }
@@ -34,7 +36,7 @@ object StudioProjectJsonCodec {
 
     fun decode(json: JSONObject): StudioProject {
         val schemaVersion = json.getInt("schemaVersion")
-        require(schemaVersion in 1..2) { "Unsupported project version" }
+        require(schemaVersion in 1..3) { "Unsupported project version" }
         fun stringMap(obj: JSONObject): Map<String, String> =
             obj.keys().asSequence().associateWith { obj.getString(it) }
         fun floatMap(obj: JSONObject): Map<String, Float> =
@@ -64,7 +66,10 @@ object StudioProjectJsonCodec {
                         y = item.getDouble("y").toFloat(),
                         width = item.optDouble("width", 0.12).toFloat(),
                         height = item.optDouble("height", 0.12).toFloat(),
-                        rotation = item.optDouble("rotation", 0.0).toFloat()
+                        rotation = item.optDouble("rotation", 0.0).toFloat(),
+                        bankId = item.optString("bankId", ""),
+                        assetSha256 = item.optString("assetSha256", ""),
+                        packageVersion = item.optString("packageVersion", "")
                     )
                 }
             } ?: emptyList(),

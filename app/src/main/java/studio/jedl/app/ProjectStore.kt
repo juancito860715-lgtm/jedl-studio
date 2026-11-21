@@ -4,8 +4,9 @@ import android.content.Context
 import java.io.File
 import java.util.UUID
 
-class ProjectStore(context: Context) {
-    private val directory = File(context.applicationContext.filesDir, "projects").apply { mkdirs() }
+class ProjectStore internal constructor(private val directory: File) {
+    constructor(context: Context) : this(File(context.applicationContext.filesDir, "projects"))
+    init { directory.mkdirs() }
 
     fun create(name: String): StudioProject {
         val clean = name.trim()

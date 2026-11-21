@@ -2,6 +2,11 @@ package studio.jedl.app
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
+import android.media.MediaMetadataRetriever
+import android.net.Uri
+import java.io.File
+import studio.jedl.app.motion.PoseLandmarkerEngine
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Matrix
@@ -30,6 +35,8 @@ class MainActivity : Activity() {
     private var playbackJob: Job? = null
     private var isPlaying = false
     private var playbackFrameLabel: TextView? = null
+    private val requestImportPackage = 4101
+    private val requestMotionVideo = 4102
     private enum class Tab { SCENE, CHARACTER, LAYERS, ANIMATION, STYLE, LIBRARY }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -206,7 +213,15 @@ class MainActivity : Activity() {
     private fun libraryPanel() {
         content.addView(heading("Biblioteca de contenido"))
         content.addView(TextView(this).apply {
-            text = "Recursos CC0. Toca un elemento para incorporarlo a la escena."
+            text = "Recursos CC0 integrados e importados. Toca un elemento para incorporarlo a la escena."
+        })
+        content.addView(button("＋ Instalar paquete ZIP local") {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/zip"
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivityForResult(intent, requestImportPackage)
         })
         var activeKind = ContentKind.OBJECT
         val bankSpinner = Spinner(this)
@@ -254,7 +269,10 @@ class MainActivity : Activity() {
                     x = ((now.sceneObjects.size % 5) - 2) * 0.13f,
                     y = 0.42f + ((now.sceneObjects.size / 5) % 4) * 0.13f,
                     width = baseSize,
-                    height = ((asset.height.toFloat() / asset.width.coerceAtLeast(1)) * baseSize).coerceIn(0.01f, 1.5f)
+                    height = ((asset.height.toFloat() / asset.width.coerceAtLeast(1)) * baseSize).coerceIn(0.01f, 1.5f),
+                    bankId = asset.bankId,
+                    assetSha256 = asset.sha256,
+                    packageVersion = asset.packageVersion
                 )
                 project = now.copy(sceneObjects = now.sceneObjects + objectItem)
                 preview?.update(project!!)
@@ -555,6 +573,14 @@ class MainActivity : Activity() {
         val frameLabel=TextView(this).apply { text="Fotograma: $frame / ${p.durationFrames-1}" }
         playbackFrameLabel = frameLabel
         content.addView(button(if (isPlaying) "Stop" else "Play") { togglePlayback() })
+        content.addView(button("Capturar movimiento desde video") {
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "video/*"
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivityForResult(intent, requestMotionVideo)
+        })
         content.addView(frameLabel)
         content.addView(SeekBar(this).apply {
             max=p.durationFrames-1; progress=frame
@@ -598,6 +624,87 @@ class MainActivity : Activity() {
         content.addView(button("Guardar animación") { save() })
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode != RESULT_OK) return
+        val uri = data?.data ?: return
+        when (requestCode) {
+            requestImportPackage -> importAssetPackage(uri)
+            requestMotionVideo -> captureMotionFromVideo(uri)
+        }
+    }
+
+    private fun importAssetPackage(uri: Uri) {
+        scope.launch {
+            val temporary = File(cacheDir, "jedl-library-import.zip")
+            try {
+                withContext(Dispatchers.IO) {
+                    contentResolver.openInputStream(uri)?.use { input ->
+                        temporary.outputStream().use { output -> input.copyTo(output) }
+                    } ?: error("No se pudo abrir el ZIP seleccionado")
+                    AssetPackageInstaller.install(temporary, filesDir)
+                }
+                val previous = contentLibrary
+                contentLibrary = withContext(Dispatchers.IO) { ContentLibrary.load(applicationContext) }
+                previous.close()
+                studio(Tab.LIBRARY)
+                toast("Biblioteca instalada y catálogo actualizado")
+            } catch (failure: Exception) {
+                toast("No se pudo instalar el paquete: " + (failure.message ?: "error"))
+            } finally {
+                temporary.delete()
+            }
+        }
+    }
+
+    private fun captureMotionFromVideo(uri: Uri) {
+        scope.launch {
+            try {
+                val keyframes = withContext(Dispatchers.IO) {
+                    val retriever = MediaMetadataRetriever()
+                    retriever.setDataSource(applicationContext, uri)
+                    val durationMs = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLongOrNull() ?: 0L
+                    require(durationMs > 0L) { "El video no tiene duración válida" }
+                    val captureEnd = minOf(durationMs, 12_000L)
+                    val engine = PoseLandmarkerEngine(applicationContext)
+                    try {
+                        val captured = mutableListOf<StudioKeyframe>()
+                        var timestamp = 0L
+                        while (timestamp <= captureEnd) {
+                            val bitmap = retriever.getFrameAtTime(timestamp * 1000L, MediaMetadataRetriever.OPTION_CLOSEST)
+                            if (bitmap != null) {
+                                try {
+                                    val frameNumber = (timestamp * 30L / 1000L).toInt().coerceAtMost(3599)
+                                    engine.detectVideoKeyframe(bitmap, timestamp, frameNumber)?.let(captured::add)
+                                } finally { bitmap.recycle() }
+                            }
+                            timestamp += 500L
+                        }
+                        captured
+                    } finally {
+                        engine.close()
+                        retriever.release()
+                    }
+                }
+                if (keyframes.isEmpty()) {
+                    toast("No se detectó una pose corporal con confianza suficiente")
+                    return@launch
+                }
+                val current = project ?: return@launch
+                val combined = (current.keyframes + keyframes).distinctBy { it.frame }.sortedBy { it.frame }
+                val nextDuration = maxOf(current.durationFrames, (combined.last().frame + 1).coerceAtMost(3600))
+                val validFrames = combined.filter { it.frame < nextDuration }
+                project = current.copy(durationFrames = nextDuration, keyframes = validFrames, pose = validFrames.first().pose)
+                frame = validFrames.first().frame
+                preview?.update(project!!)
+                studio(Tab.ANIMATION)
+                toast(validFrames.size.toString() + " poses convertidas en fotogramas editables")
+            } catch (failure: Exception) {
+                toast("Captura de movimiento fallida: " + (failure.message ?: "error"))
+            }
+        }
+    }
+
     override fun onDestroy() {
         playbackJob?.cancel()
         scope.cancel()
@@ -621,7 +728,7 @@ private class Preview(context:android.content.Context,private var library:PieceL
             c.translate(width/2f,height*0.52f);c.scale(scale,scale)
             val selection=p.selectedParts.mapNotNull{(key,id)->runCatching{CharacterLayerSlot.valueOf(key)}.getOrNull()?.let{it to id}}.toMap()
             p.sceneObjects.forEach { placed ->
-                val asset = contentLibrary.find(placed.assetId) ?: return@forEach
+                val asset = contentLibrary.resolve(placed) ?: return@forEach
                 val bitmap = contentLibrary.bitmap(asset)
                 val itemSave = c.save()
                 try {
