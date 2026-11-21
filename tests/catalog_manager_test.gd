@@ -13,35 +13,33 @@ func _run_tests() -> void:
     root.add_child(manager)
 
     var entries_2d: Array[Dictionary] = manager.scan_catalog("2d")
-    assert(entries_2d.size() >= 222, "The 2D gallery must expose character pieces and object banks")
-    var character_entries: Array[Dictionary] = entries_2d.filter(
-        func(item: Dictionary) -> bool: return item["category"] == "Personaje"
-    )
-    assert(character_entries.size() == 42, "The 2D gallery must expose all 42 original rig pieces")
-    var object_entries: Array[Dictionary] = entries_2d.filter(
-        func(item: Dictionary) -> bool: return item["category"] != "Personaje"
-    )
-    assert(object_entries.size() >= 180, "The 2D gallery must contain the verified CC0 object and foliage banks")
-    assert(entries_2d.all(func(item: Dictionary) -> bool: return item["kind"] == "2d"),
-        "All 2D gallery entries must be classified as 2D")
+    assert(entries_2d.size() == 4, "The 2D gallery must contain the four curated photographic forest/river backgrounds")
+    for item in entries_2d:
+        assert(String(item["path"]).ends_with(".jpg"), "The public 2D gallery must not expose rudimentary generated PNG parts")
+        assert(item["license"] == "CC0-1.0", "Every 2D image must have verified redistribution rights")
+        assert(item["offline"] and item["placeable"], "Every 2D background must be packaged and placeable")
+        assert(ResourceLoader.exists(String(item["preview_path"])), "Every 2D card must have a packaged preview")
 
     var models: Array[Dictionary] = manager.scan_catalog("3d")
-    assert(models.size() >= 1, "The packaged 3D gallery must expose at least one model")
-    assert(models.any(func(item: Dictionary) -> bool:
-        return String(item["path"]).ends_with("Fox.glb")
-    ), "The 3D gallery must discover the animated Fox GLB fixture")
+    assert(models.size() == 6, "The 3D gallery must expose six realistic environment models")
+    for item in models:
+        assert(String(item["path"]).ends_with(".gltf") or String(item["path"]).ends_with(".glb"),
+            "Every 3D asset must be a real glTF model, not a preview image")
+        assert(item["license"] == "CC0-1.0", "Every 3D model must have verified redistribution rights")
+        assert(int(item["polycount"]) <= 200000, "Every model must respect the mobile polygon budget")
+        assert(ResourceLoader.exists(String(item["preview_path"])), "Every 3D model must have a packaged preview")
 
     var world := Node3D.new()
     root.add_child(world)
     var parser = SceneParserScript.new()
     root.add_child(parser)
     parser.world_root = world
-    assert(parser.add_catalog_asset(String(character_entries[0]["path"])),
-        "The scene engine must place a selected 2D PNG from the gallery")
+    assert(parser.add_catalog_asset(String(entries_2d[0]["path"])),
+        "The scene engine must place a selected photographic 2D background")
     assert(parser.active_instances.back() is Sprite3D,
-        "A selected 2D PNG must become a Sprite3D scene instance")
+        "A selected 2D background must become a Sprite3D scene instance")
     assert(parser.add_catalog_asset(String(models[0]["path"])),
-        "The scene engine must place a selected 3D GLB from the gallery")
+        "The scene engine must place a selected realistic 3D model")
     assert(parser.active_instances.back() is Node3D,
         "A selected 3D model must become a Node3D scene instance")
 
