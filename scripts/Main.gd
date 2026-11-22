@@ -325,7 +325,7 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
             add_button.icon_max_width = 132
         var resource_path := String(item["path"])
         add_button.pressed.connect(_animate_button.bind(add_button))
-        var is_background := category_filter == "Fondos fotográficos"
+        var is_background := kind == "2d" and (category_filter.is_empty() or category_filter == "Fondos fotográficos")
         add_button.pressed.connect(_add_gallery_asset.bind(resource_path, is_background))
         item_row.add_child(add_button)
     if json_panel != null:
