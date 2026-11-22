@@ -139,8 +139,10 @@ func load_catalog() -> bool:
         if validation_entry.is_empty():
             return _fail("Asset is absent from the Godot validation report: " + asset_id)
         var validation_errors: Variant = validation_entry.get("errors", [])
-        var has_no_errors := typeof(validation_errors) == TYPE_ARRAY and validation_errors.is_empty()
-        var is_renderable := (
+        var has_no_errors: bool = false
+        if typeof(validation_errors) == TYPE_ARRAY:
+            has_no_errors = validation_errors.is_empty()
+        var is_renderable: bool = (
             validation_entry.get("importado", false) == true
             and validation_entry.get("instanciado", false) == true
             and validation_entry.get("renderizable", false) == true
