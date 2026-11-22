@@ -59,8 +59,8 @@ func load_catalog() -> bool:
         var file_hash := String(file_record.get("sha256", ""))
         if not file_path.begins_with("res://") or file_hash.length() != 64:
             return _fail("Offline manifest contains an invalid path or SHA-256")
-        if int(file_record.get("sizeBytes", 0)) <= 0 or not FileAccess.file_exists(file_path):
-            return _fail("Offline package file is missing or empty: " + file_path)
+        if int(file_record.get("sizeBytes", 0)) <= 0:
+            return _fail("Offline manifest contains an empty file record: " + file_path)
 
     for asset_value in manifest_assets:
         if not asset_value is Dictionary:
@@ -120,11 +120,8 @@ func resolve_asset_id(asset_id: String) -> Dictionary:
     if not _resource_exists(resource_path):
         push_error("Catalog resource is missing: " + resource_path)
         return {}
-    var expected_hash := String(manifest_entry.get("sha256", ""))
-    var actual_hash := FileAccess.get_sha256(resource_path)
-    if expected_hash.is_empty() or actual_hash != expected_hash:
-        push_error("Asset SHA-256 verification failed: " + asset_id)
-        return {}
+    # File hashes are audited during the build and recorded in the root manifest.
+    # Avoid re-hashing large GLB files on every gallery selection on low-memory phones.
     return entry.duplicate(true)
 
 
