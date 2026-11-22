@@ -54,14 +54,15 @@ jobs:
           TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.4.1.stable"
           mkdir -p "$TEMPLATE_DIR"
           cp -a "$RUNNER_TEMP/godot/templates/templates/." "$TEMPLATE_DIR/"
-      - name: Prepare virtual software display for Godot
+      - name: Prepare virtual software display and Vulkan software device
         run: |
           set -euo pipefail
-          if ! command -v xvfb-run >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y xvfb
-          fi
+          sudo apt-get update
+          sudo apt-get install -y xvfb libvulkan1 mesa-vulkan-drivers
           command -v xvfb-run
+          VULKAN_ICD="$(find /usr/share/vulkan/icd.d -maxdepth 1 -name '*lvp*.json' -print -quit)"
+          test -n "$VULKAN_ICD"
+          echo "VK_ICD_FILENAMES=$VULKAN_ICD" >> "$GITHUB_ENV"
       - name: Download animated Fox GLB test character and license
         run: |
           set -euo pipefail
@@ -98,7 +99,7 @@ jobs:
           test -s tests/scene_parser_test.gd
           test -s assets/gallery/catalog.json
           set +e
-          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --editor --path "$GITHUB_WORKSPACE" --quit 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
+          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --editor --path "$GITHUB_WORKSPACE" --quit 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
           godot_status=${PIPESTATUS[0]}
           set -e
           if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load' "$RUNNER_TEMP/godot-import.log"; then
@@ -110,7 +111,7 @@ jobs:
         run: |
           set -euo pipefail
           set +e
-          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --path "$GITHUB_WORKSPACE" --script res://tests/catalog_asset_validation.gd 2>&1 | tee "$RUNNER_TEMP/catalog-asset-validation.log"
+          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --path "$GITHUB_WORKSPACE" --script res://tests/catalog_asset_validation.gd 2>&1 | tee "$RUNNER_TEMP/catalog-asset-validation.log"
           godot_status=${PIPESTATUS[0]}
           set -e
           if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load' "$RUNNER_TEMP/catalog-asset-validation.log"; then
@@ -130,7 +131,7 @@ jobs:
             local log_file="$RUNNER_TEMP/$(basename "$test_script").log"
             echo "::group::Godot test: $test_script"
             set +e
-            timeout --signal=TERM --kill-after=10s 90s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --path "$GITHUB_WORKSPACE" --script "$test_script" --quit-after 120 2>&1 | tee "$log_file"
+            timeout --signal=TERM --kill-after=10s 90s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --path "$GITHUB_WORKSPACE" --script "$test_script" --quit-after 120 2>&1 | tee "$log_file"
             local godot_status=${PIPESTATUS[0]}
             set -e
             if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Assertion failed|Invalid call\.' "$log_file"; then
@@ -144,7 +145,7 @@ jobs:
           run_godot_test res://tests/camera_framing_test.gd
           run_godot_test res://tests/production_editor_test.gd
           run_godot_test res://tests/scene_parser_smoke.gd
-          timeout --signal=TERM --kill-after=10s 30s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --path "$GITHUB_WORKSPACE" --quit-after 5
+          timeout --signal=TERM --kill-after=10s 30s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --path "$GITHUB_WORKSPACE" --quit-after 5
       - name: Prepare Android debug signing key
         run: |
           mkdir -p "$HOME/.android"
@@ -172,7 +173,7 @@ jobs:
           set -euo pipefail
           mkdir -p build
           set +e
-          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --path "$GITHUB_WORKSPACE" --export-debug "Android" build/JEDLStudio-debug.apk 2>&1 | tee "$RUNNER_TEMP/godot-export.log"
+          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --path "$GITHUB_WORKSPACE" --export-debug "Android" build/JEDLStudio-debug.apk 2>&1 | tee "$RUNNER_TEMP/godot-export.log"
           godot_status=${PIPESTATUS[0]}
           set -e
           if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load' "$RUNNER_TEMP/godot-export.log"; then
