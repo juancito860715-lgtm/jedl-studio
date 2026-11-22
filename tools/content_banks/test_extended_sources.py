@@ -1,6 +1,8 @@
 import struct
 import tempfile
 import unittest
+from contextlib import redirect_stdout
+from io import StringIO
 from pathlib import Path
 
 from fetch_extended_sources import glb_valid, license_text, fetch, run_optional_source, require_preview_url, is_approved_grab3d_slug
