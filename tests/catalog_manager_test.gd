@@ -50,6 +50,15 @@ func _run_tests() -> void:
         "The scene engine must place a selected realistic 3D model")
     assert(parser.active_instances.size() == 1 and parser.active_instances.back() is Node3D,
         "A selected 3D model must become a Node3D scene instance")
+    var cutout_image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
+    cutout_image.fill(Color(1.0, 1.0, 1.0, 0.5))
+    var cutout_texture := ImageTexture.create_from_image(cutout_image)
+    var cutout := parser._create_2d_element(cutout_texture)
+    assert(cutout.texture == cutout_texture, "Individual 2D cutouts must retain their texture")
+    assert(cutout.billboard == BaseMaterial3D.BILLBOARD_ENABLED, "Individual 2D cutouts must face the scene camera")
+    assert(cutout.material_override.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA,
+        "Individual 2D cutouts must preserve transparent edges")
+    cutout.free()
 
     parser.queue_free()
     camera.queue_free()
