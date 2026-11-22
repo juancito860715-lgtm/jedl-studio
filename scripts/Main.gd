@@ -282,6 +282,14 @@ func _play_scene() -> void:
     if scene_parser != null:
         scene_parser.play_scene()
 
+func _animate_button(button: Control) -> void:
+    if not is_instance_valid(button):
+        return
+    var tween := create_tween()
+    tween.tween_property(button, "scale", Vector2(0.96, 0.96), 0.07)
+    tween.tween_property(button, "scale", Vector2.ONE, 0.12)
+
+
 func _show_gallery(kind: String, category_filter: String = "") -> void:
     if gallery_panel == null or gallery_list == null or catalog_manager == null:
         return
@@ -300,19 +308,17 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         var item_row := HBoxContainer.new()
         item_row.add_theme_constant_override("separation", 10)
         gallery_list.add_child(item_row)
-        if item.has("preview_path"):
-            var preview := TextureRect.new()
-            preview.custom_minimum_size = Vector2(124, 88)
-            preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-            preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-            preview.texture = load(String(item["preview_path"])) as Texture2D
-            item_row.add_child(preview)
         var add_button := Button.new()
         add_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-        add_button.custom_minimum_size = Vector2(0, 64)
+        add_button.custom_minimum_size = Vector2(0, 118)
         add_button.add_theme_font_size_override("font_size", 17)
         add_button.text = String(item["title"]) + " · " + String(item["category"]) + "\n" + String(item.get("license", ""))
+        if item.has("preview_path"):
+            add_button.icon = load(String(item["preview_path"])) as Texture2D
+            add_button.expand_icon = true
+            add_button.icon_max_width = 132
         var resource_path := String(item["path"])
+        add_button.pressed.connect(_animate_button.bind(add_button))
         add_button.pressed.connect(_add_gallery_asset.bind(resource_path))
         item_row.add_child(add_button)
     gallery_panel.visible = true
