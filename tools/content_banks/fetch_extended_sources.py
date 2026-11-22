@@ -98,7 +98,7 @@ def license_text(path: Path, expected: str) -> None:
         raise ValueError(f"CC0 evidence not present in {path}")
 
 
-def add_model(entries: list[dict], *, asset_id: str, title: str, category: str,
+def require_preview_url(preview_url: str, asset_id: str) -> str:\n    """Reject 3D entries that cannot produce an offline gallery thumbnail."""\n    if not preview_url or not preview_url.startswith("https://"):\n        raise ValueError(f"Every 3D model must provide an HTTPS preview URL: {asset_id}")\n    return preview_url\n\n\ndef add_model(entries: list[dict], *, asset_id: str, title: str, category: str,
               provider: str, source: str, license_url: str, license_id: str,
               model_url: str, license_payload: bytes | None = None,
               preview_url: str = "", description: str = "") -> None:
