@@ -96,7 +96,7 @@ jobs:
           test -s tests/scene_parser_test.gd
           test -s assets/gallery/catalog.json
           set +e
-          "$GODOT_BIN" --headless --editor --import --path "$GITHUB_WORKSPACE" --verbose 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
+          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --editor --import --path "$GITHUB_WORKSPACE" --verbose 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
           godot_status=${PIPESTATUS[0]}
           set -e
           if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed importing' "$RUNNER_TEMP/godot-import.log"; then
