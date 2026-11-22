@@ -167,6 +167,21 @@ func _build_overlay() -> void:
     close_gallery.add_theme_font_size_override("font_size", 18)
     close_gallery.pressed.connect(func(): gallery_panel.visible = false)
     gallery_header.add_child(close_gallery)
+    var category_row := HBoxContainer.new()
+    category_row.add_theme_constant_override("separation", 6)
+    gallery_column.add_child(category_row)
+    for category_data in [
+        {"label": "Fondos 2D", "kind": "2d", "category": "Fondos fotográficos"},
+        {"label": "Elementos 2D", "kind": "2d", "category": "Elementos 2D individuales"},
+        {"label": "Personajes 3D", "kind": "3d", "category": "Personajes animados"},
+        {"label": "Objetos 3D", "kind": "3d", "category": "Naturaleza y utilería realista"}
+    ]:
+        var category_button := Button.new()
+        category_button.text = String(category_data["label"])
+        category_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        category_button.pressed.connect(_show_gallery.bind(String(category_data["kind"]), String(category_data["category"])))
+        category_row.add_child(category_button)
+
     var gallery_scroll := ScrollContainer.new()
     gallery_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
     gallery_scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -267,16 +282,17 @@ func _play_scene() -> void:
     if scene_parser != null:
         scene_parser.play_scene()
 
-func _show_gallery(kind: String) -> void:
+func _show_gallery(kind: String, category_filter: String = "") -> void:
     if gallery_panel == null or gallery_list == null or catalog_manager == null:
         return
     for child in gallery_list.get_children():
         child.queue_free()
-    var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind)
-    gallery_title.text = (("Galería 2D · %d fondos fotográficos" % entries.size()) if kind == "2d" else ("Galería 3D · %d modelos" % entries.size())) + " · Poly Haven / CC0"
+    var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind, category_filter)
+    var category_title := category_filter if not category_filter.is_empty() else ("Recursos 2D" if kind == "2d" else "Recursos 3D")
+    gallery_title.text = "%s · %d recursos" % [category_title, entries.size()]
     if entries.is_empty():
         var empty_label := Label.new()
-        empty_label.text = "No se encontraron recursos empaquetados."
+        empty_label.text = "Esta categoría todavía no tiene recursos empaquetados. No se mostrarán sustitutos rudimentarios."
         empty_label.add_theme_font_size_override("font_size", 18)
         gallery_list.add_child(empty_label)
     for index in range(mini(entries.size(), 300)):
