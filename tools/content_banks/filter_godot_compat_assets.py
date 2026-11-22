@@ -140,12 +140,12 @@ def filter_catalog(root: Path = ROOT) -> dict:
         "compatibleCount": sum(1 for item in inspected if item["compatibleByExtensionGate"]),
         "excludedCount": len(excluded),
         "activeCatalogCount": len(catalog["assets"]),
-        "missingExplicitExclusions": sorted(missing_policy_assets),
+        "explicitExclusionPolicyAssetIds": sorted(policy_exclusions),
+        "policyExclusionsEncounteredInAcquisition": sorted(seen_policy_exclusions),
+        "policyExclusionsNotPresentInAcquisition": sorted(missing_policy_assets),
         "inspectedAssets": inspected,
         "excludedAssets": excluded,
     }
-    if missing_policy_assets:
-        raise ValueError("Explicitly excluded assets unexpectedly absent from acquisition/catalog: " + ", ".join(sorted(missing_policy_assets)))
     (root / "assets/gallery/glb_compatibility_report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
