@@ -2,6 +2,7 @@ extends Node
 class_name SceneParser
 
 var world_root: Node3D
+var background_display: TextureRect
 var subtitle_label: Control
 var audio_player: AudioStreamPlayer
 var scene_data: Dictionary = {}
@@ -85,15 +86,13 @@ func add_catalog_asset(resource_path: String) -> bool:
     var instance: Node3D
     if extension in ["png", "jpg", "jpeg", "webp"]:
         var texture := load(resource_path) as Texture2D
-        if texture == null:
-            push_error("Catalog image could not be loaded: " + resource_path)
+        if texture == null or background_display == null:
+            push_error("Catalog image or 2D background display could not be loaded: " + resource_path)
             return false
-        var sprite := Sprite3D.new()
-        sprite.texture = texture
-        sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-        var largest_dimension := maxf(float(texture.get_width()), float(texture.get_height()))
-        sprite.pixel_size = 1.2 / maxf(largest_dimension, 1.0)
-        instance = sprite
+        # A photographic background is a viewport backplate, not a world-space Sprite3D.
+        background_display.texture = texture
+        background_display.visible = true
+        return true
     elif extension in ["glb", "gltf", "tscn"]:
         var packed := load(resource_path) as PackedScene
         if packed == null:
