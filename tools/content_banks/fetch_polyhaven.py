@@ -11,6 +11,8 @@ import io
 import json
 import urllib.parse
 import urllib.request
+import urllib.error
+import time
 from pathlib import Path
 
 from PIL import Image
@@ -20,6 +22,7 @@ OUT_2D = ROOT / "assets/gallery/2d"
 OUT_3D = ROOT / "assets/gallery/3d"
 CATALOG = ROOT / "assets/gallery/catalog.json"
 USER_AGENT = "JEDL-Studio-Offline-Asset-Builder/1.0 (CC0 asset packaging)"
+POLYHAVEN_LICENSE = "https://polyhaven.com/license"
 
 HDRIS = {
     "mossy_forest": "Bosque musgoso con arroyo",
@@ -51,12 +54,32 @@ MODELS = {
 
 
 def request_bytes(url: str, max_bytes: int = 80_000_000) -> bytes:
+    if urllib.parse.urlparse(url).scheme != "https":
+        raise ValueError(f"Asset downloads must use HTTPS: {url}")
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=90) as response:
-        payload = response.read(max_bytes + 1)
-    if not payload or len(payload) > max_bytes:
-        raise ValueError(f"Download size invalid for {url}: {len(payload)} bytes")
-    return payload
+    last_error = None
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(request, timeout=90) as response:
+                payload = response.read(max_bytes + 1)
+            if not payload or len(payload) > max_bytes:
+                raise ValueError(f"Download size invalid for {url}: {len(payload)} bytes")
+            return payload
+        except urllib.error.HTTPError as error:
+            if error.code < 500 and error.code != 429:
+                raise
+            last_error = error
+        except (urllib.error.URLError, TimeoutError) as error:
+            last_error = error
+        if attempt < 4:
+            time.sleep(min(2 ** attempt, 12))
+    raise RuntimeError(f"Download failed after five attempts: {url}") from last_error
+
+
+def verify_provider_license(metadata: dict, asset_id: str) -> None:
+    declared = metadata.get("license")
+    if declared is not None and str(declared).strip().upper() not in {"CC0", "CC0-1.0"}:
+        raise ValueError(f"Poly Haven API reports a non-CC0 license for {asset_id}: {declared}")
 
 
 def get_json(url: str) -> dict:
@@ -96,6 +119,7 @@ def build_2d(api_assets: dict) -> list[dict]:
         metadata = api_assets.get(asset_id)
         if not metadata or metadata.get("type") != 0:
             raise ValueError(f"Missing or invalid Poly Haven HDRI: {asset_id}")
+        verify_provider_license(metadata, asset_id)
         files = get_json(f"https://api.polyhaven.com/files/{asset_id}")
         tonemapped = files.get("tonemapped", {})
         url = tonemapped.get("url")
@@ -110,7 +134,7 @@ def build_2d(api_assets: dict) -> list[dict]:
             "preview_path": "res://" + output.relative_to(ROOT).as_posix(),
             "kind": "2d", "category": "Fondos fotográficos",
             "format": "JPEG", "width": dimensions[0], "height": dimensions[1],
-            "license": "CC0-1.0", "source": f"https://polyhaven.com/a/{asset_id}",
+            "license": "CC0-1.0", "licenseEvidence": POLYHAVEN_LICENSE, "source": f"https://polyhaven.com/a/{asset_id}",
             "publisher": "Poly Haven", "authors": metadata.get("authors", {}),
             "tags": metadata.get("tags", []), "sha256": sha256(output),
             "offline": True, "placeable": True,
@@ -137,6 +161,7 @@ def build_3d(api_assets: dict) -> list[dict]:
         metadata = api_assets.get(asset_id)
         if not metadata or metadata.get("type") != 2:
             raise ValueError(f"Missing or invalid Poly Haven model: {asset_id}")
+        verify_provider_license(metadata, asset_id)
         polycount = int(metadata.get("polycount", 0))
         if polycount <= 0 or polycount > 200_000:
             raise ValueError(f"Model exceeds mobile polycount budget: {asset_id} ({polycount})")
@@ -172,7 +197,7 @@ def build_3d(api_assets: dict) -> list[dict]:
             "kind": "3d", "category": category,
             "format": model_path.suffix.lstrip(".").upper(),
             "polycount": polycount, "dimensions_mm": metadata.get("dimensions", []),
-            "license": "CC0-1.0", "source": f"https://polyhaven.com/a/{asset_id}",
+            "license": "CC0-1.0", "licenseEvidence": POLYHAVEN_LICENSE, "source": f"https://polyhaven.com/a/{asset_id}",
             "publisher": "Poly Haven", "authors": metadata.get("authors", {}),
             "tags": metadata.get("tags", []), "sha256": sha256(model_path),
             "offline": True, "placeable": True,
@@ -186,12 +211,21 @@ def main() -> None:
     fox_path = ROOT / "assets/characters/Fox.glb"
     if not fox_path.is_file():
         raise FileNotFoundError("The Khronos Fox GLB test character was not downloaded")
+    fox_license = ROOT / "assets/characters/Fox.LICENSE.md"
+    if not fox_license.is_file():
+        raise FileNotFoundError("The Khronos Fox license file was not downloaded")
+    fox_license_text = fox_license.read_text(encoding="utf-8")
+    if "CC0-1.0" not in fox_license_text or "CC-BY-4.0" not in fox_license_text:
+        raise ValueError("The Khronos Fox license file does not contain the expected CC0 and CC-BY grants")
     entries.append({
         "id": "character.fox.khronos.v1", "title": "Zorro animado · Walk / Run",
         "description": "Personaje 3D riggeado de muestra con animaciones Walk, Run y Survey",
         "path": "res://" + fox_path.relative_to(ROOT).as_posix(),
         "kind": "3d", "category": "Personajes animados",
         "format": "GLB", "license": "CC0-1.0 + CC-BY-4.0",
+        "licenseEvidence": "https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/Fox/LICENSE.md",
+        "licenseFile": "res://assets/characters/Fox.LICENSE.md",
+        "attribution": "Khronos glTF Sample Assets contributors",
         "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Fox",
         "publisher": "Khronos glTF Sample Assets",
         "offline": True, "placeable": True,

@@ -42,9 +42,8 @@ Reject or quarantine assets with non-commercial, editorial-only, no-derivatives,
 
 | Source | Reported scale / content | License and redistribution screen | JEDL decision |
 |---|---|---|---|
-| Tiddybub 2D Assets | Repository describes 1,101 CC0 packs covering sprites, tilesets, characters, animals, nature and props | Repository claims CC0 and each pack includes SOURCE.md; verify original source and license for every pack | CANDIDATE; import pack-by-pack only |
 | CodeLove 3D Models | Site reports 6,792 GLB models, 91 collections, 275 rigged characters/animals and 20 animation clips | Each file/ZIP reportedly carries MIT, CC0, public-domain or CC BY terms; preserve MIT notices and CC BY attribution | CANDIDATE; per-model license gate |
-| Grab3D | Site reports 2,565 3D models, 75 kits and a separate 294-item transparent PNG catalog | Site identifies CC0 and supplies license files; verify exact pack, formats and technical suitability | CANDIDATE; validate per pack |
+| Grab3D | Site reports 2,565 3D models and 75 kits | Validate exact 3D pack, formats, source provenance and original license | CANDIDATE; validate per pack |
 | OmniMod 3D Library | Repository reports 5,952 OBJ models, including nature, buildings, props, vehicles, furniture and characters | Repository claims CC0; validate repository license and original Kenney/Kay Lousberg provenance | CANDIDATE; useful mostly for low-poly/static scene props |
 | Tevy Assets | Specific Casual Walker GLB | Model page states CC0; 56-bone rig and four looping clips | CANDIDATE; one model, not a character library |
 | Innerscene 3D Parts | Specific rigged human base meshes | Individual pages state CC0 and redistribution; inspect source derivation and mesh suitability | CANDIDATE; base meshes for character editor, not finished wardrobe |
@@ -52,7 +51,7 @@ Reject or quarantine assets with non-commercial, editorial-only, no-derivatives,
 | Rijksmuseum | Large high-resolution digitized collection | Most collection images are PD/CC0; some CC BY and restricted items exist | APPROVED PD/CC0 only in default lane; CC BY requires attribution |
 | StockSnap | High-resolution photography across nature, architecture, travel and backgrounds | Provider states all photos are CC0; still check people, trademarks, property and per-image provenance | CANDIDATE per image |
 | British Library Flickr Commons | More than one million digitized images | Only images explicitly marked public domain; British Library's CC-licensed content is limited to non-commercial use under its terms | APPROVED public-domain-marked files only |
-| Free Game Dev Assets index | Searchable catalog of 2D/3D sources | Index is discovery metadata, not a license grant | DISCOVERY ONLY; verify original publisher |
+| Free Game Dev Assets index | Searchable catalog of 3D sources | Index is discovery metadata, not a license grant | DISCOVERY ONLY; verify original publisher |
 | Pexels | Large photo/video catalog | Current terms prohibit standalone redistribution and bulk/systematic collection for stock-library use | EXCLUDED from JEDL's bundled editable catalog |
 | Unsplash | Large photography catalog | Commercial use allowed, but terms prohibit compiling images to create a similar/competing service | EXCLUDED from JEDL's bundled editable catalog |
 
@@ -62,7 +61,7 @@ The provider counts above are claims displayed by the respective sources at rese
 
 - asset_id (stable, namespaced)
 - title, description, category, tags
-- kind (background_2d, cutout_2d, prop_3d, character_3d, material, texture)
+- kind (photographic_background, prop_3d, character_3d, material, texture). Individual 2D cutouts, sprites and illustrations are excluded; photographic backgrounds remain JPEG backplates.
 - format, dimensions, alpha/transparency, resolution, polycount, rigged flag and animation clip names where applicable
 - source_provider, source_url, creator
 - license_id, license_url, commercial_use=true, redistribution=true, modification_allowed
@@ -90,7 +89,6 @@ Do not put hundreds of large files into every small APK update by default. Keep 
 - ShareTextures license and terms: https://www.sharetextures.com/p/license and https://www.sharetextures.com/p/terms
 - AutoSprite free asset license: https://www.autosprite.io/free/license
 - Sketchfab license agreement: https://sketchfab.com/licenses
-- Tiddybub 2D Assets: https://github.com/Tiddybub/2d-assets
 - CodeLove 3D Models: https://models.codelove.in/
 - Grab3D: https://grab3d.com/
 - OmniMod 3D Library: https://github.com/Mcamento8/omnimod-3d-library
