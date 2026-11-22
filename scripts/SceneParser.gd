@@ -74,32 +74,55 @@ func _instantiate_entries(entries: Array) -> bool:
         if resource_path.is_empty():
             push_error("Scene entry is missing path")
             return false
-        var packed := load(resource_path) as PackedScene
-        if packed == null:
-            push_error("Scene resource is not an imported PackedScene: " + resource_path)
-            return false
-        var instance := packed.instantiate()
-        if not instance is Node3D:
-            instance.queue_free()
-            push_error("Scene resource root must be Node3D: " + resource_path)
-            return false
-        var node := instance as Node3D
-        node.name = String(entry.get("name", entry.get("id", resource_path.get_file().get_basename())))
-        node.set_meta("jedl_asset_id", String(entry.get("id", "")))
-        node.set_meta("jedl_layer", String(entry.get("layer", "objects")))
-        node.position = _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
+        var instance: Node3D
+        var extension := resource_path.get_extension().to_lower()
+        if extension in ["png", "jpg", "jpeg", "webp"]:
+            var texture := load(resource_path) as Texture2D
+            if texture == null:
+                push_error("2D scene element texture could not be loaded: " + resource_path)
+                return false
+            instance = _create_2d_element(texture, entry)
+        else:
+            var packed := load(resource_path) as PackedScene
+            if packed == null:
+                push_error("Scene resource is not an imported PackedScene: " + resource_path)
+                return false
+            var candidate := packed.instantiate()
+            if not candidate is Node3D:
+                candidate.queue_free()
+                push_error("Scene resource root must be Node3D: " + resource_path)
+                return false
+            instance = candidate as Node3D
+        instance.name = String(entry.get("name", entry.get("id", resource_path.get_file().get_basename())))
+        instance.set_meta("jedl_asset_id", String(entry.get("id", "")))
+        instance.set_meta("jedl_layer", String(entry.get("layer", "objects")))
+        instance.position = _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
         if entry.has("depth"):
-            node.position.z = float(entry["depth"])
-        node.rotation_degrees = _vector3_from(entry.get("rotation_degrees", [0.0, 0.0, 0.0]))
-        node.scale = _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
+            instance.position.z = float(entry["depth"])
+        instance.rotation_degrees = _vector3_from(entry.get("rotation_degrees", [0.0, 0.0, 0.0]))
+        instance.scale = _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
         if world_root != null:
-            world_root.add_child(node)
-        active_instances.append(node)
+            world_root.add_child(instance)
+        active_instances.append(instance)
         var animation_name := String(entry.get("animation", ""))
         if not animation_name.is_empty():
             var should_loop := bool(entry.get("animation_loop", true))
-            _play_animation(node, animation_name, should_loop)
+            _play_animation(instance, animation_name, should_loop)
     return true
+
+
+func _create_2d_element(texture: Texture2D, entry: Dictionary = {}) -> Sprite3D:
+    var sprite := Sprite3D.new()
+    sprite.texture = texture
+    sprite.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+    sprite.pixel_size = maxf(0.0001, float(entry.get("pixel_size", 0.01)))
+    sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    var material := StandardMaterial3D.new()
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+    material.albedo_texture = texture
+    sprite.material_override = material
+    return sprite
 
 
 func clear_background() -> void:
@@ -148,14 +171,19 @@ func _fit_background_to_camera() -> void:
     background_sprite.scale = Vector3(cover_scale, cover_scale, 1.0)
 
 
-func add_catalog_asset(resource_path: String) -> bool:
+func add_catalog_asset(resource_path: String, as_background: bool = true) -> bool:
     if world_root == null or resource_path.is_empty():
         return false
 
     var extension := resource_path.get_extension().to_lower()
     var instance: Node3D
     if extension in ["png", "jpg", "jpeg", "webp"]:
-        return set_background(resource_path)
+        if as_background:
+            return set_background(resource_path)
+        var texture := load(resource_path) as Texture2D
+        if texture == null:
+            return false
+        instance = _create_2d_element(texture)
     elif extension in ["glb", "gltf", "tscn"]:
         var packed := load(resource_path) as PackedScene
         if packed == null:
