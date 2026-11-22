@@ -25,11 +25,14 @@ MAX_IMAGE_BYTES = 18_000_000
 MAX_TRIANGLES = 200_000
 
 
-def fetch(url: str, limit: int) -> bytes:
+def fetch(url: str, limit: int, headers: dict[str, str] | None = None) -> bytes:
     parsed = urllib.parse.urlparse(url)
     if parsed.scheme != "https" or not parsed.netloc:
         raise ValueError(f"HTTPS URL required: {url}")
-    request = urllib.request.Request(url, headers={"User-Agent": UA})
+    request_headers = {"User-Agent": UA}
+    if headers:
+        request_headers.update(headers)
+    request = urllib.request.Request(url, headers=request_headers)
     last_error = None
     for attempt in range(5):
         try:
@@ -46,8 +49,8 @@ def fetch(url: str, limit: int) -> bytes:
     raise RuntimeError(f"Download failed: {url}") from last_error
 
 
-def get_json(url: str, limit: int = 20_000_000) -> dict:
-    value = json.loads(fetch(url, limit).decode("utf-8"))
+def get_json(url: str, limit: int = 20_000_000, headers: dict[str, str] | None = None) -> dict:
+    value = json.loads(fetch(url, limit, headers=headers).decode("utf-8"))
     if not isinstance(value, dict):
         raise ValueError(f"Expected JSON object from {url}")
     return value
@@ -211,8 +214,12 @@ def add_art_institute_photographs(entries: list[dict]) -> None:
         "fields": "id,title,artist_display,date_display,image_id,artwork_type_title,classification_title,is_public_domain"
     })
     url = "https://api.artic.edu/api/v1/artworks/search?" + query
-    result = get_json(url, 8_000_000)
+    aic_headers = {"AIC-User-Agent": "JEDL-Studio-Offline-Asset-Builder/1.0"}
+    result = get_json(url, 8_000_000, headers=aic_headers)
     records = result.get("data", [])
+    iiif_base = str(result.get("config", {}).get("iiif_url", "")).rstrip("/")
+    if not iiif_base.startswith("https://"):
+        raise ValueError("Art Institute API did not provide a valid HTTPS IIIF base URL")
     from PIL import Image
     import io
     for item in records:
@@ -222,9 +229,17 @@ def add_art_institute_photographs(entries: list[dict]) -> None:
         classification = str(item.get("classification_title", "")).lower()
         if "photograph" not in type_name and "photograph" not in classification:
             continue
+        # Verify item-level rights before requesting the image binary.
+        detail_url = f"https://api.artic.edu/api/v1/artworks/{item['id']}"
+        detail = get_json(detail_url, 2_000_000, headers=aic_headers)
+        rights_record = detail.get("data", {})
+        cc0_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+        license_links = detail.get("info", {}).get("license_links", [])
+        if rights_record.get("is_public_domain") is not True or cc0_url not in license_links:
+            continue
         image_id = str(item["image_id"])
-        image_url = f"https://www.artic.edu/iiif/2/{image_id}/full/1686,/0/default.jpg"
-        payload = fetch(image_url, MAX_IMAGE_BYTES)
+        image_url = f"{iiif_base}/{image_id}/full/843,/0/default.jpg"
+        payload = fetch(image_url, MAX_IMAGE_BYTES, headers=aic_headers)
         with Image.open(io.BytesIO(payload)) as image:
             image.verify()
         with Image.open(io.BytesIO(payload)) as image:
@@ -235,13 +250,6 @@ def add_art_institute_photographs(entries: list[dict]) -> None:
             folder.mkdir(parents=True, exist_ok=True)
             path = folder / f"aic_{item['id']}.jpg"
             image.save(path, "JPEG", quality=90, optimize=True)
-        detail_url = f"https://api.artic.edu/api/v1/artworks/{item['id']}"
-        detail = get_json(detail_url, 2_000_000)
-        rights_record = detail.get("data", {})
-        cc0_url = "https://creativecommons.org/publicdomain/zero/1.0/"
-        license_links = detail.get("info", {}).get("license_links", [])
-        if rights_record.get("is_public_domain") is not True or cc0_url not in license_links:
-            continue
         rights_path = folder / f"aic_{item['id']}.rights.json"
         rights_path.write_text(json.dumps({
             "record": rights_record,
@@ -266,6 +274,17 @@ def add_art_institute_photographs(entries: list[dict]) -> None:
         time.sleep(1.0)
 
 
+def run_optional_source(source_name: str, operation, statuses: list[dict]) -> None:
+    """Run a non-core provider without hiding its failure or blocking verified feeds."""
+    try:
+        operation()
+        statuses.append({"source": source_name, "status": "completed"})
+        print(f"OPTIONAL_SOURCE_OK: {source_name}")
+    except Exception as error:
+        status = {"source": source_name, "status": "deferred", "error_type": type(error).__name__, "reason": str(error)}
+        statuses.append(status)
+        print(f"OPTIONAL_SOURCE_DEFERRED: {source_name}: {type(error).__name__}: {error}")
+
 def main() -> None:
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     entries = catalog.get("assets", [])
@@ -276,7 +295,12 @@ def main() -> None:
     add_grab3d(additions)
     # Other catalog feeds remain disabled until their import format passes
     # the Godot 4.4 importer and the per-item redistribution evidence gate.
-    add_art_institute_photographs(additions)
+    optional_statuses: list[dict] = []
+    run_optional_source(
+        "Art Institute of Chicago photographic backgrounds",
+        lambda: add_art_institute_photographs(additions),
+        optional_statuses,
+    )
     for entry in additions:
         if entry["id"] in existing:
             raise ValueError(f"Duplicate extended asset id: {entry['id']}")
@@ -288,6 +312,7 @@ def main() -> None:
         " Extended CC0 items retain per-item source, license evidence and packaged notices.")
     CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"EXTENDED_ASSET_BANK_OK: added={len(additions)} total={len(entries)}")
+    print("OPTIONAL_SOURCE_STATUS: " + json.dumps(optional_statuses, ensure_ascii=False))
     print("SOURCE_STATUS: Smithsonian and NASA held until item-level CC0/public-domain media proof is attached; "
           "Rijksmuseum held until an authenticated or openly accessible image endpoint and item rights record "
           "are verified; other compressed feeds remain held until Godot 4.4 compatibility is proven; "
