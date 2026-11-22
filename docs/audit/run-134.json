@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "auditId": "JEDL-SOL-012-RUN-134",
+  "repository": "juancito860715-lgtm/jedl-studio",
+  "pullRequest": {"number": 13, "state": "open", "merged": false, "branch": "feat/catalog-and-3d-production-editor"},
+  "workflowRun": {
+    "runNumber": 134,
+    "runId": 45063091529,
+    "url": "https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45063091529",
+    "status": "completed",
+    "conclusion": "failure",
+    "testedHeadCommit": "fea3abd35bb006b81f45604007f773088fe30bbd",
+    "checkedOutPullRequestMergeCommit": "b3b3289962dad8159471279635016531a246bef8",
+    "failedJobId": 137333528403,
+    "failedStep": "Import project resources before tests"
+  },
+  "observedFailure": {
+    "message": "This function (finalize) can only be called from the render thread.",
+    "logFile": "godot-import.log",
+    "result": "Import stopped before resource validation, negative importer test, scene tests, or Android export."
+  },
+  "artifact": {
+    "artifactId": 14769708268,
+    "name": "jedl-studio-resource-validation",
+    "containedFiles": ["glb_compatibility_report.json"],
+    "missingFiles": ["validation_report.json"],
+    "meaning": "Compatibility filtering ran, but the per-resource import/instantiation/renderability report was not produced."
+  },
+  "tevy": {
+    "assetId": "character.tevy.casual_walker.v1",
+    "statusInRun134": "excluded",
+    "unsupportedRequiredExtensions": ["EXT_meshopt_compression", "KHR_mesh_quantization"],
+    "decision": "Remain excluded until conversion or complete Godot 4.4.1 import, instantiation and renderability validation."
+  },
+  "phaseA": {
+    "status": "open_blocked",
+    "FIX_A_01": "not_closed: import emitted a render-thread finalization error",
+    "FIX_A_02": "not_verified_in_run_134: workflow stopped before the real negative GLB importer test",
+    "FIX_A_03": "not_verified_in_run_134: validation_report.json was not produced",
+    "FIX_A_04": "audit completed: run result and failure documented",
+    "FIX_TEVY": "excluded: unsupported extension evidence recorded; policy in docs/asset_exclusions.json"
+  },
+  "releaseRestrictions": {
+    "phaseBAllowed": false,
+    "catalogExpansionAllowed": false,
+    "pullRequestMergeAllowed": false,
+    "productionCertificationAllowed": false,
+    "apkProducedByRun134": false
+  }
+}
