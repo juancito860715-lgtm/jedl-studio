@@ -11,6 +11,8 @@ import io
 import json
 import urllib.parse
 import urllib.request
+import urllib.error
+import time
 from pathlib import Path
 
 from PIL import Image
@@ -52,12 +54,32 @@ MODELS = {
 
 
 def request_bytes(url: str, max_bytes: int = 80_000_000) -> bytes:
+    if urllib.parse.urlparse(url).scheme != "https":
+        raise ValueError(f"Asset downloads must use HTTPS: {url}")
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
-    with urllib.request.urlopen(request, timeout=90) as response:
-        payload = response.read(max_bytes + 1)
-    if not payload or len(payload) > max_bytes:
-        raise ValueError(f"Download size invalid for {url}: {len(payload)} bytes")
-    return payload
+    last_error = None
+    for attempt in range(5):
+        try:
+            with urllib.request.urlopen(request, timeout=90) as response:
+                payload = response.read(max_bytes + 1)
+            if not payload or len(payload) > max_bytes:
+                raise ValueError(f"Download size invalid for {url}: {len(payload)} bytes")
+            return payload
+        except urllib.error.HTTPError as error:
+            if error.code < 500 and error.code != 429:
+                raise
+            last_error = error
+        except (urllib.error.URLError, TimeoutError) as error:
+            last_error = error
+        if attempt < 4:
+            time.sleep(min(2 ** attempt, 12))
+    raise RuntimeError(f"Download failed after five attempts: {url}") from last_error
+
+
+def verify_provider_license(metadata: dict, asset_id: str) -> None:
+    declared = metadata.get("license")
+    if declared is not None and str(declared).strip().upper() not in {"CC0", "CC0-1.0"}:
+        raise ValueError(f"Poly Haven API reports a non-CC0 license for {asset_id}: {declared}")
 
 
 def get_json(url: str) -> dict:
@@ -97,6 +119,7 @@ def build_2d(api_assets: dict) -> list[dict]:
         metadata = api_assets.get(asset_id)
         if not metadata or metadata.get("type") != 0:
             raise ValueError(f"Missing or invalid Poly Haven HDRI: {asset_id}")
+        verify_provider_license(metadata, asset_id)
         files = get_json(f"https://api.polyhaven.com/files/{asset_id}")
         tonemapped = files.get("tonemapped", {})
         url = tonemapped.get("url")
@@ -138,6 +161,7 @@ def build_3d(api_assets: dict) -> list[dict]:
         metadata = api_assets.get(asset_id)
         if not metadata or metadata.get("type") != 2:
             raise ValueError(f"Missing or invalid Poly Haven model: {asset_id}")
+        verify_provider_license(metadata, asset_id)
         polycount = int(metadata.get("polycount", 0))
         if polycount <= 0 or polycount > 200_000:
             raise ValueError(f"Model exceeds mobile polycount budget: {asset_id} ({polycount})")
