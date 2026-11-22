@@ -77,6 +77,8 @@ jobs:
           rm -rf assets/gallery/2d assets/gallery/3d assets/gallery/catalog.json
           python tools/content_banks/fetch_polyhaven.py
           python -m unittest discover -s tools/content_banks -p "test_polyhaven_*.py" -v
+          python -m unittest discover -s tools/content_banks -p "test_root_manifest.py" -v
+          python tools/content_banks/build_root_manifest.py
       - name: Import project resources before tests
         run: |
           set -euo pipefail
