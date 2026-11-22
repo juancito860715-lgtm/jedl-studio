@@ -11,7 +11,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: jedl-godot-android-\${{ github.ref }}
+  group: jedl-godot-android-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
@@ -97,7 +97,7 @@ jobs:
           test -s assets/gallery/catalog.json
           set +e
           "$GODOT_BIN" --headless --editor --import --path "$GITHUB_WORKSPACE" --verbose 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
-          godot_status=\${PIPESTATUS[0]}
+          godot_status=${PIPESTATUS[0]}
           set -e
           if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed importing' "$RUNNER_TEMP/godot-import.log"; then
             echo "Godot import emitted an error; refusing to run tests or export an APK."
@@ -114,7 +114,7 @@ jobs:
           set -euo pipefail
           set +e
           "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/catalog_asset_validation.gd --verbose 2>&1 | tee "$RUNNER_TEMP/catalog-asset-validation.log"
-          godot_status=\${PIPESTATUS[0]}
+          godot_status=${PIPESTATUS[0]}
           set -e
           if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed to instantiate' "$RUNNER_TEMP/catalog-asset-validation.log"; then
             echo "At least one active catalog resource failed import, integrity, dependency, instantiation or renderability checks."
@@ -134,7 +134,7 @@ jobs:
             echo "::group::Godot test: $test_script"
             set +e
             timeout --signal=TERM --kill-after=10s 90s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --path "$GITHUB_WORKSPACE" --script "$test_script" --quit-after 120 2>&1 | tee "$log_file"
-            local godot_status=\${PIPESTATUS[0]}
+            local godot_status=${PIPESTATUS[0]}
             set -e
             if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Assertion failed|Invalid call\.' "$log_file"; then
               echo "Godot test emitted an error: $test_script"
@@ -176,7 +176,7 @@ jobs:
           mkdir -p build
           set +e
           xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --path "$GITHUB_WORKSPACE" --export-debug "Android" build/JEDLStudio-debug.apk 2>&1 | tee "$RUNNER_TEMP/godot-export.log"
-          godot_status=\${PIPESTATUS[0]}
+          godot_status=${PIPESTATUS[0]}
           set -e
           if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load' "$RUNNER_TEMP/godot-export.log"; then
             echo "Godot export contains errors; refusing to publish this APK."
@@ -209,6 +209,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: jedl-studio-validation-logs
-          path: \${{ runner.temp }}/*.log
+          path: ${{ runner.temp }}/*.log
           if-no-files-found: warn
           retention-days: 14
