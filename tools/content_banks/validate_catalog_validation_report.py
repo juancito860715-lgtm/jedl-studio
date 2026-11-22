@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify that Godot's per-resource import/instance/renderability report is complete and clean."""
+"""Verify Godot's complete per-resource integrity/import/instance/renderability report."""
 from __future__ import annotations
 
 import hashlib
@@ -27,26 +27,50 @@ def validate_report(root: Path = ROOT) -> dict:
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     report = json.loads(report_path.read_text(encoding="utf-8"))
-    if report.get("schemaVersion") != 1:
+    if report.get("schemaVersion") != 2:
         raise ValueError("Unsupported Godot validation report schema")
     if report.get("catalogSha256") != sha256(catalog_path):
         raise ValueError("Godot validation report does not match the current catalog hash")
     entries = catalog.get("assets", [])
+    manifest_assets = manifest.get("assets", [])
     records = report.get("assets", [])
-    if not isinstance(entries, list) or not isinstance(records, list):
-        raise ValueError("Catalog/report assets must be arrays")
+    if not all(isinstance(value, list) for value in (entries, manifest_assets, records)):
+        raise ValueError("Catalog, manifest and report assets must be arrays")
     expected_ids = {str(item.get("id", "")) for item in entries}
+    manifest_by_id = {str(item.get("assetId", "")): item for item in manifest_assets}
     record_ids = [str(item.get("assetId", "")) for item in records]
     if len(record_ids) != len(set(record_ids)) or set(record_ids) != expected_ids:
         raise ValueError("Godot report asset IDs differ from the active catalog")
+    if set(manifest_by_id) != expected_ids:
+        raise ValueError("Root manifest asset IDs differ from the active catalog")
+    manifest_files = {str(item.get("path", "")): item for item in manifest.get("files", [])}
     by_id = {str(item["assetId"]): item for item in records}
     for asset_id in sorted(expected_ids):
         record = by_id[asset_id]
-        if not all(record.get(key) is True for key in ("importado", "instanciado", "renderizable")):
+        manifest_asset = manifest_by_id[asset_id]
+        if not all(record.get(key) is True for key in (
+            "importado", "instanciado", "renderizable", "dependenciesValid"
+        )):
             raise ValueError(f"Godot validation failed for {asset_id}: {record}")
         if record.get("errors"):
             raise ValueError(f"Godot validation reported errors for {asset_id}: {record['errors']}")
-    manifest_files = {str(item.get("path", "")): item for item in manifest.get("files", [])}
+        if record.get("assetSha256") != manifest_asset.get("sha256"):
+            raise ValueError(f"Godot asset SHA-256 differs from manifest for {asset_id}")
+        if int(record.get("assetSizeBytes", -1)) != int(manifest_asset.get("sizeBytes", -2)):
+            raise ValueError(f"Godot asset size differs from manifest for {asset_id}")
+        dependencies = manifest_asset.get("dependencies", [])
+        if sorted(record.get("dependencies", [])) != sorted(dependencies):
+            raise ValueError(f"Godot dependency list differs from manifest for {asset_id}")
+        for dependency in dependencies:
+            if dependency not in manifest_files:
+                raise ValueError(f"Model dependency is missing from manifest file inventory: {asset_id} -> {dependency}")
+        if manifest_asset.get("kind") == "3d" and int(record.get("nodeCount", 0)) <= 0:
+            raise ValueError(f"3D scene has zero child nodes: {asset_id}")
+        if manifest_asset.get("kind") == "3d" and (
+            int(record.get("meshInstances", 0)) <= 0 or int(record.get("surfaces", 0)) <= 0
+        ):
+            raise ValueError(f"3D scene has no renderable mesh surfaces: {asset_id}")
+
     report_record = manifest_files.get("res://assets/gallery/validation_report.json")
     if not report_record:
         raise ValueError("Root manifest does not include validation_report.json")
@@ -54,7 +78,14 @@ def validate_report(root: Path = ROOT) -> dict:
         raise ValueError("Validation report hash differs from root manifest")
     if report_record.get("sizeBytes") != report_path.stat().st_size:
         raise ValueError("Validation report size differs from root manifest")
-    return {"assets": len(records), "imported": len(records), "instantiated": len(records), "renderable": len(records)}
+    return {
+        "assets": len(records),
+        "imported": len(records),
+        "instantiated": len(records),
+        "renderable": len(records),
+        "dependenciesVerified": sum(len(item.get("dependencies", [])) for item in records),
+        "threeDimensionalNodeCountsVerified": sum(1 for item in manifest_assets if item.get("kind") == "3d"),
+    }
 
 
 if __name__ == "__main__":
