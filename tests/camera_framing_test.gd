@@ -28,7 +28,30 @@ func _run_test() -> void:
     assert(main.gallery_list.get_child_count() == 12, "The photographic background gallery must display all twelve packaged backgrounds")
     main._show_gallery("3d")
     assert(main.gallery_panel.visible, "The 3D gallery button must open a visible gallery panel")
-    assert(main.gallery_list.get_child_count() == 12, "The 3D gallery must display eleven models and the animated Fox")
+    var gallery_3d_entries: Array[Dictionary] = main.catalog_manager.scan_catalog("3d")
+    var expected_core_3d_ids := [
+        "model.tree_stump_01",
+        "model.tree_stump_02",
+        "model.dead_quiver_branch_01",
+        "model.dead_quiver_branch_02",
+        "model.dead_quiver_trunk",
+        "model.dead_tree_trunk_02",
+        "model.ArmChair_01",
+        "model.Barrel_02",
+        "model.treasure_chest",
+        "model.tool_cart",
+        "model.trashbag",
+        "character.fox.khronos.v1",
+    ]
+    var gallery_ids: Array[String] = []
+    for entry in gallery_3d_entries:
+        gallery_ids.append(String(entry.get("id", "")))
+    for expected_id in expected_core_3d_ids:
+        assert(gallery_ids.has(expected_id), "The 3D gallery is missing required core asset: " + expected_id)
+    assert(gallery_3d_entries.size() >= expected_core_3d_ids.size(),
+        "The 3D gallery must retain all eleven curated models and the animated Fox")
+    assert(main.gallery_list.get_child_count() == gallery_3d_entries.size(),
+        "The 3D gallery must render every catalog entry, including newly verified sources")
     main._show_json_editor()
     assert(main.json_panel.visible, "The JSON editor button must open the editor")
     main._validate_and_load_json()
