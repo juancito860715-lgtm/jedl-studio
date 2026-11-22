@@ -27,4 +27,4 @@ See `scenes/scene.example.json`. It places the animated Fox in front of the Moss
 
 ## Validation status
 
-The parser accepts version 1 and version 2 roots. The `elements` collection is optional and currently loads scene resources through the same Node3D instance path as 3D objects. Individual transparent 2D cutouts and their dedicated placement editor remain a subsequent implementation step.
+The parser accepts version 1 and version 2 roots. The `elements` collection is optional. Entries may reference a 3D PackedScene/glTF model or a transparent 2D PNG/JPEG/WebP cutout. 2D cutouts are rendered as camera-facing Sprite3D elements with alpha transparency; full-frame photographs belong only in `background`. The current curated catalog still needs its first transparent cutout bank, and the dedicated placement/editor controls remain subsequent work.
