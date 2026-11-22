@@ -37,6 +37,27 @@ Reject or quarantine assets with non-commercial, editorial-only, no-derivatives,
 - AutoSprite free library: CC0 permits shipping assets inside an app, but its terms prohibit redistributing them as a stock/asset pack. Since JEDL exposes editable source assets as a library, exclude unless a separate written grant explicitly covers this use.
 - Sketchfab Standard/Editorial licensed content: the reviewed terms prohibit making the asset available as a standalone file. Editorial content also has commercial-use restrictions. Do not import into JEDL's editable library. A separately downloadable Creative Commons item would need a fresh per-file review and API terms review.
 
+
+## Additional sources identified in expanded search
+
+| Source | Reported scale / content | License and redistribution screen | JEDL decision |
+|---|---|---|---|
+| Tiddybub 2D Assets | Repository describes 1,101 CC0 packs covering sprites, tilesets, characters, animals, nature and props | Repository claims CC0 and each pack includes SOURCE.md; verify original source and license for every pack | CANDIDATE; import pack-by-pack only |
+| CodeLove 3D Models | Site reports 6,792 GLB models, 91 collections, 275 rigged characters/animals and 20 animation clips | Each file/ZIP reportedly carries MIT, CC0, public-domain or CC BY terms; preserve MIT notices and CC BY attribution | CANDIDATE; per-model license gate |
+| Grab3D | Site reports 2,565 3D models, 75 kits and a separate 294-item transparent PNG catalog | Site identifies CC0 and supplies license files; verify exact pack, formats and technical suitability | CANDIDATE; validate per pack |
+| OmniMod 3D Library | Repository reports 5,952 OBJ models, including nature, buildings, props, vehicles, furniture and characters | Repository claims CC0; validate repository license and original Kenney/Kay Lousberg provenance | CANDIDATE; useful mostly for low-poly/static scene props |
+| Tevy Assets | Specific Casual Walker GLB | Model page states CC0; 56-bone rig and four looping clips | CANDIDATE; one model, not a character library |
+| Innerscene 3D Parts | Specific rigged human base meshes | Individual pages state CC0 and redistribution; inspect source derivation and mesh suitability | CANDIDATE; base meshes for character editor, not finished wardrobe |
+| Art Institute of Chicago API | API reports 187,487 image records; public-domain artworks can be filtered | Only public-domain artworks/images qualify; API also contains copyrighted content | APPROVED per public-domain item only |
+| Rijksmuseum | Large high-resolution digitized collection | Most collection images are PD/CC0; some CC BY and restricted items exist | APPROVED PD/CC0 only in default lane; CC BY requires attribution |
+| StockSnap | High-resolution photography across nature, architecture, travel and backgrounds | Provider states all photos are CC0; still check people, trademarks, property and per-image provenance | CANDIDATE per image |
+| British Library Flickr Commons | More than one million digitized images | Only images explicitly marked public domain; British Library's CC-licensed content is limited to non-commercial use under its terms | APPROVED public-domain-marked files only |
+| Free Game Dev Assets index | Searchable catalog of 2D/3D sources | Index is discovery metadata, not a license grant | DISCOVERY ONLY; verify original publisher |
+| Pexels | Large photo/video catalog | Current terms prohibit standalone redistribution and bulk/systematic collection for stock-library use | EXCLUDED from JEDL's bundled editable catalog |
+| Unsplash | Large photography catalog | Commercial use allowed, but terms prohibit compiling images to create a similar/competing service | EXCLUDED from JEDL's bundled editable catalog |
+
+The provider counts above are claims displayed by the respective sources at research time, not counts already downloaded, rights-cleared or integrated into JEDL Studio. Counts must never be treated as imported inventory.
+
 ## Required metadata for every imported file
 
 - asset_id (stable, namespaced)
@@ -69,5 +90,18 @@ Do not put hundreds of large files into every small APK update by default. Keep 
 - ShareTextures license and terms: https://www.sharetextures.com/p/license and https://www.sharetextures.com/p/terms
 - AutoSprite free asset license: https://www.autosprite.io/free/license
 - Sketchfab license agreement: https://sketchfab.com/licenses
+- Tiddybub 2D Assets: https://github.com/Tiddybub/2d-assets
+- CodeLove 3D Models: https://models.codelove.in/
+- Grab3D: https://grab3d.com/
+- OmniMod 3D Library: https://github.com/Mcamento8/omnimod-3d-library
+- Tevy Casual Walker: https://tevy.dev/models/casual-walker
+- Innerscene 3D Parts: https://www.innerscene.com/tools/library/3d-parts/
+- Art Institute of Chicago API: https://api.artic.edu/docs/
+- Rijksmuseum data policy: https://data.rijksmuseum.nl/policy/
+- StockSnap CC0 statement: https://stocksnap.io/free-stock-photos
+- British Library Flickr Commons: https://commons.flickr.org/members/britishlibrary/
+- British Library terms: https://www.bl.uk/terms
+- Pexels terms: https://www.pexels.com/terms-of-service/
+- Unsplash license: https://unsplash.com/license
 
 This is a technical rights-screening register, not a legal opinion. Re-check provider terms and per-file evidence at each acquisition/release.
