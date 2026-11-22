@@ -6,7 +6,7 @@ signal catalog_updated(category: String, entries: Array[Dictionary])
 const CATALOG_PATH := "res://assets/gallery/catalog.json"
 
 
-func scan_catalog(kind: String) -> Array[Dictionary]:
+func scan_catalog(kind: String, category_filter: String = "") -> Array[Dictionary]:
     var entries: Array[Dictionary] = []
     var file := FileAccess.open(CATALOG_PATH, FileAccess.READ)
     if file == null:
@@ -19,6 +19,8 @@ func scan_catalog(kind: String) -> Array[Dictionary]:
         return entries
     for raw_entry in parsed["assets"]:
         if not raw_entry is Dictionary or String(raw_entry.get("kind", "")) != kind:
+            continue
+        if not category_filter.is_empty() and String(raw_entry.get("category", "")) != category_filter:
             continue
         var entry: Dictionary = raw_entry.duplicate(true)
         var resource_path := String(entry.get("path", ""))
