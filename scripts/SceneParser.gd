@@ -39,6 +39,7 @@ func load_scene_text(source: String) -> bool:
             push_error("Scene JSON requires array: " + key)
             return false
     _clear_instances()
+    clear_background()
     scene_data = candidate
     _events.clear()
     _playing = false
@@ -55,6 +56,10 @@ func load_scene_text(source: String) -> bool:
         return false
     if not _instantiate_entries(scene_data["objects"]):
         return false
+    if candidate.has("elements"):
+        if typeof(candidate["elements"]) != TYPE_ARRAY or not _instantiate_entries(candidate["elements"]):
+            push_error("Scene JSON elements must be an array of scene resources")
+            return false
     _build_timeline()
     return true
 
@@ -94,6 +99,12 @@ func _instantiate_entries(entries: Array) -> bool:
     return true
 
 
+func clear_background() -> void:
+    if background_sprite != null and is_instance_valid(background_sprite):
+        background_sprite.queue_free()
+    background_sprite = null
+
+
 func set_background(resource_path: String) -> bool:
     if camera == null or resource_path.is_empty():
         push_error("A camera and a valid background path are required")
@@ -102,8 +113,7 @@ func set_background(resource_path: String) -> bool:
     if texture == null:
         push_error("Background texture could not be loaded: " + resource_path)
         return false
-    if background_sprite != null and is_instance_valid(background_sprite):
-        background_sprite.queue_free()
+    clear_background()
     background_sprite = Sprite3D.new()
     background_sprite.name = "SceneBackground"
     background_sprite.texture = texture
