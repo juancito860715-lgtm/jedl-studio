@@ -27,7 +27,6 @@ Reject or quarantine assets with non-commercial, editorial-only, no-derivatives,
 ## Conditional sources — do not bulk-import blindly
 
 - Wikimedia Commons: rights and attribution differ per file. Only CC0/Public Domain Mark items should enter the no-attribution lane. CC BY/SA assets require a separate attribution and downstream-distribution compatibility review.
-- OpenGameArt: individual submissions use different licenses. A repository-wide assumption is invalid; inspect each asset page and its attribution/license fields.
 - NASA 3D Resources: many US-government works are public domain, but NASA's own guidelines warn that third-party material may appear and commercial use must not imply NASA endorsement. Require per-file rights checks.
 - Godot Asset Library: it is a catalogue, not one blanket license. Each project has its own license; verify the repository's LICENSE file and every included third-party asset.
 
@@ -65,7 +64,6 @@ Do not put hundreds of large files into every small APK update by default. Keep 
 - Library of Congress Free to Use and Reuse: https://www.loc.gov/free-to-use/
 - Library of Congress rights guidance: https://www.loc.gov/legal/
 - Wikimedia Commons reuse guidance: https://commons.wikimedia.org/wiki/Commons:Reusing_content_outside_Wikimedia/en
-- OpenGameArt license FAQ: https://opengameart.org/content/faq
 - NASA media usage guidance: https://www.nasa.gov/nasa-brand-center/images-and-media/
 - Quaternius current license: https://quaternius.com/license.html
 - ShareTextures license and terms: https://www.sharetextures.com/p/license and https://www.sharetextures.com/p/terms
