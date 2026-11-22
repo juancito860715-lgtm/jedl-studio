@@ -57,6 +57,7 @@ class DownloadedAssetsValidationTests(unittest.TestCase):
             item["sizeBytes"] = source_path.stat().st_size
             assets.append({"assetId": item["id"], "path": item["path"], "sha256": item["sha256"],
                            "sizeBytes": item["sizeBytes"], "dependencies": [], "license": item["license"]})
+        self.catalog_path.write_text(json.dumps(self.catalog), encoding="utf-8")
         files = []
         for path in (self.background, self.model, self.catalog_path):
             files.append({"path": "res://" + path.relative_to(self.root).as_posix(),
