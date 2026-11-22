@@ -24,6 +24,7 @@ func _ready() -> void:
     if world_root == null:
         world_root = self
     camera = get_node_or_null("World/Camera3D") as Camera3D
+    get_viewport().size_changed.connect(_on_viewport_size_changed)
     _build_overlay()
     catalog_manager = CatalogManager.new()
     add_child(catalog_manager)
@@ -225,6 +226,11 @@ func _save_json_locally() -> void:
     file.store_string(json_editor.text)
     file.close()
     json_status.text = "Guardado en user://scene_working.json"
+
+
+func _on_viewport_size_changed() -> void:
+    if scene_parser != null:
+        scene_parser._fit_background_to_camera()
 
 
 func _load_example_scene() -> void:
