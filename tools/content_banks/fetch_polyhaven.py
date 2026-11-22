@@ -197,7 +197,7 @@ def build_3d(api_assets: dict) -> list[dict]:
             "kind": "3d", "category": category,
             "format": model_path.suffix.lstrip(".").upper(),
             "polycount": polycount, "dimensions_mm": metadata.get("dimensions", []),
-            "license": "CC0-1.0", "source": f"https://polyhaven.com/a/{asset_id}",
+            "license": "CC0-1.0", "licenseEvidence": POLYHAVEN_LICENSE, "source": f"https://polyhaven.com/a/{asset_id}",
             "publisher": "Poly Haven", "authors": metadata.get("authors", {}),
             "tags": metadata.get("tags", []), "sha256": sha256(model_path),
             "offline": True, "placeable": True,
