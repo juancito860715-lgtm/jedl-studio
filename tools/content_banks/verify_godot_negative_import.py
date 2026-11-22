@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Exercise the real Godot GLB importer with a deliberately malformed GLB fixture."""
+"""Exercise the real Godot GLB importer and prove the CI import gate would reject it."""
 from __future__ import annotations
 
 import argparse
@@ -11,27 +11,34 @@ import tempfile
 from pathlib import Path
 
 
-ERROR_PATTERN = re.compile(
-    r"ERROR:|SCRIPT ERROR:|Failed to load|Failed importing|ERROR importing|"
+IMPORT_GATE_PATTERN = re.compile(
+    r"ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed importing",
+    re.IGNORECASE,
+)
+IMPORTER_ERROR_PATTERN = re.compile(
+    r"ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed importing|"
     r"ERR_FILE_CORRUPT|invalid glTF|invalid GLB|corrupt",
     re.IGNORECASE,
 )
 
 
+def ci_import_gate_would_fail(return_code: int, output: str) -> bool:
+    """Mirror the exact nonzero-exit/log-error condition used by the workflow."""
+    return return_code != 0 or bool(IMPORT_GATE_PATTERN.search(output))
+
+
 def negative_import_was_rejected(return_code: int, output: str, filename: str = "incompatible.glb") -> bool:
-    """Only accept an importer error associated with the deliberately invalid fixture."""
+    """Require fixture-specific importer rejection and proof the workflow gate trips."""
     lines = output.splitlines()
     matching_positions = [index for index, line in enumerate(lines) if filename.lower() in line.lower()]
-    if not matching_positions:
+    if not matching_positions or not ci_import_gate_would_fail(return_code, output):
         return False
     for position in matching_positions:
         start = max(0, position - 8)
         end = min(len(lines), position + 9)
-        if any(ERROR_PATTERN.search(line) for line in lines[start:end]):
+        if any(IMPORTER_ERROR_PATTERN.search(line) for line in lines[start:end]):
             return True
-    # Some Godot importer builds print the resource path and error on separate,
-    # non-adjacent lines. Require both signals and a non-zero importer result.
-    return return_code != 0 and bool(ERROR_PATTERN.search(output))
+    return return_code != 0 and bool(IMPORTER_ERROR_PATTERN.search(output))
 
 
 def make_invalid_glb(path: Path) -> None:
@@ -78,16 +85,18 @@ def run_negative_import(godot_binary: Path) -> dict:
         output = completed.stdout or ""
         if not negative_import_was_rejected(completed.returncode, output):
             raise RuntimeError(
-                "Godot did not emit a fixture-specific import error for tests/negative/incompatible.glb. "
+                "Godot did not emit a fixture-specific import error that trips the workflow's CI gate "
+                "for tests/negative/incompatible.glb. "
                 f"exit={completed.returncode}\n{output[-8000:]}"
             )
         return {
             "fixture": "tests/negative/incompatible.glb",
             "godotExitCode": completed.returncode,
             "importerRejectedFixture": True,
+            "ciGateWouldFail": True,
             "errorLines": [
                 line.strip() for line in output.splitlines()
-                if "incompatible.glb" in line.lower() or ERROR_PATTERN.search(line)
+                if "incompatible.glb" in line.lower() or IMPORT_GATE_PATTERN.search(line)
             ][-12:],
         }
 
@@ -100,7 +109,7 @@ def main() -> None:
     print(
         "GODOT_NEGATIVE_IMPORT_OK: "
         f"fixture={result['fixture']} exit={result['godotExitCode']} "
-        "importerRejectedFixture=true"
+        f"importerRejectedFixture=true ciGateWouldFail={str(result['ciGateWouldFail']).lower()}"
     )
     for line in result["errorLines"]:
         print("GODOT_NEGATIVE_IMPORT_EVIDENCE: " + line)
