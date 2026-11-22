@@ -74,7 +74,8 @@ jobs:
           set -euo pipefail
           rm -rf assets/gallery/2d assets/gallery/3d assets/gallery/catalog.json
           python tools/content_banks/fetch_polyhaven.py 2>&1 | tee "$RUNNER_TEMP/asset-download.log"
-          for test_file in test_fetch_kenney_cc0.py test_polyhaven_bank.py test_root_manifest.py test_validate_downloaded_assets.py; do
+          python tools/content_banks/fetch_extended_sources.py 2>&1 | tee "$RUNNER_TEMP/extended-source-download.log"
+          for test_file in test_fetch_kenney_cc0.py test_polyhaven_bank.py test_extended_sources.py test_root_manifest.py test_validate_downloaded_assets.py; do
             python -m unittest discover -s tools/content_banks -p "$test_file" -v 2>&1 | tee -a "$RUNNER_TEMP/asset-bank-tests.log"
           done
           python tools/content_banks/build_root_manifest.py 2>&1 | tee "$RUNNER_TEMP/root-manifest.log"
