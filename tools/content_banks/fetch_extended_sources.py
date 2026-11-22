@@ -6,6 +6,7 @@ imports illustrations, 2D cut-outs, weapons, or network-dependent glTF files.
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import re
@@ -293,7 +294,17 @@ def run_optional_source(source_name: str, operation, statuses: list[dict]) -> No
         statuses.append(status)
         print(f"OPTIONAL_SOURCE_DEFERRED: {source_name}: {type(error).__name__}: {error}")
 
-def main() -> None:
+def main(argv: list[str] | None = None) -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--allow-catalog-expansion",
+        action="store_true",
+        help="Explicitly authorize adding extended sources after Phase A is closed.",
+    )
+    args = parser.parse_args(argv)
+    if not args.allow_catalog_expansion:
+        print("CATALOG_EXPANSION_BLOCKED: Phase A is not closed; no extended sources were downloaded or added.")
+        return
     catalog = json.loads(CATALOG.read_text(encoding="utf-8"))
     entries = catalog.get("assets", [])
     existing = {item["id"] for item in entries}
