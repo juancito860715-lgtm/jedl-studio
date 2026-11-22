@@ -16,6 +16,7 @@ func _run_tests() -> void:
     var resolved_background: Dictionary = manager.resolve_asset_id("background.mossy_forest")
     assert(not resolved_background.is_empty(), "Background assetId must resolve through the root manifest")
     assert(String(resolved_background["sha256"]).length() == 64, "Resolved background must expose its SHA-256")
+    assert(int(resolved_background["sizeBytes"]) > 0, "Resolved background must expose its verified byte size")
     var resolved_fox: Dictionary = manager.resolve_asset_id("character.fox.khronos.v1")
     assert(not resolved_fox.is_empty(), "Animated 3D character assetId must resolve through the root manifest")
 
