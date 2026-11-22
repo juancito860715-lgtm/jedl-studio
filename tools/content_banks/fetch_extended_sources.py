@@ -98,12 +98,20 @@ def license_text(path: Path, expected: str) -> None:
         raise ValueError(f"CC0 evidence not present in {path}")
 
 
-def require_preview_url(preview_url: str, asset_id: str) -> str:\n    """Reject 3D entries that cannot produce an offline gallery thumbnail."""\n    if not preview_url or not preview_url.startswith("https://"):\n        raise ValueError(f"Every 3D model must provide an HTTPS preview URL: {asset_id}")\n    return preview_url\n\n\ndef add_model(entries: list[dict], *, asset_id: str, title: str, category: str,
+def require_preview_url(preview_url: str, asset_id: str) -> str:
+    """Reject 3D entries that cannot produce an offline gallery thumbnail."""
+    if not preview_url or not preview_url.startswith("https://"):
+        raise ValueError(f"Every 3D model must provide an HTTPS preview URL: {asset_id}")
+    return preview_url
+
+
+def add_model(entries: list[dict], *, asset_id: str, title: str, category: str,
               provider: str, source: str, license_url: str, license_id: str,
               model_url: str, license_payload: bytes | None = None,
               preview_url: str = "", description: str = "") -> None:
     if license_id != "CC0-1.0":
         raise ValueError(f"Non-CC0 item is not accepted by the default catalog: {asset_id}")
+    preview_url = require_preview_url(preview_url, asset_id)
     folder = OUT_3D / asset_id.replace(".", "_")
     folder.mkdir(parents=True, exist_ok=True)
     model_path = folder / "model.glb"
@@ -147,6 +155,7 @@ def add_tevy(entries: list[dict]) -> None:
               provider="Tevy", source=source, license_url=license_url,
               license_id="CC0-1.0", model_url=model,
               license_payload=None,
+              preview_url="https://tevy.dev/models/casual-walker/v1/preview.webp",
               description="GLB CC0 con rig humanoide de 56 huesos y clips idle, look_around, walk y wave.")
 
 
