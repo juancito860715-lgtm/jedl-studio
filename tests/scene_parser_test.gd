@@ -46,7 +46,7 @@ func _run_tests() -> void:
     assert(looping_animation.loop_mode == Animation.LOOP_LINEAR, "Walk animation must loop continuously by default")
     parser._configure_animation_loop(looping_animation, false)
     assert(looping_animation.loop_mode == Animation.LOOP_NONE, "One-shot animations must remain supported")
-    looping_animation.free()
+    looping_animation = null
 
     parser.play_scene()
     assert(parser._playing, "Playback must start")

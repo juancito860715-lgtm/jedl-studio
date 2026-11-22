@@ -88,7 +88,14 @@ jobs:
           test -s tests/scene_parser_test.gd
           test -s tests/catalog_manager_test.gd
           test -s assets/gallery/catalog.json
-          "$GODOT_BIN" --headless --editor --path "$GITHUB_WORKSPACE" --quit
+          set +e
+          "$GODOT_BIN" --headless --editor --path "$GITHUB_WORKSPACE" --quit 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
+          godot_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$godot_status" -ne 0 ] || grep -E 'SCRIPT ERROR:|Parse Error:|Failed to load script|ERROR: Failed to load script' "$RUNNER_TEMP/godot-import.log"; then
+            echo "Godot project import contains script errors; refusing to build an APK."
+            exit 1
+          fi
           test -d .godot
       - name: Run Godot parser and scene tests
         timeout-minutes: 8
@@ -96,8 +103,16 @@ jobs:
           set -euo pipefail
           run_godot_test() {
             local test_script="$1"
+            local log_file="$RUNNER_TEMP/$(basename "$test_script").log"
             echo "::group::Godot test: $test_script"
-            timeout --signal=TERM --kill-after=10s 90s "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script "$test_script" --quit-after 120
+            set +e
+            timeout --signal=TERM --kill-after=10s 90s "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script "$test_script" --quit-after 120 2>&1 | tee "$log_file"
+            local godot_status=${PIPESTATUS[0]}
+            set -e
+            if [ "$godot_status" -ne 0 ] || grep -E 'SCRIPT ERROR:|Parse Error:|Failed to load script|ERROR: Failed to load script|Assertion failed|Invalid call\\.' "$log_file"; then
+              echo "Godot test emitted script/runtime errors: $test_script"
+              exit 1
+            fi
             echo "::endgroup::"
           }
           run_godot_test res://tests/scene_parser_test.gd
@@ -131,7 +146,14 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build
-          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --export-debug "Android" build/JEDLStudio-debug.apk
+          set +e
+          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --export-debug "Android" build/JEDLStudio-debug.apk 2>&1 | tee "$RUNNER_TEMP/godot-export.log"
+          godot_status=${PIPESTATUS[0]}
+          set -e
+          if [ "$godot_status" -ne 0 ] || grep -E 'SCRIPT ERROR:|Parse Error:|Failed to load script|ERROR: Failed to load script' "$RUNNER_TEMP/godot-export.log"; then
+            echo "Godot export contains script errors; refusing to publish this APK."
+            exit 1
+          fi
           test -s build/JEDLStudio-debug.apk
           file build/JEDLStudio-debug.apk
           sha256sum build/JEDLStudio-debug.apk | tee build/JEDLStudio-debug.apk.sha256

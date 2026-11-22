@@ -351,7 +351,7 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
     gallery_title.text = "%s · %d recursos" % [category_title, entries.size()]
     if entries.is_empty():
         var empty_label := Label.new()
-        var catalog_error := catalog_manager.get_catalog_error()
+        var catalog_error: String = catalog_manager.get_catalog_error()
         empty_label.text = "No se pudieron cargar los recursos del inventario.\n" + catalog_error if not catalog_error.is_empty() else "Esta categoría aún no tiene recursos individuales instalados.\nEl inventario no contiene elementos para este filtro."
         empty_label.add_theme_font_size_override("font_size", 18)
         gallery_list.add_child(empty_label)
