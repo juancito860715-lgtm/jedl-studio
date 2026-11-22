@@ -215,7 +215,8 @@ func _play_default_animation(instance: Node) -> void:
             continue
         var animations := player.get_animation_list()
         if animations.size() > 0:
-            _play_animation(instance, String(animations[0]), true)
+            var default_animation := "Walk" if player.has_animation("Walk") else String(animations[0])
+            _play_animation(instance, default_animation, true)
             return
 
 
