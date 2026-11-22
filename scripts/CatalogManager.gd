@@ -158,7 +158,6 @@ func load_catalog() -> bool:
                 and int(validation_entry.get("meshInstances", 0)) > 0
                 and int(validation_entry.get("surfaces", 0)) > 0
             )
-        )
         if is_renderable:
             _entries_by_id[asset_id] = entry.duplicate(true)
             _all_entries.append(entry.duplicate(true))
