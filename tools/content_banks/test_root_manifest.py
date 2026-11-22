@@ -92,6 +92,7 @@ class RootManifestTest(unittest.TestCase):
             "images": [{"uri": "textures/skin.png"}],
         }), encoding="utf-8")
         self.catalog["assets"][1]["path"] = "res://assets/characters/Walker.gltf"
+        self.catalog["assets"][1]["preview_path"] = "res://assets/characters/textures/skin.png"
         self._write_catalog()
         manifest = build_manifest(self.root)
         character = next(item for item in manifest["assets"] if item["assetId"] == "character.fox")
