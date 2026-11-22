@@ -327,6 +327,8 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         add_button.pressed.connect(_animate_button.bind(add_button))
         add_button.pressed.connect(_add_gallery_asset.bind(resource_path))
         item_row.add_child(add_button)
+    if json_panel != null:
+        json_panel.visible = false
     gallery_panel.visible = true
 
 func _add_gallery_asset(resource_path: String) -> void:
