@@ -111,6 +111,21 @@ jobs:
             debian:trixie-slim \
             bash tools/ci/run_godot_import_with_portal.sh
           test -d .godot/imported
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path(".").resolve()
+          manifest = json.loads((root / "assets/gallery/manifest.json").read_text())
+          for item in manifest["files"]:
+              source_rel = item["path"][6:]
+              if Path(source_rel).suffix.lower() not in {".jpg", ".jpeg"}:
+                  continue
+              sidecar = root / (source_rel + ".import")
+              print(f"IMPORT_SIDECAR_BEGIN {item['path']} exists={sidecar.is_file()}")
+              if sidecar.is_file():
+                  print(sidecar.read_text(encoding="utf-8", errors="replace"))
+              print(f"IMPORT_SIDECAR_END {item['path']}")
+          PY
           python tools/content_banks/verify_godot_import_artifacts.py 2>&1 | tee "$RUNNER_TEMP/godot-import-artifacts.log"
       - name: Prove Godot rejects an invalid GLB with its real importer
         run: |
