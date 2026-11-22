@@ -34,6 +34,7 @@ func _ready() -> void:
     scene_parser.camera = camera
     scene_parser.subtitle_label = subtitle_label
     scene_parser.audio_player = audio_player
+    scene_parser.catalog_manager = catalog_manager
     # Arranca con una escena real cargada; Play nunca debe confirmar una escena vacía.
     call_deferred("_load_example_scene")
 
@@ -357,13 +358,13 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         var resource_path := String(item["path"])
         add_button.pressed.connect(_animate_button.bind(add_button))
         var is_background := kind == "2d" and (category_filter.is_empty() or category_filter == "Fondos fotográficos")
-        add_button.pressed.connect(_add_gallery_asset.bind(resource_path, is_background))
+        add_button.pressed.connect(_add_gallery_asset.bind(resource_path, is_background, String(item.get("id", ""))))
         item_row.add_child(add_button)
     if json_panel != null:
         json_panel.visible = false
     gallery_panel.visible = true
     gallery_panel.move_to_front()
 
-func _add_gallery_asset(resource_path: String, is_background: bool = true) -> void:
-    if scene_parser != null and scene_parser.add_catalog_asset(resource_path, is_background):
+func _add_gallery_asset(resource_path: String, is_background: bool = true, asset_id: String = "") -> void:
+    if scene_parser != null and scene_parser.add_catalog_asset(resource_path, is_background, asset_id):
         _frame_camera_to_content()
