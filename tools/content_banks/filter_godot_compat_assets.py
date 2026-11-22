@@ -20,7 +20,7 @@ class UnsupportedGodotExtensionError(ValueError):
 
 def engine_label_from_environment() -> str:
     version = os.environ.get("GODOT_VERSION", "").strip()
-    if not version or not re.fullmatch(r"\\d+\\.\\d+\\.\\d+\\.stable\\..+", version):
+    if not version or not re.fullmatch(r"\d+\.\d+\.\d+\.stable\..+", version):
         raise RuntimeError("GODOT_VERSION must contain the exact stable version reported by the pinned Godot binary")
     return f"Godot {version}"
 
@@ -62,7 +62,7 @@ def load_exclusion_policy(root: Path) -> dict[str, dict]:
             raise ValueError(f"Invalid or duplicate explicit asset exclusion: {asset_id}")
         exclusion_date = str(record.get("exclusion_date", "")).strip()
         audit_reference = str(record.get("audit_reference", "")).strip()
-        if not re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", exclusion_date) or not audit_reference:
+        if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", exclusion_date) or not audit_reference:
             raise ValueError(f"Asset exclusion {asset_id} is missing a valid exclusion_date or audit_reference")
         result[asset_id] = record
     return result
@@ -141,7 +141,7 @@ def filter_catalog(root: Path = ROOT) -> dict:
             "reason": "Required/used extension is not supported by the audited Godot importer.",
         })
         shutil.rmtree(model_path.parent)
-        print(f"GLB_EXCLUDED_UNSUPPORTED: {asset_id} extensions={record['unsupportedGodot441Extensions']}")
+        print(f"GLB_EXCLUDED_UNSUPPORTED: {asset_id} extensions={record['unsupportedGodotExtensions']}")
 
     catalog["assets"] = kept
     catalog_path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
