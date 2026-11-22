@@ -89,7 +89,7 @@ jobs:
           done
           python tools/content_banks/build_root_manifest.py 2>&1 | tee "$RUNNER_TEMP/root-manifest.log"
           python tools/content_banks/validate_downloaded_assets.py 2>&1 | tee "$RUNNER_TEMP/asset-integrity.log"
-      - name: Import project resources before tests
+      - name: Import project resources in verified GNOME portal session
         run: |
           set -euo pipefail
           test -s project.godot
@@ -99,14 +99,17 @@ jobs:
           test -s assets/gallery/catalog.json
           grep -Fqx 'rendering/driver/threads/thread_model=1' project.godot
           echo 'Godot rendering thread model: Safe (1)'
-          set +e
-          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --editor --import --path "$GITHUB_WORKSPACE" --verbose 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
-          godot_status=${PIPESTATUS[0]}
-          set -e
-          if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed importing' "$RUNNER_TEMP/godot-import.log"; then
-            echo "Godot import emitted an error; refusing to run tests or export an APK."
-            exit 1
-          fi
+          docker pull debian:trixie-slim
+          docker run --rm \
+            --env GITHUB_WORKSPACE=/workspace \
+            --env RUNNER_TEMP=/runner-temp \
+            --env GODOT_BIN=/godot/Godot_v4.5.1-stable_linux.x86_64 \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --volume "$RUNNER_TEMP:/runner-temp" \
+            --volume "$RUNNER_TEMP/godot:/godot:ro" \
+            --workdir /workspace \
+            debian:trixie-slim \
+            bash tools/ci/run_godot_import_with_portal.sh
           test -d .godot/imported
           python tools/content_banks/verify_godot_import_artifacts.py 2>&1 | tee "$RUNNER_TEMP/godot-import-artifacts.log"
       - name: Prove Godot rejects an invalid GLB with its real importer
