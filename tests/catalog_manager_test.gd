@@ -34,19 +34,25 @@ func _run_tests() -> void:
 
     var world := Node3D.new()
     root.add_child(world)
+    var background_display := TextureRect.new()
+    root.add_child(background_display)
     var parser = SceneParserScript.new()
     root.add_child(parser)
     parser.world_root = world
+    parser.background_display = background_display
     assert(parser.add_catalog_asset(String(entries_2d[0]["path"])),
         "The scene engine must place a selected photographic 2D background")
-    assert(parser.active_instances.back() is Sprite3D,
-        "A selected 2D background must become a Sprite3D scene instance")
+    assert(background_display.visible and background_display.texture != null,
+        "A selected 2D background must fill the dedicated full-screen backplate, not become a tiny 3D sprite")
+    assert(parser.active_instances.is_empty(),
+        "A 2D backplate must not distort 3D scene framing or be counted as a 3D object")
     assert(parser.add_catalog_asset(String(models[0]["path"])),
         "The scene engine must place a selected realistic 3D model")
-    assert(parser.active_instances.back() is Node3D,
+    assert(parser.active_instances.size() == 1 and parser.active_instances.back() is Node3D,
         "A selected 3D model must become a Node3D scene instance")
 
     parser.queue_free()
+    background_display.queue_free()
     world.queue_free()
     manager.queue_free()
     print("CATALOG_MANAGER_TEST_OK")
