@@ -63,22 +63,20 @@ jobs:
           test -s assets/characters/Fox.glb
           grep -q "CC0-1.0" assets/characters/Fox.LICENSE.md
           grep -q "CC-BY-4.0" assets/characters/Fox.LICENSE.md
-      - name: Set up Python for offline 2D asset banks
+      - name: Set up Python for offline asset validation
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
       - name: Install asset-bank build dependencies
-        run: python -m pip install --disable-pip-version-check numpy matplotlib pillow
+        run: python -m pip install --disable-pip-version-check pillow
       - name: Build offline photorealistic asset galleries
         run: |
           set -euo pipefail
-          python -m unittest discover -s tools/avatar_bank -p "test_*.py" -v
-          rm -rf tools/avatar_bank/out
           rm -rf assets/gallery/2d assets/gallery/3d assets/gallery/catalog.json
           python tools/content_banks/fetch_polyhaven.py
-          python -m unittest discover -s tools/content_banks -p "test_polyhaven_*.py" -v
-          python -m unittest discover -s tools/content_banks -p "test_root_manifest.py" -v
+          python -m unittest discover -s tools/content_banks -p "test_*.py" -v
           python tools/content_banks/build_root_manifest.py
+          python tools/content_banks/validate_downloaded_assets.py
       - name: Import project resources before tests
         run: |
           set -euo pipefail
@@ -165,4 +163,13 @@ jobs:
             build/JEDLStudio-debug.apk
             build/JEDLStudio-debug.apk.sha256
           if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-studio-validation-logs
+          path: ${{ runner.temp }}/*.log
+          if-no-files-found: warn
           retention-days: 14
