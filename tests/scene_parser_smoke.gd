@@ -14,6 +14,9 @@ func _run_smoke_test() -> void:
     root.add_child(manager)
     assert(manager.load_catalog(), "Root asset manifest must load before scene playback")
     root.add_child(world)
+    var camera := Camera3D.new()
+    camera.current = true
+    root.add_child(camera)
     var subtitles := RichTextLabel.new()
     root.add_child(subtitles)
     var audio := AudioStreamPlayer.new()
@@ -21,6 +24,7 @@ func _run_smoke_test() -> void:
     var parser = SceneParserScript.new()
     root.add_child(parser)
     parser.world_root = world
+    parser.camera = camera
     parser.subtitle_label = subtitles
     parser.catalog_manager = manager
     parser.audio_player = audio

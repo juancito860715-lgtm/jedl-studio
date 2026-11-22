@@ -109,7 +109,7 @@ jobs:
             timeout --signal=TERM --kill-after=10s 90s "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script "$test_script" --quit-after 120 2>&1 | tee "$log_file"
             local godot_status=${PIPESTATUS[0]}
             set -e
-            if [ "$godot_status" -ne 0 ] || grep -E 'SCRIPT ERROR:|Parse Error:|Failed to load script|ERROR: Failed to load script|Assertion failed|Invalid call\\.' "$log_file"; then
+            if [ "$godot_status" -ne 0 ] || grep -E 'SCRIPT ERROR:|Parse Error:|Failed to load script|ERROR: Failed to load script|Assertion failed|Invalid call\.' "$log_file"; then
               echo "Godot test emitted script/runtime errors: $test_script"
               exit 1
             fi

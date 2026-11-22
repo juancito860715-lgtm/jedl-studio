@@ -14,8 +14,8 @@ func _run_test() -> void:
     assert(distance > 4.0, "Camera distance must fit a character taller than four units")
     var wide_distance: float = main._calculate_camera_distance(Vector3(8.0, 2.0, 1.0), 16.0 / 9.0, 55.0)
     assert(wide_distance > distance, "Wide characters must be framed using horizontal extent")
-    var portrait_distance: float = main._calculate_camera_distance(Vector3(2.0, 4.0, 1.0), 9.0 / 16.0, 55.0)
-    assert(portrait_distance > distance, "Narrow viewports must fit the character width")
+    var portrait_distance: float = main._calculate_camera_distance(Vector3(8.0, 2.0, 1.0), 9.0 / 16.0, 55.0)
+    assert(portrait_distance > wide_distance, "Portrait viewports must fit a wide character using horizontal extent")
 
     # Integration: the app starts with a renderable sample scene and controls expose real content.
     await process_frame
