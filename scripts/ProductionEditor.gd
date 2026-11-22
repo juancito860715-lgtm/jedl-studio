@@ -76,12 +76,10 @@ func add_transform_keyframe(time_seconds: float) -> bool:
         last_error = "El editor no tiene un nodo raíz de escena."
         return false
     _ensure_animation_player()
-    var animation := animation_player.get_animation(animation_name)
+    var animation := _get_or_create_editable_animation()
     if animation == null:
-        animation = Animation.new()
-        animation.resource_name = animation_name
-        animation.loop_mode = Animation.LOOP_NONE
-        animation_player.add_animation(animation_name, animation)
+        last_error = "No se pudo crear o recuperar la biblioteca de animación editable."
+        return false
     var target_path := String(world_root.get_path_to(selected_node))
     _insert_or_update_key(animation, target_path + ":position", time_seconds, selected_node.position)
     _insert_or_update_key(animation, target_path + ":rotation_degrees", time_seconds, selected_node.rotation_degrees)
@@ -150,6 +148,25 @@ func _ensure_animation_player() -> void:
     animation_player.name = "JEDL_Production_AnimationPlayer"
     world_root.add_child(animation_player)
     animation_player.root_node = NodePath("..")
+
+
+func _get_or_create_editable_animation() -> Animation:
+    # Godot 4 almacena animaciones dentro de AnimationLibrary; AnimationPlayer
+    # no expone add_animation(). La biblioteca vacía es la biblioteca por defecto.
+    if not animation_player.has_animation_library(""):
+        animation_player.add_animation_library("", AnimationLibrary.new())
+    var library: AnimationLibrary = animation_player.get_animation_library("")
+    if library.has_animation(animation_name):
+        return library.get_animation(animation_name)
+
+    var animation := Animation.new()
+    animation.resource_name = animation_name
+    animation.loop_mode = Animation.LOOP_NONE
+    var error := library.add_animation(animation_name, animation)
+    if error != OK:
+        last_error = "No se pudo registrar la animación editable: " + error_string(error)
+        return null
+    return animation
 
 
 func _has_selection() -> bool:
