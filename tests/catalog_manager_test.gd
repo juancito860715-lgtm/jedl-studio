@@ -60,8 +60,8 @@ func _run_tests() -> void:
         "A selected 3D model must become a Node3D scene instance")
     var fox_entry: Dictionary = models.filter(func(item: Dictionary) -> bool: return item["id"] == "character.fox.khronos.v1")[0]
     assert(parser.add_catalog_asset(String(fox_entry["path"]), false, String(fox_entry["id"])), "The animated Fox must be placeable from the character gallery")
-    assert(gallery_fox.get_meta("jedl_asset_id") == "character.fox.khronos.v1", "Placed Fox must retain its stable assetId")
     var gallery_fox: Node3D = parser.active_instances.back()
+    assert(gallery_fox.get_meta("jedl_asset_id") == "character.fox.khronos.v1", "Placed Fox must retain its stable assetId")
     var fox_players := gallery_fox.find_children("*", "AnimationPlayer", true, false)
     assert(not fox_players.is_empty(), "The gallery Fox must retain its AnimationPlayer")
     assert((fox_players[0] as AnimationPlayer).is_playing(), "Rigged gallery characters must begin their default animation instead of remaining static")
