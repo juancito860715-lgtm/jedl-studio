@@ -75,20 +75,20 @@ dbus-run-session -- bash -euo pipefail -c '
     --object-path /org/freedesktop/portal/desktop \
     --method org.freedesktop.portal.Settings.Read \
     org.freedesktop.appearance color-scheme)"
-  printf "Portal color-scheme response: %s\\n" "$color_scheme"
-  printf "%s\\n" "$color_scheme" | grep -Eq "uint32 [012]"
+  printf "Portal color-scheme response: %s\n" "$color_scheme"
+  printf "%s\n" "$color_scheme" | grep -Eq "uint32 [012]"
 
   accent_color="$(gdbus call --session \
     --dest org.freedesktop.portal.Desktop \
     --object-path /org/freedesktop/portal/desktop \
     --method org.freedesktop.portal.Settings.Read \
     org.freedesktop.appearance accent-color)"
-  printf "Portal accent-color response: %s\\n" "$accent_color"
+  printf "Portal accent-color response: %s\n" "$accent_color"
   python3 -c '\''import re,sys
 s=sys.stdin.read()
-m=re.search(r"<\\(([^)]*)\\)>", s)
+m=re.search(r"<\(([^)]*)\)>", s)
 assert m, f"accent-color did not return a tuple: {s!r}"
-values=re.findall(r"(?:\\d+\\.)?\\d+(?:[eE][+-]?\\d+)?", m.group(1))
+values=re.findall(r"(?:\d+\.)?\d+(?:[eE][+-]?\d+)?", m.group(1))
 assert len(values)==3, f"expected three RGB components, got {values!r}"
 assert all(0.0 <= float(v) <= 1.0 for v in values), f"RGB component out of range: {values!r}"
 print("Portal accent-color RGB validated:", ", ".join(values))'\'' <<< "$accent_color"
