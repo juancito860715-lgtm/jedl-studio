@@ -235,16 +235,20 @@ def add_art_institute_photographs(entries: list[dict]) -> None:
             folder.mkdir(parents=True, exist_ok=True)
             path = folder / f"aic_{item['id']}.jpg"
             image.save(path, "JPEG", quality=90, optimize=True)
+        detail_url = f"https://api.artic.edu/api/v1/artworks/{item['id']}"
+        detail = get_json(detail_url, 2_000_000)
+        rights_record = detail.get("data", {})
+        cc0_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+        license_links = detail.get("info", {}).get("license_links", [])
+        if rights_record.get("is_public_domain") is not True or cc0_url not in license_links:
+            continue
         rights_path = folder / f"aic_{item['id']}.rights.json"
         rights_path.write_text(json.dumps({
-            "record": item,
+            "record": rights_record,
             "license": "CC0-1.0",
-            "licenseLinks": result.get("info", {}).get("license_links", []),
-            "sourceApi": f"https://api.artic.edu/api/v1/artworks/{item['id']}"
+            "licenseLinks": license_links,
+            "sourceApi": detail_url
         }, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
-        cc0_url = "https://creativecommons.org/publicdomain/zero/1.0/"
-        if cc0_url not in result.get("info", {}).get("license_links", []):
-            raise ValueError("Art Institute API response does not confirm CC0 licensing")
         entries.append({
             "id": f"background.aic.photograph.{item['id']}",
             "title": str(item.get("title", "Historical photograph")),
