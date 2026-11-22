@@ -107,6 +107,39 @@ class GodotCompatibilityFilterTests(unittest.TestCase):
         self.assertEqual(report["compatibleCount"], 1)
         self.assertEqual(report["excludedCount"], 0)
 
+    def test_explicit_tevy_policy_excludes_even_an_extension_compatible_source(self):
+        folder = self.root / "assets/gallery/3d/extended/tevy"
+        folder.mkdir()
+        model = folder / "model.glb"
+        write_glb(model, {"asset": {"version": "2.0"}, "scenes": [{"nodes": []}]})
+        docs = self.root / "docs"
+        docs.mkdir()
+        (docs / "asset_exclusions.json").write_text(json.dumps({
+            "schemaVersion": 1,
+            "exclusions": [{
+                "assetId": "character.tevy.casual_walker.v1",
+                "status": "excluded",
+                "reason": "Pending end-to-end validation",
+                "activeCatalogAllowed": False,
+                "reentryCriteria": ["Import", "Instantiate", "Render"],
+            }],
+        }), encoding="utf-8")
+        catalog_path = self.root / "assets/gallery/catalog.json"
+        catalog_path.write_text(json.dumps({
+            "schemaVersion": 2,
+            "assets": [{
+                "id": "character.tevy.casual_walker.v1",
+                "kind": "3d",
+                "path": "res://assets/gallery/3d/extended/tevy/model.glb",
+            }],
+        }), encoding="utf-8")
+        report = filter_catalog(self.root)
+        catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
+        self.assertEqual(catalog["assets"], [])
+        self.assertFalse(folder.exists())
+        self.assertEqual(report["excludedAssets"][0]["status"], "excluded_by_policy")
+        self.assertEqual(report["missingExplicitExclusions"], [])
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
