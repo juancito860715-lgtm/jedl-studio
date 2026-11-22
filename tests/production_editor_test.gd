@@ -34,7 +34,12 @@ func _run_tests() -> void:
     assert(editor.add_transform_keyframe(1.0), "Editor must create the second transform keyframe")
     assert(editor.animation_player != null and editor.animation_player.has_animation("JEDL_Editable"),
         "Editable animation must be stored in AnimationPlayer")
-    var animation: Animation = editor.animation_player.get_animation("JEDL_Editable")
+    assert(editor.animation_player.has_animation_library(""),
+        "Godot 4 default AnimationLibrary must be registered")
+    var editable_library: AnimationLibrary = editor.animation_player.get_animation_library("")
+    assert(editable_library.has_animation("JEDL_Editable"),
+        "Editable animation must be registered inside AnimationLibrary")
+    var animation: Animation = editable_library.get_animation("JEDL_Editable")
     assert(animation.get_track_count() == 3, "Timeline must contain position, rotation and scale tracks")
     for track_index in range(3):
         assert(animation.track_get_key_count(track_index) == 2, "Each transform track must contain two keyframes")
