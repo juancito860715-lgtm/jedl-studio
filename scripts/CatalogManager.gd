@@ -46,7 +46,7 @@ func load_catalog() -> bool:
         return _fail("Unsupported asset catalog schema")
     if int(manifest.get("schemaVersion", -1)) != 1:
         return _fail("Unsupported offline manifest schema")
-    if int(validation.get("schemaVersion", -1)) != 1:
+    if int(validation.get("schemaVersion", -1)) != 2:
         return _fail("Unsupported per-asset validation report schema")
     if String(manifest.get("catalogPath", "")) != CATALOG_PATH:
         return _fail("Root manifest points to a different catalog")
@@ -131,6 +131,8 @@ func load_catalog() -> bool:
             return _fail("Asset path differs from root manifest: " + asset_id)
         if String(entry.get("sha256", "")) != String(manifest_entry.get("sha256", "")):
             return _fail("Asset SHA-256 differs from root manifest: " + asset_id)
+        if int(entry.get("sizeBytes", -1)) != int(manifest_entry.get("sizeBytes", -2)):
+            return _fail("Asset size differs from root manifest: " + asset_id)
         if String(entry.get("license", "")) != String(manifest_entry.get("license", "")):
             return _fail("Asset license differs from root manifest: " + asset_id)
         if entry.get("offline", false) != true or entry.get("placeable", false) != true:
@@ -146,7 +148,16 @@ func load_catalog() -> bool:
             validation_entry.get("importado", false) == true
             and validation_entry.get("instanciado", false) == true
             and validation_entry.get("renderizable", false) == true
+            and validation_entry.get("dependenciesValid", false) == true
             and has_no_errors
+        )
+        if String(entry.get("kind", "")) == "3d":
+            is_renderable = (
+                is_renderable
+                and int(validation_entry.get("nodeCount", 0)) > 0
+                and int(validation_entry.get("meshInstances", 0)) > 0
+                and int(validation_entry.get("surfaces", 0)) > 0
+            )
         )
         if is_renderable:
             _entries_by_id[asset_id] = entry.duplicate(true)
