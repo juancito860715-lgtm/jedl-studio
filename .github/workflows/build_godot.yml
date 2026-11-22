@@ -81,6 +81,7 @@ jobs:
       - name: Build offline photorealistic asset galleries
         run: |
           set -euo pipefail
+          echo "Pinned Godot engine for validation: Godot ${GODOT_VERSION}"
           rm -rf assets/gallery/2d assets/gallery/3d assets/gallery/catalog.json
           python tools/content_banks/fetch_polyhaven.py 2>&1 | tee "$RUNNER_TEMP/asset-download.log"
           python tools/content_banks/fetch_extended_sources.py 2>&1 | tee "$RUNNER_TEMP/extended-source-download.log"
