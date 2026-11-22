@@ -51,9 +51,16 @@ func set_material_color(color: Color) -> bool:
         last_error = "El objeto seleccionado no contiene mallas editables."
         return false
     for mesh_instance in meshes:
-        var material := StandardMaterial3D.new()
+        var source_material: Material = mesh_instance.material_override
+        if source_material == null and mesh_instance.mesh != null and mesh_instance.mesh.get_surface_count() > 0:
+            source_material = mesh_instance.get_active_material(0)
+        var material: StandardMaterial3D
+        if source_material is StandardMaterial3D:
+            material = (source_material as StandardMaterial3D).duplicate() as StandardMaterial3D
+        else:
+            material = StandardMaterial3D.new()
+            material.roughness = 0.78
         material.albedo_color = color
-        material.roughness = 0.78
         mesh_instance.material_override = material
     material_changed.emit(selected_node)
     return true
