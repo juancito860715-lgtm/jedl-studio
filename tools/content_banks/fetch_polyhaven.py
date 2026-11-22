@@ -185,8 +185,8 @@ def main() -> None:
     catalog = {
         "schemaVersion": 2,
         "catalogId": "jedl_offline_realistic_assets_v1",
-        "licensePolicy": {"allowed": ["CC0-1.0"], "redistribution": True},
-        "attribution": "Photographic and 3D assets supplied by Poly Haven (CC0).",
+        "licensePolicy": {"allowed": ["CC0-1.0", "CC-BY-4.0"], "redistribution": True},
+        "attribution": "Poly Haven assets are CC0. The Khronos Fox sample is CC-BY-4.0; attribution is included in its source package.",
         "assets": entries,
     }
     CATALOG.parent.mkdir(parents=True, exist_ok=True)
