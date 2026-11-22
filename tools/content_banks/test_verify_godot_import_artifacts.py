@@ -45,18 +45,19 @@ class GodotImportArtifactsTests(unittest.TestCase):
 
     def test_accepts_platform_specific_path_variants(self):
         variants = [
-            'path.s3tc="res://.godot/imported/background.jpg-abc.s3tc.ctex"\\n',
-            'path.etc2="res://.godot/imported/background.jpg-abc.etc2.ctex"\\n',
-            'path.bptc="res://.godot/imported/background.jpg-abc.bptc.ctex"\\n',
+            ('path.s3tc', 'background.jpg-abc.s3tc.ctex'),
+            ('path.etc2', 'background.jpg-abc.etc2.ctex'),
+            ('path.bptc', 'background.jpg-abc.bptc.ctex'),
         ]
-        for index, sidecar_text in enumerate(variants):
-            with self.subTest(sidecar=sidecar_text):
-                cache = self.root / ".godot/imported" / f"background-{index}.ctex"
+        for key, filename in variants:
+            with self.subTest(key=key):
+                cache = self.root / ".godot/imported" / filename
                 cache.write_bytes(b"valid-import-output")
-                Path(str(self.source) + ".import").write_text(sidecar_text, encoding="utf-8")
+                Path(str(self.source) + ".import").write_text(
+                    f'{key}="res://.godot/imported/{filename}"\\n', encoding="utf-8"
+                )
                 result = verify_import_artifacts(self.root)
                 self.assertEqual(result["verifiedSidecarsAndCache"], 1)
-
     def test_accepts_dest_files_array_variant(self):
         cache = self.root / ".godot/imported/background-dest.ctex"
         cache.write_bytes(b"valid-import-output")
