@@ -8,6 +8,10 @@ const MANIFEST_PATH := "res://assets/gallery/manifest.json"
 
 var _catalog_loaded := false
 var _catalog_error := ""
+
+
+func get_catalog_error() -> String:
+    return _catalog_error
 var _entries_by_id: Dictionary = {}
 var _manifest_by_id: Dictionary = {}
 var _all_entries: Array[Dictionary] = []

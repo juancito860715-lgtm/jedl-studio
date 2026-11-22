@@ -14,6 +14,7 @@ var gallery_title: Label
 var json_panel: PanelContainer
 var json_editor: TextEdit
 var json_status: Label
+var primary_buttons: Dictionary = {}
 
 
 func _ready() -> void:
@@ -85,28 +86,40 @@ func _build_overlay() -> void:
     var load_button := Button.new()
     load_button.text = "Escena"
     load_button.pressed.connect(_load_example_scene)
+    load_button.pressed.connect(_animate_button.bind(load_button))
+    primary_buttons["scene"] = load_button
     toolbar_row.add_child(load_button)
     var play_button := Button.new()
     play_button.text = "Reproducir"
     play_button.pressed.connect(_play_scene)
+    play_button.pressed.connect(_animate_button.bind(play_button))
+    primary_buttons["play"] = play_button
     toolbar_row.add_child(play_button)
     var gallery_2d_button := Button.new()
     gallery_2d_button.text = "Galería 2D"
     gallery_2d_button.pressed.connect(func(): _show_gallery("2d"))
+    gallery_2d_button.pressed.connect(_animate_button.bind(gallery_2d_button))
+    primary_buttons["gallery_2d"] = gallery_2d_button
     toolbar_row.add_child(gallery_2d_button)
     var gallery_3d_button := Button.new()
     gallery_3d_button.text = "Galería 3D"
     gallery_3d_button.pressed.connect(func(): _show_gallery("3d"))
+    gallery_3d_button.pressed.connect(_animate_button.bind(gallery_3d_button))
+    primary_buttons["gallery_3d"] = gallery_3d_button
     toolbar_row.add_child(gallery_3d_button)
     var json_button := Button.new()
     json_button.text = "Editor JSON"
     json_button.pressed.connect(_show_json_editor)
+    json_button.pressed.connect(_animate_button.bind(json_button))
+    primary_buttons["json"] = json_button
     toolbar_row.add_child(json_button)
 
     for button in toolbar_row.get_children():
         button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-        button.custom_minimum_size = Vector2(0, 72)
-        button.add_theme_font_size_override("font_size", 18)
+        button.custom_minimum_size = Vector2(0, 76)
+        button.add_theme_font_size_override("font_size", 17)
+        button.focus_mode = Control.FOCUS_ALL
+        button.mouse_filter = Control.MOUSE_FILTER_STOP
 
     gallery_panel = PanelContainer.new()
     gallery_panel.anchor_left = 0.035
@@ -223,7 +236,7 @@ func _validate_and_load_json() -> void:
         if subtitle_label != null:
             subtitle_label.text = "Escena lista · %d elementos 3D" % scene_parser.active_instances.size()
     else:
-        json_status.text = "No se pudo cargar. Revisa la estructura JSON y las rutas res://."
+        json_status.text = scene_parser.last_error if not scene_parser.last_error.is_empty() else "No se pudo cargar el JSON. Revisa el contrato y los assetId."
 
 
 func _save_json_locally() -> void:
@@ -334,37 +347,65 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         gallery_list.remove_child(child)
         child.queue_free()
     var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind, category_filter)
-    var category_title := category_filter if not category_filter.is_empty() else ("Recursos 2D" if kind == "2d" else "Recursos 3D")
+    var category_title := category_filter if not category_filter.is_empty() else ("Fondos y elementos 2D" if kind == "2d" else "Personajes y objetos 3D")
     gallery_title.text = "%s · %d recursos" % [category_title, entries.size()]
     if entries.is_empty():
         var empty_label := Label.new()
-        empty_label.text = "Esta categoría todavía no tiene recursos empaquetados. No se mostrarán sustitutos rudimentarios."
+        var catalog_error := catalog_manager.get_catalog_error()
+        empty_label.text = "No se pudieron cargar los recursos del inventario.\n" + catalog_error if not catalog_error.is_empty() else "Esta categoría aún no tiene recursos individuales instalados.\nEl inventario no contiene elementos para este filtro."
         empty_label.add_theme_font_size_override("font_size", 18)
         gallery_list.add_child(empty_label)
     for index in range(mini(entries.size(), 300)):
         var item: Dictionary = entries[index]
-        var item_row := HBoxContainer.new()
-        item_row.add_theme_constant_override("separation", 10)
+        var item_row := PanelContainer.new()
+        item_row.custom_minimum_size = Vector2(0, 132)
         gallery_list.add_child(item_row)
+        var card_row := HBoxContainer.new()
+        card_row.add_theme_constant_override("separation", 12)
+        item_row.add_child(card_row)
+        var preview := TextureRect.new()
+        preview.custom_minimum_size = Vector2(124, 112)
+        preview.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+        preview.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+        preview.mouse_filter = Control.MOUSE_FILTER_IGNORE
+        var preview_path := String(item.get("preview_path", ""))
+        if not preview_path.is_empty():
+            preview.texture = load(preview_path) as Texture2D
+        card_row.add_child(preview)
+        var details := VBoxContainer.new()
+        details.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+        details.size_flags_vertical = Control.SIZE_EXPAND_FILL
+        card_row.add_child(details)
+        var title_label := Label.new()
+        title_label.text = String(item.get("title", "Recurso sin nombre"))
+        title_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+        title_label.add_theme_font_size_override("font_size", 17)
+        details.add_child(title_label)
+        var category_label := Label.new()
+        category_label.text = String(item.get("category", "Sin categoría")) + " · " + String(item.get("format", ""))
+        category_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+        details.add_child(category_label)
         var add_button := Button.new()
-        add_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-        add_button.custom_minimum_size = Vector2(0, 118)
-        add_button.add_theme_font_size_override("font_size", 17)
-        add_button.text = String(item["title"]) + " · " + String(item["category"]) + "\n" + String(item.get("license", ""))
-        if item.has("preview_path"):
-            add_button.icon = load(String(item["preview_path"])) as Texture2D
-            add_button.expand_icon = true
-            add_button.icon_max_width = 132
-        var resource_path := String(item["path"])
+        add_button.text = "Añadir a escena"
+        add_button.custom_minimum_size = Vector2(0, 52)
         add_button.pressed.connect(_animate_button.bind(add_button))
-        var is_background := kind == "2d" and (category_filter.is_empty() or category_filter == "Fondos fotográficos")
+        var resource_path := String(item["path"])
+        var is_background := kind == "2d" and String(item.get("category", "")) == "Fondos fotográficos"
         add_button.pressed.connect(_add_gallery_asset.bind(resource_path, is_background, String(item.get("id", ""))))
-        item_row.add_child(add_button)
+        details.add_child(add_button)
     if json_panel != null:
         json_panel.visible = false
     gallery_panel.visible = true
     gallery_panel.move_to_front()
 
 func _add_gallery_asset(resource_path: String, is_background: bool = true, asset_id: String = "") -> void:
-    if scene_parser != null and scene_parser.add_catalog_asset(resource_path, is_background, asset_id):
+    if scene_parser == null:
+        return
+    if scene_parser.add_catalog_asset(resource_path, is_background, asset_id):
         _frame_camera_to_content()
+        if gallery_title != null:
+            gallery_title.text = "Añadido a la escena: " + asset_id
+        if subtitle_label != null:
+            subtitle_label.text = "Recurso incorporado · " + asset_id
+    elif subtitle_label != null:
+        subtitle_label.text = "No se pudo incorporar el recurso: " + resource_path

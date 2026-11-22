@@ -14,6 +14,7 @@ var _playing := false
 var _playback_time := 0.0
 var _next_event := 0
 var _active_animation_players: Array[Dictionary] = []
+var last_error := ""
 
 
 func load_scene_file(path: String) -> bool:
@@ -30,14 +31,26 @@ func load_scene_file(path: String) -> bool:
 
 
 func load_scene_text(source: String) -> bool:
-    var parsed: Variant = JSON.parse_string(source)
-    if typeof(parsed) != TYPE_DICTIONARY:
-        push_error("Scene JSON root must be an object")
+    last_error = ""
+    var json_parser := JSON.new()
+    var parse_result := json_parser.parse(source)
+    if parse_result != OK:
+        last_error = "JSON inválido, línea %d: %s" % [json_parser.get_error_line(), json_parser.get_error_message()]
+        push_error(last_error)
         return false
-    var candidate: Dictionary = parsed
+    if typeof(json_parser.data) != TYPE_DICTIONARY:
+        last_error = "La raíz del JSON debe ser un objeto { ... }."
+        push_error(last_error)
+        return false
+    var candidate: Dictionary = json_parser.data
     for key in ["characters", "objects", "subtitles", "sounds"]:
-        if not candidate.has(key) or typeof(candidate[key]) != TYPE_ARRAY:
-            push_error("Scene JSON requires array: " + key)
+        if not candidate.has(key):
+            last_error = "Falta el campo obligatorio '%s'." % key
+            push_error(last_error)
+            return false
+        if typeof(candidate[key]) != TYPE_ARRAY:
+            last_error = "El campo '%s' debe ser una lista []." % key
+            push_error(last_error)
             return false
     _clear_instances()
     clear_background()
@@ -50,10 +63,12 @@ func load_scene_text(source: String) -> bool:
     if background_data is Dictionary and not background_data.is_empty():
         var resolved_background := _resolve_scene_entry(background_data)
         if resolved_background.is_empty():
+            last_error = "No se pudo resolver el fondo indicado por assetId: " + String(background_data.get("assetId", ""))
             return false
         var background_path := String(resolved_background.get("path", ""))
         if not background_path.is_empty():
             if not set_background(background_path):
+                last_error = "No se pudo cargar el fondo: " + background_path
                 return false
             background_sprite.set_meta(
                 "jedl_asset_id",
@@ -63,8 +78,10 @@ func load_scene_text(source: String) -> bool:
         if not set_background(background_data):
             return false
     if not _instantiate_entries(scene_data["characters"]):
+        if last_error.is_empty(): last_error = "No se pudieron crear los personajes. Revisa sus assetId y rutas."
         return false
     if not _instantiate_entries(scene_data["objects"]):
+        if last_error.is_empty(): last_error = "No se pudieron crear los objetos. Revisa sus assetId y rutas."
         return false
     if candidate.has("elements"):
         if typeof(candidate["elements"]) != TYPE_ARRAY or not _instantiate_entries(candidate["elements"]):
@@ -84,7 +101,8 @@ func _resolve_scene_entry(raw_entry: Dictionary) -> Dictionary:
         return {}
     var resolved: Dictionary = catalog_manager.resolve_asset_id(asset_id)
     if resolved.is_empty():
-        push_error("Scene assetId could not be resolved: " + asset_id)
+        last_error = "No existe en el inventario el assetId: " + asset_id
+        push_error(last_error)
         return {}
     for key in ["path", "kind", "category", "license", "sha256"]:
         if resolved.has(key):
@@ -102,25 +120,29 @@ func _instantiate_entries(entries: Array) -> bool:
             return false
         var resource_path := String(entry.get("path", ""))
         if resource_path.is_empty():
-            push_error("Scene entry is missing path")
+            last_error = "Elemento '%s' sin ruta ni assetId válido." % String(entry.get("id", "desconocido"))
+            push_error(last_error)
             return false
         var instance: Node3D
         var extension := resource_path.get_extension().to_lower()
         if extension in ["png", "jpg", "jpeg", "webp"]:
             var texture := load(resource_path) as Texture2D
             if texture == null:
-                push_error("2D scene element texture could not be loaded: " + resource_path)
+                last_error = "No se pudo abrir la textura 2D: " + resource_path
+                push_error(last_error)
                 return false
             instance = _create_2d_element(texture, entry)
         else:
             var packed := load(resource_path) as PackedScene
             if packed == null:
-                push_error("Scene resource is not an imported PackedScene: " + resource_path)
+                last_error = "El modelo 3D no se importó como escena: " + resource_path
+                push_error(last_error)
                 return false
             var candidate := packed.instantiate()
             if not candidate is Node3D:
                 candidate.queue_free()
-                push_error("Scene resource root must be Node3D: " + resource_path)
+                last_error = "El modelo debe tener una raíz Node3D: " + resource_path
+                push_error(last_error)
                 return false
             instance = candidate as Node3D
         instance.name = String(entry.get("name", entry.get("id", resource_path.get_file().get_basename())))
@@ -176,6 +198,7 @@ func set_background(resource_path: String) -> bool:
     background_sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED
     background_sprite.pixel_size = 1.0
     background_sprite.position = Vector3(0.0, 0.0, -80.0)
+    background_sprite.render_priority = -10
     background_sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
     var material := StandardMaterial3D.new()
     material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
