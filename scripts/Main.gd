@@ -11,6 +11,8 @@ var catalog_manager: Node
 var gallery_panel: PanelContainer
 var gallery_list: VBoxContainer
 var gallery_title: Label
+var background_layer: CanvasLayer
+var background_display: TextureRect
 
 
 func _ready() -> void:
@@ -27,12 +29,26 @@ func _ready() -> void:
     scene_parser = SceneParserScript.new()
     add_child(scene_parser)
     scene_parser.world_root = world_root
+    scene_parser.background_display = background_display
     scene_parser.subtitle_label = subtitle_label
     scene_parser.audio_player = audio_player
 
 
 func _build_overlay() -> void:
+    # Los fondos fotográficos son backplates 2D a pantalla completa, no sprites 3D diminutos.
+    background_layer = CanvasLayer.new()
+    background_layer.layer = -1
+    add_child(background_layer)
+    background_display = TextureRect.new()
+    background_display.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    background_display.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+    background_display.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+    background_display.mouse_filter = Control.MOUSE_FILTER_IGNORE
+    background_display.visible = false
+    background_layer.add_child(background_display)
+
     var layer := CanvasLayer.new()
+    layer.layer = 1
     add_child(layer)
     var screen := Control.new()
     screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
