@@ -164,7 +164,7 @@ def add_grab3d(entries: list[dict]) -> None:
         if any(term in (title + " " + category).lower() for term in EXCLUDED_TERMS):
             continue
         style = str(model.get("style", "")).lower()
-        if style not in {"realistic", "stylized"}:
+        if style != "realistic":
             continue
         specs = model.get("specs", {})
         triangles = int(specs.get("triangles", 0) or 0)
@@ -279,6 +279,16 @@ def add_art_institute_photographs(entries: list[dict]) -> None:
             folder.mkdir(parents=True, exist_ok=True)
             path = folder / f"aic_{item['id']}.jpg"
             image.save(path, "JPEG", quality=90, optimize=True)
+        rights_path = folder / f"aic_{item['id']}.rights.json"
+        rights_path.write_text(json.dumps({
+            "record": item,
+            "license": "CC0-1.0",
+            "licenseLinks": result.get("info", {}).get("license_links", []),
+            "sourceApi": f"https://api.artic.edu/api/v1/artworks/{item['id']}"
+        }, ensure_ascii=False, indent=2) + "\\n", encoding="utf-8")
+        cc0_url = "https://creativecommons.org/publicdomain/zero/1.0/"
+        if cc0_url not in result.get("info", {}).get("license_links", []):
+            raise ValueError("Art Institute API response does not confirm CC0 licensing")
         entries.append({
             "id": f"background.aic.photograph.{item['id']}",
             "title": str(item.get("title", "Historical photograph")),
@@ -287,7 +297,8 @@ def add_art_institute_photographs(entries: list[dict]) -> None:
             "preview_path": "res://" + path.relative_to(ROOT).as_posix(),
             "kind": "2d", "category": "Fondos fotográficos",
             "format": "JPEG", "width": image.width, "height": image.height,
-            "license": "CC0-1.0", "licenseEvidence": "https://api.artic.edu/docs/",
+            "license": "CC0-1.0", "licenseEvidence": f"https://api.artic.edu/api/v1/artworks/{item['id']}",
+            "licenseFile": "res://" + rights_path.relative_to(ROOT).as_posix(),
             "source": f"https://www.artic.edu/artworks/{item['id']}",
             "publisher": "Art Institute of Chicago",
             "sha256": digest(path), "offline": True, "placeable": True
@@ -303,7 +314,8 @@ def main() -> None:
     # Provider-specific errors are not silently swallowed: CI fails with the source and item.
     add_tevy(additions)
     add_grab3d(additions)
-    add_codelove(additions)
+    # CodeLove GLBs use EXT_meshopt_compression and WebP; hold them until
+    # a Godot 4.4-compatible conversion is proven in the importer tests.
     add_art_institute_photographs(additions)
     for entry in additions:
         if entry["id"] in existing:
@@ -316,9 +328,11 @@ def main() -> None:
         " Extended CC0 items retain per-item source, license evidence and packaged notices.")
     CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"EXTENDED_ASSET_BANK_OK: added={len(additions)} total={len(entries)}")
-    print("SOURCE_STATUS: Smithsonian and NASA held until item-level public-domain media proof is available; "
-          "Rijksmuseum held until a no-secret open endpoint can be verified; OmniMod remains discovery-only "
-          "because its low-poly/static collection does not meet the realism-first asset tier.")
+    print("SOURCE_STATUS: Smithsonian and NASA held until item-level CC0/public-domain media proof is attached; "
+          "Rijksmuseum held until an authenticated or openly accessible image endpoint and item rights record "
+          "are verified; CodeLove held until meshopt/WebP conversion is proven in Godot 4.4; OmniMod excluded "
+          "from the realism-first tier because its catalogue is predominantly low-poly/static; Innerscene "
+          "human base meshes are not included without a suitable clothed, production-ready model.")
 
 
 if __name__ == "__main__":
