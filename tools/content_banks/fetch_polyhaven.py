@@ -43,7 +43,6 @@ MODELS = {
     "dead_quiver_trunk": ("Tronco natural", "Rocas y troncos"),
     "dead_tree_trunk_02": ("Tronco caído con líquenes", "Rocas y troncos"),
     "ArmChair_01": ("Sillón de madera tallada", "Mobiliario"),
-    "Barrel_01": ("Barril metálico envejecido", "Contenedores y utilería"),
     "Barrel_02": ("Barril industrial azul", "Contenedores y utilería"),
     "treasure_chest": ("Cofre de madera antiguo", "Contenedores y utilería"),
     "tool_cart": ("Carro de herramientas", "Mobiliario"),

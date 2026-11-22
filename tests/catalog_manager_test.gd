@@ -28,7 +28,7 @@ func _run_tests() -> void:
         assert(ResourceLoader.exists(String(item["preview_path"])), "Every 2D card must have a packaged preview")
 
     var models: Array[Dictionary] = manager.scan_catalog("3d")
-    assert(models.size() == 13, "The 3D gallery must expose twelve realistic props/environment models plus the animated Fox")
+    assert(models.size() == 12, "The 3D gallery must expose eleven realistic props/environment models plus the animated Fox")
     assert(models.any(func(item: Dictionary) -> bool: return item["id"] == "character.fox.khronos.v1"), "The animated Fox test character must remain in the gallery")
     for item in models:
         assert(String(item["path"]).ends_with(".gltf") or String(item["path"]).ends_with(".glb"),
