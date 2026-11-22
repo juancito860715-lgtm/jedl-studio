@@ -9,8 +9,19 @@ import sys
 from pathlib import Path
 
 IMPORTABLE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gltf", ".glb"}
-CACHE_PATH = re.compile(r'^\s*path\s*=\s*"res://([^"]+)"\s*$', re.MULTILINE)
+IMPORT_OUTPUT_LINE = re.compile(r'^\s*(path(?:\.[A-Za-z0-9_]+)?|dest_files)\s*=\s*(.*?)\s*$', re.MULTILINE)
+RES_PATH = re.compile(r'"res://([^"]+)"')
 
+
+
+def imported_cache_paths(sidecar_text: str) -> list[str]:
+    """Read Godot 4.x remap outputs and dependency dest_files from .import."""
+    paths: list[str] = []
+    for match in IMPORT_OUTPUT_LINE.finditer(sidecar_text):
+        key, value = match.groups()
+        if key == "dest_files" or key == "path" or key.startswith("path."):
+            paths.extend(RES_PATH.findall(value))
+    return list(dict.fromkeys(paths))
 
 def verify_import_artifacts(root: Path, manifest_path: Path | None = None) -> dict:
     root = root.resolve(strict=True)
@@ -45,14 +56,18 @@ def verify_import_artifacts(root: Path, manifest_path: Path | None = None) -> di
             missing_sidecars.append(resource_path)
             continue
         sidecar_text = sidecar.read_text(encoding="utf-8", errors="replace")
-        matches = CACHE_PATH.findall(sidecar_text)
+        matches = imported_cache_paths(sidecar_text)
         if not matches:
             missing_cache.append(resource_path + " (no imported cache path in .import)")
             continue
         resolved_cache_paths = []
+        imported_dir = (root / ".godot/imported").resolve(strict=False)
         for relative in matches:
-            cache_path = (root / relative).resolve(strict=False)
-            if not cache_path.is_relative_to(root / ".godot/imported"):
+            relative_path = Path(relative)
+            if relative_path.is_absolute() or any(part in ("", ".", "..") for part in relative_path.parts):
+                continue
+            cache_path = (root / relative_path).resolve(strict=False)
+            if not cache_path.is_relative_to(imported_dir):
                 continue
             resolved_cache_paths.append(cache_path)
         existing = [path for path in resolved_cache_paths if path.is_file() and path.stat().st_size > 0]
