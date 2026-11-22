@@ -34,6 +34,8 @@ func _ready() -> void:
     scene_parser.camera = camera
     scene_parser.subtitle_label = subtitle_label
     scene_parser.audio_player = audio_player
+    # Arranca con una escena real cargada; Play nunca debe confirmar una escena vacía.
+    call_deferred("_load_example_scene")
 
 
 func _build_overlay() -> void:
@@ -206,6 +208,7 @@ func _show_json_editor() -> void:
             file.close()
     json_status.text = "Contrato JEDL v2: background, characters, objects, elements, subtitles y sounds."
     json_panel.visible = true
+    json_panel.move_to_front()
 
 
 func _validate_and_load_json() -> void:
@@ -213,7 +216,11 @@ func _validate_and_load_json() -> void:
         return
     if scene_parser.load_scene_text(json_editor.text):
         json_status.text = "JSON válido: escena cargada correctamente."
+        gallery_panel.visible = false
+        json_panel.visible = false
         _frame_camera_to_content()
+        if subtitle_label != null:
+            subtitle_label.text = "Escena lista · %d elementos 3D" % scene_parser.active_instances.size()
     else:
         json_status.text = "No se pudo cargar. Revisa la estructura JSON y las rutas res://."
 
@@ -234,8 +241,22 @@ func _on_viewport_size_changed() -> void:
 
 
 func _load_example_scene() -> void:
-    if scene_parser != null and scene_parser.load_scene_file("res://scenes/scene.example.json"):
+    # Escena es el retorno al visor: cierra cualquier panel que pudiera tapar el mundo 3D.
+    if gallery_panel != null:
+        gallery_panel.visible = false
+    if json_panel != null:
+        json_panel.visible = false
+    if scene_parser == null:
+        return
+    scene_parser.stop_scene()
+    if camera != null:
+        camera.current = true
+    if scene_parser.load_scene_file("res://scenes/scene.example.json"):
         _frame_camera_to_content()
+        if subtitle_label != null:
+            subtitle_label.text = "Escena cargada · %d elementos 3D" % scene_parser.active_instances.size()
+    elif subtitle_label != null:
+        subtitle_label.text = "Error: no se pudo cargar la escena de ejemplo."
 
 
 func _calculate_camera_distance(bounds_size: Vector3, aspect_ratio: float, fov_degrees: float) -> float:
@@ -285,8 +306,17 @@ func _frame_camera_to_content() -> void:
 
 
 func _play_scene() -> void:
-    if scene_parser != null:
-        scene_parser.play_scene()
+    # Reproducir debe mostrar el visor, no dejar el editor o la galería encima.
+    if gallery_panel != null:
+        gallery_panel.visible = false
+    if json_panel != null:
+        json_panel.visible = false
+    if scene_parser == null:
+        return
+    if scene_parser.scene_data.is_empty() or scene_parser.active_instances.is_empty():
+        _load_example_scene()
+    _frame_camera_to_content()
+    scene_parser.play_scene()
 
 func _animate_button(button: Control) -> void:
     if not is_instance_valid(button):
@@ -331,6 +361,7 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
     if json_panel != null:
         json_panel.visible = false
     gallery_panel.visible = true
+    gallery_panel.move_to_front()
 
 func _add_gallery_asset(resource_path: String, is_background: bool = true) -> void:
     if scene_parser != null and scene_parser.add_catalog_asset(resource_path, is_background):
