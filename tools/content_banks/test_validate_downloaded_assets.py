@@ -54,7 +54,7 @@ class DownloadedAssetsValidationTests(unittest.TestCase):
         assets = []
         for item in self.catalog["assets"]:
             source_path = self.root / item["path"][6:]
-            item["sizeBytes"] = source_path.stat().st_size
+            item["sizeBytes"] = source_path.stat().st_size if source_path.is_file() else -1
             assets.append({"assetId": item["id"], "path": item["path"], "sha256": item["sha256"],
                            "sizeBytes": item["sizeBytes"], "dependencies": [], "license": item["license"]})
         self.catalog_path.write_text(json.dumps(self.catalog), encoding="utf-8")
