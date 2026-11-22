@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -29,6 +30,15 @@ def validate_report(root: Path = ROOT) -> dict:
     report = json.loads(report_path.read_text(encoding="utf-8"))
     if report.get("schemaVersion") != 2:
         raise ValueError("Unsupported Godot validation report schema")
+    expected_version = os.environ.get("GODOT_VERSION", "").strip()
+    if not expected_version:
+        raise ValueError("GODOT_VERSION is not set to the pinned Godot executable version")
+    expected_engine = f"Godot {expected_version}"
+    if report.get("engine") != expected_engine:
+        raise ValueError(
+            f"Godot validation report engine mismatch: expected {expected_engine!r}, "
+            f"got {report.get('engine')!r}"
+        )
     if report.get("catalogSha256") != sha256(catalog_path):
         raise ValueError("Godot validation report does not match the current catalog hash")
     entries = catalog.get("assets", [])

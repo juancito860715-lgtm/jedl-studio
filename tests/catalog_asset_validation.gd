@@ -59,9 +59,11 @@ func _run_validation() -> void:
             return
         files_by_path[file_path] = file_record
 
+    var engine_version_info := Engine.get_version_info()
+    var engine_label := "Godot " + String(engine_version_info.get("string", "unknown"))
     var report := {
         "schemaVersion": 2,
-        "engine": "Godot 4.4.1",
+        "engine": engine_label,
         "catalogSha256": catalog_hash,
         "assetCount": catalog["assets"].size(),
         "assets": [],

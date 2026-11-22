@@ -47,6 +47,7 @@ jobs:
           GODOT_VERSION="$("$GODOT_BIN" --version)"
           echo "$GODOT_VERSION"
           [[ "$GODOT_VERSION" == 4.5.1.stable.* ]] || { echo "Expected Godot 4.5.1 stable, got: $GODOT_VERSION"; exit 1; }
+          echo "GODOT_VERSION=$GODOT_VERSION" >> "$GITHUB_ENV"
       - name: Install matching Android export templates
         run: |
           set -euo pipefail
@@ -135,7 +136,7 @@ jobs:
               print(f"IMPORT_SIDECAR_END {item['path']}")
           PY
           python tools/content_banks/verify_godot_import_artifacts.py 2>&1 | tee "$RUNNER_TEMP/godot-import-artifacts.log"
-      - name: Prove Godot rejects an invalid GLB with its real importer
+      - name: Prove Godot rejects a valid GLB requiring unsupported meshopt with its real importer
         run: |
           set -euo pipefail
           python tools/content_banks/verify_godot_negative_import.py --godot "$GODOT_BIN" 2>&1 | tee "$RUNNER_TEMP/godot-negative-import.log"

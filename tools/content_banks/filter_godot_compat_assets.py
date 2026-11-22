@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import re
 import shutil
 import struct
 from pathlib import Path
@@ -14,6 +16,13 @@ EXCLUSION_POLICY_PATH = Path("docs/asset_exclusions.json")
 
 class UnsupportedGodotExtensionError(ValueError):
     pass
+
+
+def engine_label_from_environment() -> str:
+    version = os.environ.get("GODOT_VERSION", "").strip()
+    if not version or not re.fullmatch(r"\\d+\\.\\d+\\.\\d+\\.stable\\..+", version):
+        raise RuntimeError("GODOT_VERSION must contain the exact stable version reported by the pinned Godot binary")
+    return f"Godot {version}"
 
 
 def read_gltf_document(path: Path) -> dict:
@@ -51,6 +60,10 @@ def load_exclusion_policy(root: Path) -> dict[str, dict]:
         asset_id = str(record.get("assetId", ""))
         if not asset_id or asset_id in result or record.get("activeCatalogAllowed") is not False:
             raise ValueError(f"Invalid or duplicate explicit asset exclusion: {asset_id}")
+        exclusion_date = str(record.get("exclusion_date", "")).strip()
+        audit_reference = str(record.get("audit_reference", "")).strip()
+        if not re.fullmatch(r"\\d{4}-\\d{2}-\\d{2}", exclusion_date) or not audit_reference:
+            raise ValueError(f"Asset exclusion {asset_id} is missing a valid exclusion_date or audit_reference")
         result[asset_id] = record
     return result
 
@@ -69,13 +82,14 @@ def inspect_model(path: Path, asset_id: str) -> dict:
         "path": display_path,
         "extensionsUsed": used,
         "extensionsRequired": required,
-        "unsupportedGodot441Extensions": incompatible,
+        "unsupportedGodotExtensions": incompatible,
         "compatibleByExtensionGate": not incompatible,
     }
 
 
 def filter_catalog(root: Path = ROOT) -> dict:
     root = root.resolve(strict=True)
+    engine_label = engine_label_from_environment()
     catalog_path = root / "assets/gallery/catalog.json"
     catalog = json.loads(catalog_path.read_text(encoding="utf-8"))
     entries = catalog.get("assets")
@@ -118,13 +132,13 @@ def filter_catalog(root: Path = ROOT) -> dict:
             continue
         if not model_path.is_relative_to(extended_root):
             raise UnsupportedGodotExtensionError(
-                f"Core catalog model {asset_id} requires unsupported Godot 4.4.1 extensions: "
-                + ", ".join(record["unsupportedGodot441Extensions"])
+                f"Core catalog model {asset_id} requires unsupported Godot extensions: "
+                + ", ".join(record["unsupportedGodotExtensions"])
             )
         excluded.append({
             **record,
             "status": "excluded_unsupported_extension",
-            "reason": "Required/used extension is not supported by the audited Godot 4.4.1 importer.",
+            "reason": "Required/used extension is not supported by the audited Godot importer.",
         })
         shutil.rmtree(model_path.parent)
         print(f"GLB_EXCLUDED_UNSUPPORTED: {asset_id} extensions={record['unsupportedGodot441Extensions']}")
@@ -134,7 +148,7 @@ def filter_catalog(root: Path = ROOT) -> dict:
     missing_policy_assets = set(policy_exclusions) - seen_policy_exclusions
     report = {
         "schemaVersion": 2,
-        "engine": "Godot 4.4.1",
+        "engine": engine_label,
         "unsupportedExtensions": sorted(UNSUPPORTED_EXTENSIONS),
         "inspectedCount": len(inspected),
         "compatibleCount": sum(1 for item in inspected if item["compatibleByExtensionGate"]),

@@ -48,6 +48,9 @@ func load_catalog() -> bool:
         return _fail("Unsupported offline manifest schema")
     if int(validation.get("schemaVersion", -1)) != 2:
         return _fail("Unsupported per-asset validation report schema")
+    var expected_engine := "Godot " + String(Engine.get_version_info().get("string", ""))
+    if String(validation.get("engine", "")) != expected_engine:
+        return _fail("Per-asset validation report engine does not match the running Godot engine")
     if String(manifest.get("catalogPath", "")) != CATALOG_PATH:
         return _fail("Root manifest points to a different catalog")
     var expected_catalog_hash := String(manifest.get("catalogSha256", ""))

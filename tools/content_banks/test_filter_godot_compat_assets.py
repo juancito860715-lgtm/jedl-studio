@@ -1,7 +1,9 @@
 import json
+import os
 import struct
 import tempfile
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from filter_godot_compat_assets import (
@@ -20,6 +22,9 @@ def write_glb(path: Path, document: dict) -> None:
 
 class GodotCompatibilityFilterTests(unittest.TestCase):
     def setUp(self):
+        self.version_patch = patch.dict(os.environ, {"GODOT_VERSION": "4.5.1.stable.official.test"})
+        self.version_patch.start()
+        self.addCleanup(self.version_patch.stop)
         self.temp = tempfile.TemporaryDirectory()
         self.root = Path(self.temp.name)
         (self.root / "assets/gallery/3d/extended").mkdir(parents=True)
@@ -37,7 +42,7 @@ class GodotCompatibilityFilterTests(unittest.TestCase):
         })
         result = inspect_model(model, "test.model")
         self.assertEqual(
-            result["unsupportedGodot441Extensions"],
+            result["unsupportedGodotExtensions"],
             ["EXT_meshopt_compression", "KHR_mesh_quantization"],
         )
         self.assertFalse(result["compatibleByExtensionGate"])
@@ -66,6 +71,7 @@ class GodotCompatibilityFilterTests(unittest.TestCase):
         self.assertFalse(folder.exists())
         self.assertEqual(report["excludedCount"], 1)
         self.assertEqual(report["excludedAssets"][0]["assetId"], "character.test.extended")
+        self.assertEqual(report["engine"], "Godot 4.5.1.stable.official.test")
 
     def test_core_model_with_unsupported_extension_fails_closed(self):
         folder = self.root / "assets/gallery/3d/core"
@@ -121,6 +127,8 @@ class GodotCompatibilityFilterTests(unittest.TestCase):
                 "status": "excluded",
                 "reason": "Pending end-to-end validation",
                 "activeCatalogAllowed": False,
+                "exclusion_date": "2026-11-22",
+                "audit_reference": "PR #13 / Run #178 / FIX-A5",
                 "reentryCriteria": ["Import", "Instantiate", "Render"],
             }],
         }), encoding="utf-8")
@@ -139,6 +147,28 @@ class GodotCompatibilityFilterTests(unittest.TestCase):
         self.assertFalse(folder.exists())
         self.assertEqual(report["excludedAssets"][0]["status"], "excluded_by_policy")
         self.assertEqual(report["policyExclusionsEncounteredInAcquisition"], ["character.tevy.casual_walker.v1"])
+        self.assertEqual(report["engine"], "Godot 4.5.1.stable.official.test")
+
+    def test_exclusion_policy_requires_date_and_audit_reference(self):
+        docs = self.root / "docs"
+        docs.mkdir()
+        (docs / "asset_exclusions.json").write_text(json.dumps({
+            "schemaVersion": 1,
+            "exclusions": [{
+                "assetId": "character.tevy.casual_walker.v1",
+                "activeCatalogAllowed": False,
+                "reason": "Unsupported extensions",
+            }],
+        }), encoding="utf-8")
+        from filter_godot_compat_assets import load_exclusion_policy
+        with self.assertRaisesRegex(ValueError, "exclusion_date or audit_reference"):
+            load_exclusion_policy(self.root)
+
+    def test_filter_requires_exact_godot_version_environment(self):
+        with patch.dict(os.environ, {}, clear=True):
+            from filter_godot_compat_assets import engine_label_from_environment
+            with self.assertRaisesRegex(RuntimeError, "GODOT_VERSION"):
+                engine_label_from_environment()
 
 
 if __name__ == "__main__":
