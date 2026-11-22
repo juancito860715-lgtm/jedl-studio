@@ -26,14 +26,28 @@ HDRIS = {
     "xanderklinge": "Arroyo rocoso y cascada",
     "river_walk_1": "Sendero bajo dosel forestal",
     "autumn_forest_03": "Bosque otoñal con arroyo",
+    "autumn_forest_01": "Bosque caducifolio de otoño",
+    "autumn_forest_02": "Sendero de bosque otoñal",
+    "autumn_forest_04": "Bosque otoñal con luz dorada",
+    "autumn_ground": "Suelo forestal cubierto de hojas",
+    "misty_pines": "Pinar cubierto de niebla",
+    "snowy_forest": "Bosque nevado",
+    "snowy_forest_path_01": "Camino entre árboles nevados",
+    "abandoned_church": "Iglesia antigua entre árboles",
 }
 MODELS = {
-    "tree_stump_01": "Tocón de árbol con musgo",
-    "tree_stump_02": "Tocón de árbol envejecido",
-    "dead_quiver_branch_01": "Rama seca de bosque",
-    "dead_quiver_branch_02": "Tronco caído erosionado",
-    "dead_quiver_trunk": "Tronco natural",
-    "dead_tree_trunk_02": "Tronco caído con líquenes",
+    "tree_stump_01": ("Tocón de árbol con musgo", "Árboles y vegetación"),
+    "tree_stump_02": ("Tocón de árbol envejecido", "Árboles y vegetación"),
+    "dead_quiver_branch_01": ("Rama seca de bosque", "Rocas y troncos"),
+    "dead_quiver_branch_02": ("Tronco caído erosionado", "Rocas y troncos"),
+    "dead_quiver_trunk": ("Tronco natural", "Rocas y troncos"),
+    "dead_tree_trunk_02": ("Tronco caído con líquenes", "Rocas y troncos"),
+    "ArmChair_01": ("Sillón de madera tallada", "Mobiliario"),
+    "Barrel_01": ("Barril metálico envejecido", "Contenedores y utilería"),
+    "Barrel_02": ("Barril industrial azul", "Contenedores y utilería"),
+    "treasure_chest": ("Cofre de madera antiguo", "Contenedores y utilería"),
+    "tool_cart": ("Carro de herramientas", "Mobiliario"),
+    "trashbag": ("Bolsa de residuos", "Contenedores y utilería"),
 }
 
 
@@ -119,7 +133,8 @@ def choose_gltf_file(files: dict) -> dict:
 
 def build_3d(api_assets: dict) -> list[dict]:
     entries = []
-    for asset_id, title in MODELS.items():
+    for asset_id, model_data in MODELS.items():
+        title, category = model_data
         metadata = api_assets.get(asset_id)
         if not metadata or metadata.get("type") != 2:
             raise ValueError(f"Missing or invalid Poly Haven model: {asset_id}")
@@ -155,7 +170,7 @@ def build_3d(api_assets: dict) -> list[dict]:
             "description": metadata.get("description", ""),
             "path": "res://" + model_path.relative_to(ROOT).as_posix(),
             "preview_path": "res://" + preview_path.relative_to(ROOT).as_posix(),
-            "kind": "3d", "category": "Naturaleza y utilería realista",
+            "kind": "3d", "category": category,
             "format": model_path.suffix.lstrip(".").upper(),
             "polycount": polycount, "dimensions_mm": metadata.get("dimensions", []),
             "license": "CC0-1.0", "source": f"https://polyhaven.com/a/{asset_id}",
@@ -193,8 +208,8 @@ def main() -> None:
     CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     count_2d = sum(item["kind"] == "2d" for item in entries)
     count_3d = sum(item["kind"] == "3d" for item in entries)
-    assert count_2d == len(HDRIS) and count_3d == len(MODELS) + 1
-    print(f"POLYHAVEN_BANK_OK: photoreal_2d={count_2d} realistic_3d={count_3d} license=CC0-1.0")
+    assert count_2d == 12 and count_3d == len(MODELS) + 1
+    print(f"POLYHAVEN_BANK_OK: photographic_backgrounds={count_2d} realistic_3d_assets={count_3d} license=CC0-1.0")
     print(f"CATALOG_SHA256={sha256(CATALOG)}")
 
 

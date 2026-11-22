@@ -20,15 +20,15 @@ func _run_tests() -> void:
     assert(not resolved_fox.is_empty(), "Animated 3D character assetId must resolve through the root manifest")
 
     var entries_2d: Array[Dictionary] = manager.scan_catalog("2d")
-    assert(entries_2d.size() == 4, "The 2D gallery must contain the four curated photographic forest/river backgrounds")
+    assert(entries_2d.size() == 12, "The 2D gallery must contain twelve curated photographic backgrounds")
     for item in entries_2d:
-        assert(String(item["path"]).ends_with(".jpg"), "The public 2D gallery must not expose rudimentary generated PNG parts")
+        assert(String(item["path"]).ends_with(".jpg"), "Photographic backgrounds must be packaged as JPEG backplates")
         assert(item["license"] == "CC0-1.0", "Every 2D image must have verified redistribution rights")
         assert(item["offline"] and item["placeable"], "Every 2D background must be packaged and placeable")
         assert(ResourceLoader.exists(String(item["preview_path"])), "Every 2D card must have a packaged preview")
 
     var models: Array[Dictionary] = manager.scan_catalog("3d")
-    assert(models.size() == 7, "The 3D gallery must expose six realistic environment models plus the animated Fox")
+    assert(models.size() == 13, "The 3D gallery must expose twelve realistic props/environment models plus the animated Fox")
     assert(models.any(func(item: Dictionary) -> bool: return item["id"] == "character.fox.khronos.v1"), "The animated Fox test character must remain in the gallery")
     for item in models:
         assert(String(item["path"]).ends_with(".gltf") or String(item["path"]).ends_with(".glb"),
