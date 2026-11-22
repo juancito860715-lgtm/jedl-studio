@@ -12,7 +12,7 @@ func _run_tests() -> void:
     var manager = CatalogManagerScript.new()
     root.add_child(manager)
 
-    assert(manager.load_catalog(), "Root manifest must validate against the catalog SHA-256")
+    assert(manager.load_catalog(), "Catalog, root manifest and per-asset Godot validation report must agree")
     var resolved_background: Dictionary = manager.resolve_asset_id("background.mossy_forest")
     assert(not resolved_background.is_empty(), "Background assetId must resolve through the root manifest")
     assert(String(resolved_background["sha256"]).length() == 64, "Resolved background must expose its SHA-256")
@@ -28,8 +28,9 @@ func _run_tests() -> void:
         assert(ResourceLoader.exists(String(item["preview_path"])), "Every 2D card must have a packaged preview")
 
     var models: Array[Dictionary] = manager.scan_catalog("3d")
-    assert(models.size() >= 13, "The 3D gallery must expose the core models, the animated Fox and the Tevy humanoid")
-    assert(models.any(func(item: Dictionary) -> bool: return item["id"] == "character.fox.khronos.v1"), "The animated Fox test character must remain in the gallery")
+    assert(models.size() >= 12, "The 3D gallery must expose the curated core models and animated Fox")
+    assert(models.any(func(item: Dictionary) -> bool: return item["id"] == "character.fox.khronos.v1"),
+        "The animated Fox test character must remain in the gallery")
     for item in models:
         assert(String(item["path"]).ends_with(".gltf") or String(item["path"]).ends_with(".glb"),
             "Every 3D asset must be a real glTF model, not a preview image")
@@ -59,13 +60,17 @@ func _run_tests() -> void:
     assert(parser.active_instances.size() == 1 and parser.active_instances.back() is Node3D,
         "A selected 3D model must become a Node3D scene instance")
     var fox_entry: Dictionary = models.filter(func(item: Dictionary) -> bool: return item["id"] == "character.fox.khronos.v1")[0]
-    assert(parser.add_catalog_asset(String(fox_entry["path"]), false, String(fox_entry["id"])), "The animated Fox must be placeable from the character gallery")
+    assert(parser.add_catalog_asset(String(fox_entry["path"]), false, String(fox_entry["id"])),
+        "The animated Fox must be placeable from the character gallery")
     var gallery_fox: Node3D = parser.active_instances.back()
-    assert(gallery_fox.get_meta("jedl_asset_id") == "character.fox.khronos.v1", "Placed Fox must retain its stable assetId")
+    assert(gallery_fox.get_meta("jedl_asset_id") == "character.fox.khronos.v1",
+        "Placed Fox must retain its stable assetId")
     var fox_players := gallery_fox.find_children("*", "AnimationPlayer", true, false)
     assert(not fox_players.is_empty(), "The gallery Fox must retain its AnimationPlayer")
-    assert((fox_players[0] as AnimationPlayer).is_playing(), "Rigged gallery characters must begin their default animation instead of remaining static")
-    assert((fox_players[0] as AnimationPlayer).current_animation == "Walk", "The Fox gallery default must be the Walk animation")
+    assert((fox_players[0] as AnimationPlayer).is_playing(),
+        "Rigged gallery characters must begin their default animation instead of remaining static")
+    assert((fox_players[0] as AnimationPlayer).current_animation == "Walk",
+        "The Fox gallery default must be the Walk animation")
 
     parser.queue_free()
     camera.queue_free()
