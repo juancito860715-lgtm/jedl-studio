@@ -110,6 +110,14 @@ jobs:
             --workdir /workspace \
             debian:trixie-slim \
             bash tools/ci/run_godot_import_with_portal.sh
+          # The portal import runs in Docker as root against the mounted workspace.
+          # Restore runner ownership before host-side tests and Android export.
+          test -d "$GITHUB_WORKSPACE/.godot"
+          sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE/.godot"
+          test -w "$GITHUB_WORKSPACE/.godot"
+          mkdir -p "$GITHUB_WORKSPACE/.godot/editor" "$GITHUB_WORKSPACE/.godot/exported"
+          test -w "$GITHUB_WORKSPACE/.godot/editor"
+          test -w "$GITHUB_WORKSPACE/.godot/exported"
           test -d .godot/imported
           python - <<'PY'
           import json
