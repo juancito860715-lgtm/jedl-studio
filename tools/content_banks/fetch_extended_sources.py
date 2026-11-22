@@ -23,6 +23,7 @@ UA = "JEDL-Studio-Offline-Asset-Builder/1.0"
 MAX_MODEL_BYTES = 80_000_000
 MAX_IMAGE_BYTES = 18_000_000
 MAX_TRIANGLES = 200_000
+APPROVED_GRAB3D_SLUGS = {"orca", "cardboard-box-stack"}
 
 
 def fetch(url: str, limit: int, headers: dict[str, str] | None = None) -> bytes:
@@ -159,6 +160,11 @@ def add_tevy(entries: list[dict]) -> None:
               description="GLB CC0 con rig humanoide de 56 huesos y clips idle, look_around, walk y wave.")
 
 
+def is_approved_grab3d_slug(slug: str) -> bool:
+    """Allow only the individually reviewed, non-sensitive sample assets."""
+    return slug in APPROVED_GRAB3D_SLUGS
+
+
 def add_grab3d(entries: list[dict]) -> None:
     catalog = get_json("https://grab3d.com/api/v1/models.json", 40_000_000)
     models = catalog.get("models", [])
@@ -166,12 +172,12 @@ def add_grab3d(entries: list[dict]) -> None:
         raise ValueError("Grab3D catalog schema changed")
     preferred = []
     for model in models:
-        if not isinstance(model, dict) or model.get("license") != "CC0-1.0":
+        if not isinstance(model, dict):
             continue
-        title = str(model.get("name", {}).get("en", model.get("slug", "")))
-        category = str(model.get("categoryName", model.get("category", "3D")))
-        category_key = str(model.get("category", "")).lower()
-        if not any(token in category_key for token in ("character", "animal", "nature", "building", "furniture", "prop")):
+        slug = str(model.get("slug", ""))
+        if not is_approved_grab3d_slug(slug):
+            continue
+        if model.get("license") != "CC0-1.0":
             continue
         style = str(model.get("style", "")).lower()
         if style != "realistic":
@@ -185,14 +191,8 @@ def add_grab3d(entries: list[dict]) -> None:
         if not glb or not glb.get("url"):
             continue
         preferred.append((model, glb, triangles, style))
-    # One character, one animal, then high-detail scene assets; never bulk-download.
-    selected = []
-    for needle in ("character", "animal", "nature", "building", "furniture", "props"):
-        match = next((item for item in preferred if needle in str(item[0].get("category", "")).lower()
-                      and item[0].get("slug") not in {x[0].get("slug") for x in selected}), None)
-        if match:
-            selected.append(match)
-    for model, glb, triangles, style in selected[:6]:
+    # No category-wide prop sweep: only the two individually reviewed sample assets above are eligible.
+    for model, glb, triangles, style in preferred:
         slug = str(model["slug"])
         license_url = f"https://grab3d.com/dl/{slug}/LICENSE.txt"
         manifest_url = f"https://grab3d.com/dl/{slug}/manifest.json"
@@ -200,7 +200,6 @@ def add_grab3d(entries: list[dict]) -> None:
         origin = manifest.get("origin", {})
         if not isinstance(origin, dict):
             raise ValueError(f"Grab3D origin disclosure missing: {slug}")
-        # Exclude AI-generated model content from the default library.
         if origin.get("aiContent") is True:
             continue
         preview = str(model.get("media", {}).get("thumbnail", ""))

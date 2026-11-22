@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from fetch_extended_sources import glb_valid, license_text, fetch, run_optional_source, require_preview_url
+from fetch_extended_sources import glb_valid, license_text, fetch, run_optional_source, require_preview_url, is_approved_grab3d_slug
 
 
 def make_glb(path: Path) -> None:
@@ -21,6 +21,11 @@ class ExtendedSourcesTests(unittest.TestCase):
 
     def tearDown(self):
         self.temp.cleanup()
+
+    def test_only_individually_approved_grab3d_assets_are_eligible(self):
+        self.assertTrue(is_approved_grab3d_slug("orca"))
+        self.assertTrue(is_approved_grab3d_slug("cardboard-box-stack"))
+        self.assertFalse(is_approved_grab3d_slug("unreviewed-model"))
 
     def test_accepts_valid_glb_v2(self):
         path = self.root / "valid.glb"
