@@ -16,7 +16,7 @@ var json_panel: PanelContainer
 var json_editor: TextEdit
 var json_status: Label
 var primary_buttons: Dictionary = {}
-var production_editor: Node
+var production_editor: ProductionEditor
 var production_panel: PanelContainer
 var production_selection: OptionButton
 var production_status: Label
@@ -44,7 +44,7 @@ func _ready() -> void:
     scene_parser.subtitle_label = subtitle_label
     scene_parser.audio_player = audio_player
     scene_parser.catalog_manager = catalog_manager
-    production_editor = ProductionEditorScript.new()
+    production_editor = ProductionEditorScript.new() as ProductionEditor
     add_child(production_editor)
     production_editor.configure(world_root)
     # Arranca con una escena real cargada; Play nunca debe confirmar una escena vacía.
