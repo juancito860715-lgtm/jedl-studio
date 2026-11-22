@@ -11,8 +11,9 @@ var catalog_manager: Node
 var gallery_panel: PanelContainer
 var gallery_list: VBoxContainer
 var gallery_title: Label
-var background_layer: CanvasLayer
-var background_display: TextureRect
+var json_panel: PanelContainer
+var json_editor: TextEdit
+var json_status: Label
 
 
 func _ready() -> void:
@@ -29,24 +30,12 @@ func _ready() -> void:
     scene_parser = SceneParserScript.new()
     add_child(scene_parser)
     scene_parser.world_root = world_root
-    scene_parser.background_display = background_display
+    scene_parser.camera = camera
     scene_parser.subtitle_label = subtitle_label
     scene_parser.audio_player = audio_player
 
 
 func _build_overlay() -> void:
-    # Los fondos fotográficos son backplates 2D a pantalla completa, no sprites 3D diminutos.
-    background_layer = CanvasLayer.new()
-    background_layer.layer = -1
-    add_child(background_layer)
-    background_display = TextureRect.new()
-    background_display.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-    background_display.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-    background_display.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-    background_display.mouse_filter = Control.MOUSE_FILTER_IGNORE
-    background_display.visible = false
-    background_layer.add_child(background_display)
-
     var layer := CanvasLayer.new()
     layer.layer = 1
     add_child(layer)
@@ -105,6 +94,10 @@ func _build_overlay() -> void:
     gallery_3d_button.text = "Galería 3D"
     gallery_3d_button.pressed.connect(func(): _show_gallery("3d"))
     toolbar_row.add_child(gallery_3d_button)
+    var json_button := Button.new()
+    json_button.text = "Editor JSON"
+    json_button.pressed.connect(_show_json_editor)
+    toolbar_row.add_child(json_button)
 
     for button in toolbar_row.get_children():
         button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -118,6 +111,46 @@ func _build_overlay() -> void:
     gallery_panel.anchor_bottom = 0.91
     screen.add_child(gallery_panel)
     gallery_panel.visible = false
+
+    json_panel = PanelContainer.new()
+    json_panel.anchor_left = 0.025
+    json_panel.anchor_right = 0.975
+    json_panel.anchor_top = 0.08
+    json_panel.anchor_bottom = 0.91
+    screen.add_child(json_panel)
+    json_panel.visible = false
+    var json_column := VBoxContainer.new()
+    json_column.add_theme_constant_override("separation", 8)
+    json_panel.add_child(json_column)
+    var json_header := HBoxContainer.new()
+    json_column.add_child(json_header)
+    var json_title := Label.new()
+    json_title.text = "Editor de escenas JSON · JEDL v2"
+    json_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    json_header.add_child(json_title)
+    var json_close := Button.new()
+    json_close.text = "Cerrar"
+    json_close.pressed.connect(func(): json_panel.visible = false)
+    json_header.add_child(json_close)
+    json_editor = TextEdit.new()
+    json_editor.size_flags_vertical = Control.SIZE_EXPAND_FILL
+    json_editor.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    json_editor.add_theme_font_size_override("font_size", 14)
+    json_editor.placeholder_text = "Escribe o pega aquí el JSON de la escena..."
+    json_column.add_child(json_editor)
+    var json_actions := HBoxContainer.new()
+    json_column.add_child(json_actions)
+    var validate_button := Button.new()
+    validate_button.text = "Validar y cargar"
+    validate_button.pressed.connect(_validate_and_load_json)
+    json_actions.add_child(validate_button)
+    var save_button := Button.new()
+    save_button.text = "Guardar JSON local"
+    save_button.pressed.connect(_save_json_locally)
+    json_actions.add_child(save_button)
+    json_status = Label.new()
+    json_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    json_column.add_child(json_status)
     var gallery_column := VBoxContainer.new()
     gallery_column.add_theme_constant_override("separation", 10)
     gallery_panel.add_child(gallery_column)
@@ -145,6 +178,39 @@ func _build_overlay() -> void:
 
     audio_player = AudioStreamPlayer.new()
     add_child(audio_player)
+
+func _show_json_editor() -> void:
+    if json_panel == null or json_editor == null:
+        return
+    gallery_panel.visible = false
+    if json_editor.text.is_empty():
+        var file := FileAccess.open("res://scenes/scene.example.json", FileAccess.READ)
+        if file != null:
+            json_editor.text = file.get_as_text()
+            file.close()
+    json_status.text = "Contrato JEDL v2: background, characters, objects, elements, subtitles y sounds."
+    json_panel.visible = true
+
+
+func _validate_and_load_json() -> void:
+    if scene_parser == null:
+        return
+    if scene_parser.load_scene_text(json_editor.text):
+        json_status.text = "JSON válido: escena cargada correctamente."
+        _frame_camera_to_content()
+    else:
+        json_status.text = "No se pudo cargar. Revisa la estructura JSON y las rutas res://."
+
+
+func _save_json_locally() -> void:
+    var file := FileAccess.open("user://scene_working.json", FileAccess.WRITE)
+    if file == null:
+        json_status.text = "No se pudo guardar el archivo local."
+        return
+    file.store_string(json_editor.text)
+    file.close()
+    json_status.text = "Guardado en user://scene_working.json"
+
 
 func _load_example_scene() -> void:
     if scene_parser != null and scene_parser.load_scene_file("res://scenes/scene.example.json"):
