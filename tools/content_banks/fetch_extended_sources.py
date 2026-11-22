@@ -146,7 +146,7 @@ def add_tevy(entries: list[dict]) -> None:
               title="Casual Walker · humanoide animado", category="Personajes animados",
               provider="Tevy", source=source, license_url=license_url,
               license_id="CC0-1.0", model_url=model,
-              license_payload=b"Casual Walker v1 is dedicated to the public domain under CC0 1.0. Source: https://tevy.dev/models/casual-walker\n",
+              license_payload=None,
               description="GLB CC0 con rig humanoide de 56 huesos y clips idle, look_around, walk y wave.")
 
 
@@ -213,10 +213,14 @@ def add_codelove(entries: list[dict]) -> None:
     for model in models:
         if not isinstance(model, dict):
             continue
-        license_id = str(model.get("license", "")).upper()
-        if license_id not in {"CC0", "CC0-1.0", "PUBLIC DOMAIN", "PUBLIC-DOMAIN"}:
+        raw_license = model.get("license", "")
+        if isinstance(raw_license, dict):
+            raw_license = raw_license.get("id", raw_license.get("name", ""))
+        license_id = str(raw_license).upper().replace(" ", "-")
+        if license_id not in {"CC0", "CC0-1.0"}:
             continue
-        title = str(model.get("name", ""))
+        raw_name = model.get("name", "")
+        title = str(raw_name.get("en", raw_name.get("name", ""))) if isinstance(raw_name, dict) else str(raw_name)
         category = str(model.get("category", ""))
         if any(term in (title + " " + category).lower() for term in EXCLUDED_TERMS):
             continue
@@ -232,10 +236,11 @@ def add_codelove(entries: list[dict]) -> None:
     for model in chosen[:4]:
         glb_url = urllib.parse.urljoin(str(catalog.get("url", "https://models.codelove.in/")), str(model["glb"]))
         slug = re.sub(r"[^a-z0-9_-]+", "-", str(model.get("slug", model.get("name", "asset"))).lower()).strip("-")
-        license_url = str(model.get("licenseUrl", "https://models.codelove.in/developers/"))
+        source_page = str(model.get("page", f"https://models.codelove.in/models/{slug}/"))
+        license_url = str(model.get("licenseUrl", source_page))
         add_model(entries, asset_id=f"model.codelove.{slug}",
-                  title=str(model.get("name", slug)), category=str(model.get("category", "3D")),
-                  provider="CodeLove", source=str(model.get("page", "https://models.codelove.in/")),
+                  title=title or slug, category=str(model.get("category", "3D")),
+                  provider="CodeLove", source=source_page,
                   license_url=license_url, license_id="CC0-1.0", model_url=glb_url,
                   preview_url=str(model.get("thumbnail", "")),
                   description="CC0 item selected from the published CodeLove catalog.")
