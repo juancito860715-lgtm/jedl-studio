@@ -350,7 +350,7 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         gallery_list.remove_child(child)
         child.queue_free()
     var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind, category_filter)
-    var category_title := category_filter if not category_filter.is_empty() else ("Fondos y elementos 2D" if kind == "2d" else "Personajes y objetos 3D")
+    var category_title := category_filter if not category_filter.is_empty() else ("Fondos fotográficos" if kind == "2d" else "Personajes y objetos 3D")
     gallery_title.text = "%s · %d recursos" % [category_title, entries.size()]
     if entries.is_empty():
         var empty_label := Label.new()
