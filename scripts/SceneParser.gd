@@ -202,6 +202,11 @@ func _fit_background_to_camera() -> void:
 
 
 func add_catalog_asset(resource_path: String, as_background: bool = true, asset_id: String = "") -> bool:
+    if not asset_id.is_empty():
+        var resolved := _resolve_scene_entry({"assetId": asset_id})
+        if resolved.is_empty():
+            return false
+        resource_path = String(resolved.get("path", ""))
     if world_root == null or resource_path.is_empty():
         return false
 
