@@ -1,0 +1,59 @@
+import struct
+import tempfile
+import unittest
+from pathlib import Path
+
+from fetch_extended_sources import glb_valid, license_text, fetch
+
+
+def make_glb(path: Path) -> None:
+    import json
+    document = json.dumps({"asset": {"version": "2.0"}, "scenes": [{"nodes": []}]}).encode()
+    document += b" " * ((4 - len(document) % 4) % 4)
+    chunk = struct.pack("<II", len(document), 0x4E4F534A) + document
+    path.write_bytes(struct.pack("<4sII", b"glTF", 2, 12 + len(chunk)) + chunk)
+
+
+class ExtendedSourcesTests(unittest.TestCase):
+    def setUp(self):
+        self.temp = tempfile.TemporaryDirectory()
+        self.root = Path(self.temp.name)
+
+    def tearDown(self):
+        self.temp.cleanup()
+
+    def test_accepts_valid_glb_v2(self):
+        path = self.root / "valid.glb"
+        make_glb(path)
+        glb_valid(path)
+
+    def test_rejects_truncated_glb(self):
+        path = self.root / "bad.glb"
+        path.write_bytes(b"glTF")
+        with self.assertRaisesRegex(ValueError, "Truncated GLB"):
+            glb_valid(path)
+
+    def test_rejects_external_dependencies(self):
+        import json
+        doc = {"asset": {"version": "2.0"}, "images": [{"uri": "https://example.invalid/texture.webp"}]}
+        raw = json.dumps(doc).encode()
+        raw += b" " * ((4 - len(raw) % 4) % 4)
+        chunk = struct.pack("<II", len(raw), 0x4E4F534A) + raw
+        path = self.root / "external.glb"
+        path.write_bytes(struct.pack("<4sII", b"glTF", 2, 12 + len(chunk)) + chunk)
+        with self.assertRaisesRegex(ValueError, "External dependency"):
+            glb_valid(path)
+
+    def test_requires_cc0_license_evidence(self):
+        path = self.root / "LICENSE.txt"
+        path.write_text("This is a proprietary license.", encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "CC0 evidence"):
+            license_text(path, "CC0-1.0")
+
+    def test_rejects_non_https_downloads_before_network(self):
+        with self.assertRaisesRegex(ValueError, "HTTPS URL required"):
+            fetch("http://example.invalid/model.glb", 1024)
+
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
