@@ -23,7 +23,6 @@ UA = "JEDL-Studio-Offline-Asset-Builder/1.0"
 MAX_MODEL_BYTES = 80_000_000
 MAX_IMAGE_BYTES = 18_000_000
 MAX_TRIANGLES = 200_000
-EXCLUDED_TERMS = {"weapon", "sword", "gun", "rifle", "knife", "pistol", "ammo", "firearm"}
 
 
 def fetch(url: str, limit: int) -> bytes:
@@ -102,8 +101,6 @@ def add_model(entries: list[dict], *, asset_id: str, title: str, category: str,
               preview_url: str = "", description: str = "") -> None:
     if license_id != "CC0-1.0":
         raise ValueError(f"Non-CC0 item is not accepted by the default catalog: {asset_id}")
-    if any(term in (title + " " + category).lower() for term in EXCLUDED_TERMS):
-        return
     folder = OUT_3D / asset_id.replace(".", "_")
     folder.mkdir(parents=True, exist_ok=True)
     model_path = folder / "model.glb"
@@ -161,7 +158,8 @@ def add_grab3d(entries: list[dict]) -> None:
             continue
         title = str(model.get("name", {}).get("en", model.get("slug", "")))
         category = str(model.get("categoryName", model.get("category", "3D")))
-        if any(term in (title + " " + category).lower() for term in EXCLUDED_TERMS):
+        category_key = str(model.get("category", "")).lower()
+        if not any(token in category_key for token in ("character", "animal", "nature", "building", "furniture", "prop")):
             continue
         style = str(model.get("style", "")).lower()
         if style != "realistic":
@@ -202,48 +200,6 @@ def add_grab3d(entries: list[dict]) -> None:
                   license_url=license_url, license_id="CC0-1.0",
                   model_url=str(glb["url"]), preview_url=preview,
                   description=f"{triangles} triángulos · estilo {style}. Origen revisado: contenido AI no declarado.")
-
-
-def add_codelove(entries: list[dict]) -> None:
-    catalog = get_json("https://models.codelove.in/catalog.json", 8_000_000)
-    models = catalog.get("models", [])
-    if not isinstance(models, list):
-        raise ValueError("CodeLove catalog schema changed")
-    chosen = []
-    for model in models:
-        if not isinstance(model, dict):
-            continue
-        raw_license = model.get("license", "")
-        if isinstance(raw_license, dict):
-            raw_license = raw_license.get("id", raw_license.get("name", ""))
-        license_id = str(raw_license).upper().replace(" ", "-")
-        if license_id not in {"CC0", "CC0-1.0"}:
-            continue
-        raw_name = model.get("name", "")
-        title = str(raw_name.get("en", raw_name.get("name", ""))) if isinstance(raw_name, dict) else str(raw_name)
-        category = str(model.get("category", ""))
-        if any(term in (title + " " + category).lower() for term in EXCLUDED_TERMS):
-            continue
-        if not model.get("glb"):
-            continue
-        triangles = int(model.get("triangles", 0) or 0)
-        if triangles and triangles > MAX_TRIANGLES:
-            continue
-        if not any(term in category.lower() for term in ("animal", "character", "people", "nature", "tree", "building", "furniture", "prop")):
-            continue
-        chosen.append(model)
-    # Select a small representative sample; all remaining catalog records remain discovery-only.
-    for model in chosen[:4]:
-        glb_url = urllib.parse.urljoin(str(catalog.get("url", "https://models.codelove.in/")), str(model["glb"]))
-        slug = re.sub(r"[^a-z0-9_-]+", "-", str(model.get("slug", model.get("name", "asset"))).lower()).strip("-")
-        source_page = str(model.get("page", f"https://models.codelove.in/models/{slug}/"))
-        license_url = str(model.get("licenseUrl", source_page))
-        add_model(entries, asset_id=f"model.codelove.{slug}",
-                  title=title or slug, category=str(model.get("category", "3D")),
-                  provider="CodeLove", source=source_page,
-                  license_url=license_url, license_id="CC0-1.0", model_url=glb_url,
-                  preview_url=str(model.get("thumbnail", "")),
-                  description="CC0 item selected from the published CodeLove catalog.")
 
 
 def add_art_institute_photographs(entries: list[dict]) -> None:
@@ -314,8 +270,8 @@ def main() -> None:
     # Provider-specific errors are not silently swallowed: CI fails with the source and item.
     add_tevy(additions)
     add_grab3d(additions)
-    # CodeLove GLBs use EXT_meshopt_compression and WebP; hold them until
-    # a Godot 4.4-compatible conversion is proven in the importer tests.
+    # Other catalog feeds remain disabled until their import format passes
+    # the Godot 4.4 importer and the per-item redistribution evidence gate.
     add_art_institute_photographs(additions)
     for entry in additions:
         if entry["id"] in existing:
@@ -330,9 +286,9 @@ def main() -> None:
     print(f"EXTENDED_ASSET_BANK_OK: added={len(additions)} total={len(entries)}")
     print("SOURCE_STATUS: Smithsonian and NASA held until item-level CC0/public-domain media proof is attached; "
           "Rijksmuseum held until an authenticated or openly accessible image endpoint and item rights record "
-          "are verified; CodeLove held until meshopt/WebP conversion is proven in Godot 4.4; OmniMod excluded "
-          "from the realism-first tier because its catalogue is predominantly low-poly/static; Innerscene "
-          "human base meshes are not included without a suitable clothed, production-ready model.")
+          "are verified; other compressed feeds remain held until Godot 4.4 compatibility is proven; "
+          "OmniMod remains outside the realism-first tier because its catalogue is predominantly low-poly/static; "
+          "Innerscene human base meshes are not included without a suitable clothed, production-ready model.")
 
 
 if __name__ == "__main__":
