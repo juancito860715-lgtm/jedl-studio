@@ -84,6 +84,9 @@ func _instantiate_entries(entries: Array) -> bool:
             push_error("Scene resource root must be Node3D: " + resource_path)
             return false
         var node := instance as Node3D
+        node.name = String(entry.get("name", entry.get("id", resource_path.get_file().get_basename())))
+        node.set_meta("jedl_asset_id", String(entry.get("id", "")))
+        node.set_meta("jedl_layer", String(entry.get("layer", "objects")))
         node.position = _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
         if entry.has("depth"):
             node.position.z = float(entry["depth"])
