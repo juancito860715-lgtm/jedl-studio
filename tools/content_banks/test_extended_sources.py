@@ -3,7 +3,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from fetch_extended_sources import glb_valid, license_text, fetch
+from fetch_extended_sources import glb_valid, license_text, fetch, run_optional_source
 
 
 def make_glb(path: Path) -> None:
@@ -50,6 +50,14 @@ class ExtendedSourcesTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "CC0 evidence"):
             license_text(path, "CC0-1.0")
 
+    def test_optional_source_failure_is_explicit_and_non_blocking(self):
+        statuses = []
+        def unavailable_provider():
+            raise RuntimeError("HTTP Error 403: Cloudflare challenge")
+        run_optional_source("Art Institute", unavailable_provider, statuses)
+        self.assertEqual(len(statuses), 1)
+        self.assertEqual(statuses[0]["status"], "deferred")
+        self.assertIn("403", statuses[0]["reason"])
     def test_rejects_non_https_downloads_before_network(self):
         with self.assertRaisesRegex(ValueError, "HTTPS URL required"):
             fetch("http://example.invalid/model.glb", 1024)
