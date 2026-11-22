@@ -61,6 +61,11 @@ def build_manifest(
     if not isinstance(entries, list) or not entries:
         raise ValueError("Catalog requires a non-empty assets array")
 
+    policy = catalog.get("licensePolicy", {})
+    allowed_licenses = policy.get("allowed", []) if isinstance(policy, dict) else []
+    if not isinstance(allowed_licenses, list) or not allowed_licenses:
+        raise ValueError("Catalog licensePolicy must list allowed licenses")
+
     seen_ids: set[str] = set()
     manifest_assets: list[dict] = []
     for entry in entries:
@@ -77,6 +82,9 @@ def build_manifest(
         license_id = entry.get("license")
         if not isinstance(license_id, str) or not license_id.strip():
             raise ValueError(f"Missing license evidence for {asset_id}")
+        declared_licenses = [item.strip() for item in license_id.split("+")]
+        if any(item not in allowed_licenses for item in declared_licenses):
+            raise ValueError(f"License is not allowed by catalog policy for {asset_id}: {license_id}")
         if entry.get("offline") is not True or entry.get("placeable") is not True:
             raise ValueError(f"Asset must be offline and placeable: {asset_id}")
 
