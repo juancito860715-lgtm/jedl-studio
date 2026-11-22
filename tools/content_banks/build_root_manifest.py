@@ -161,6 +161,9 @@ def build_manifest(
         if preview_path:
             resolve_res_path(root, preview_path)
         dependencies = model_dependencies(root, asset_file) if entry["kind"] == "3d" else []
+        if preview_path and preview_path != entry["path"]:
+            dependencies.append(preview_path)
+        dependencies = sorted(set(dependencies))
         manifest_assets.append({
             "assetId": asset_id,
             "kind": entry["kind"],
