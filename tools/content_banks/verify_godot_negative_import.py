@@ -12,8 +12,7 @@ from pathlib import Path
 
 
 IMPORT_GATE_PATTERN = re.compile(
-    r"ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed importing",
-    re.IGNORECASE,
+    r"ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed importing"
 )
 IMPORTER_ERROR_PATTERN = re.compile(
     r"ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed importing|"
