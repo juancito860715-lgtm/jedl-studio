@@ -1,6 +1,7 @@
 extends Node3D
 
 const SceneParserScript = preload("res://scripts/SceneParser.gd")
+const ProductionEditorScript = preload("res://scripts/ProductionEditor.gd")
 
 var scene_parser: Node
 var world_root: Node3D
@@ -15,6 +16,13 @@ var json_panel: PanelContainer
 var json_editor: TextEdit
 var json_status: Label
 var primary_buttons: Dictionary = {}
+var production_editor: Node
+var production_panel: PanelContainer
+var production_selection: OptionButton
+var production_status: Label
+var production_timeline: HSlider
+var production_color: ColorPickerButton
+var transform_inputs: Dictionary = {"position": [], "rotation": [], "scale": []}
 
 
 func _ready() -> void:
@@ -36,6 +44,9 @@ func _ready() -> void:
     scene_parser.subtitle_label = subtitle_label
     scene_parser.audio_player = audio_player
     scene_parser.catalog_manager = catalog_manager
+    production_editor = ProductionEditorScript.new()
+    add_child(production_editor)
+    production_editor.configure(world_root)
     # Arranca con una escena real cargada; Play nunca debe confirmar una escena vacía.
     call_deferred("_load_example_scene")
 
@@ -113,6 +124,11 @@ func _build_overlay() -> void:
     json_button.pressed.connect(_animate_button.bind(json_button))
     primary_buttons["json"] = json_button
     toolbar_row.add_child(json_button)
+    var editor_3d_button := Button.new()
+    editor_3d_button.text = "Editor 3D"
+    editor_3d_button.pressed.connect(_show_production_editor)
+    primary_buttons["editor_3d"] = editor_3d_button
+    toolbar_row.add_child(editor_3d_button)
 
     for button in toolbar_row.get_children():
         button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -211,6 +227,7 @@ func _build_overlay() -> void:
     gallery_list.add_theme_constant_override("separation", 8)
     gallery_scroll.add_child(gallery_list)
 
+    _build_production_panel(screen)
     audio_player = AudioStreamPlayer.new()
     add_child(audio_player)
 
@@ -272,6 +289,7 @@ func _load_example_scene() -> void:
         _frame_camera_to_content()
         if subtitle_label != null:
             subtitle_label.text = "Escena cargada · %d elementos 3D" % scene_parser.active_instances.size()
+        _refresh_production_selection()
     elif subtitle_label != null:
         subtitle_label.text = "Error: no se pudo cargar la escena de ejemplo."
 
@@ -328,6 +346,8 @@ func _play_scene() -> void:
         gallery_panel.visible = false
     if json_panel != null:
         json_panel.visible = false
+    if production_panel != null:
+        production_panel.visible = false
     if scene_parser == null:
         return
     if scene_parser.scene_data.is_empty() or scene_parser.active_instances.is_empty():
@@ -410,5 +430,200 @@ func _add_gallery_asset(resource_path: String, is_background: bool = true, asset
             gallery_title.text = "Añadido a la escena: " + asset_id
         if subtitle_label != null:
             subtitle_label.text = "Recurso incorporado · " + asset_id
+        _refresh_production_selection()
     elif subtitle_label != null:
         subtitle_label.text = "No se pudo incorporar el recurso: " + resource_path
+
+
+
+func _build_production_panel(screen: Control) -> void:
+    production_panel = PanelContainer.new()
+    production_panel.anchor_left = 0.025
+    production_panel.anchor_right = 0.975
+    production_panel.anchor_top = 0.10
+    production_panel.anchor_bottom = 0.90
+    screen.add_child(production_panel)
+    production_panel.visible = false
+
+    var column := VBoxContainer.new()
+    column.add_theme_constant_override("separation", 8)
+    production_panel.add_child(column)
+    var header := HBoxContainer.new()
+    column.add_child(header)
+    var heading := Label.new()
+    heading.text = "Editor de producción 3D"
+    heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    heading.add_theme_font_size_override("font_size", 20)
+    header.add_child(heading)
+    var close_button := Button.new()
+    close_button.text = "Cerrar"
+    close_button.pressed.connect(func(): production_panel.visible = false)
+    header.add_child(close_button)
+
+    var selection_row := HBoxContainer.new()
+    column.add_child(selection_row)
+    var selection_label := Label.new()
+    selection_label.text = "Objeto"
+    selection_row.add_child(selection_label)
+    production_selection = OptionButton.new()
+    production_selection.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    production_selection.item_selected.connect(_on_editor_selection_changed)
+    selection_row.add_child(production_selection)
+    var refresh_button := Button.new()
+    refresh_button.text = "Actualizar"
+    refresh_button.pressed.connect(_refresh_production_selection)
+    selection_row.add_child(refresh_button)
+
+    var transform_grid := GridContainer.new()
+    transform_grid.columns = 4
+    column.add_child(transform_grid)
+    for heading_text in ["Transformación", "X", "Y", "Z"]:
+        var heading_cell := Label.new()
+        heading_cell.text = heading_text
+        transform_grid.add_child(heading_cell)
+    for property_name in ["position", "rotation", "scale"]:
+        var row_label := Label.new()
+        row_label.text = "Posición" if property_name == "position" else ("Rotación °" if property_name == "rotation" else "Escala")
+        transform_grid.add_child(row_label)
+        for axis in range(3):
+            var spin := SpinBox.new()
+            spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+            spin.min_value = -1000.0 if property_name != "scale" else 0.01
+            spin.max_value = 1000.0
+            spin.step = 0.05 if property_name != "rotation" else 1.0
+            spin.value = 1.0 if property_name == "scale" else 0.0
+            spin.value_changed.connect(_on_editor_transform_value_changed.bind(property_name, axis))
+            transform_grid.add_child(spin)
+            transform_inputs[property_name].append(spin)
+
+    var material_row := HBoxContainer.new()
+    column.add_child(material_row)
+    var material_label := Label.new()
+    material_label.text = "Color del material"
+    material_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    material_row.add_child(material_label)
+    production_color = ColorPickerButton.new()
+    production_color.color = Color.WHITE
+    production_color.color_changed.connect(_on_editor_color_changed)
+    material_row.add_child(production_color)
+
+    var timeline_label := Label.new()
+    timeline_label.text = "Línea de tiempo · segundos"
+    column.add_child(timeline_label)
+    production_timeline = HSlider.new()
+    production_timeline.min_value = 0.0
+    production_timeline.max_value = 30.0
+    production_timeline.step = 0.05
+    production_timeline.value_changed.connect(_on_editor_timeline_changed)
+    column.add_child(production_timeline)
+
+    var timeline_actions := HBoxContainer.new()
+    column.add_child(timeline_actions)
+    var keyframe_button := Button.new()
+    keyframe_button.text = "Añadir / actualizar fotograma clave"
+    keyframe_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    keyframe_button.pressed.connect(_add_editor_keyframe)
+    timeline_actions.add_child(keyframe_button)
+    production_status = Label.new()
+    production_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+    production_status.text = "Selecciona un modelo de la escena para editar sus transformaciones, material y animación."
+    column.add_child(production_status)
+
+
+func _show_production_editor() -> void:
+    if production_panel == null:
+        return
+    if gallery_panel != null:
+        gallery_panel.visible = false
+    if json_panel != null:
+        json_panel.visible = false
+    _refresh_production_selection()
+    production_panel.visible = true
+    production_panel.move_to_front()
+
+
+func _refresh_production_selection() -> void:
+    if production_selection == null or scene_parser == null:
+        return
+    production_selection.clear()
+    for instance in scene_parser.active_instances:
+        if is_instance_valid(instance):
+            production_selection.add_item(instance.name)
+    if production_selection.item_count > 0:
+        production_selection.select(0)
+        _on_editor_selection_changed(0)
+    elif production_status != null:
+        production_status.text = "La escena no contiene modelos 3D. Añade un modelo desde la galería."
+
+
+func _on_editor_selection_changed(index: int) -> void:
+    if scene_parser == null or production_editor == null:
+        return
+    if index < 0 or index >= scene_parser.active_instances.size():
+        return
+    var selected: Node3D = scene_parser.active_instances[index]
+    if not production_editor.select_node(selected):
+        return
+    var values := {
+        "position": selected.position,
+        "rotation": selected.rotation_degrees,
+        "scale": selected.scale
+    }
+    for property_name in ["position", "rotation", "scale"]:
+        var vector: Vector3 = values[property_name]
+        for axis in range(3):
+            var spin: SpinBox = transform_inputs[property_name][axis]
+            spin.set_value_no_signal(vector[axis])
+    if production_status != null:
+        production_status.text = "Editando: " + selected.name
+
+
+func _on_editor_transform_value_changed(value: float, property_name: String, axis: int) -> void:
+    if production_editor == null or production_editor.selected_node == null:
+        return
+    var selected: Node3D = production_editor.selected_node
+    var position_value := selected.position
+    var rotation_value := selected.rotation_degrees
+    var scale_value := selected.scale
+    if property_name == "position":
+        if axis == 0: position_value.x = value
+        elif axis == 1: position_value.y = value
+        else: position_value.z = value
+    elif property_name == "rotation":
+        if axis == 0: rotation_value.x = value
+        elif axis == 1: rotation_value.y = value
+        else: rotation_value.z = value
+    elif property_name == "scale":
+        if axis == 0: scale_value.x = value
+        elif axis == 1: scale_value.y = value
+        else: scale_value.z = value
+    if production_editor.set_transform(position_value, rotation_value, scale_value):
+        production_status.text = "Transformación aplicada a " + selected.name
+    else:
+        production_status.text = production_editor.last_error
+
+
+func _on_editor_color_changed(color: Color) -> void:
+    if production_editor == null:
+        return
+    if production_editor.set_material_color(color):
+        production_status.text = "Color del material aplicado."
+    else:
+        production_status.text = production_editor.last_error
+
+
+func _on_editor_timeline_changed(value: float) -> void:
+    if production_editor == null:
+        return
+    if not production_editor.scrub_timeline(value):
+        production_status.text = production_editor.last_error
+
+
+func _add_editor_keyframe() -> void:
+    if production_editor == null or production_timeline == null:
+        return
+    if production_editor.add_transform_keyframe(production_timeline.value):
+        production_timeline.max_value = maxf(30.0, production_editor.get_timeline_length())
+        production_status.text = "Fotograma clave guardado en %.2f s." % production_timeline.value
+    else:
+        production_status.text = production_editor.last_error
