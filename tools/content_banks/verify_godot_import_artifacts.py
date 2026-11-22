@@ -9,19 +9,21 @@ import sys
 from pathlib import Path
 
 IMPORTABLE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".gltf", ".glb"}
-IMPORT_OUTPUT_LINE = re.compile(r'^\s*(path(?:\.[A-Za-z0-9_]+)?|dest_files)\s*=\s*(.*?)\s*$', re.MULTILINE)
+IMPORT_OUTPUT_LINE = re.compile(
+    r'^\s*(path(?:\.[A-Za-z0-9_]+)?|dest_files)\s*=\s*(.*?)\s*$',
+    re.MULTILINE,
+)
 RES_PATH = re.compile(r'"res://([^"]+)"')
 
 
-
 def imported_cache_paths(sidecar_text: str) -> list[str]:
-    """Read Godot 4.x remap outputs and dependency dest_files from .import."""
+    """Read Godot 4.x remap paths and [deps] dest_files entries."""
     paths: list[str] = []
     for match in IMPORT_OUTPUT_LINE.finditer(sidecar_text):
-        key, value = match.groups()
-        if key == "dest_files" or key == "path" or key.startswith("path."):
-            paths.extend(RES_PATH.findall(value))
+        _key, value = match.groups()
+        paths.extend(RES_PATH.findall(value))
     return list(dict.fromkeys(paths))
+
 
 def verify_import_artifacts(root: Path, manifest_path: Path | None = None) -> dict:
     root = root.resolve(strict=True)
@@ -38,15 +40,16 @@ def verify_import_artifacts(root: Path, manifest_path: Path | None = None) -> di
         resource_path = str(record.get("path", ""))
         if not resource_path.startswith("res://"):
             raise ValueError(f"Invalid resource path in root manifest: {resource_path}")
-        suffix = Path(resource_path).suffix.lower()
-        if suffix in IMPORTABLE_EXTENSIONS:
+        if Path(resource_path).suffix.lower() in IMPORTABLE_EXTENSIONS:
             expected.append(resource_path)
     if not expected:
         raise ValueError("No importable JPG/PNG/GLTF/GLB assets were found in root manifest")
 
+    imported_dir = (root / ".godot/imported").resolve(strict=False)
     missing_sidecars: list[str] = []
     missing_cache: list[str] = []
     checked = 0
+
     for resource_path in expected:
         source = root / resource_path[6:]
         if not source.is_file() or source.stat().st_size <= 0:
@@ -55,24 +58,28 @@ def verify_import_artifacts(root: Path, manifest_path: Path | None = None) -> di
         if not sidecar.is_file() or sidecar.stat().st_size <= 0:
             missing_sidecars.append(resource_path)
             continue
-        sidecar_text = sidecar.read_text(encoding="utf-8", errors="replace")
-        matches = imported_cache_paths(sidecar_text)
+
+        matches = imported_cache_paths(sidecar.read_text(encoding="utf-8", errors="replace"))
         if not matches:
             missing_cache.append(resource_path + " (no imported cache path in .import)")
             continue
-        resolved_cache_paths = []
-        imported_dir = (root / ".godot/imported").resolve(strict=False)
-        for relative in matches:
-            relative_path = Path(relative)
+
+        invalid_outputs: list[str] = []
+        for declared in matches:
+            relative_path = Path(declared)
             if relative_path.is_absolute() or any(part in ("", ".", "..") for part in relative_path.parts):
+                invalid_outputs.append(f"{declared} (unsafe path)")
                 continue
             cache_path = (root / relative_path).resolve(strict=False)
             if not cache_path.is_relative_to(imported_dir):
-                continue
-            resolved_cache_paths.append(cache_path)
-        existing = [path for path in resolved_cache_paths if path.is_file() and path.stat().st_size > 0]
-        if not existing:
-            missing_cache.append(resource_path)
+                invalid_outputs.append(f"{declared} (outside .godot/imported)")
+            elif not cache_path.is_file():
+                invalid_outputs.append(f"{declared} (file missing)")
+            elif cache_path.stat().st_size <= 0:
+                invalid_outputs.append(f"{declared} (file empty)")
+
+        if invalid_outputs:
+            missing_cache.append(resource_path + " [" + ", ".join(invalid_outputs) + "]")
             continue
         checked += 1
 
@@ -84,7 +91,6 @@ def verify_import_artifacts(root: Path, manifest_path: Path | None = None) -> di
             details.append("missing .godot/imported cache outputs: " + ", ".join(missing_cache[:20]))
         raise ValueError("; ".join(details))
 
-    imported_dir = root / ".godot/imported"
     if not imported_dir.is_dir():
         raise ValueError("Godot did not create .godot/imported/")
     cache_files = [path for path in imported_dir.rglob("*") if path.is_file() and path.stat().st_size > 0]
