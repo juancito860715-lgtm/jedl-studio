@@ -50,6 +50,12 @@ func _run_tests() -> void:
         "The scene engine must place a selected realistic 3D model")
     assert(parser.active_instances.size() == 1 and parser.active_instances.back() is Node3D,
         "A selected 3D model must become a Node3D scene instance")
+    var fox_entry: Dictionary = models.filter(func(item: Dictionary) -> bool: return item["id"] == "character.fox.khronos.v1")[0]
+    assert(parser.add_catalog_asset(String(fox_entry["path"]), false), "The animated Fox must be placeable from the character gallery")
+    var gallery_fox: Node3D = parser.active_instances.back()
+    var fox_players := gallery_fox.find_children("*", "AnimationPlayer", true, false)
+    assert(not fox_players.is_empty(), "The gallery Fox must retain its AnimationPlayer")
+    assert((fox_players[0] as AnimationPlayer).is_playing(), "Rigged gallery characters must begin their default animation instead of remaining static")
     var cutout_image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
     cutout_image.fill(Color(1.0, 1.0, 1.0, 0.5))
     var cutout_texture := ImageTexture.create_from_image(cutout_image)
