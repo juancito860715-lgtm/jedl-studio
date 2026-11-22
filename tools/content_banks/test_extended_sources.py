@@ -58,7 +58,17 @@ class ExtendedSourcesTests(unittest.TestCase):
         self.assertEqual(len(statuses), 1)
         self.assertEqual(statuses[0]["status"], "deferred")
         self.assertIn("403", statuses[0]["reason"])
-    def test_rejects_3d_model_without_packaged_preview_source(self):\n        with self.assertRaisesRegex(ValueError, "Every 3D model must provide an HTTPS preview URL"):\n            require_preview_url("", "character.tevy.casual_walker.v1")\n\n    def test_accepts_pinned_https_preview_source(self):\n        self.assertEqual(\n            require_preview_url("https://tevy.dev/models/casual-walker/v1/preview.webp", "character.tevy.casual_walker.v1"),\n            "https://tevy.dev/models/casual-walker/v1/preview.webp",\n        )\n\n    def test_rejects_non_https_downloads_before_network(self):
+    def test_rejects_3d_model_without_packaged_preview_source(self):
+        with self.assertRaisesRegex(ValueError, "Every 3D model must provide an HTTPS preview URL"):
+            require_preview_url("", "character.tevy.casual_walker.v1")
+
+    def test_accepts_pinned_https_preview_source(self):
+        self.assertEqual(
+            require_preview_url("https://tevy.dev/models/casual-walker/v1/preview.webp", "character.tevy.casual_walker.v1"),
+            "https://tevy.dev/models/casual-walker/v1/preview.webp",
+        )
+
+    def test_rejects_non_https_downloads_before_network(self):
         with self.assertRaisesRegex(ValueError, "HTTPS URL required"):
             fetch("http://example.invalid/model.glb", 1024)
 
