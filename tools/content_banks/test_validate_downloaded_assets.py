@@ -53,8 +53,10 @@ class DownloadedAssetsValidationTests(unittest.TestCase):
         self.catalog_path.write_text(json.dumps(self.catalog), encoding="utf-8")
         assets = []
         for item in self.catalog["assets"]:
+            source_path = self.root / item["path"][6:]
+            item["sizeBytes"] = source_path.stat().st_size
             assets.append({"assetId": item["id"], "path": item["path"], "sha256": item["sha256"],
-                           "license": item["license"]})
+                           "sizeBytes": item["sizeBytes"], "dependencies": [], "license": item["license"]})
         files = []
         for path in (self.background, self.model, self.catalog_path):
             files.append({"path": "res://" + path.relative_to(self.root).as_posix(),
