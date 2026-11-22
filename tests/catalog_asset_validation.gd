@@ -60,10 +60,20 @@ func _run_validation() -> void:
         files_by_path[file_path] = file_record
 
     var engine_version_info := Engine.get_version_info()
-    var engine_label := "Godot " + String(engine_version_info.get("string", "unknown"))
+    # Use structured version fields: .string is human-readable and differs from
+    # the exact pinned executable --version representation.
+    var engine_label := "Godot %d.%d.%d.%s.%s.%s" % [
+        int(engine_version_info.get("major", 0)),
+        int(engine_version_info.get("minor", 0)),
+        int(engine_version_info.get("patch", 0)),
+        String(engine_version_info.get("status", "unknown")),
+        String(engine_version_info.get("build", "unknown")),
+        String(engine_version_info.get("hash", "unknown")),
+    ]
     var report := {
         "schemaVersion": 2,
         "engine": engine_label,
+        "engineVersionInfo": engine_version_info,
         "catalogSha256": catalog_hash,
         "assetCount": catalog["assets"].size(),
         "assets": [],
