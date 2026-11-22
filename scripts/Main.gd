@@ -330,6 +330,7 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
     if gallery_panel == null or gallery_list == null or catalog_manager == null:
         return
     for child in gallery_list.get_children():
+        gallery_list.remove_child(child)
         child.queue_free()
     var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind, category_filter)
     var category_title := category_filter if not category_filter.is_empty() else ("Recursos 2D" if kind == "2d" else "Recursos 3D")
