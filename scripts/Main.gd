@@ -184,14 +184,17 @@ func _build_overlay() -> void:
     close_gallery.add_theme_font_size_override("font_size", 18)
     close_gallery.pressed.connect(func(): gallery_panel.visible = false)
     gallery_header.add_child(close_gallery)
-    var category_row := HBoxContainer.new()
+    var category_row := HFlowContainer.new()
     category_row.add_theme_constant_override("separation", 6)
     gallery_column.add_child(category_row)
     for category_data in [
         {"label": "Fondos 2D", "kind": "2d", "category": "Fondos fotográficos"},
         {"label": "Elementos 2D", "kind": "2d", "category": "Elementos 2D individuales"},
         {"label": "Personajes 3D", "kind": "3d", "category": "Personajes animados"},
-        {"label": "Objetos 3D", "kind": "3d", "category": "Naturaleza y utilería realista"}
+        {"label": "Vegetación", "kind": "3d", "category": "Árboles y vegetación"},
+        {"label": "Troncos y rocas", "kind": "3d", "category": "Rocas y troncos"},
+        {"label": "Mobiliario", "kind": "3d", "category": "Mobiliario"},
+        {"label": "Utilería", "kind": "3d", "category": "Contenedores y utilería"}
     ]:
         var category_button := Button.new()
         category_button.text = String(category_data["label"])
