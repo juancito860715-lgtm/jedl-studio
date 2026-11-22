@@ -6,6 +6,7 @@ var camera: Camera3D
 var background_sprite: Sprite3D
 var subtitle_label: Control
 var audio_player: AudioStreamPlayer
+var catalog_manager: Node
 var scene_data: Dictionary = {}
 var active_instances: Array[Node3D] = []
 var _events: Array[Dictionary] = []
@@ -46,9 +47,18 @@ func load_scene_text(source: String) -> bool:
     _playback_time = 0.0
     _next_event = 0
     var background_data: Variant = scene_data.get("background", {})
-    if background_data is Dictionary and not String(background_data.get("path", "")).is_empty():
-        if not set_background(String(background_data["path"])):
+    if background_data is Dictionary and not background_data.is_empty():
+        var resolved_background := _resolve_scene_entry(background_data)
+        if resolved_background.is_empty():
             return false
+        var background_path := String(resolved_background.get("path", ""))
+        if not background_path.is_empty():
+            if not set_background(background_path):
+                return false
+            background_sprite.set_meta(
+                "jedl_asset_id",
+                String(resolved_background.get("assetId", resolved_background.get("id", "")))
+            )
     elif background_data is String and not background_data.is_empty():
         if not set_background(background_data):
             return false
@@ -64,12 +74,32 @@ func load_scene_text(source: String) -> bool:
     return true
 
 
+func _resolve_scene_entry(raw_entry: Dictionary) -> Dictionary:
+    var entry := raw_entry.duplicate(true)
+    var asset_id := String(entry.get("assetId", ""))
+    if asset_id.is_empty():
+        return entry
+    if catalog_manager == null:
+        push_error("Scene entry requires CatalogManager for assetId: " + asset_id)
+        return {}
+    var resolved: Dictionary = catalog_manager.resolve_asset_id(asset_id)
+    if resolved.is_empty():
+        push_error("Scene assetId could not be resolved: " + asset_id)
+        return {}
+    for key in ["path", "kind", "category", "license", "sha256"]:
+        if resolved.has(key):
+            entry[key] = resolved[key]
+    return entry
+
+
 func _instantiate_entries(entries: Array) -> bool:
     for entry_value in entries:
         if typeof(entry_value) != TYPE_DICTIONARY:
             push_error("Scene entry must be an object")
             return false
-        var entry: Dictionary = entry_value
+        var entry: Dictionary = _resolve_scene_entry(entry_value)
+        if entry.is_empty():
+            return false
         var resource_path := String(entry.get("path", ""))
         if resource_path.is_empty():
             push_error("Scene entry is missing path")
@@ -94,7 +124,7 @@ func _instantiate_entries(entries: Array) -> bool:
                 return false
             instance = candidate as Node3D
         instance.name = String(entry.get("name", entry.get("id", resource_path.get_file().get_basename())))
-        instance.set_meta("jedl_asset_id", String(entry.get("id", "")))
+        instance.set_meta("jedl_asset_id", String(entry.get("assetId", entry.get("id", ""))))
         instance.set_meta("jedl_layer", String(entry.get("layer", "objects")))
         instance.position = _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
         if entry.has("depth"):
@@ -171,7 +201,7 @@ func _fit_background_to_camera() -> void:
     background_sprite.scale = Vector3(cover_scale, cover_scale, 1.0)
 
 
-func add_catalog_asset(resource_path: String, as_background: bool = true) -> bool:
+func add_catalog_asset(resource_path: String, as_background: bool = true, asset_id: String = "") -> bool:
     if world_root == null or resource_path.is_empty():
         return false
 
@@ -179,7 +209,10 @@ func add_catalog_asset(resource_path: String, as_background: bool = true) -> boo
     var instance: Node3D
     if extension in ["png", "jpg", "jpeg", "webp"]:
         if as_background:
-            return set_background(resource_path)
+            if not set_background(resource_path):
+                return false
+            background_sprite.set_meta("jedl_asset_id", asset_id)
+            return true
         var texture := load(resource_path) as Texture2D
         if texture == null:
             return false
@@ -201,6 +234,7 @@ func add_catalog_asset(resource_path: String, as_background: bool = true) -> boo
 
     var placement_index := active_instances.size()
     instance.position = Vector3(float(placement_index) * 1.6, 0.0, 0.0)
+    instance.set_meta("jedl_asset_id", asset_id)
     world_root.add_child(instance)
     active_instances.append(instance)
     _play_default_animation(instance)
