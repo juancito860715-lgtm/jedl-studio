@@ -16,7 +16,7 @@ DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
   dbus dbus-x11 \
   xdg-desktop-portal xdg-desktop-portal-gnome xdg-desktop-portal-gtk \
   gsettings-desktop-schemas dconf-gsettings-backend \
-  xvfb xauth \
+  xvfb xauth x11-utils python3 \
   libgl1 libgl1-mesa-dri libglx-mesa0 libvulkan1 mesa-vulkan-drivers \
   libx11-6 libxcursor1 libxinerama1 libxrandr2 libxi6 libxrender1 \
   libxfixes3 libxkbcommon0 libfontconfig1 libasound2t64
