@@ -138,7 +138,7 @@ class GodotCompatibilityFilterTests(unittest.TestCase):
         self.assertEqual(catalog["assets"], [])
         self.assertFalse(folder.exists())
         self.assertEqual(report["excludedAssets"][0]["status"], "excluded_by_policy")
-        self.assertEqual(report["missingExplicitExclusions"], [])
+        self.assertEqual(report["policyExclusionsEncounteredInAcquisition"], ["character.tevy.casual_walker.v1"])
 
 
 if __name__ == "__main__":
