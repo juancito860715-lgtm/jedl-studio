@@ -87,6 +87,18 @@ class RootManifestTest(unittest.TestCase):
         with self.assertRaises(FileNotFoundError):
             build_manifest(self.root)
 
+    def test_rejects_license_not_in_catalog_policy(self):
+        self.catalog["assets"][0]["license"] = "UNKNOWN-LICENSE"
+        self._write_catalog()
+        with self.assertRaisesRegex(ValueError, "License is not allowed"):
+            build_manifest(self.root)
+
+    def test_rejects_declared_sha256_mismatch(self):
+        self.catalog["assets"][0]["sha256"] = "0" * 64
+        self._write_catalog()
+        with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
+            build_manifest(self.root)
+
     def test_rejects_assets_without_offline_or_license_evidence(self):
         self.catalog["assets"][0]["offline"] = False
         self._write_catalog()
