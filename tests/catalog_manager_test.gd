@@ -56,6 +56,7 @@ func _run_tests() -> void:
     var fox_players := gallery_fox.find_children("*", "AnimationPlayer", true, false)
     assert(not fox_players.is_empty(), "The gallery Fox must retain its AnimationPlayer")
     assert((fox_players[0] as AnimationPlayer).is_playing(), "Rigged gallery characters must begin their default animation instead of remaining static")
+    assert((fox_players[0] as AnimationPlayer).current_animation == "Walk", "The Fox gallery default must be the Walk animation")
     var cutout_image := Image.create(16, 16, false, Image.FORMAT_RGBA8)
     cutout_image.fill(Color(1.0, 1.0, 1.0, 0.5))
     var cutout_texture := ImageTexture.create_from_image(cutout_image)
