@@ -2,7 +2,8 @@ extends Node
 class_name SceneParser
 
 var world_root: Node3D
-var background_display: TextureRect
+var camera: Camera3D
+var background_sprite: Sprite3D
 var subtitle_label: Control
 var audio_player: AudioStreamPlayer
 var scene_data: Dictionary = {}
@@ -22,7 +23,13 @@ func load_scene_file(path: String) -> bool:
     if file == null:
         push_error("Cannot open scene JSON: " + path)
         return false
-    var parsed: Variant = JSON.parse_string(file.get_as_text())
+    var source := file.get_as_text()
+    file.close()
+    return load_scene_text(source)
+
+
+func load_scene_text(source: String) -> bool:
+    var parsed: Variant = JSON.parse_string(source)
     if typeof(parsed) != TYPE_DICTIONARY:
         push_error("Scene JSON root must be an object")
         return false
@@ -37,6 +44,13 @@ func load_scene_file(path: String) -> bool:
     _playing = false
     _playback_time = 0.0
     _next_event = 0
+    var background_data: Variant = scene_data.get("background", {})
+    if background_data is Dictionary and not String(background_data.get("path", "")).is_empty():
+        if not set_background(String(background_data["path"])):
+            return false
+    elif background_data is String and not background_data.is_empty():
+        if not set_background(background_data):
+            return false
     if not _instantiate_entries(scene_data["characters"]):
         return false
     if not _instantiate_entries(scene_data["objects"]):
@@ -66,6 +80,8 @@ func _instantiate_entries(entries: Array) -> bool:
             return false
         var node := instance as Node3D
         node.position = _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
+        if entry.has("depth"):
+            node.position.z = float(entry["depth"])
         node.rotation_degrees = _vector3_from(entry.get("rotation_degrees", [0.0, 0.0, 0.0]))
         node.scale = _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
         if world_root != null:
@@ -78,6 +94,47 @@ func _instantiate_entries(entries: Array) -> bool:
     return true
 
 
+func set_background(resource_path: String) -> bool:
+    if camera == null or resource_path.is_empty():
+        push_error("A camera and a valid background path are required")
+        return false
+    var texture := load(resource_path) as Texture2D
+    if texture == null:
+        push_error("Background texture could not be loaded: " + resource_path)
+        return false
+    if background_sprite != null and is_instance_valid(background_sprite):
+        background_sprite.queue_free()
+    background_sprite = Sprite3D.new()
+    background_sprite.name = "SceneBackground"
+    background_sprite.texture = texture
+    background_sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+    background_sprite.pixel_size = 1.0
+    background_sprite.position = Vector3(0.0, 0.0, -80.0)
+    background_sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    var material := StandardMaterial3D.new()
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    material.albedo_texture = texture
+    background_sprite.material_override = material
+    camera.add_child(background_sprite)
+    camera.far = maxf(camera.far, 200.0)
+    _fit_background_to_camera()
+    return true
+
+
+func _fit_background_to_camera() -> void:
+    if camera == null or background_sprite == null or background_sprite.texture == null:
+        return
+    var distance := absf(background_sprite.position.z)
+    var viewport_size := get_viewport().get_visible_rect().size
+    var aspect := viewport_size.x / maxf(viewport_size.y, 1.0)
+    var height := 2.0 * distance * tan(deg_to_rad(camera.fov) * 0.5)
+    var width := height * aspect
+    var texture_size := background_sprite.texture.get_size()
+    var cover_scale := maxf(width / maxf(texture_size.x, 1.0), height / maxf(texture_size.y, 1.0))
+    background_sprite.scale = Vector3(cover_scale, cover_scale, 1.0)
+
+
 func add_catalog_asset(resource_path: String) -> bool:
     if world_root == null or resource_path.is_empty():
         return false
@@ -85,14 +142,7 @@ func add_catalog_asset(resource_path: String) -> bool:
     var extension := resource_path.get_extension().to_lower()
     var instance: Node3D
     if extension in ["png", "jpg", "jpeg", "webp"]:
-        var texture := load(resource_path) as Texture2D
-        if texture == null or background_display == null:
-            push_error("Catalog image or 2D background display could not be loaded: " + resource_path)
-            return false
-        # A photographic background is a viewport backplate, not a world-space Sprite3D.
-        background_display.texture = texture
-        background_display.visible = true
-        return true
+        return set_background(resource_path)
     elif extension in ["glb", "gltf", "tscn"]:
         var packed := load(resource_path) as PackedScene
         if packed == null:
