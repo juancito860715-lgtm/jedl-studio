@@ -86,7 +86,7 @@ jobs:
           python tools/content_banks/fetch_polyhaven.py 2>&1 | tee "$RUNNER_TEMP/asset-download.log"
           python tools/content_banks/fetch_extended_sources.py 2>&1 | tee "$RUNNER_TEMP/extended-source-download.log"
           python tools/content_banks/filter_godot_compat_assets.py 2>&1 | tee "$RUNNER_TEMP/glb-compatibility.log"
-          for test_file in test_fetch_kenney_cc0.py test_polyhaven_bank.py test_extended_sources.py test_filter_godot_compat_assets.py test_root_manifest.py test_validate_downloaded_assets.py test_verify_godot_import_artifacts.py test_verify_godot_negative_import.py; do
+          for test_file in test_fetch_kenney_cc0.py test_polyhaven_bank.py test_extended_sources.py test_filter_godot_compat_assets.py test_root_manifest.py test_validate_downloaded_assets.py test_verify_godot_import_artifacts.py test_verify_godot_negative_import.py test_validate_catalog_validation_report.py; do
             python -m unittest discover -s tools/content_banks -p "$test_file" -v 2>&1 | tee -a "$RUNNER_TEMP/asset-bank-tests.log"
           done
           python tools/content_banks/build_root_manifest.py 2>&1 | tee "$RUNNER_TEMP/root-manifest.log"

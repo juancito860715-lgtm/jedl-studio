@@ -5,6 +5,7 @@ from __future__ import annotations
 import hashlib
 import json
 import os
+import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,6 +22,24 @@ def sha256(path: Path) -> str:
     return digest.hexdigest()
 
 
+def engine_versions_match(cli_version: str, report_engine: str) -> bool:
+    """Match CLI's truncated hash to Engine's complete official build hash."""
+    cli_match = re.fullmatch(
+        r"(\d+\.\d+\.\d+\.stable\.official\.)([0-9a-f]{9,40})",
+        cli_version.strip(),
+    )
+    report_match = re.fullmatch(
+        r"Godot (\d+\.\d+\.\d+\.stable\.official\.)([0-9a-f]{9,40})",
+        report_engine.strip(),
+    )
+    return bool(
+        cli_match
+        and report_match
+        and cli_match.group(1) == report_match.group(1)
+        and report_match.group(2).startswith(cli_match.group(2))
+    )
+
+
 def validate_report(root: Path = ROOT) -> dict:
     catalog_path = root / "assets/gallery/catalog.json"
     manifest_path = root / "assets/gallery/manifest.json"
@@ -34,10 +53,11 @@ def validate_report(root: Path = ROOT) -> dict:
     if not expected_version:
         raise ValueError("GODOT_VERSION is not set to the pinned Godot executable version")
     expected_engine = f"Godot {expected_version}"
-    if report.get("engine") != expected_engine:
+    reported_engine = str(report.get("engine", ""))
+    if not engine_versions_match(expected_version, reported_engine):
         raise ValueError(
-            f"Godot validation report engine mismatch: expected {expected_engine!r}, "
-            f"got {report.get('engine')!r}"
+            f"Godot validation report engine mismatch: expected CLI version {expected_engine!r}, "
+            f"got runtime version {reported_engine!r}"
         )
     if report.get("catalogSha256") != sha256(catalog_path):
         raise ValueError("Godot validation report does not match the current catalog hash")
