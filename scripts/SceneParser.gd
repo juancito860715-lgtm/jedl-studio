@@ -203,7 +203,20 @@ func add_catalog_asset(resource_path: String, as_background: bool = true) -> boo
     instance.position = Vector3(float(placement_index) * 1.6, 0.0, 0.0)
     world_root.add_child(instance)
     active_instances.append(instance)
+    _play_default_animation(instance)
     return true
+
+
+func _play_default_animation(instance: Node) -> void:
+    var players := instance.find_children("*", "AnimationPlayer", true, false)
+    for candidate in players:
+        var player := candidate as AnimationPlayer
+        if player == null:
+            continue
+        var animations := player.get_animation_list()
+        if animations.size() > 0:
+            _play_animation(instance, String(animations[0]), true)
+            return
 
 
 func _vector3_from(value: Variant) -> Vector3:
