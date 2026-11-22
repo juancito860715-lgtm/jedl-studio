@@ -20,6 +20,7 @@ OUT_2D = ROOT / "assets/gallery/2d"
 OUT_3D = ROOT / "assets/gallery/3d"
 CATALOG = ROOT / "assets/gallery/catalog.json"
 USER_AGENT = "JEDL-Studio-Offline-Asset-Builder/1.0 (CC0 asset packaging)"
+POLYHAVEN_LICENSE = "https://polyhaven.com/license"
 
 HDRIS = {
     "mossy_forest": "Bosque musgoso con arroyo",
@@ -110,7 +111,7 @@ def build_2d(api_assets: dict) -> list[dict]:
             "preview_path": "res://" + output.relative_to(ROOT).as_posix(),
             "kind": "2d", "category": "Fondos fotográficos",
             "format": "JPEG", "width": dimensions[0], "height": dimensions[1],
-            "license": "CC0-1.0", "source": f"https://polyhaven.com/a/{asset_id}",
+            "license": "CC0-1.0", "licenseEvidence": POLYHAVEN_LICENSE, "source": f"https://polyhaven.com/a/{asset_id}",
             "publisher": "Poly Haven", "authors": metadata.get("authors", {}),
             "tags": metadata.get("tags", []), "sha256": sha256(output),
             "offline": True, "placeable": True,
@@ -186,12 +187,21 @@ def main() -> None:
     fox_path = ROOT / "assets/characters/Fox.glb"
     if not fox_path.is_file():
         raise FileNotFoundError("The Khronos Fox GLB test character was not downloaded")
+    fox_license = ROOT / "assets/characters/Fox.LICENSE.md"
+    if not fox_license.is_file():
+        raise FileNotFoundError("The Khronos Fox license file was not downloaded")
+    fox_license_text = fox_license.read_text(encoding="utf-8")
+    if "CC0-1.0" not in fox_license_text or "CC-BY-4.0" not in fox_license_text:
+        raise ValueError("The Khronos Fox license file does not contain the expected CC0 and CC-BY grants")
     entries.append({
         "id": "character.fox.khronos.v1", "title": "Zorro animado · Walk / Run",
         "description": "Personaje 3D riggeado de muestra con animaciones Walk, Run y Survey",
         "path": "res://" + fox_path.relative_to(ROOT).as_posix(),
         "kind": "3d", "category": "Personajes animados",
         "format": "GLB", "license": "CC0-1.0 + CC-BY-4.0",
+        "licenseEvidence": "https://github.com/KhronosGroup/glTF-Sample-Assets/blob/main/Models/Fox/LICENSE.md",
+        "licenseFile": "res://assets/characters/Fox.LICENSE.md",
+        "attribution": "Khronos glTF Sample Assets contributors",
         "source": "https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Fox",
         "publisher": "Khronos glTF Sample Assets",
         "offline": True, "placeable": True,
