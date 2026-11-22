@@ -49,6 +49,14 @@ class ExtendedSourcesTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "External dependency"):
             glb_valid(path)
 
+    def test_catalog_expansion_is_disabled_without_explicit_authorization(self):
+        from fetch_extended_sources import main
+        output = StringIO()
+        with redirect_stdout(output):
+            main([])
+        self.assertIn("CATALOG_EXPANSION_BLOCKED", output.getvalue())
+        self.assertNotIn("EXTENDED_ASSET_BANK_OK", output.getvalue())
+
     def test_requires_cc0_license_evidence(self):
         path = self.root / "LICENSE.txt"
         path.write_text("This is a proprietary license.", encoding="utf-8")
