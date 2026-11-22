@@ -140,6 +140,19 @@ func load_catalog() -> bool:
         var validation_entry: Dictionary = _validation_by_id.get(asset_id, {})
         if validation_entry.is_empty():
             return _fail("Asset is absent from the Godot validation report: " + asset_id)
+        if String(validation_entry.get("assetSha256", "")) != String(manifest_entry.get("sha256", "")):
+            return _fail("Godot validation SHA-256 differs from root manifest: " + asset_id)
+        if int(validation_entry.get("assetSizeBytes", -1)) != int(manifest_entry.get("sizeBytes", -2)):
+            return _fail("Godot validation size differs from root manifest: " + asset_id)
+        var expected_dependencies: Variant = manifest_entry.get("dependencies", [])
+        var reported_dependencies: Variant = validation_entry.get("dependencies", [])
+        if typeof(expected_dependencies) != TYPE_ARRAY or typeof(reported_dependencies) != TYPE_ARRAY:
+            return _fail("Asset dependency metadata is invalid: " + asset_id)
+        if expected_dependencies != reported_dependencies:
+            return _fail("Godot validation dependency list differs from root manifest: " + asset_id)
+        for dependency_path in expected_dependencies:
+            if not manifest_file_hashes.has(String(dependency_path)):
+                return _fail("Model dependency is absent from root manifest inventory: " + String(dependency_path))
         var validation_errors: Variant = validation_entry.get("errors", [])
         var has_no_errors: bool = false
         if typeof(validation_errors) == TYPE_ARRAY:
