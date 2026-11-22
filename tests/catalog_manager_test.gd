@@ -56,7 +56,8 @@ func _run_tests() -> void:
     var cutout := parser._create_2d_element(cutout_texture)
     assert(cutout.texture == cutout_texture, "Individual 2D cutouts must retain their texture")
     assert(cutout.billboard == BaseMaterial3D.BILLBOARD_ENABLED, "Individual 2D cutouts must face the scene camera")
-    assert(cutout.material_override.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA,
+    var cutout_material := cutout.material_override as StandardMaterial3D
+    assert(cutout_material != null and cutout_material.transparency == BaseMaterial3D.TRANSPARENCY_ALPHA,
         "Individual 2D cutouts must preserve transparent edges")
     cutout.free()
 
