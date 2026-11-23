@@ -305,7 +305,7 @@ func add_catalog_asset(resource_path: String, as_background: bool = true, asset_
     active_instances.append(instance)
     if timeline_engine != null:
         timeline_engine.register_target(instance_id, instance)
-    if not scene_data.has("elements") or not scene_data["elements"] is Array:
+    if not scene_data.has("elements") or not (scene_data["elements"] is Array):
         scene_data["elements"] = []
     var asset_record: Dictionary = catalog_manager.resolve_asset_id(asset_id) if catalog_manager != null else {}
     scene_data["elements"].append({
