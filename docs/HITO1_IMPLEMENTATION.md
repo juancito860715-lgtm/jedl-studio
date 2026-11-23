@@ -16,18 +16,20 @@ Se reemplaza el contenido de ejemplo que dependía de Fox/Mossy Forest y las des
 ## Componentes nuevos
 
 - `assets/gallery/catalog.json` y `manifest.json`: cuatro recursos propios CC0-1.0, con SHA-256, rutas locales y metadatos de licencia.
-- Galería 2D independiente: tres PNG RGBA de 256×256 con transparencia.
+- Galería 2D independiente: tres PNG RGBA de 256×256 con transparencia, instanciados como Sprite2D bajo un CanvasLayer/Node2D propio, separado del escenario 3D.
 - Galería 3D independiente: escena TSCN propia con geometría primitiva y raíz Node3D.
+- El lienzo 2D mantiene coordenadas de escena en unidades lógicas y las transforma a píxeles de pantalla; posición, rotación y escala 2D se exponen al motor compartido como Vector3 lógico.
 - `TimelineEngine.gd`: único motor de pistas/keyframes para acciones JSON y edición manual. Soporta creación, edición, movimiento, eliminación, seek, play, pause, resume, stop, secuencias consecutivas y propiedades concurrentes. Rechaza solapamientos de acciones sobre la misma propiedad.
 - `ProjectStore.gd`: persistencia JSON versionada en `user://projects`, backup al sobrescribir, restauración y duplicación.
-- UI: proyecto nuevo vacío, galerías separadas, controles manuales de keyframes y alternativa/cancelación explícita cuando falta un recurso.
+- UI: proyecto nuevo vacío, galerías separadas, lista visible de pistas y marcadores seleccionables, controles manuales de keyframes, sincronización del cabezal durante reproducción y alternativa/cancelación explícita cuando falta un recurso.
 
 ## Pruebas añadidas o actualizadas
 
 - `test_local_catalog.py`: transparencia real de PNG, SHA-256, tamaños, manifiesto y contenido local.
 - `catalog_manager_test.gd`: carga de catálogo y escena de ejemplo sin descargas.
 - `scene_parser_test.gd`: acciones JSON, eventos, reproducción y error explícito de assetId ausente.
-- `timeline_engine_test.gd`: equivalencia JSON/manual, concurrencia, secuencias, edición, movimiento, borrado, pausa, seek y stop.
+- `timeline_engine_test.gd`: equivalencia JSON/manual para posición, rotación y escala en varios instantes, continuidad sin keyframes duplicados en límites, concurrencia, secuencias, edición, movimiento, borrado, serialización y reproducción tras restauración.
+- `camera_framing_test.gd`: separación real Sprite2D/Node3D, inserción desde la galería al lienzo 2D, transformaciones 2D y round-trip integrado de proyecto y timeline.
 - `project_store_test.gd`: ida/vuelta exacta, backup/restore y duplicación.
 - `camera_framing_test.gd`: proyecto vacío, galerías independientes, alternativa de recurso y cancelación restaurando la escena previa.
 
@@ -45,7 +47,7 @@ El timeline usa interpolación propia sobre transformaciones Node3D y no depende
 
 El paquete de inicio ocupa aproximadamente 9.0 KB en disco según el manifiesto. Las tres texturas RGBA de 128×128 representan aproximadamente 0.19 MiB de píxeles descomprimidos si se cargan simultáneamente; la escena 3D utiliza primitivas de Godot y no añade una malla externa pesada. La galería limita la presentación a 24 tarjetas por vista y no instancia todo el catálogo.
 
-Los PNG 2D se presentan como Sprite3D billboard dentro del escenario 2.5D actual; todavía no constituyen un lienzo 2D puro independiente del escenario 3D. La edición manual de transformaciones se realiza mediante keyframes en el timeline. El editor táctil directo y el rig por capas pertenecen al Hito 2.
+Los PNG de la galería 2D se representan como Sprite2D en un CanvasLayer independiente, por encima del escenario 3D y debajo de la interfaz. Esto evita convertirlos en Sprite3D billboard; no ofrece todavía oclusión física entre sprites 2D y geometría 3D. La edición básica de posición, rotación y escala se realiza mediante el inspector y keyframes del timeline. La manipulación táctil directa y el rig por capas pertenecen al Hito 2.
 
 ## Estado de aceptación
 
