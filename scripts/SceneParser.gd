@@ -659,12 +659,3 @@ func _clear_instances() -> void:
     _timeline_length = 0.0
     _playing = false
     _playback_paused = false
-
-
- _clear_instances() -> void:
-    for instance in active_instances:
-        if is_instance_valid(instance):
-            instance.queue_free()
-    active_instances.clear()
-    _active_animation_players.clear()
-    _action_tracks.clear()
