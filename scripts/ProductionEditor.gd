@@ -183,15 +183,34 @@ func set_material_color(color: Color) -> bool:
         last_error = "El objeto seleccionado no contiene mallas editables."
         return false
 
-    var edited_surface_count := 0
+    var edited_mesh_count := 0
     for mesh_instance in meshes:
-        if mesh_instance.mesh == null:
+        if mesh_instance.mesh == null or mesh_instance.mesh.get_surface_count() == 0:
             continue
-        for surface in range(mesh_instance.mesh.get_surface_count()):
-            if not set_surface_albedo(mesh_instance, surface, color):
-                return false
-            edited_surface_count += 1
-    if edited_surface_count == 0:
+
+        # Compatibilidad con la API anterior: el color global del objeto se
+        # aplica mediante material_override. Nunca se modifica el material
+        # compartido de la malla ni se cambia esta operación por overrides
+        # por superficie; esos pertenecen exclusivamente a los setters PBR.
+        var source_material: Material = mesh_instance.material_override
+        if source_material == null:
+            source_material = mesh_instance.mesh.surface_get_material(0)
+
+        var isolated_material: StandardMaterial3D
+        if source_material is StandardMaterial3D:
+            isolated_material = (source_material.duplicate(true) as StandardMaterial3D)
+        else:
+            isolated_material = StandardMaterial3D.new()
+
+        if isolated_material == null:
+            last_error = "No se pudo crear un material StandardMaterial3D independiente."
+            return false
+
+        isolated_material.albedo_color = color
+        mesh_instance.material_override = isolated_material
+        edited_mesh_count += 1
+
+    if edited_mesh_count == 0:
         last_error = "El objeto seleccionado no contiene superficies editables."
         return false
     material_changed.emit(selected_node)
