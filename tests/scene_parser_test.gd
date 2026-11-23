@@ -35,6 +35,12 @@ func _run_tests() -> void:
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example JSON must load")
 	assert(parser.active_instances.size() == 3, "Example must instantiate the character and two transparent 2D elements")
 	assert(parser.timeline_engine.get_keyframe_count() == 5, "Adjacent JSON actions must share a boundary keyframe")
+	var canvas_sprite_count := 0
+	for scene_instance in parser.active_instances:
+		if scene_instance is Sprite2D:
+			canvas_sprite_count += 1
+			assert(scene_instance.get_parent() == canvas, "Every 2D scene element must be parented to the dedicated canvas")
+	assert(canvas_sprite_count == 2, "JSON 2D elements must instantiate as Sprite2D nodes")
 	parser.seek_scene(1.0)
 	var actor: Node3D
 	for instance in parser.active_instances:
