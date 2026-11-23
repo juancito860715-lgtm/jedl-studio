@@ -18,11 +18,26 @@ from pathlib import Path
 from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[2]
+OUT_2D = ROOT / "assets/gallery/2d"
 OUT_3D = ROOT / "assets/gallery/3d"
 CATALOG = ROOT / "assets/gallery/catalog.json"
 USER_AGENT = "JEDL-Studio-Offline-Asset-Builder/1.0 (CC0 asset packaging)"
 POLYHAVEN_LICENSE = "https://polyhaven.com/license"
 
+HDRIS = {
+    "mossy_forest": "Bosque musgoso con arroyo",
+    "xanderklinge": "Arroyo rocoso y cascada",
+    "river_walk_1": "Sendero bajo dosel forestal",
+    "autumn_forest_03": "Bosque otoñal con arroyo",
+    "autumn_forest_01": "Bosque caducifolio de otoño",
+    "autumn_forest_02": "Sendero de bosque otoñal",
+    "autumn_forest_04": "Bosque otoñal con luz dorada",
+    "autumn_ground": "Suelo forestal cubierto de hojas",
+    "misty_pines": "Pinar cubierto de niebla",
+    "snowy_forest": "Bosque nevado",
+    "snowy_forest_path_01": "Camino entre árboles nevados",
+    "abandoned_church": "Iglesia antigua entre árboles",
+}
 MODELS = {
     "tree_stump_01": ("Tocón de árbol con musgo", "Árboles y vegetación"),
     "tree_stump_02": ("Tocón de árbol envejecido", "Árboles y vegetación"),
@@ -99,8 +114,32 @@ def safe_relative_path(value: str) -> Path:
 
 
 def build_2d(api_assets: dict) -> list[dict]:
-    """Full-frame photographic backgrounds are intentionally excluded from JEDL."""
-    return []
+    entries = []
+    for asset_id, title in HDRIS.items():
+        metadata = api_assets.get(asset_id)
+        if not metadata or metadata.get("type") != 0:
+            raise ValueError(f"Missing or invalid Poly Haven HDRI: {asset_id}")
+        verify_provider_license(metadata, asset_id)
+        files = get_json(f"https://api.polyhaven.com/files/{asset_id}")
+        tonemapped = files.get("tonemapped", {})
+        url = tonemapped.get("url")
+        if not url:
+            raise ValueError(f"No tonemapped photographic image for {asset_id}")
+        output = OUT_2D / f"{asset_id}.jpg"
+        dimensions = save_jpeg(request_bytes(url), output)
+        entries.append({
+            "id": f"background.{asset_id}", "title": title,
+            "description": metadata.get("description", ""),
+            "path": "res://" + output.relative_to(ROOT).as_posix(),
+            "preview_path": "res://" + output.relative_to(ROOT).as_posix(),
+            "kind": "2d", "category": "Fondos fotográficos",
+            "format": "JPEG", "width": dimensions[0], "height": dimensions[1],
+            "license": "CC0-1.0", "licenseEvidence": POLYHAVEN_LICENSE, "source": f"https://polyhaven.com/a/{asset_id}",
+            "publisher": "Poly Haven", "authors": metadata.get("authors", {}),
+            "tags": metadata.get("tags", []), "sha256": sha256(output),
+            "offline": True, "placeable": True,
+        })
+    return entries
 
 
 def choose_gltf_file(files: dict) -> dict:
@@ -168,7 +207,7 @@ def build_3d(api_assets: dict) -> list[dict]:
 
 def main() -> None:
     api_assets = get_json("https://api.polyhaven.com/assets")
-    entries = build_3d(api_assets)
+    entries = build_2d(api_assets) + build_3d(api_assets)
     fox_path = ROOT / "assets/characters/Fox.glb"
     if not fox_path.is_file():
         raise FileNotFoundError("The Khronos Fox GLB test character was not downloaded")
@@ -202,8 +241,8 @@ def main() -> None:
     CATALOG.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     count_2d = sum(item["kind"] == "2d" for item in entries)
     count_3d = sum(item["kind"] == "3d" for item in entries)
-    assert count_2d == 0 and count_3d == len(MODELS) + 1
-    print(f"POLYHAVEN_BANK_OK: photographic_backgrounds_removed={count_2d} realistic_3d_assets={count_3d} license=CC0-1.0")
+    assert count_2d == 12 and count_3d == len(MODELS) + 1
+    print(f"POLYHAVEN_BANK_OK: photographic_backgrounds={count_2d} realistic_3d_assets={count_3d} license=CC0-1.0")
     print(f"CATALOG_SHA256={sha256(CATALOG)}")
 
 
