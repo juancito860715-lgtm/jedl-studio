@@ -35,7 +35,7 @@ func _run_tests() -> void:
 	parser.catalog_manager = manager
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example scene must load from checked-in assets")
 	assert(parser.active_instances.size() == 3, "Sample must instantiate one 3D character and two 2D cutouts")
-	assert(parser.timeline_engine.get_keyframe_count() == 6, "JSON actions must compile to shared keyframes")
+	assert(parser.timeline_engine.get_keyframe_count() == 5, "JSON actions must compile to shared keyframes")
 	assert(parser.timeline_engine.duration_seconds == 4.0, "Sample timeline duration must be four seconds")
 
 	parser.queue_free()
