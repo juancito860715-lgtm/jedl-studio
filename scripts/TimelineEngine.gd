@@ -57,24 +57,26 @@ func compile_json_actions(actions: Array) -> bool:
 		var property_name := _normalize_property(String(action.get("property", "")))
 		var start_time := float(action.get("time", -1.0))
 		var action_duration := float(action.get("duration", 0.0))
-		var end_value: Variant = _vector_from(action.get("to", null))
+		var parsed_end_value: Variant = _vector_from(action.get("to", null))
+		if not (parsed_end_value is Vector3):
+			return _fail("La acción requiere un vector 'to' de tres números.")
+		var end_value: Vector3 = parsed_end_value
 		if target_id.is_empty() or not _targets.has(target_id):
 			return _fail("La acción apunta a un elemento inexistente: " + target_id)
 		if not SUPPORTED_PROPERTIES.has(property_name):
 			return _fail("Propiedad de animación no soportada: " + property_name)
 		if start_time < 0.0 or action_duration <= 0.0:
 			return _fail("Cada acción requiere time >= 0 y duration > 0.")
-		if end_value == null:
-			return _fail("La acción requiere un vector 'to' de tres números.")
 		var track_id := target_id + "|" + property_name
 		if last_end.has(track_id) and start_time < float(last_end[track_id]) - EPSILON:
 			return _fail("Hay acciones solapadas para " + target_id + " / " + property_name)
 		var target := _targets[target_id] as Node3D
 		var start_value: Vector3 = last_value[track_id] if last_value.has(track_id) else _read_property(target, property_name)
 		if action.has("from"):
-			var explicit_from: Variant = _vector_from(action["from"])
-			if explicit_from == null:
+			var parsed_from: Variant = _vector_from(action["from"])
+			if not (parsed_from is Vector3):
 				return _fail("El campo 'from' debe contener tres números.")
+			var explicit_from: Vector3 = parsed_from
 			start_value = explicit_from
 		if not candidate.has(track_id):
 			candidate[track_id] = {
@@ -258,10 +260,11 @@ func load_dictionary(data: Dictionary) -> bool:
 			if not (key_value is Dictionary):
 				return _fail("Keyframe inválido.")
 			var key: Dictionary = key_value
-			var vector: Variant = _vector_from(key.get("value", null))
+			var parsed_vector: Variant = _vector_from(key.get("value", null))
 			var time_value := float(key.get("time", -1.0))
-			if vector == null or time_value < 0.0:
+			if not (parsed_vector is Vector3) or time_value < 0.0:
 				return _fail("Keyframe con tiempo o valor inválido.")
+			var vector: Vector3 = parsed_vector
 			keys.append({"time": time_value, "value": _vector_to_array(vector)})
 		keys.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 			return float(a["time"]) < float(b["time"])
