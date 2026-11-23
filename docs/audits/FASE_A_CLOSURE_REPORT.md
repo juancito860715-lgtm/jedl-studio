@@ -1,42 +1,56 @@
 # Informe de cierre — Fase A
 
-- **Fecha:** 2026-11-22
+- **Fecha de actualización:** 2026-11-23
 - **Repositorio:** `juancito860715-lgtm/jedl-studio`
 - **PR:** [#13 — mantener abierta y sin fusionar](https://github.com/juancito860715-lgtm/jedl-studio/pull/13)
-- **Run de validación técnica de referencia:** [#184 — 45105876978](https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45105876978)
-- **Commit validado:** `64b575133604df0088af1a24af75c0cb6de01d7f`
+- **Run de validación y evidencia consolidada:** [#185 — 45109200353](https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45109200353)
+- **Commit validado por el Run #185:** `75ce594c9baf539fa348ae05c96c236e6e3b11a0`
 - **Motor:** Godot 4.5.1 stable, build `f62fdbde1`.
 
 ## Alcance y criterio
 
-Esta fase valida la confiabilidad de importación, integridad del catálogo congelado, rechazo de recursos incompatibles, pruebas automatizadas y exportación Android. No constituye una prueba física en dispositivo Android ni una certificación de rendimiento en hardware.
+Esta fase valida la confiabilidad de importación, integridad del catálogo congelado, rechazo controlado de recursos incompatibles, pruebas automatizadas, exportación Android y empaquetado de evidencias. No constituye una prueba física en dispositivo Android ni una certificación de rendimiento en hardware.
 
-## Resultados A1–A5
+## Resultados A1–A5 — Run #185
 
-| Criterio | Estado | Evidencia del Run #184 |
+| Criterio | Estado | Evidencia del Run #185 |
 |---|---|---|
-| A1 — Importación limpia | **CERRADO** | Job completo SUCCESS; `GODOT_IMPORT_EXIT_CODE=0`; importación mediante sesión portal; sin `ERROR:`, `SCRIPT ERROR:` ni error de importación en el log normal. |
+| A1 — Importación limpia | **CERRADO** | Importación normal completada con código 0; el log normal no contiene `ERROR:` ni `SCRIPT ERROR:`. El error de extensión del GLB incompatible aparece únicamente en la prueba negativa controlada A4. |
 | A2 — Sidecars y caché | **CERRADO** | `GODOT_IMPORT_ARTIFACTS_OK: expectedImportableResources=68 verifiedSidecarsAndCache=68 importSidecarCount=68 cacheFileCount=208`. |
-| A3 — Integridad e instanciación | **CERRADO** | `CATALOG_ASSET_VALIDATION_OK: assets=24`; `CATALOG_REPORT_VALIDATION_OK: assets=24 imported=24 instantiated=24 renderable=24 dependenciesVerified=55 threeDimensionalNodeCountsVerified=12`. |
-| A4 — Prueba negativa GLB real | **CERRADO** | `GODOT_NEGATIVE_IMPORT_OK`; GLB estructuralmente válido de 676 bytes; el importador real rechaza específicamente `EXT_meshopt_compression`; `ciGateWouldFail=true`. |
-| A5 — Exclusión de Tevy | **CERRADO** | [Registro de exclusión](../asset_exclusions.json): fecha, referencia de auditoría, extensiones no soportadas y prohibición de catálogo activo. El log registra `GLB_EXCLUDED_BY_POLICY: character.tevy.casual_walker.v1`. |
+| A3 — Integridad e instanciación | **CERRADO** | `CATALOG_REPORT_VALIDATION_OK: assets=24 imported=24 instantiated=24 renderable=24 dependenciesVerified=55 threeDimensionalNodeCountsVerified=12`. El informe registra Godot 4.5.1 y los 24 recursos sin errores de validación. |
+| A4 — Prueba negativa GLB real | **CERRADO** | `GODOT_NEGATIVE_IMPORT_OK`; GLB estructuralmente válido de 676 bytes; el importador real lo rechaza específicamente por `EXT_meshopt_compression`; `importerRejectedForUnsupportedExtension=true` y `ciGateWouldFail=true`. |
+| A5 — Exclusión de Tevy | **CERRADO** | [Registro de exclusión](../../asset_exclusions.json): fecha 2026-11-22, referencia de auditoría, extensiones no soportadas, estado excluido y `activeCatalogAllowed=false`. |
 
-### Evidencia adicional del Run #184
+### Pruebas de escenas y editor
 
-- [Registros y salidas de GitHub Actions](https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45105876978).
-- [Artefactos del Run #184](https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45105876978): `jedl-studio-resource-validation`, `jedl-studio-validation-logs` y `jedl-studio-godot-android-debug-apk`.
-- APK exportado: `build/JEDLStudio-debug.apk`, ZIP Android válido, 101,314,223 bytes.
-- SHA-256 del APK: `10118c6ab74ac5b0222f9b3b9369f31b7028264ffe113a27773eced12565ddc3`.
-- Las cinco pruebas de escena/parser/editor finalizaron correctamente: `SCENE_PARSER_TEST_OK`, `CATALOG_MANAGER_TEST_OK`, `CAMERA_FRAMING_TEST_OK`, `PRODUCTION_EDITOR_TEST_OK` y `SCENE_PARSER_SMOKE_OK`.
-- El APK se generó y se subió como artefacto. El mensaje ADB `tcp:5037` no invalida la exportación; la instalación y validación física siguen pendientes.
+Todas las pruebas de escena/parser/editor del Run #185 finalizaron correctamente:
+
+- `SCENE_PARSER_TEST_OK`
+- `CATALOG_MANAGER_TEST_OK`
+- `CAMERA_FRAMING_TEST_OK`
+- `PRODUCTION_EDITOR_TEST_OK`
+- `GODOT_SMOKE_OK characters=1 subtitle_events=4`
+
+### Integridad del paquete Android
+
+- APK: `build/JEDLStudio-debug.apk`.
+- Tamaño exacto: **109.055.728 bytes**.
+- SHA-256: `621ddd9a0a3d651b0e4912dc06e213aa550aef3220cfad744d7bd25a5e394599`.
+- El archivo `build/JEDLStudio-debug.apk.sha256` incluido en el ZIP del Run #185 contiene el mismo digest y nombre de APK.
+- El log de exportación registra la generación, firma y verificación del APK como correctas.
+- El aviso posterior de ADB `tcp:5037` indica que no había daemon disponible; no invalida la exportación ni la verificación del APK. La instalación y validación física en dispositivo Android siguen pendientes.
 
 ## A6 — Empaquetado y cierre documental
 
-**Estado previsto: CERRADO al completar correctamente el workflow de este commit.**
+**Estado: CERRADO Y VERIFICADO EN CI — Run #185.**
 
-Este commit incorpora el registro `docs/asset_exclusions.json` y este informe en un único artefacto de auditoría, junto con los informes de validación, todos los logs disponibles y el APK con su SHA-256. El nombre del paquete es `jedl-studio-evidence-run-<run_number>`; para este commit corresponde el Run #185.
+- Workflow: [Run #185 — 45109200353](https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45109200353), resultado SUCCESS.
+- Commit probado: `75ce594c9baf539fa348ae05c96c236e6e3b11a0`.
+- Artefacto consolidado: `jedl-studio-evidence-run-185`.
+- Artifact ID: `14788678968`.
+- El ZIP descargado e inspeccionado contiene **27 archivos**: los seis entregables requeridos y 21 logs del runner.
 
-La comprobación final de A6 requiere que el Run #185 termine en `success` y que su ZIP consolidado contenga, como mínimo:
+Entregables confirmados dentro del ZIP:
 
 - `docs/asset_exclusions.json`
 - `docs/audits/FASE_A_CLOSURE_REPORT.md`
@@ -44,12 +58,18 @@ La comprobación final de A6 requiere que el Run #185 termine en `success` y que
 - `assets/gallery/validation_report.json`
 - `build/JEDLStudio-debug.apk`
 - `build/JEDLStudio-debug.apk.sha256`
-- Los logs de validación del runner.
+- 21 logs del runner, incluidos los logs de importación, prueba negativa, validación, pruebas de escena y exportación.
+
+El SHA-256 del APK fue contrastado contra el archivo de checksum incluido en el mismo artefacto. Ambos coinciden exactamente.
 
 ## Decisión de fase
 
-La Fase A queda formalmente cerrada únicamente cuando el Run #185 confirme el artefacto consolidado y el PR #13 permanezca abierto y sin fusionar. No se modifican los recursos ni el catálogo; se conserva el conjunto validado de 24 recursos.
+La evidencia del Run #185 verifica A1–A6 en CI. El catálogo permanece congelado en **24 recursos**; no se modificaron recursos ni contenido del catálogo durante esta corrección documental. El PR #13 debe permanecer abierto y sin fusionar.
 
-> La Fase A (Confiabilidad de importación y CI) queda formalmente cerrada. Se autoriza el inicio de la Fase B (Integridad de escena y materiales), manteniendo el catálogo congelado y el PR #13 sin fusionar.
+**Todos los artefactos, hashes y validaciones han sido confirmados en el Run #185. Se autoriza el paso a la Fase B**, sujeto a la condición de transición indicada a continuación.
 
-**Restricción de transición:** la declaración anterior entra en vigor solamente después de que el workflow de confirmación sea SUCCESS y se verifique el ZIP consolidado. No iniciar Fase B antes de esa verificación.
+### Condición de transición
+
+Este informe se está actualizando en un commit documental posterior al Run #185. Por tanto, la Fase B de código **no debe comenzar hasta que el commit que contiene esta versión corregida del informe haya completado su propio workflow en estado SUCCESS**. Ese siguiente run será la confirmación final del cierre documental y el punto de inicio autorizado de la Fase B.
+
+La validación física en un dispositivo Android continúa pendiente y no se declara realizada.
