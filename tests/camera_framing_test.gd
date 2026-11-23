@@ -31,6 +31,25 @@ func _run_test() -> void:
 	main._load_example_scene()
 	assert(main.scene_parser.active_instances.size() == 3, "Example scene must load its local character and 2D sprites")
 	assert(main.scene_parser.timeline_engine.get_keyframe_count() == 5, "Example JSON must use the shared timeline")
+	var canvas_sprite_count := 0
+	var stage_model_count := 0
+	for scene_instance in main.scene_parser.active_instances:
+		if scene_instance is Sprite2D:
+			canvas_sprite_count += 1
+			assert(scene_instance.get_parent() == main.canvas_2d_root, "2D resources must render in the independent 2D canvas, not the 3D world")
+		elif scene_instance is Node3D:
+			stage_model_count += 1
+			assert(scene_instance.get_parent() == main.world_root, "3D resources must remain in the 3D stage")
+	assert(canvas_sprite_count == 2 and stage_model_count == 1, "The example must separate 2D sprites from its 3D character")
+	var leaf_sprite: Sprite2D
+	for scene_instance in main.scene_parser.active_instances:
+		if scene_instance is Sprite2D:
+			leaf_sprite = scene_instance
+			break
+	assert(leaf_sprite != null, "A 2D sprite must be available for transform editing")
+	assert(main.scene_parser.timeline_engine.add_keyframe("leaf_demo", "position", 0.0, Vector3(1.0, 0.5, 0.0)), "2D canvas target must accept a shared-engine position keyframe")
+	main.scene_parser.timeline_engine.seek(0.0)
+	assert(leaf_sprite.position.is_equal_approx(Vector2(100.0, -50.0)), "Shared timeline transforms must map 2D world units to canvas pixels")
 	assert(main.timeline_tracks_list.get_child_count() == 2, "Timeline editor must display one visible row for each animated property")
 	assert(main.timeline_tracks_list.get_child(0).get_child_count() == 4, "Position track must expose its three selectable keyframe markers")
 	main.scene_parser.timeline_engine.seek(1.25)
