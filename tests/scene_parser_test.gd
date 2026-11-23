@@ -32,14 +32,13 @@ func _run_tests() -> void:
     var blank_json := """{"version":2,"characters":[],"objects":[],"elements":[],"subtitles":[],"sounds":[]}"""
     assert(parser.load_scene_text(blank_json), "A blank composition must be a valid starting scene")
     assert(parser.active_instances.is_empty(), "A new blank composition must contain no forced sample character")
-    assert(parser.background_sprite == null, "A new blank composition must not contain a background")
 
     var loaded: bool = parser.load_scene_file("res://scenes/scene.example.json")
     assert(loaded, "Example scene JSON must load")
     assert(parser.scene_data.has("characters"), "Characters array must exist")
     assert(parser.active_instances.size() == 1, "Exactly one sample character must instantiate")
     assert(parser.active_instances[0].get_meta("jedl_asset_id") == "character.fox.khronos.v1", "Character must resolve from its stable assetId")
-    assert(parser.background_sprite == null, "The example scene must not contain a photographic background")
+    assert(not parser.scene_data.has("background"), "The example scene must not contain a photographic background")
     assert(parser._events.size() == 4, "Two subtitles must create four timeline events")
     assert(parser._events[0]["kind"] == "subtitle", "Timeline must be sorted by time")
 

@@ -42,12 +42,12 @@ func _run_tests() -> void:
     parser.world_root = world
     parser.catalog_manager = manager
     parser.camera = camera
-    assert(parser.add_catalog_asset(String(models[0]["path"]), false, String(models[0]["id"])),
+    assert(parser.add_catalog_asset(String(models[0]["path"]), String(models[0]["id"])),
         "The scene engine must place a selected realistic 3D model")
     assert(parser.active_instances.size() == 1 and parser.active_instances.back() is Node3D,
         "A selected 3D model must become a Node3D scene instance")
     var fox_entry: Dictionary = models.filter(func(item: Dictionary) -> bool: return item["id"] == "character.fox.khronos.v1")[0]
-    assert(parser.add_catalog_asset(String(fox_entry["path"]), false, String(fox_entry["id"])),
+    assert(parser.add_catalog_asset(String(fox_entry["path"]), String(fox_entry["id"])),
         "The animated Fox must be placeable from the character gallery")
     var gallery_fox: Node3D = parser.active_instances.back()
     assert(gallery_fox.get_meta("jedl_asset_id") == "character.fox.khronos.v1",
