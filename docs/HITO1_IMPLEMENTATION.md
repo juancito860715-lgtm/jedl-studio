@@ -43,7 +43,7 @@ El timeline usa interpolación propia sobre transformaciones Node3D y no depende
 
 ## Memoria y límites
 
-El paquete de inicio ocupa aproximadamente 11.4 KB en disco según el manifiesto. Las tres texturas RGBA de 256×256 representan aproximadamente 0.75 MiB de píxeles descomprimidos si se cargan simultáneamente; la escena 3D utiliza primitivas de Godot y no añade una malla externa pesada. La galería limita la presentación a 24 tarjetas por vista y no instancia todo el catálogo.
+El paquete de inicio ocupa aproximadamente 9.0 KB en disco según el manifiesto. Las tres texturas RGBA de 128×128 representan aproximadamente 0.19 MiB de píxeles descomprimidos si se cargan simultáneamente; la escena 3D utiliza primitivas de Godot y no añade una malla externa pesada. La galería limita la presentación a 24 tarjetas por vista y no instancia todo el catálogo.
 
 Los PNG 2D se presentan como Sprite3D billboard dentro del escenario 2.5D actual; todavía no constituyen un lienzo 2D puro independiente del escenario 3D. La edición manual de transformaciones se realiza mediante keyframes en el timeline. El editor táctil directo y el rig por capas pertenecen al Hito 2.
 
