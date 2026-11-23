@@ -85,8 +85,8 @@ func compile_json_actions(actions: Array) -> bool:
 				"keyframes": []
 			}
 		var keys: Array = candidate[track_id]["keyframes"]
-		keys.append({"time": start_time, "value": _vector_to_array(start_value)})
-		keys.append({"time": start_time + action_duration, "value": _vector_to_array(end_value)})
+		_upsert_compiled_keyframe(keys, start_time, start_value)
+		_upsert_compiled_keyframe(keys, start_time + action_duration, end_value)
 		last_end[track_id] = start_time + action_duration
 		last_value[track_id] = end_value
 
@@ -295,6 +295,15 @@ func _process(delta: float) -> void:
 	playhead_changed.emit(playhead_seconds)
 
 
+func _upsert_compiled_keyframe(keys: Array, time_seconds: float, value: Vector3) -> void:
+	for key_value in keys:
+		if absf(float(key_value["time"]) - time_seconds) <= EPSILON:
+			key_value["time"] = time_seconds
+			key_value["value"] = _vector_to_array(value)
+			return
+	keys.append({"time": time_seconds, "value": _vector_to_array(value)})
+
+
 func _get_or_create_track(target_id: String, property_name: String) -> Dictionary:
 	var existing := _find_track(target_id, property_name)
 	if not existing.is_empty():
@@ -375,10 +384,10 @@ func _apply_at(time_seconds: float) -> void:
 				var right: Dictionary = keys[index + 1]
 				var left_time := float(left["time"])
 				var right_time := float(right["time"])
-				if time_seconds >= left_time and time_seconds <= right_time:
+				if time_seconds >= left_time and time_seconds <= right_time and right_time - left_time > EPSILON:
 					var left_value: Vector3 = _vector_from(left["value"])
 					var right_value: Vector3 = _vector_from(right["value"])
-					var weight := inverse_lerp(left_time, right_time, time_seconds)
+					var weight := clampf((time_seconds - left_time) / (right_time - left_time), 0.0, 1.0)
 					value = left_value.lerp(right_value, weight)
 					break
 		_write_property(target, String(track["property"]), value)
