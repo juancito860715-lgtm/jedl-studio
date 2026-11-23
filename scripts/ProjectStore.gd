@@ -43,10 +43,13 @@ static func load_project(project_id: String) -> Dictionary:
 static func duplicate_project(source_id: String, destination_id: String, new_title: String = "") -> bool:
 	if not _valid_id(source_id) or not _valid_id(destination_id) or source_id == destination_id:
 		return false
-	if not _ensure_directory() or not _recover_interrupted_swap(destination_id):
+	if not _ensure_directory():
 		return false
 	var destination_path := _project_path(destination_id, "json")
+	# Never adopt or overwrite a destination that has an interrupted swap pending.
 	if FileAccess.file_exists(destination_path) or FileAccess.file_exists(destination_path + ".old"):
+		return false
+	if not _recover_interrupted_swap(source_id):
 		return false
 
 	var source := load_project(source_id)
