@@ -566,15 +566,15 @@ func _build_timeline() -> bool:
                 animation.track_insert_key(track_index, end_time, destination)
                 current_value = destination
                 previous_end = end_time
-        var animation_library := AnimationLibrary.new()
-        var add_animation_error: int = int(animation_library.add_animation(_timeline_animation_name, animation))
-        if add_animation_error != OK:
-            last_error = "No se pudo registrar la animación en AnimationLibrary."
+        # AnimationMixer crea una biblioteca global con clave vacía por defecto.
+        var animation_library: AnimationLibrary = _timeline_player.get_animation_library("")
+        if animation_library == null:
+            last_error = "AnimationPlayer no expone su biblioteca global de animaciones."
             push_error(last_error)
             return false
-        var add_library_error: int = int(_timeline_player.add_animation_library("", animation_library))
-        if add_library_error != OK:
-            last_error = "No se pudo registrar la biblioteca de animación en AnimationPlayer."
+        var add_animation_error: int = int(animation_library.add_animation(_timeline_animation_name, animation))
+        if add_animation_error != OK:
+            last_error = "No se pudo registrar la animación en la biblioteca global."
             push_error(last_error)
             return false
     return true
