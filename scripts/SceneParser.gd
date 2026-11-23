@@ -24,9 +24,9 @@ var last_missing_entry_id := ""
 
 
 func _ready() -> void:
-	timeline_engine = TimelineEngineScript.new()
-	timeline_engine.name = "TimelineEngine"
-	add_child(timeline_engine)
+    timeline_engine = TimelineEngineScript.new()
+    timeline_engine.name = "TimelineEngine"
+    add_child(timeline_engine)
 
 
 func load_scene_file(path: String) -> bool:
