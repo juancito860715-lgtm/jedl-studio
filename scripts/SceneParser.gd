@@ -2,6 +2,8 @@ extends Node
 class_name SceneParser
 
 const TimelineEngineScript = preload("res://scripts/TimelineEngine.gd")
+const CharacterRig2DScript = preload("res://scripts/CharacterRig2D.gd")
+const SceneStyleManagerScript = preload("res://scripts/SceneStyleManager.gd")
 
 var world_root: Node3D
 var canvas_root: Node2D
@@ -107,6 +109,18 @@ func load_scene_text(source: String) -> bool:
 		if typeof(candidate["elements"]) != TYPE_ARRAY or not _instantiate_entries(candidate["elements"], "2d"):
 			push_error("Scene JSON elements must be an array of scene resources")
 			return false
+	if candidate.has("characters_2d"):
+		if not (candidate["characters_2d"] is Array) or not _instantiate_2d_characters(candidate["characters_2d"]):
+			last_error = "La colección characters_2d debe contener personajes 2D válidos."
+			return false
+	if candidate.has("appearances") and not (candidate["appearances"] is Array):
+		last_error = "El campo appearances debe ser una lista."
+		return false
+	if candidate.has("style"):
+		if not (candidate["style"] is Dictionary):
+			last_error = "El campo style debe ser un objeto."
+			return false
+		_apply_scene_style(candidate["style"])
 	if not _build_timeline():
 		return false
 	return true
@@ -548,6 +562,53 @@ func _dispatch_event(event: Dictionary) -> void:
 			if stream != null:
 				audio_player.stream = stream
 				audio_player.play()
+
+
+func _instantiate_2d_characters(entries: Array) -> bool:
+	if canvas_root == null:
+		last_error = "El lienzo 2D independiente no está disponible."
+		return false
+	for entry_value in entries:
+		if not (entry_value is Dictionary):
+			last_error = "Cada personaje 2D debe ser un objeto."
+			return false
+		var entry: Dictionary = entry_value
+		var entry_id := String(entry.get("id", ""))
+		if entry_id.is_empty():
+			last_error = "Cada personaje 2D requiere un id."
+			return false
+		var proportions: Variant = entry.get("proportions", {})
+		if not (proportions is Dictionary):
+			proportions = {}
+		var character := CharacterRig2DScript.create_character(String(entry.get("name", entry_id)), proportions)
+		character.name = String(entry.get("name", entry_id))
+		character.set_meta("jedl_entry_id", entry_id)
+		character.set_meta("jedl_asset_id", "character.2d.procedural.v1")
+		character.set_meta("jedl_character_2d", true)
+		var position_value := _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
+		var rotation_value := _vector3_from(entry.get("rotation_degrees", [0.0, 0.0, 0.0]))
+		var scale_value := _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
+		_apply_instance_transform(character, position_value, rotation_value, scale_value)
+		canvas_root.add_child(character)
+		active_instances.append(character)
+		if timeline_engine != null:
+			timeline_engine.register_target(entry_id, character)
+		var appearance: Variant = entry.get("appearance", {})
+		if appearance is Dictionary and not appearance.is_empty():
+			CharacterRig2DScript.apply_appearance(character, appearance)
+		var pose: Variant = entry.get("pose", {})
+		if pose is Dictionary and not pose.is_empty():
+			CharacterRig2DScript.apply_pose(character, pose)
+	return true
+
+
+func _apply_scene_style(style: Dictionary) -> void:
+	var style_nodes: Array = []
+	for instance in active_instances:
+		if instance is CanvasItem:
+			style_nodes.append(instance)
+	if not style_nodes.is_empty():
+		SceneStyleManagerScript.apply_style(style_nodes, style)
 
 
 func _clear_instances() -> void:

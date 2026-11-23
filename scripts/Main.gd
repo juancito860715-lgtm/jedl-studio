@@ -2,6 +2,9 @@ extends Node3D
 
 const SceneParserScript = preload("res://scripts/SceneParser.gd")
 const ProjectStoreScript = preload("res://scripts/ProjectStore.gd")
+const EditorSelectionScript = preload("res://scripts/EditorSelection.gd")
+const GestureControllerScript = preload("res://scripts/TouchGestureController.gd")
+const EditorPanelScript = preload("res://scripts/Editor2DPanel.gd")
 
 var scene_parser: Node
 var world_root: Node3D
@@ -31,6 +34,10 @@ var timeline_tracks_list: VBoxContainer
 var timeline_status: Label
 var pending_scene_backup: Dictionary = {}
 var choosing_missing_alternative := false
+var overlay_screen: Control
+var editor_2d_panel: PanelContainer
+var gesture_controller: RefCounted
+var selected_2d_node: Node2D
 
 
 func _ready() -> void:
@@ -64,6 +71,19 @@ func _ready() -> void:
 	scene_parser.scene_data = _blank_scene_document()
 	if scene_parser.timeline_engine != null:
 		scene_parser.timeline_engine.playhead_changed.connect(_on_timeline_playhead_changed)
+	gesture_controller = GestureControllerScript.new()
+	editor_2d_panel = EditorPanelScript.new()
+	editor_2d_panel.name = "Editor2DPanel"
+	editor_2d_panel.anchor_left = 0.025
+	editor_2d_panel.anchor_right = 0.975
+	editor_2d_panel.anchor_top = 0.10
+	editor_2d_panel.anchor_bottom = 0.90
+	overlay_screen.add_child(editor_2d_panel)
+	editor_2d_panel.configure(scene_parser, canvas_2d_root)
+	editor_2d_panel.close_requested.connect(func(): editor_2d_panel.visible = false)
+	editor_2d_panel.character_added.connect(_refresh_timeline_targets)
+	editor_2d_panel.character_selected.connect(_on_editor_character_selected)
+	editor_2d_panel.visible = false
 	subtitle_label.text = "Proyecto nuevo · escena vacía. Carga un JSON o añade recursos desde las galerías."
 
 
@@ -74,6 +94,7 @@ func _build_overlay() -> void:
 	var screen := Control.new()
 	screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	layer.add_child(screen)
+	overlay_screen = screen
 
 	var header := PanelContainer.new()
 	header.anchor_left = 0.0
@@ -146,6 +167,12 @@ func _build_overlay() -> void:
 	timeline_button.pressed.connect(_animate_button.bind(timeline_button))
 	primary_buttons["timeline"] = timeline_button
 	toolbar_row.add_child(timeline_button)
+	var editor_2d_button := Button.new()
+	editor_2d_button.text = "Editor 2D"
+	editor_2d_button.pressed.connect(_show_editor_2d_panel)
+	editor_2d_button.pressed.connect(_animate_button.bind(editor_2d_button))
+	primary_buttons["editor_2d"] = editor_2d_button
+	toolbar_row.add_child(editor_2d_button)
 
 	for button in toolbar_row.get_children():
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -273,6 +300,109 @@ func _build_overlay() -> void:
 
 	audio_player = AudioStreamPlayer.new()
 	add_child(audio_player)
+
+func _show_editor_2d_panel() -> void:
+	if editor_2d_panel == null:
+		return
+	if gallery_panel != null:
+		gallery_panel.visible = false
+	if json_panel != null:
+		json_panel.visible = false
+	if timeline_panel != null:
+		timeline_panel.visible = false
+	editor_2d_panel.visible = true
+	editor_2d_panel.move_to_front()
+
+
+func _on_editor_character_selected(node: Node2D) -> void:
+	selected_2d_node = node
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if editor_2d_panel == null or not editor_2d_panel.visible or gesture_controller == null:
+		return
+	if event is InputEventScreenTouch:
+		var touch := event as InputEventScreenTouch
+		if touch.pressed and touch.index == 0:
+			selected_2d_node = _select_2d_node_at(touch.position)
+			editor_2d_panel.set_selected_node(selected_2d_node)
+		if selected_2d_node != null:
+			gesture_controller.handle_event(event, selected_2d_node)
+			_sync_selected_2d_scene_entry()
+	elif event is InputEventScreenDrag and selected_2d_node != null:
+		gesture_controller.handle_event(event, selected_2d_node)
+		_sync_selected_2d_scene_entry()
+
+
+func _select_2d_node_at(viewport_position: Vector2) -> Node2D:
+	if canvas_2d_root == null:
+		return null
+	var local_position := canvas_2d_root.to_local(viewport_position)
+	var items: Array = []
+	var nodes_by_id: Dictionary = {}
+	var draw_order := 0
+	for child in canvas_2d_root.get_children():
+		if not (child is Node2D):
+			continue
+		var node := child as Node2D
+		var entry_id := String(node.get_meta("jedl_entry_id", node.name))
+		var bounds := _selection_bounds_for_node(node)
+		items.append({
+			"id": entry_id,
+			"position": node.position,
+			"scale": node.scale,
+			"rotation": node.rotation,
+			"offset": bounds.get("offset", Vector2.ZERO),
+			"size": bounds.get("size", Vector2(64.0, 64.0)),
+			"z_index": node.z_index,
+			"draw_order": draw_order
+		})
+		nodes_by_id[entry_id] = node
+		draw_order += 1
+	var selected_id := EditorSelectionScript.select_element(items, local_position)
+	return nodes_by_id.get(selected_id) as Node2D
+
+
+func _selection_bounds_for_node(node: Node2D) -> Dictionary:
+	if node is Sprite2D:
+		var sprite := node as Sprite2D
+		if sprite.texture != null:
+			var rect := sprite.get_rect()
+			return {"size": rect.size, "offset": rect.position + rect.size * 0.5}
+	var vertices: Array[Vector2] = []
+	if node is Polygon2D:
+		for vertex in (node as Polygon2D).polygon:
+			vertices.append(vertex)
+	else:
+		for candidate in node.find_children("*", "Polygon2D", true, false):
+			var polygon_node := candidate as Polygon2D
+			for vertex in polygon_node.polygon:
+				vertices.append(node.to_local(polygon_node.to_global(vertex)))
+	if vertices.is_empty():
+		return {"size": Vector2(64.0, 64.0), "offset": Vector2.ZERO}
+	var minimum := vertices[0]
+	var maximum := vertices[0]
+	for vertex in vertices:
+		minimum.x = minf(minimum.x, vertex.x)
+		minimum.y = minf(minimum.y, vertex.y)
+		maximum.x = maxf(maximum.x, vertex.x)
+		maximum.y = maxf(maximum.y, vertex.y)
+	return {"size": maximum - minimum, "offset": (minimum + maximum) * 0.5}
+
+
+func _sync_selected_2d_scene_entry() -> void:
+	if selected_2d_node == null or scene_parser == null:
+		return
+	var entry_id := String(selected_2d_node.get_meta("jedl_entry_id", selected_2d_node.name))
+	for collection_name in ["characters_2d", "elements"]:
+		var collection: Variant = scene_parser.scene_data.get(collection_name, [])
+		if not (collection is Array):
+			continue
+		for entry_value in collection:
+			if entry_value is Dictionary and String(entry_value.get("id", "")) == entry_id:
+				gesture_controller.sync_scene_entry(entry_value, selected_2d_node)
+				return
+
 
 func _show_json_editor() -> void:
 	if json_panel == null or json_editor == null:
