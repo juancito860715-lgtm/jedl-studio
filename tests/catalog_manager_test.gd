@@ -25,12 +25,15 @@ func _run_tests() -> void:
 	assert(ResourceLoader.exists(String(models[0]["path"])), "Starter 3D scene must be packaged locally")
 
 	var world := Node3D.new()
+	var canvas := Node2D.new()
 	root.add_child(world)
+	root.add_child(canvas)
 	var camera := Camera3D.new()
 	root.add_child(camera)
 	var parser = SceneParserScript.new()
 	root.add_child(parser)
 	parser.world_root = world
+	parser.canvas_root = canvas
 	parser.camera = camera
 	parser.catalog_manager = manager
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example scene must load from checked-in assets")
@@ -41,6 +44,7 @@ func _run_tests() -> void:
 	parser.queue_free()
 	camera.queue_free()
 	world.queue_free()
+	canvas.queue_free()
 	manager.queue_free()
 	print("CATALOG_MANAGER_TEST_OK")
 	quit(0)
