@@ -534,11 +534,13 @@ func _build_timeline_panel(screen: Control) -> void:
 	close_button.pressed.connect(func(): timeline_panel.visible = false)
 	header.add_child(close_button)
 	timeline_target_option = OptionButton.new()
+	timeline_target_option.item_selected.connect(_on_timeline_target_selected)
 	column.add_child(timeline_target_option)
 	timeline_property_option = OptionButton.new()
 	timeline_property_option.add_item("Posición", 0)
 	timeline_property_option.add_item("Rotación", 1)
 	timeline_property_option.add_item("Escala", 2)
+	timeline_property_option.item_selected.connect(func(_index: int): _sync_timeline_values())
 	column.add_child(timeline_property_option)
 	var time_row := HBoxContainer.new()
 	column.add_child(time_row)
@@ -550,6 +552,7 @@ func _build_timeline_panel(screen: Control) -> void:
 	timeline_time_spin.max_value = 600.0
 	timeline_time_spin.step = 0.05
 	timeline_time_spin.value = 0.0
+	timeline_time_spin.value_changed.connect(_seek_timeline)
 	timeline_time_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	time_row.add_child(timeline_time_spin)
 	var value_row := HBoxContainer.new()
@@ -623,6 +626,31 @@ func _refresh_timeline_targets() -> void:
 		timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
 		timeline_slider.set_value_no_signal(float(engine.playhead_seconds))
 		timeline_status.text = "%d keyframes · duración %.2f s" % [engine.get_keyframe_count(), engine.duration_seconds]
+	if timeline_target_option.item_count > 0:
+		_on_timeline_target_selected(0)
+
+
+func _on_timeline_target_selected(index: int) -> void:
+	if timeline_target_option == null or scene_parser == null or index < 0:
+		return
+	var target_id := String(timeline_target_option.get_item_metadata(index))
+	for instance in scene_parser.active_instances:
+		if is_instance_valid(instance) and String(instance.get_meta("jedl_entry_id", instance.name)) == target_id:
+			var vector := instance.position
+			match timeline_property_option.selected:
+				1:
+					vector = instance.rotation_degrees
+				2:
+					vector = instance.scale
+			for axis in range(3):
+				timeline_value_spins[axis].set_value_no_signal(vector[axis])
+			return
+
+
+func _sync_timeline_values() -> void:
+	if timeline_target_option == null or timeline_target_option.item_count == 0:
+		return
+	_on_timeline_target_selected(timeline_target_option.selected)
 
 
 func _add_manual_keyframe() -> void:
@@ -645,6 +673,7 @@ func _seek_timeline(value: float) -> void:
 		scene_parser.seek_scene(value)
 		if timeline_time_spin != null:
 			timeline_time_spin.set_value_no_signal(value)
+		_sync_timeline_values()
 
 
 func _play_timeline() -> void:
