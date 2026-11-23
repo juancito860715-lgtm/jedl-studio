@@ -20,6 +20,7 @@ var last_error := ""
 var timeline_engine: Node
 var last_missing_kind := "3d"
 var last_missing_category := "Personajes 3D"
+var last_missing_entry_id := ""
 
 
 func _ready() -> void:
@@ -63,6 +64,10 @@ func load_scene_text(source: String) -> bool:
             last_error = "El campo '%s' debe ser una lista []." % key
             push_error(last_error)
             return false
+    if candidate.has("actions") and typeof(candidate["actions"]) != TYPE_ARRAY:
+        last_error = "El campo actions debe ser una lista []."
+        push_error(last_error)
+        return false
     _clear_instances()
     clear_background()
     scene_data = candidate
@@ -109,6 +114,7 @@ func _resolve_scene_entry(raw_entry: Dictionary, expected_kind: String = "3d") -
     if asset_id.is_empty():
         return entry
     if catalog_manager == null:
+        last_missing_entry_id = String(entry.get("id", ""))
         last_missing_kind = String(entry.get("kind", expected_kind))
         last_missing_category = String(entry.get("category", ""))
         if last_missing_category.is_empty():
@@ -118,6 +124,7 @@ func _resolve_scene_entry(raw_entry: Dictionary, expected_kind: String = "3d") -
         return {}
     var resolved: Dictionary = catalog_manager.resolve_asset_id(asset_id)
     if resolved.is_empty():
+        last_missing_entry_id = String(entry.get("id", ""))
         last_missing_kind = String(entry.get("kind", expected_kind))
         last_missing_category = String(entry.get("category", ""))
         if last_missing_category.is_empty():
@@ -140,8 +147,13 @@ func _instantiate_entries(entries: Array, expected_kind: String = "3d") -> bool:
         if entry.is_empty():
             return false
         var resource_path := String(entry.get("path", ""))
-        if resource_path.is_empty():
-            last_error = "Elemento '%s' sin ruta ni assetId válido." % String(entry.get("id", "desconocido"))
+        if resource_path.is_empty() or not ResourceLoader.exists(resource_path):
+            last_missing_entry_id = String(entry.get("id", ""))
+            last_missing_kind = String(entry.get("kind", expected_kind))
+            last_missing_category = String(entry.get("category", ""))
+            if last_missing_category.is_empty():
+                last_missing_category = "Personajes 3D" if last_missing_kind == "3d" else "Elementos 2D"
+            last_error = "El recurso local no existe o no está importado: " + resource_path
             push_error(last_error)
             return false
         var instance: Node3D
