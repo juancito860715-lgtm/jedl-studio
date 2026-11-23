@@ -31,6 +31,10 @@ def main() -> None:
         raise AssertionError("Unsupported catalog or manifest schema")
     if manifest.get("catalogSha256") != sha256(CATALOG_PATH):
         raise AssertionError("Catalog SHA-256 mismatch")
+    if manifest.get("fileCount") != len(manifest.get("files", [])):
+        raise AssertionError("Manifest fileCount mismatch")
+    if manifest.get("totalBytes") != sum(item["sizeBytes"] for item in manifest.get("files", [])):
+        raise AssertionError("Manifest totalBytes mismatch")
     entries = catalog.get("assets", [])
     manifest_assets = {item["assetId"]: item for item in manifest.get("assets", [])}
     if len(entries) != len(manifest_assets):
@@ -44,6 +48,9 @@ def main() -> None:
         seen.add(asset_id)
         if entry.get("license") != "CC0-1.0" or entry.get("offline") is not True or entry.get("placeable") is not True:
             raise AssertionError(f"License/offline/placeable metadata invalid: {asset_id}")
+        license_file = ROOT / entry["licenseFile"].removeprefix("res://")
+        if not license_file.is_file() or "CC0 1.0" not in license_file.read_text(encoding="utf-8"):
+            raise AssertionError(f"Local CC0 license notice is missing: {asset_id}")
         path = ROOT / entry["path"].removeprefix("res://")
         if not path.is_file() or path.stat().st_size <= 0:
             raise AssertionError(f"Missing/empty local asset: {asset_id}")
