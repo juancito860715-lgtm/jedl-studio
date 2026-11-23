@@ -763,7 +763,7 @@ func _on_timeline_target_selected(index: int) -> void:
 				1:
 					vector = Vector3(0.0, 0.0, canvas_instance.rotation_degrees)
 				2:
-					vector = Vector3(canvas_instance.scale.x / 0.01, canvas_instance.scale.y / 0.01, 1.0)
+					vector = Vector3(canvas_instance.scale.x, canvas_instance.scale.y, 1.0)
 		elif instance is Node3D:
 			var stage_instance := instance as Node3D
 			match timeline_property_option.selected:
