@@ -79,6 +79,13 @@ func _run_test() -> void:
 	assert(restored_leaf.scale.is_equal_approx(Vector2(0.5, 0.75)), "Reopened project must reproduce the saved 2D scale")
 	assert(main.timeline_tracks_list.get_child_count() == 5, "Timeline editor must display all five animated target/property tracks after project restoration")
 	assert(main.timeline_tracks_list.get_child(0).get_child_count() == 4, "Position track must expose its three selectable keyframe markers")
+	var first_track: Dictionary = main.scene_parser.timeline_engine.get_tracks_snapshot()[0]
+	var first_key: Dictionary = first_track["keyframes"][0]
+	var first_marker := main.timeline_tracks_list.get_child(0).get_child(1) as Button
+	first_marker.pressed.emit()
+	assert(String(main.timeline_target_option.get_item_metadata(main.timeline_target_option.selected)) == String(first_track["target_id"]), "Clicking a timeline marker must select its target")
+	assert(main.timeline_property_option.selected == ["position", "rotation_degrees", "scale"].find(String(first_track["property"])), "Clicking a timeline marker must select its property")
+	assert(is_equal_approx(main.timeline_time_spin.value, float(first_key["time"])), "Clicking a timeline marker must seek to its keyframe time")
 	main.scene_parser.timeline_engine.seek(1.25)
 	assert(is_equal_approx(main.timeline_slider.value, 1.25), "Timeline slider must follow playback-engine playhead changes")
 	assert(is_equal_approx(main.timeline_time_spin.value, 1.25), "Timeline time field must follow playback-engine playhead changes")
