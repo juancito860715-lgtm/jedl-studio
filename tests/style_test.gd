@@ -9,7 +9,7 @@ func _initialize() -> void:
 	actor.modulate = Color(0.8,0.6,0.4,0.9)
 	sprite.modulate = Color(0.4,0.8,0.6,0.7)
 	var nodes:Array = [actor,sprite]
-	var originals = style_script.capture_originals(nodes)
+	var originals: Dictionary = style_script.capture_originals(nodes)
 	var catalog_snapshot := {"assetId":"2d.star_token.v1","path":"res://assets/gallery/2d/star_token.png","tint":"#FFFFFF"}
 	var catalog_before := catalog_snapshot.duplicate(true)
 	assert(style_script.apply_style(nodes,{"id":"cartoon","tint":"#FFCCAA","saturation":0.5}), "global style must apply")
