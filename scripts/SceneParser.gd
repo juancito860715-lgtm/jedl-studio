@@ -465,7 +465,7 @@ func _build_timeline() -> bool:
                 animation.track_insert_key(track_index, end_time, destination)
                 current_value = destination
                 previous_end = end_time
-        var add_error := _timeline_player.add_animation(_timeline_animation_name, animation)
+        var add_error: int = int(_timeline_player.add_animation(_timeline_animation_name, animation))
         if add_error != OK:
             last_error = "No se pudo registrar la animación compilada en AnimationPlayer."
             push_error(last_error)
