@@ -593,6 +593,7 @@ func _instantiate_2d_characters(entries: Array) -> bool:
 		active_instances.append(character)
 		if timeline_engine != null:
 			timeline_engine.register_target(entry_id, character)
+			CharacterRig2DScript.register_pose_targets(timeline_engine, entry_id, character)
 		var appearance: Variant = entry.get("appearance", {})
 		if appearance is Dictionary and not appearance.is_empty():
 			CharacterRig2DScript.apply_appearance(character, appearance)

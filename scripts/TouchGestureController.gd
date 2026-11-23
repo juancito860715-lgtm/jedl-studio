@@ -9,6 +9,7 @@ var _initial_distance := 0.0
 var _initial_angle := 0.0
 var _initial_scale := Vector2.ONE
 var _initial_rotation := 0.0
+var coordinate_transform: Transform2D = Transform2D.IDENTITY
 
 
 func reset() -> void:
@@ -22,7 +23,7 @@ func handle_event(event: InputEvent, target: Node2D) -> bool:
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
 		if touch.pressed:
-			_touch_positions[touch.index] = touch.position
+			_touch_positions[touch.index] = coordinate_transform * touch.position
 			if _touch_positions.size() == 2:
 				_begin_transform_gesture(target)
 		else:
@@ -38,14 +39,10 @@ func handle_event(event: InputEvent, target: Node2D) -> bool:
 		if not _touch_positions.has(drag.index):
 			return false
 		var previous: Vector2 = _touch_positions[drag.index]
-		_touch_positions[drag.index] = drag.position
+		var local_position: Vector2 = coordinate_transform * drag.position
+		_touch_positions[drag.index] = local_position
 		if _touch_positions.size() == 1:
-			var movement := drag.screen_relative
-			if movement.is_zero_approx():
-				movement = drag.relative
-			if movement.is_zero_approx():
-				movement = drag.position - previous
-			target.position += movement
+			target.position += local_position - previous
 		elif _touch_positions.size() >= 2 and _initial_distance > 0.001:
 			_apply_transform_gesture(target)
 		return true

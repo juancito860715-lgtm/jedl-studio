@@ -327,11 +327,25 @@ func _unhandled_input(event: InputEvent) -> void:
 			selected_2d_node = _select_2d_node_at(touch.position)
 			editor_2d_panel.set_selected_node(selected_2d_node)
 		if selected_2d_node != null:
+			_update_gesture_coordinate_transform()
 			gesture_controller.handle_event(event, selected_2d_node)
 			_sync_selected_2d_scene_entry()
+		else:
+			gesture_controller.reset()
 	elif event is InputEventScreenDrag and selected_2d_node != null:
+		_update_gesture_coordinate_transform()
 		gesture_controller.handle_event(event, selected_2d_node)
 		_sync_selected_2d_scene_entry()
+
+
+func _update_gesture_coordinate_transform() -> void:
+	if canvas_2d_root == null or gesture_controller == null:
+		return
+	var canvas_transform: Transform2D = canvas_2d_root.global_transform
+	if absf(canvas_transform.determinant()) > 0.000001:
+		gesture_controller.coordinate_transform = canvas_transform.affine_inverse()
+	else:
+		gesture_controller.coordinate_transform = Transform2D.IDENTITY
 
 
 func _select_2d_node_at(viewport_position: Vector2) -> Node2D:

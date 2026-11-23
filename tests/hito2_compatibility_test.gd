@@ -15,7 +15,17 @@ func _initialize() -> void:
 	parser.canvas_root = canvas
 	parser.camera = camera
 	var old_document := {"version":2,"characters":[],"objects":[],"elements":[],"subtitles":[],"sounds":[],"actions":[]}
-	assert(parser.load_scene_text(JSON.stringify(old_document)), "pre-Hito-2 project without appearances/style must load")
-	assert(not parser.scene_data.has("appearances") and not parser.scene_data.has("style"), "legacy scene fields must remain optional")
+	if not _check(parser.load_scene_text(JSON.stringify(old_document)), "pre-Hito-2 project without appearances/style must load"):
+		return
+	if not _check(not parser.scene_data.has("appearances") and not parser.scene_data.has("style"), "legacy scene fields must remain optional"):
+		return
 	print("HITO2_COMPATIBILITY_TEST_OK")
 	quit(0)
+
+
+func _check(condition: bool, message: String) -> bool:
+	if not condition:
+		push_error("HITO2_COMPATIBILITY_TEST_FAILED: " + message)
+		quit(1)
+		return false
+	return true

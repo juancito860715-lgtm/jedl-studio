@@ -34,9 +34,14 @@ func set_selected_node(node: Node2D) -> void:
 
 
 func _build_panel() -> void:
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	add_child(scroll)
 	var column := VBoxContainer.new()
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	column.add_theme_constant_override("separation", 6)
-	add_child(column)
+	scroll.add_child(column)
 	var header := HBoxContainer.new()
 	column.add_child(header)
 	var title := Label.new()
@@ -140,6 +145,7 @@ func _add_character() -> void:
 	_parser.active_instances.append(character)
 	if _parser.timeline_engine != null:
 		_parser.timeline_engine.register_target(entry_id, character)
+		RigScript.register_pose_targets(_parser.timeline_engine, entry_id, character)
 	if not _parser.scene_data.has("characters_2d") or not (_parser.scene_data["characters_2d"] is Array):
 		_parser.scene_data["characters_2d"] = []
 	_parser.scene_data["characters_2d"].append({
