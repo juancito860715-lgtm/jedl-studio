@@ -57,7 +57,7 @@ func compile_json_actions(actions: Array) -> bool:
 		var property_name := _normalize_property(String(action.get("property", "")))
 		var start_time := float(action.get("time", -1.0))
 		var action_duration := float(action.get("duration", 0.0))
-		var end_value := _vector_from(action.get("to", null))
+		var end_value: Variant = _vector_from(action.get("to", null))
 		if target_id.is_empty() or not _targets.has(target_id):
 			return _fail("La acción apunta a un elemento inexistente: " + target_id)
 		if not SUPPORTED_PROPERTIES.has(property_name):
@@ -72,7 +72,7 @@ func compile_json_actions(actions: Array) -> bool:
 		var target := _targets[target_id] as Node3D
 		var start_value: Vector3 = last_value[track_id] if last_value.has(track_id) else _read_property(target, property_name)
 		if action.has("from"):
-			var explicit_from := _vector_from(action["from"])
+			var explicit_from: Variant = _vector_from(action["from"])
 			if explicit_from == null:
 				return _fail("El campo 'from' debe contener tres números.")
 			start_value = explicit_from
@@ -258,7 +258,7 @@ func load_dictionary(data: Dictionary) -> bool:
 			if not (key_value is Dictionary):
 				return _fail("Keyframe inválido.")
 			var key: Dictionary = key_value
-			var vector := _vector_from(key.get("value", null))
+			var vector: Variant = _vector_from(key.get("value", null))
 			var time_value := float(key.get("time", -1.0))
 			if vector == null or time_value < 0.0:
 				return _fail("Keyframe con tiempo o valor inválido.")
