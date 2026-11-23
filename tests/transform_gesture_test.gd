@@ -1,10 +1,10 @@
 extends SceneTree
 
-const GestureScript = preload("res://scripts/TouchGestureController.gd")
-
 func _initialize() -> void:
+	var gesture_script = load("res://scripts/TouchGestureController.gd")
+	assert(gesture_script != null, "TouchGestureController.gd must be implemented after this red test")
 	var target := Node2D.new()
-	var controller = GestureScript.new()
+	var controller = gesture_script.new()
 	var first := InputEventScreenTouch.new()
 	first.index = 0
 	first.position = Vector2(10,10)
