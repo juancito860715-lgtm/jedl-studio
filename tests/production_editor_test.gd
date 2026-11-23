@@ -12,8 +12,18 @@ func _run_tests() -> void:
     root.add_child(world)
     var mesh := MeshInstance3D.new()
     mesh.name = "EditableMesh"
-    mesh.mesh = BoxMesh.new()
+    var shared_source := StandardMaterial3D.new()
+    shared_source.albedo_color = Color(0.7, 0.6, 0.5, 1.0)
+    var shared_mesh := BoxMesh.new()
+    for surface_index in range(shared_mesh.get_surface_count()):
+        shared_mesh.surface_set_material(surface_index, shared_source)
+    mesh.mesh = shared_mesh
     world.add_child(mesh)
+
+    var sibling_mesh := MeshInstance3D.new()
+    sibling_mesh.name = "SiblingMesh"
+    sibling_mesh.mesh = shared_mesh
+    world.add_child(sibling_mesh)
 
     var editor = ProductionEditorScript.new()
     root.add_child(editor)
@@ -27,6 +37,12 @@ func _run_tests() -> void:
     assert(mesh.material_override is StandardMaterial3D, "Material override must be a StandardMaterial3D")
     assert((mesh.material_override as StandardMaterial3D).albedo_color == Color(0.2, 0.4, 0.8, 1.0),
         "Material color must be applied")
+    assert(shared_source.albedo_color == Color(0.7, 0.6, 0.5, 1.0),
+        "Legacy color editing must not mutate the shared source material")
+    assert(sibling_mesh.material_override == null,
+        "Legacy color editing must not assign an override to a sibling instance")
+    assert(sibling_mesh.get_active_material(0) == shared_source,
+        "Sibling instance must continue using the original shared material")
 
     assert(editor.add_transform_keyframe(0.0), "Editor must create the first transform keyframe")
     assert(editor.set_transform(Vector3(10, 1, 0), Vector3(0, 45, 0), Vector3.ONE * 1.5),
