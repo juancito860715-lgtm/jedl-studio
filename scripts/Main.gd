@@ -1,6 +1,7 @@
 extends Node3D
 
 const SceneParserScript = preload("res://scripts/SceneParser.gd")
+const ProjectStoreScript = preload("res://scripts/ProjectStore.gd")
 
 var scene_parser: Node
 var world_root: Node3D
@@ -15,6 +16,15 @@ var json_panel: PanelContainer
 var json_editor: TextEdit
 var json_status: Label
 var primary_buttons: Dictionary = {}
+var missing_alternative_button: Button
+var missing_cancel_button: Button
+var timeline_panel: PanelContainer
+var timeline_target_option: OptionButton
+var timeline_property_option: OptionButton
+var timeline_time_spin: SpinBox
+var timeline_value_spins: Array[SpinBox] = []
+var timeline_slider: HSlider
+var timeline_status: Label
 
 
 func _ready() -> void:
@@ -36,8 +46,7 @@ func _ready() -> void:
     scene_parser.subtitle_label = subtitle_label
     scene_parser.audio_player = audio_player
     scene_parser.catalog_manager = catalog_manager
-    # Arranca con una escena real cargada; Play nunca debe confirmar una escena vacía.
-    call_deferred("_load_example_scene")
+    subtitle_label.text = "Proyecto nuevo · escena vacía. Carga un JSON o añade recursos desde las galerías."
 
 
 func _build_overlay() -> void:
@@ -113,6 +122,12 @@ func _build_overlay() -> void:
     json_button.pressed.connect(_animate_button.bind(json_button))
     primary_buttons["json"] = json_button
     toolbar_row.add_child(json_button)
+    var timeline_button := Button.new()
+    timeline_button.text = "Timeline"
+    timeline_button.pressed.connect(_show_timeline_panel)
+    timeline_button.pressed.connect(_animate_button.bind(timeline_button))
+    primary_buttons["timeline"] = timeline_button
+    toolbar_row.add_child(timeline_button)
 
     for button in toolbar_row.get_children():
         button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -168,6 +183,37 @@ func _build_overlay() -> void:
     json_status = Label.new()
     json_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
     json_column.add_child(json_status)
+    var missing_actions := HBoxContainer.new()
+    json_column.add_child(missing_actions)
+    missing_alternative_button = Button.new()
+    missing_alternative_button.text = "Elegir otro recurso de la misma categoría"
+    missing_alternative_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+    missing_alternative_button.visible = false
+    missing_alternative_button.pressed.connect(_choose_missing_alternative)
+    missing_actions.add_child(missing_alternative_button)
+    missing_cancel_button = Button.new()
+    missing_cancel_button.text = "Cancelar"
+    missing_cancel_button.visible = false
+    missing_cancel_button.pressed.connect(_cancel_missing_resource)
+    missing_actions.add_child(missing_cancel_button)
+    var project_actions := HBoxContainer.new()
+    json_column.add_child(project_actions)
+    var save_project_button := Button.new()
+    save_project_button.text = "Guardar proyecto"
+    save_project_button.pressed.connect(_save_project)
+    project_actions.add_child(save_project_button)
+    var open_project_button := Button.new()
+    open_project_button.text = "Abrir guardado"
+    open_project_button.pressed.connect(_open_saved_project)
+    project_actions.add_child(open_project_button)
+    var restore_project_button := Button.new()
+    restore_project_button.text = "Restaurar versión anterior"
+    restore_project_button.pressed.connect(_restore_project)
+    project_actions.add_child(restore_project_button)
+    var duplicate_project_button := Button.new()
+    duplicate_project_button.text = "Duplicar"
+    duplicate_project_button.pressed.connect(_duplicate_project)
+    project_actions.add_child(duplicate_project_button)
     var gallery_column := VBoxContainer.new()
     gallery_column.add_theme_constant_override("separation", 10)
     gallery_panel.add_child(gallery_column)
@@ -188,13 +234,8 @@ func _build_overlay() -> void:
     category_row.add_theme_constant_override("separation", 6)
     gallery_column.add_child(category_row)
     for category_data in [
-        {"label": "Fondos 2D", "kind": "2d", "category": "Fondos fotográficos"},
-        {"label": "Elementos 2D", "kind": "2d", "category": "Elementos 2D individuales"},
-        {"label": "Personajes 3D", "kind": "3d", "category": "Personajes animados"},
-        {"label": "Vegetación", "kind": "3d", "category": "Árboles y vegetación"},
-        {"label": "Troncos y rocas", "kind": "3d", "category": "Rocas y troncos"},
-        {"label": "Mobiliario", "kind": "3d", "category": "Mobiliario"},
-        {"label": "Utilería", "kind": "3d", "category": "Contenedores y utilería"}
+        {"label": "Elementos 2D", "kind": "2d", "category": "Elementos 2D"},
+        {"label": "Personajes 3D", "kind": "3d", "category": "Personajes 3D"}
     ]:
         var category_button := Button.new()
         category_button.text = String(category_data["label"])
@@ -210,6 +251,7 @@ func _build_overlay() -> void:
     gallery_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
     gallery_list.add_theme_constant_override("separation", 8)
     gallery_scroll.add_child(gallery_list)
+    _build_timeline_panel(screen)
 
     audio_player = AudioStreamPlayer.new()
     add_child(audio_player)
@@ -223,7 +265,7 @@ func _show_json_editor() -> void:
         if file != null:
             json_editor.text = file.get_as_text()
             file.close()
-    json_status.text = "Contrato JEDL v2: background, characters, objects, elements, subtitles y sounds."
+    json_status.text = "Contrato JEDL v2: characters, objects, elements, actions, subtitles y sounds."
     json_panel.visible = true
     json_panel.move_to_front()
 
@@ -236,10 +278,18 @@ func _validate_and_load_json() -> void:
         gallery_panel.visible = false
         json_panel.visible = false
         _frame_camera_to_content()
+        if missing_alternative_button != null:
+            missing_alternative_button.visible = false
+            missing_cancel_button.visible = false
+        _refresh_timeline_targets()
         if subtitle_label != null:
-            subtitle_label.text = "Escena lista · %d elementos 3D" % scene_parser.active_instances.size()
+            subtitle_label.text = "Escena lista · %d elementos" % scene_parser.active_instances.size()
     else:
         json_status.text = scene_parser.last_error if not scene_parser.last_error.is_empty() else "No se pudo cargar el JSON. Revisa el contrato y los assetId."
+        if scene_parser.last_missing_category != "":
+            json_status.text += "\nPuedes elegir otro recurso de la misma categoría o cancelar la carga."
+            missing_alternative_button.visible = true
+            missing_cancel_button.visible = true
 
 
 func _save_json_locally() -> void:
@@ -350,7 +400,7 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         gallery_list.remove_child(child)
         child.queue_free()
     var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind, category_filter)
-    var category_title := category_filter if not category_filter.is_empty() else ("Fondos fotográficos" if kind == "2d" else "Personajes y objetos 3D")
+    var category_title := category_filter if not category_filter.is_empty() else ("Elementos 2D" if kind == "2d" else "Personajes y objetos 3D")
     gallery_title.text = "%s · %d recursos" % [category_title, entries.size()]
     if entries.is_empty():
         var empty_label := Label.new()
@@ -358,7 +408,7 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         empty_label.text = "No se pudieron cargar los recursos del inventario.\n" + catalog_error if not catalog_error.is_empty() else "Esta categoría aún no tiene recursos individuales instalados.\nEl inventario no contiene elementos para este filtro."
         empty_label.add_theme_font_size_override("font_size", 18)
         gallery_list.add_child(empty_label)
-    for index in range(mini(entries.size(), 300)):
+    for index in range(mini(entries.size(), 24)):
         var item: Dictionary = entries[index]
         var item_row := PanelContainer.new()
         item_row.custom_minimum_size = Vector2(0, 132)
@@ -393,7 +443,7 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         add_button.custom_minimum_size = Vector2(0, 52)
         add_button.pressed.connect(_animate_button.bind(add_button))
         var resource_path := String(item["path"])
-        var is_background := kind == "2d" and String(item.get("category", "")) == "Fondos fotográficos"
+        var is_background := false
         add_button.pressed.connect(_add_gallery_asset.bind(resource_path, is_background, String(item.get("id", ""))))
         details.add_child(add_button)
     if json_panel != null:
@@ -406,9 +456,227 @@ func _add_gallery_asset(resource_path: String, is_background: bool = true, asset
         return
     if scene_parser.add_catalog_asset(resource_path, is_background, asset_id):
         _frame_camera_to_content()
+        _refresh_timeline_targets()
         if gallery_title != null:
             gallery_title.text = "Añadido a la escena: " + asset_id
         if subtitle_label != null:
             subtitle_label.text = "Recurso incorporado · " + asset_id
     elif subtitle_label != null:
         subtitle_label.text = "No se pudo incorporar el recurso: " + resource_path
+
+
+func _choose_missing_alternative() -> void:
+	if scene_parser == null:
+		return
+	json_panel.visible = false
+	_show_gallery(scene_parser.last_missing_kind, scene_parser.last_missing_category)
+
+
+func _cancel_missing_resource() -> void:
+	if missing_alternative_button != null:
+		missing_alternative_button.visible = false
+		missing_cancel_button.visible = false
+	if json_status != null:
+		json_status.text = "Carga cancelada. La escena anterior permanece sin cambios."
+
+
+func _build_timeline_panel(screen: Control) -> void:
+	timeline_panel = PanelContainer.new()
+	timeline_panel.anchor_left = 0.025
+	timeline_panel.anchor_right = 0.975
+	timeline_panel.anchor_top = 0.10
+	timeline_panel.anchor_bottom = 0.90
+	screen.add_child(timeline_panel)
+	timeline_panel.visible = false
+	var column := VBoxContainer.new()
+	column.add_theme_constant_override("separation", 8)
+	timeline_panel.add_child(column)
+	var header := HBoxContainer.new()
+	column.add_child(header)
+	var heading := Label.new()
+	heading.text = "Timeline compartido · JSON y keyframes manuales"
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(heading)
+	var close_button := Button.new()
+	close_button.text = "Cerrar"
+	close_button.pressed.connect(func(): timeline_panel.visible = false)
+	header.add_child(close_button)
+	timeline_target_option = OptionButton.new()
+	column.add_child(timeline_target_option)
+	timeline_property_option = OptionButton.new()
+	timeline_property_option.add_item("Posición", 0)
+	timeline_property_option.add_item("Rotación", 1)
+	timeline_property_option.add_item("Escala", 2)
+	column.add_child(timeline_property_option)
+	var time_row := HBoxContainer.new()
+	column.add_child(time_row)
+	var time_label := Label.new()
+	time_label.text = "Tiempo (s)"
+	time_row.add_child(time_label)
+	timeline_time_spin = SpinBox.new()
+	timeline_time_spin.min_value = 0.0
+	timeline_time_spin.max_value = 600.0
+	timeline_time_spin.step = 0.05
+	timeline_time_spin.value = 0.0
+	timeline_time_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	time_row.add_child(timeline_time_spin)
+	var value_row := HBoxContainer.new()
+	column.add_child(value_row)
+	timeline_value_spins.clear()
+	for axis_name in ["X", "Y", "Z"]:
+		var axis_column := VBoxContainer.new()
+		axis_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		value_row.add_child(axis_column)
+		var axis_label := Label.new()
+		axis_label.text = axis_name
+		axis_column.add_child(axis_label)
+		var spin := SpinBox.new()
+		spin.min_value = -1000.0
+		spin.max_value = 1000.0
+		spin.step = 0.05
+		spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		axis_column.add_child(spin)
+		timeline_value_spins.append(spin)
+	var add_key_button := Button.new()
+	add_key_button.text = "Crear / actualizar keyframe"
+	add_key_button.pressed.connect(_add_manual_keyframe)
+	column.add_child(add_key_button)
+	timeline_slider = HSlider.new()
+	timeline_slider.min_value = 0.0
+	timeline_slider.max_value = 1.0
+	timeline_slider.step = 0.01
+	timeline_slider.value_changed.connect(_seek_timeline)
+	column.add_child(timeline_slider)
+	var transport := HBoxContainer.new()
+	column.add_child(transport)
+	var play_button := Button.new()
+	play_button.text = "Reproducir"
+	play_button.pressed.connect(_play_timeline)
+	transport.add_child(play_button)
+	var pause_button := Button.new()
+	pause_button.text = "Pausar"
+	pause_button.pressed.connect(_pause_timeline)
+	transport.add_child(pause_button)
+	var stop_button := Button.new()
+	stop_button.text = "Detener"
+	stop_button.pressed.connect(_stop_timeline)
+	transport.add_child(stop_button)
+	timeline_status = Label.new()
+	timeline_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	column.add_child(timeline_status)
+
+
+func _show_timeline_panel() -> void:
+	if timeline_panel == null:
+		return
+	gallery_panel.visible = false
+	json_panel.visible = false
+	_refresh_timeline_targets()
+	timeline_panel.visible = true
+	timeline_panel.move_to_front()
+
+
+func _refresh_timeline_targets() -> void:
+	if timeline_target_option == null or scene_parser == null:
+		return
+	timeline_target_option.clear()
+	for instance in scene_parser.active_instances:
+		if not is_instance_valid(instance):
+			continue
+		var target_id := String(instance.get_meta("jedl_entry_id", instance.name))
+		timeline_target_option.add_item(instance.name)
+		timeline_target_option.set_item_metadata(timeline_target_option.item_count - 1, target_id)
+	var engine = scene_parser.timeline_engine
+	if engine != null and timeline_slider != null:
+		timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
+		timeline_slider.set_value_no_signal(float(engine.playhead_seconds))
+		timeline_status.text = "%d keyframes · duración %.2f s" % [engine.get_keyframe_count(), engine.duration_seconds]
+
+
+func _add_manual_keyframe() -> void:
+	if scene_parser == null or timeline_target_option.item_count == 0:
+		timeline_status.text = "Añade primero un elemento a la escena."
+		return
+	var target_id := String(timeline_target_option.get_item_metadata(timeline_target_option.selected))
+	var property_name := ["position", "rotation_degrees", "scale"][timeline_property_option.selected]
+	var value := Vector3(timeline_value_spins[0].value, timeline_value_spins[1].value, timeline_value_spins[2].value)
+	var engine = scene_parser.timeline_engine
+	if engine.add_keyframe(target_id, property_name, timeline_time_spin.value, value):
+		timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
+		timeline_status.text = "Keyframe guardado · %d keyframes" % engine.get_keyframe_count()
+	else:
+		timeline_status.text = engine.last_error
+
+
+func _seek_timeline(value: float) -> void:
+	if scene_parser != null:
+		scene_parser.seek_scene(value)
+		if timeline_time_spin != null:
+			timeline_time_spin.set_value_no_signal(value)
+
+
+func _play_timeline() -> void:
+	if scene_parser != null:
+		scene_parser.play_scene()
+
+
+func _pause_timeline() -> void:
+	if scene_parser != null:
+		scene_parser.pause_scene()
+
+
+func _stop_timeline() -> void:
+	if scene_parser != null:
+		scene_parser.stop_scene()
+		if timeline_slider != null:
+			timeline_slider.set_value_no_signal(0.0)
+		if timeline_time_spin != null:
+			timeline_time_spin.set_value_no_signal(0.0)
+
+
+func _save_project() -> void:
+	if scene_parser == null or scene_parser.timeline_engine == null:
+		return
+	var saved := ProjectStoreScript.save_project("current", "Proyecto JEDL", scene_parser.scene_data, scene_parser.timeline_engine.to_dictionary())
+	json_status.text = "Proyecto guardado en user://projects/current.json" if saved else "No se pudo guardar el proyecto."
+
+
+func _open_saved_project() -> void:
+	if scene_parser == null:
+		return
+	var data := ProjectStoreScript.load_project("current")
+	if data.is_empty():
+		json_status.text = "No existe un proyecto guardado compatible."
+		return
+	if not scene_parser.load_scene_text(JSON.stringify(data["scene"])):
+		json_status.text = scene_parser.last_error
+		return
+	if not scene_parser.timeline_engine.load_dictionary(data["timeline"]):
+		json_status.text = scene_parser.timeline_engine.last_error
+		return
+	json_editor.text = JSON.stringify(data["scene"], "\t")
+	_refresh_timeline_targets()
+	json_status.text = "Proyecto recuperado correctamente."
+
+
+func _restore_project() -> void:
+	if scene_parser == null:
+		return
+	var data := ProjectStoreScript.restore_project("current")
+	if data.is_empty():
+		json_status.text = "No existe una copia anterior para restaurar."
+		return
+	if not scene_parser.load_scene_text(JSON.stringify(data["scene"])):
+		json_status.text = scene_parser.last_error
+		return
+	if not scene_parser.timeline_engine.load_dictionary(data["timeline"]):
+		json_status.text = scene_parser.timeline_engine.last_error
+		return
+	json_editor.text = JSON.stringify(data["scene"], "\t")
+	_refresh_timeline_targets()
+	json_status.text = "Versión anterior restaurada."
+
+
+func _duplicate_project() -> void:
+	var duplicated := ProjectStoreScript.duplicate_project("current", "currentcopy", "Copia de JEDL Studio")
+	json_status.text = "Proyecto duplicado como currentcopy." if duplicated else "Guarda primero el proyecto o elimina la copia existente."
