@@ -41,7 +41,7 @@ func compile_json_actions(actions: Array) -> bool:
 	last_error = ""
 	var ordered: Array = actions.duplicate(true)
 	ordered.sort_custom(func(a: Variant, b: Variant) -> bool:
-		if not a is Dictionary or not b is Dictionary:
+		if not (a is Dictionary) or not (b is Dictionary):
 			return false
 		return float(a.get("time", 0.0)) < float(b.get("time", 0.0))
 	)
@@ -50,7 +50,7 @@ func compile_json_actions(actions: Array) -> bool:
 	var last_end: Dictionary = {}
 	var last_value: Dictionary = {}
 	for action_value in ordered:
-		if not action_value is Dictionary:
+		if not (action_value is Dictionary):
 			return _fail("Cada acción JSON debe ser un objeto.")
 		var action: Dictionary = action_value
 		var target_id := String(action.get("target", action.get("targetId", "")))
@@ -245,17 +245,17 @@ func load_dictionary(data: Dictionary) -> bool:
 		return _fail("Formato de timeline no compatible.")
 	var candidate: Array[Dictionary] = []
 	for track_value in data["tracks"]:
-		if not track_value is Dictionary:
+		if not (track_value is Dictionary):
 			return _fail("Pista de timeline inválida.")
 		var track: Dictionary = track_value
 		var target_id := String(track.get("target_id", ""))
 		var property_name := _normalize_property(String(track.get("property", "")))
 		var keys_value: Variant = track.get("keyframes", null)
-		if not _targets.has(target_id) or not SUPPORTED_PROPERTIES.has(property_name) or not keys_value is Array:
+		if not _targets.has(target_id) or not SUPPORTED_PROPERTIES.has(property_name) or not (keys_value is Array):
 			return _fail("Pista sin destino válido o sin keyframes.")
 		var keys: Array[Dictionary] = []
 		for key_value in keys_value:
-			if not key_value is Dictionary:
+			if not (key_value is Dictionary):
 				return _fail("Keyframe inválido.")
 			var key: Dictionary = key_value
 			var vector := _vector_from(key.get("value", null))
