@@ -14,6 +14,7 @@ func _run_tests() -> void:
     _test_single_surface_material_isolation()
     _test_multisurface_instance_isolation()
     _test_shader_material_parameter_isolation()
+    _test_invalid_surface_requests()
     if _failure_count == 0:
         print("SURFACE_MATERIAL_ISOLATION_TEST_OK")
         quit(0)
@@ -25,6 +26,28 @@ func _check(condition: bool, message: String) -> void:
     if not condition:
         _failure_count += 1
         push_error("ASSERTION FAILED: " + message)
+
+
+func _test_invalid_surface_requests() -> void:
+    var editor := _make_editor()
+    var missing_mesh := MeshInstance3D.new()
+    root.add_child(missing_mesh)
+    _check(editor.ensure_unique_surface_material(missing_mesh, 0) == null,
+        "A MeshInstance3D without a mesh must be rejected")
+
+    var one_surface := MeshInstance3D.new()
+    one_surface.mesh = _make_triangle_mesh([_make_standard_material(Color.WHITE)])
+    root.add_child(one_surface)
+    _check(editor.ensure_unique_surface_material(one_surface, -1) == null,
+        "A negative surface index must be rejected")
+    _check(editor.ensure_unique_surface_material(one_surface, 1) == null,
+        "An out-of-range surface index must be rejected")
+
+    _check(editor.ensure_unique_surface_material(null, 0) == null,
+        "A null MeshInstance3D must be rejected")
+    editor.queue_free()
+    missing_mesh.queue_free()
+    one_surface.queue_free()
 
 
 func _make_triangle_mesh(materials: Array[Material]) -> ArrayMesh:
