@@ -15,6 +15,7 @@ func _run_tests() -> void:
     _test_multisurface_instance_isolation()
     _test_shader_material_parameter_isolation()
     _test_invalid_surface_requests()
+    _test_shader_rejections_are_non_destructive()
     if _failure_count == 0:
         print("SURFACE_MATERIAL_ISOLATION_TEST_OK")
         quit(0)
@@ -27,6 +28,49 @@ func _check(condition: bool, message: String) -> void:
     if not condition:
         _failure_count += 1
         push_error("ASSERTION FAILED: " + message)
+
+
+func _test_shader_rejections_are_non_destructive() -> void:
+    var editor := _make_editor()
+    var missing_uniform_shader := Shader.new()
+    missing_uniform_shader.code = """
+shader_type spatial;
+uniform float unrelated_value = 0.5;
+void fragment() { ALBEDO = vec3(unrelated_value); }
+"""
+    var missing_uniform_material := ShaderMaterial.new()
+    missing_uniform_material.shader = missing_uniform_shader
+    var missing_mesh := MeshInstance3D.new()
+    missing_mesh.mesh = _make_triangle_mesh([missing_uniform_material])
+    root.add_child(missing_mesh)
+
+    _check(not editor.set_surface_roughness(missing_mesh, 0, 0.25),
+        "A ShaderMaterial without roughness uniform must reject the edit")
+    _check(missing_mesh.get_surface_override_material(0) == null,
+        "Rejected missing-uniform edit must not create a surface override")
+
+    var wrong_type_shader := Shader.new()
+    wrong_type_shader.code = """
+shader_type spatial;
+uniform vec4 roughness = vec4(0.2);
+void fragment() { ALBEDO = roughness.rgb; }
+"""
+    var wrong_type_material := ShaderMaterial.new()
+    wrong_type_material.shader = wrong_type_shader
+    var wrong_type_mesh := MeshInstance3D.new()
+    wrong_type_mesh.mesh = _make_triangle_mesh([wrong_type_material])
+    root.add_child(wrong_type_mesh)
+
+    _check(not editor.set_surface_roughness(wrong_type_mesh, 0, 0.25),
+        "A vec4 roughness uniform must reject a float edit")
+    _check(wrong_type_mesh.get_surface_override_material(0) == null,
+        "Rejected type-mismatch edit must not create a surface override")
+    _check(wrong_type_material.get_shader_parameter("roughness") == Vector4(0.2, 0.2, 0.2, 0.2),
+        "Rejected type-mismatch edit must preserve the source shader parameter")
+
+    editor.queue_free()
+    missing_mesh.queue_free()
+    wrong_type_mesh.queue_free()
 
 
 func _test_invalid_surface_requests() -> void:

@@ -84,6 +84,8 @@ func ensure_unique_surface_material(mesh: MeshInstance3D, surface: int) -> Mater
 
 
 func set_surface_albedo(mesh: MeshInstance3D, surface: int, color: Color) -> bool:
+    if not _validate_surface_edit(mesh, surface, "albedo_color", color):
+        return false
     var material := ensure_unique_surface_material(mesh, surface)
     if material == null:
         return false
@@ -101,6 +103,8 @@ func set_surface_albedo(mesh: MeshInstance3D, surface: int, color: Color) -> boo
 
 
 func set_surface_normal_map(mesh: MeshInstance3D, surface: int, texture: Texture2D) -> bool:
+    if not _validate_surface_edit(mesh, surface, "normal_texture", texture):
+        return false
     var material := ensure_unique_surface_material(mesh, surface)
     if material == null:
         return false
@@ -123,6 +127,8 @@ func set_surface_roughness(mesh: MeshInstance3D, surface: int, value: float) -> 
     if not is_finite(value):
         last_error = "La rugosidad debe ser un número finito."
         return false
+    if not _validate_surface_edit(mesh, surface, "roughness", value):
+        return false
     var material := ensure_unique_surface_material(mesh, surface)
     if material == null:
         return false
@@ -144,6 +150,8 @@ func set_surface_metallic(mesh: MeshInstance3D, surface: int, value: float) -> b
     if not is_finite(value):
         last_error = "La metalicidad debe ser un número finito."
         return false
+    if not _validate_surface_edit(mesh, surface, "metallic", value):
+        return false
     var material := ensure_unique_surface_material(mesh, surface)
     if material == null:
         return false
@@ -161,14 +169,52 @@ func set_surface_metallic(mesh: MeshInstance3D, surface: int, value: float) -> b
     return true
 
 
-func _set_shader_parameter_if_present(material: ShaderMaterial, parameter_name: String, value: Variant) -> bool:
+func _validate_surface_edit(mesh: MeshInstance3D, surface: int, parameter_name: String, value: Variant) -> bool:
+    if mesh == null or not is_instance_valid(mesh) or mesh.mesh == null:
+        last_error = "Se necesita una instancia de malla válida."
+        return false
+    if surface < 0 or surface >= mesh.mesh.get_surface_count():
+        last_error = "El índice de superficie está fuera de los límites de la malla."
+        return false
+    var source_material: Material = mesh.get_surface_override_material(surface)
+    if source_material == null:
+        source_material = mesh.material_override
+    if source_material == null:
+        source_material = mesh.mesh.surface_get_material(surface)
+    if source_material == null or source_material is StandardMaterial3D:
+        return true
+    if source_material is ShaderMaterial:
+        if _shader_parameter_accepts(source_material as ShaderMaterial, parameter_name, value):
+            return true
+        last_error = "El ShaderMaterial no declara un uniforme compatible: " + parameter_name
+        return false
+    last_error = "El material no admite esta edición PBR: " + parameter_name
+    return false
+
+
+func _shader_parameter_accepts(material: ShaderMaterial, parameter_name: String, value: Variant) -> bool:
     if material == null or material.shader == null:
         return false
     for uniform_info in material.shader.get_shader_uniform_list():
-        if String(uniform_info.get("name", "")) == parameter_name:
-            material.set_shader_parameter(parameter_name, value)
+        if String(uniform_info.get("name", "")) != parameter_name:
+            continue
+        var uniform_type := int(uniform_info.get("type", TYPE_NIL))
+        var value_type := typeof(value)
+        if value == null and uniform_type == TYPE_OBJECT:
             return true
+        if value_type == TYPE_COLOR:
+            return uniform_type == TYPE_COLOR or uniform_type == TYPE_VECTOR4
+        if value_type == TYPE_OBJECT:
+            return uniform_type == TYPE_OBJECT
+        return uniform_type == value_type
     return false
+
+
+func _set_shader_parameter_if_present(material: ShaderMaterial, parameter_name: String, value: Variant) -> bool:
+    if not _shader_parameter_accepts(material, parameter_name, value):
+        return false
+    material.set_shader_parameter(parameter_name, value)
+    return true
 
 
 func set_material_color(color: Color) -> bool:
