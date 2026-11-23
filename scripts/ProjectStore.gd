@@ -135,7 +135,8 @@ static func _atomic_write(path: String, content: String, preserve_old_on_success
 		return false
 
 	if simulate_rename_failure:
-		return _restore_original(path, temp_path, old_path, had_original)
+		_restore_original(path, temp_path, old_path, had_original)
+		return false
 
 	if DirAccess.rename_absolute(_global(temp_path), _global(path)) != OK:
 		return _restore_original(path, temp_path, old_path, had_original)
