@@ -15,6 +15,38 @@ var _validation_by_id: Dictionary = {}
 var _all_entries: Array[Dictionary] = []
 
 
+static func engine_identity_matches(report_engine: String, engine_info: Dictionary) -> bool:
+    # CLI --version may expose a shortened commit hash; Engine exposes the full hash.
+    # Version, release status and build channel must still match exactly.
+    var report_pattern := RegEx.new()
+    if report_pattern.compile("^Godot ([0-9]+)\\.([0-9]+)\\.([0-9]+)\\.([a-z]+)\\.([a-z]+)\\.([0-9a-f]{9,40})$") != OK:
+        return false
+    var report_match := report_pattern.search(report_engine.strip_edges())
+    if report_match == null:
+        return false
+
+    var runtime_hash := String(engine_info.get("hash", "")).to_lower()
+    if runtime_hash.length() < 9 or runtime_hash.length() > 40:
+        return false
+    var hash_pattern := RegEx.new()
+    if hash_pattern.compile("^[0-9a-f]{9,40}$") != OK or hash_pattern.search(runtime_hash) == null:
+        return false
+
+    if int(report_match.get_string(1)) != int(engine_info.get("major", -1)):
+        return false
+    if int(report_match.get_string(2)) != int(engine_info.get("minor", -1)):
+        return false
+    if int(report_match.get_string(3)) != int(engine_info.get("patch", -1)):
+        return false
+    if report_match.get_string(4) != String(engine_info.get("status", "")):
+        return false
+    if report_match.get_string(5) != String(engine_info.get("build", "")):
+        return false
+
+    var report_hash := report_match.get_string(6)
+    return runtime_hash.begins_with(report_hash) or report_hash.begins_with(runtime_hash)
+
+
 func get_catalog_error() -> String:
     return _catalog_error
 
@@ -48,9 +80,8 @@ func load_catalog() -> bool:
         return _fail("Unsupported offline manifest schema")
     if int(validation.get("schemaVersion", -1)) != 2:
         return _fail("Unsupported per-asset validation report schema")
-    var expected_engine := "Godot " + String(Engine.get_version_info().get("string", ""))
-    if String(validation.get("engine", "")) != expected_engine:
-        return _fail("Per-asset validation report engine does not match the running Godot engine")
+    if not engine_identity_matches(String(validation.get("engine", "")), Engine.get_version_info()):
+        return _fail("Per-asset validation report engine identity does not match the running Godot engine")
     if String(manifest.get("catalogPath", "")) != CATALOG_PATH:
         return _fail("Root manifest points to a different catalog")
     var expected_catalog_hash := String(manifest.get("catalogSha256", ""))
@@ -64,6 +95,7 @@ func load_catalog() -> bool:
     var manifest_files: Variant = manifest.get("files", [])
     if typeof(manifest_assets) != TYPE_ARRAY or typeof(manifest_files) != TYPE_ARRAY:
         return _fail("Offline manifest assets/files must be arrays")
+
     if int(manifest.get("assetCount", -1)) != manifest_assets.size():
         return _fail("Offline manifest assetCount is inconsistent")
     if int(manifest.get("fileCount", -1)) != manifest_files.size():

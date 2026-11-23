@@ -9,6 +9,7 @@ func _initialize() -> void:
 
 
 func _run_tests() -> void:
+    _test_engine_identity_matching()
     var manager = CatalogManagerScript.new()
     root.add_child(manager)
 
@@ -79,3 +80,35 @@ func _run_tests() -> void:
     manager.queue_free()
     print("CATALOG_MANAGER_TEST_OK")
     quit(0)
+
+
+func _test_engine_identity_matching() -> void:
+    var runtime_info := {
+        "major": 4,
+        "minor": 5,
+        "patch": 1,
+        "status": "stable",
+        "build": "official",
+        "hash": "f62fdbde15035c5576dad93e586201f4d41ef0cb",
+    }
+    assert(CatalogManagerScript.engine_identity_matches(
+        "Godot 4.5.1.stable.official.f62fdbde1", runtime_info
+    ), "A CLI-truncated hash that prefixes the runtime hash must match")
+    assert(CatalogManagerScript.engine_identity_matches(
+        "Godot 4.5.1.stable.official.f62fdbde15035c5576dad93e586201f4d41ef0cb", runtime_info
+    ), "The complete matching build hash must match")
+    assert(not CatalogManagerScript.engine_identity_matches(
+        "Godot 4.5.2.stable.official.f62fdbde1", runtime_info
+    ), "A different patch version must be rejected")
+    assert(not CatalogManagerScript.engine_identity_matches(
+        "Godot 4.5.1.stable.official.aaaaaaaaa", runtime_info
+    ), "A different build hash must be rejected")
+    assert(not CatalogManagerScript.engine_identity_matches(
+        "Godot 4.5.1.stable.custom.f62fdbde1", runtime_info
+    ), "A different build channel must be rejected")
+    assert(not CatalogManagerScript.engine_identity_matches(
+        "Godot 4.5.1.stable.official.f62fdbde", runtime_info
+    ), "A hash shorter than nine characters must be rejected")
+    assert(not CatalogManagerScript.engine_identity_matches(
+        "Godot 4.5.1.stable.official.not-a-hash", runtime_info
+    ), "A malformed build hash must be rejected")
