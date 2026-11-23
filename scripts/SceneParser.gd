@@ -222,9 +222,11 @@ func _create_2d_canvas_element(texture: Texture2D, entry: Dictionary = {}) -> Sp
 	var sprite := Sprite2D.new()
 	sprite.texture = texture
 	sprite.centered = true
-	sprite.position = Vector2(float(entry.get("position", [0.0, 0.0, 0.0])[0]) * 100.0, -float(entry.get("position", [0.0, 0.0, 0.0])[1]) * 100.0)
-	sprite.rotation_degrees = float(entry.get("rotation_degrees", [0.0, 0.0, 0.0])[2])
+	var position_value := _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
+	var rotation_value := _vector3_from(entry.get("rotation_degrees", [0.0, 0.0, 0.0]))
 	var scale_value := _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
+	sprite.position = Vector2(position_value.x * 100.0, -position_value.y * 100.0)
+	sprite.rotation_degrees = rotation_value.z
 	sprite.scale = Vector2(scale_value.x, scale_value.y)
 	sprite.z_index = int(entry.get("z_index", 0))
 	return sprite
