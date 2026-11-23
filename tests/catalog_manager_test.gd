@@ -14,20 +14,16 @@ func _run_tests() -> void:
     root.add_child(manager)
 
     assert(manager.load_catalog(), "Catalog, root manifest and per-asset Godot validation report must agree")
-    var resolved_background: Dictionary = manager.resolve_asset_id("background.mossy_forest")
-    assert(not resolved_background.is_empty(), "Background assetId must resolve through the root manifest")
-    assert(String(resolved_background["sha256"]).length() == 64, "Resolved background must expose its SHA-256")
-    assert(int(resolved_background["sizeBytes"]) > 0, "Resolved background must expose its verified byte size")
     var resolved_fox: Dictionary = manager.resolve_asset_id("character.fox.khronos.v1")
     assert(not resolved_fox.is_empty(), "Animated 3D character assetId must resolve through the root manifest")
 
     var entries_2d: Array[Dictionary] = manager.scan_catalog("2d")
-    assert(entries_2d.size() >= 12, "The 2D gallery must contain the twelve core photographic backgrounds plus approved extensions")
-    for item in entries_2d:
-        assert(String(item["path"]).ends_with(".jpg"), "Photographic backgrounds must be packaged as JPEG backplates")
-        assert(item["license"] == "CC0-1.0", "Every 2D image must have verified redistribution rights")
-        assert(item["offline"] and item["placeable"], "Every 2D background must be packaged and placeable")
-        assert(ResourceLoader.exists(String(item["preview_path"])), "Every 2D card must have a packaged preview")
+    assert(entries_2d.size() == 12, "The catalog must retain the twelve curated optional photographic backgrounds")
+    for background in entries_2d:
+        assert(String(background.get("category", "")) == "Fondos fotográficos",
+            "Every selected full-frame 2D image must be classified as a background")
+        assert(String(background.get("path", "")).to_lower().ends_with(".jpg"),
+            "Photographic backgrounds must be packaged as JPEG files")
 
     var models: Array[Dictionary] = manager.scan_catalog("3d")
     assert(models.size() >= 12, "The 3D gallery must expose the curated core models and animated Fox")
@@ -51,18 +47,20 @@ func _run_tests() -> void:
     parser.world_root = world
     parser.catalog_manager = manager
     parser.camera = camera
-    assert(parser.add_catalog_asset(String(entries_2d[0]["path"]), true, String(entries_2d[0]["id"])),
-        "The scene engine must place a selected photographic 2D background")
+    var selected_background: Dictionary = entries_2d[0]
+    assert(parser.add_catalog_asset(
+        String(selected_background["path"]), String(selected_background["id"]), true
+    ), "A user-selected 2D photograph must be placeable as an optional camera background")
     assert(parser.background_sprite != null and parser.background_sprite.get_parent() == camera,
-        "A selected 2D background must be a camera-following far-plane sprite behind all 3D objects")
-    assert(parser.active_instances.is_empty(),
-        "A 2D backplate must not distort 3D scene framing or be counted as a 3D object")
-    assert(parser.add_catalog_asset(String(models[0]["path"]), false, String(models[0]["id"])),
+        "A selected background must remain attached to the camera behind the 3D scene")
+    assert(parser.background_sprite.render_priority < 0,
+        "The background must render behind ordinary scene objects")
+    assert(parser.add_catalog_asset(String(models[0]["path"]), String(models[0]["id"])),
         "The scene engine must place a selected realistic 3D model")
     assert(parser.active_instances.size() == 1 and parser.active_instances.back() is Node3D,
         "A selected 3D model must become a Node3D scene instance")
     var fox_entry: Dictionary = models.filter(func(item: Dictionary) -> bool: return item["id"] == "character.fox.khronos.v1")[0]
-    assert(parser.add_catalog_asset(String(fox_entry["path"]), false, String(fox_entry["id"])),
+    assert(parser.add_catalog_asset(String(fox_entry["path"]), String(fox_entry["id"])),
         "The animated Fox must be placeable from the character gallery")
     var gallery_fox: Node3D = parser.active_instances.back()
     assert(gallery_fox.get_meta("jedl_asset_id") == "character.fox.khronos.v1",

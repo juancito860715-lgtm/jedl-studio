@@ -12,6 +12,7 @@ var catalog_manager: Node
 var gallery_panel: PanelContainer
 var gallery_list: VBoxContainer
 var gallery_title: Label
+var gallery_category_row: HFlowContainer
 var json_panel: PanelContainer
 var json_editor: TextEdit
 var json_status: Label
@@ -47,8 +48,9 @@ func _ready() -> void:
     production_editor = ProductionEditorScript.new() as ProductionEditor
     add_child(production_editor)
     production_editor.configure(world_root)
-    # Arranca con una escena real cargada; Play nunca debe confirmar una escena vacía.
-    call_deferred("_load_example_scene")
+    # JEDL Studio siempre abre una composición nueva y vacía.
+    if subtitle_label != null:
+        subtitle_label.text = "Composición nueva · lienzo vacío"
 
 
 func _build_overlay() -> void:
@@ -57,6 +59,7 @@ func _build_overlay() -> void:
     add_child(layer)
     var screen := Control.new()
     screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    screen.theme = _create_app_theme()
     layer.add_child(screen)
 
     var header := PanelContainer.new()
@@ -96,7 +99,7 @@ func _build_overlay() -> void:
 
     var load_button := Button.new()
     load_button.text = "Escena"
-    load_button.pressed.connect(_load_example_scene)
+    load_button.pressed.connect(_new_blank_scene)
     load_button.pressed.connect(_animate_button.bind(load_button))
     primary_buttons["scene"] = load_button
     toolbar_row.add_child(load_button)
@@ -200,13 +203,11 @@ func _build_overlay() -> void:
     close_gallery.add_theme_font_size_override("font_size", 18)
     close_gallery.pressed.connect(func(): gallery_panel.visible = false)
     gallery_header.add_child(close_gallery)
-    var category_row := HFlowContainer.new()
-    category_row.add_theme_constant_override("separation", 6)
-    gallery_column.add_child(category_row)
+    gallery_category_row = HFlowContainer.new()
+    gallery_category_row.add_theme_constant_override("separation", 6)
+    gallery_column.add_child(gallery_category_row)
     for category_data in [
-        {"label": "Fondos 2D", "kind": "2d", "category": "Fondos fotográficos"},
-        {"label": "Elementos 2D", "kind": "2d", "category": "Elementos 2D individuales"},
-        {"label": "Personajes 3D", "kind": "3d", "category": "Personajes animados"},
+        {"label": "Personajes", "kind": "3d", "category": "Personajes animados"},
         {"label": "Vegetación", "kind": "3d", "category": "Árboles y vegetación"},
         {"label": "Troncos y rocas", "kind": "3d", "category": "Rocas y troncos"},
         {"label": "Mobiliario", "kind": "3d", "category": "Mobiliario"},
@@ -216,7 +217,7 @@ func _build_overlay() -> void:
         category_button.text = String(category_data["label"])
         category_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         category_button.pressed.connect(_show_gallery.bind(String(category_data["kind"]), String(category_data["category"])))
-        category_row.add_child(category_button)
+        gallery_category_row.add_child(category_button)
 
     var gallery_scroll := ScrollContainer.new()
     gallery_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -231,16 +232,79 @@ func _build_overlay() -> void:
     audio_player = AudioStreamPlayer.new()
     add_child(audio_player)
 
+func _create_app_theme() -> Theme:
+    var app_theme := Theme.new()
+    app_theme.default_font_size = 16
+    app_theme.set_color("font_color", "Label", Color("#e8edf5"))
+    app_theme.set_color("font_color", "Button", Color("#f5f7fb"))
+    app_theme.set_color("font_hover_color", "Button", Color.WHITE)
+    app_theme.set_color("font_pressed_color", "Button", Color.WHITE)
+    app_theme.set_color("font_disabled_color", "Button", Color("#8792a3"))
+
+    var panel_style := StyleBoxFlat.new()
+    panel_style.bg_color = Color("#151d2b")
+    panel_style.border_color = Color("#2b3b52")
+    panel_style.set_border_width_all(1)
+    panel_style.set_corner_radius_all(16)
+    panel_style.content_margin_left = 14
+    panel_style.content_margin_right = 14
+    panel_style.content_margin_top = 12
+    panel_style.content_margin_bottom = 12
+    app_theme.set_stylebox("panel", "PanelContainer", panel_style)
+
+    var button_normal := StyleBoxFlat.new()
+    button_normal.bg_color = Color("#26364d")
+    button_normal.border_color = Color("#3a5271")
+    button_normal.set_border_width_all(1)
+    button_normal.set_corner_radius_all(12)
+    button_normal.content_margin_left = 12
+    button_normal.content_margin_right = 12
+    button_normal.content_margin_top = 10
+    button_normal.content_margin_bottom = 10
+    var button_hover := button_normal.duplicate() as StyleBoxFlat
+    button_hover.bg_color = Color("#344b69")
+    var button_pressed := button_normal.duplicate() as StyleBoxFlat
+    button_pressed.bg_color = Color("#176c83")
+    var button_disabled := button_normal.duplicate() as StyleBoxFlat
+    button_disabled.bg_color = Color("#202a39")
+    button_disabled.border_color = Color("#303b4b")
+    app_theme.set_stylebox("normal", "Button", button_normal)
+    app_theme.set_stylebox("hover", "Button", button_hover)
+    app_theme.set_stylebox("pressed", "Button", button_pressed)
+    app_theme.set_stylebox("focus", "Button", button_hover)
+    app_theme.set_stylebox("disabled", "Button", button_disabled)
+
+    var input_style := StyleBoxFlat.new()
+    input_style.bg_color = Color("#0e1520")
+    input_style.border_color = Color("#3b4c63")
+    input_style.set_border_width_all(1)
+    input_style.set_corner_radius_all(10)
+    input_style.content_margin_left = 10
+    input_style.content_margin_right = 10
+    input_style.content_margin_top = 8
+    input_style.content_margin_bottom = 8
+    app_theme.set_stylebox("normal", "TextEdit", input_style)
+    app_theme.set_stylebox("focus", "TextEdit", input_style)
+    app_theme.set_color("font_color", "TextEdit", Color("#e8edf5"))
+    app_theme.set_color("font_placeholder_color", "TextEdit", Color("#8190a5"))
+    return app_theme
+
+
 func _show_json_editor() -> void:
     if json_panel == null or json_editor == null:
         return
     gallery_panel.visible = false
     if json_editor.text.is_empty():
-        var file := FileAccess.open("res://scenes/scene.example.json", FileAccess.READ)
-        if file != null:
-            json_editor.text = file.get_as_text()
-            file.close()
-    json_status.text = "Contrato JEDL v2: background, characters, objects, elements, subtitles y sounds."
+        json_editor.text = """{
+  "version": 2,
+  "title": "Nueva escena",
+  "characters": [],
+  "objects": [],
+  "elements": [],
+  "subtitles": [],
+  "sounds": []
+}"""
+    json_status.text = "Composición vacía lista. Añade recursos o pega un JSON de escena."
     json_panel.visible = true
     json_panel.move_to_front()
 
@@ -270,28 +334,37 @@ func _save_json_locally() -> void:
 
 
 func _on_viewport_size_changed() -> void:
-    if scene_parser != null:
-        scene_parser._fit_background_to_camera()
+    # Los paneles usan anclajes relativos y se adaptan al cambio de orientación.
+    pass
 
 
-func _load_example_scene() -> void:
-    # Escena es el retorno al visor: cierra cualquier panel que pudiera tapar el mundo 3D.
+func _new_blank_scene() -> void:
     if gallery_panel != null:
         gallery_panel.visible = false
     if json_panel != null:
         json_panel.visible = false
+    if production_panel != null:
+        production_panel.visible = false
     if scene_parser == null:
         return
     scene_parser.stop_scene()
-    if camera != null:
-        camera.current = true
-    if scene_parser.load_scene_file("res://scenes/scene.example.json"):
-        _frame_camera_to_content()
+    var blank_json := """{
+  "version": 2,
+  "title": "Nueva escena",
+  "characters": [],
+  "objects": [],
+  "elements": [],
+  "subtitles": [],
+  "sounds": []
+}"""
+    if json_editor != null:
+        json_editor.text = blank_json
+    if scene_parser.load_scene_text(blank_json):
+        if camera != null:
+            camera.current = true
         if subtitle_label != null:
-            subtitle_label.text = "Escena cargada · %d elementos 3D" % scene_parser.active_instances.size()
+            subtitle_label.text = "Lienzo vacío · añade recursos o importa un JSON"
         _refresh_production_selection()
-    elif subtitle_label != null:
-        subtitle_label.text = "Error: no se pudo cargar la escena de ejemplo."
 
 
 func _calculate_camera_distance(bounds_size: Vector3, aspect_ratio: float, fov_degrees: float) -> float:
@@ -350,10 +423,12 @@ func _play_scene() -> void:
         production_panel.visible = false
     if scene_parser == null:
         return
-    if scene_parser.scene_data.is_empty() or scene_parser.active_instances.is_empty():
-        _load_example_scene()
+    if scene_parser.scene_data.is_empty():
+        _new_blank_scene()
     _frame_camera_to_content()
     scene_parser.play_scene()
+    if scene_parser.active_instances.is_empty() and subtitle_label != null:
+        subtitle_label.text = "La escena está vacía · añade recursos o importa un JSON"
 
 func _animate_button(button: Control) -> void:
     if not is_instance_valid(button):
@@ -370,12 +445,13 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         gallery_list.remove_child(child)
         child.queue_free()
     var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind, category_filter)
-    var category_title := category_filter if not category_filter.is_empty() else ("Fondos fotográficos" if kind == "2d" else "Personajes y objetos 3D")
+    gallery_category_row.visible = kind == "3d"
+    var category_title := category_filter if not category_filter.is_empty() else ("Recursos 2D" if kind == "2d" else "Personajes y objetos 3D")
     gallery_title.text = "%s · %d recursos" % [category_title, entries.size()]
     if entries.is_empty():
         var empty_label := Label.new()
         var catalog_error: String = catalog_manager.get_catalog_error()
-        empty_label.text = "No se pudieron cargar los recursos del inventario.\n" + catalog_error if not catalog_error.is_empty() else "Esta categoría aún no tiene recursos individuales instalados.\nEl inventario no contiene elementos para este filtro."
+        empty_label.text = "No se pudieron cargar los recursos del inventario.\n" + catalog_error if not catalog_error.is_empty() else ("El catálogo 2D no contiene recursos instalados." if kind == "2d" else "Esta categoría aún no tiene recursos instalados.")
         empty_label.add_theme_font_size_override("font_size", 18)
         gallery_list.add_child(empty_label)
     for index in range(mini(entries.size(), 300)):
@@ -409,22 +485,23 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         category_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
         details.add_child(category_label)
         var add_button := Button.new()
-        add_button.text = "Añadir a escena"
         add_button.custom_minimum_size = Vector2(0, 52)
         add_button.pressed.connect(_animate_button.bind(add_button))
         var resource_path := String(item["path"])
+        var asset_id := String(item.get("id", ""))
         var is_background := kind == "2d" and String(item.get("category", "")) == "Fondos fotográficos"
-        add_button.pressed.connect(_add_gallery_asset.bind(resource_path, is_background, String(item.get("id", ""))))
+        add_button.text = "Usar como fondo" if is_background else "Añadir a escena"
+        add_button.pressed.connect(_add_gallery_asset.bind(resource_path, asset_id, is_background))
         details.add_child(add_button)
     if json_panel != null:
         json_panel.visible = false
     gallery_panel.visible = true
     gallery_panel.move_to_front()
 
-func _add_gallery_asset(resource_path: String, is_background: bool = true, asset_id: String = "") -> void:
+func _add_gallery_asset(resource_path: String, asset_id: String = "", as_background: bool = false) -> void:
     if scene_parser == null:
         return
-    if scene_parser.add_catalog_asset(resource_path, is_background, asset_id):
+    if scene_parser.add_catalog_asset(resource_path, asset_id, as_background):
         _frame_camera_to_content()
         if gallery_title != null:
             gallery_title.text = "Añadido a la escena: " + asset_id

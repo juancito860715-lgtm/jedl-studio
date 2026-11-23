@@ -19,8 +19,10 @@ GitHub Actions installs Godot 4.4.1, matching Android export templates and Andro
 
 ## Scene JSON
 
-See scenes/scene.example.json. Supported fields:
+See scenes/scene.example.json. New compositions start empty; no sample character or background is inserted automatically. A user may select an optional full-frame photo from the 2D gallery or declare `background.assetId` in JSON. Supported fields:
+- background: optional packaged 2D photo, resolved by assetId or local res:// path.
 - characters and objects: path, position, rotation_degrees, scale, optional animation.
+- elements: optional individual 2D cutouts or 3D resources.
 - subtitles: time, duration, text.
 - sounds: time, path, optional volume_db.
 

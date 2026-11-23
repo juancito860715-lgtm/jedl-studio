@@ -101,6 +101,7 @@ def validate_assets(root: Path = ROOT) -> dict:
 
     ids: set[str] = set()
     backgrounds = 0
+    elements_2d = 0
     models = 0
     for entry in entries:
         asset_id = str(entry.get("id", ""))
@@ -126,16 +127,27 @@ def validate_assets(root: Path = ROOT) -> dict:
             raise ValueError(f"Downloaded asset size mismatch: {asset_id}")
 
         if kind == "2d":
-            backgrounds += 1
-            if asset_path.suffix.lower() not in (".jpg", ".jpeg"):
-                raise ValueError(f"Only photographic JPEG backplates are allowed in the 2D gallery: {asset_id}")
-            if entry.get("category") != "Fondos fotográficos":
-                raise ValueError(f"2D assets must be photographic backgrounds only: {asset_id}")
-            with Image.open(asset_path) as image:
-                image.verify()
-            with Image.open(asset_path) as image:
-                if image.width < 1024 or image.height < 512:
-                    raise ValueError(f"Photographic background resolution is too small: {asset_id}")
+            category = str(entry.get("category", ""))
+            if category == "Fondos fotográficos":
+                backgrounds += 1
+                if asset_path.suffix.lower() not in (".jpg", ".jpeg"):
+                    raise ValueError(f"Photographic backgrounds must be JPEG: {asset_id}")
+                with Image.open(asset_path) as image:
+                    image.verify()
+                with Image.open(asset_path) as image:
+                    if image.width < 1024 or image.height < 512:
+                        raise ValueError(f"Photographic background resolution is too small: {asset_id}")
+            elif category == "Elementos 2D individuales":
+                elements_2d += 1
+                if asset_path.suffix.lower() not in (".png", ".webp"):
+                    raise ValueError(f"2D elements must be transparent cutouts: {asset_id}")
+                with Image.open(asset_path) as image:
+                    image.verify()
+                with Image.open(asset_path) as image:
+                    if "A" not in image.getbands() and "transparency" not in image.info:
+                        raise ValueError(f"2D elements must contain alpha transparency: {asset_id}")
+            else:
+                raise ValueError(f"Unsupported 2D catalog category for {asset_id}: {category}")
         elif kind == "3d":
             models += 1
             validate_model(asset_path)
@@ -161,8 +173,8 @@ def validate_assets(root: Path = ROOT) -> dict:
         elif license_file:
             resolve_res_path(root, license_file)
 
-    if backgrounds == 0 or models == 0:
-        raise ValueError("Both photographic backgrounds and 3D models must be present")
+    if models == 0:
+        raise ValueError("At least one verified 3D model must be present; photographic backgrounds are not required")
 
     by_id = {str(item.get("assetId", "")): item for item in manifest_entries}
     if set(by_id) != ids:
@@ -198,6 +210,7 @@ def validate_assets(root: Path = ROOT) -> dict:
     return {
         "assets": len(entries),
         "photographic_backgrounds": backgrounds,
+        "elements_2d": elements_2d,
         "models_3d": models,
         "files": len(files),
         "model_dependencies": sum(len(item.get("dependencies", [])) for item in manifest_entries),

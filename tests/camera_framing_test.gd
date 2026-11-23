@@ -17,15 +17,16 @@ func _run_test() -> void:
     var portrait_distance: float = main._calculate_camera_distance(Vector3(8.0, 2.0, 1.0), 9.0 / 16.0, 55.0)
     assert(portrait_distance > wide_distance, "Portrait viewports must fit a wide character using horizontal extent")
 
-    # Integration: the app starts with a renderable sample scene and controls expose real content.
+    # Integration: every project starts as a blank composition; demo content is opt-in.
     await process_frame
     await process_frame
     assert(main.scene_parser != null, "Main UI must initialize the scene parser")
-    assert(main.scene_parser.active_instances.size() == 1, "The sample Fox must be loaded when the app opens")
-    assert(main.scene_parser.background_sprite != null, "The sample background must be loaded at startup")
+    main._new_blank_scene()
+    assert(main.scene_parser.active_instances.is_empty(), "A new composition must start with no preloaded character")
+    assert(not main.scene_parser.scene_data.has("background"), "A new composition must not contain a photographic background")
     main._show_gallery("2d")
     assert(main.gallery_panel.visible, "The 2D gallery button must open a visible gallery panel")
-    assert(main.gallery_list.get_child_count() == 12, "The photographic background gallery must display all twelve packaged backgrounds")
+    assert(main.gallery_list.get_child_count() == 1, "The empty 2D gallery must show its own empty-state message, not 3D resources")
     main._show_gallery("3d")
     assert(main.gallery_panel.visible, "The 3D gallery button must open a visible gallery panel")
     var gallery_3d_entries: Array[Dictionary] = main.catalog_manager.scan_catalog("3d")
@@ -56,7 +57,13 @@ func _run_test() -> void:
     assert(main.json_panel.visible, "The JSON editor button must open the editor")
     main._validate_and_load_json()
     assert(not main.json_panel.visible, "A valid JSON scene must close the editor and reveal the composition")
-    assert(main.scene_parser.active_instances.size() == 1, "JSON validation must instantiate the sample character")
+    assert(main.scene_parser.active_instances.is_empty(), "Blank JSON must preserve an empty composition")
+    var example_file := FileAccess.open("res://scenes/scene.example.json", FileAccess.READ)
+    assert(example_file != null, "The optional Fox JSON example must be available")
+    var example_json := example_file.get_as_text()
+    example_file.close()
+    assert(main.scene_parser.load_scene_text(example_json), "The optional Fox JSON example must load")
+    assert(main.scene_parser.active_instances.size() == 1, "The optional Fox JSON example must instantiate its character")
     main._play_scene()
     assert(not main.json_panel.visible and not main.gallery_panel.visible,
         "Playback must never remain hidden behind an editor or gallery overlay")
