@@ -77,7 +77,7 @@ func _run_test() -> void:
 	assert(restored_leaf.position.is_equal_approx(Vector2(100.0, -50.0)), "Reopened project must reproduce the saved 2D position")
 	assert(is_equal_approx(restored_leaf.rotation_degrees, 30.0), "Reopened project must reproduce the saved 2D rotation")
 	assert(restored_leaf.scale.is_equal_approx(Vector2(0.5, 0.75)), "Reopened project must reproduce the saved 2D scale")
-	assert(main.timeline_tracks_list.get_child_count() == 2, "Timeline editor must display one visible row for each animated property")
+	assert(main.timeline_tracks_list.get_child_count() == 5, "Timeline editor must display all five animated target/property tracks after project restoration")
 	assert(main.timeline_tracks_list.get_child(0).get_child_count() == 4, "Position track must expose its three selectable keyframe markers")
 	main.scene_parser.timeline_engine.seek(1.25)
 	assert(is_equal_approx(main.timeline_slider.value, 1.25), "Timeline slider must follow playback-engine playhead changes")
