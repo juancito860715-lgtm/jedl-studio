@@ -485,12 +485,12 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         category_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
         details.add_child(category_label)
         var add_button := Button.new()
-        add_button.text = "Añadir a escena"
         add_button.custom_minimum_size = Vector2(0, 52)
         add_button.pressed.connect(_animate_button.bind(add_button))
         var resource_path := String(item["path"])
         var asset_id := String(item.get("id", ""))
         var is_background := kind == "2d" and String(item.get("category", "")) == "Fondos fotográficos"
+        add_button.text = "Usar como fondo" if is_background else "Añadir a escena"
         add_button.pressed.connect(_add_gallery_asset.bind(resource_path, asset_id, is_background))
         details.add_child(add_button)
     if json_panel != null:
