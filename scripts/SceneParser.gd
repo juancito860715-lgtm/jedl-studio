@@ -19,7 +19,7 @@ var _active_animation_players: Array[Dictionary] = []
 var last_error := ""
 var timeline_engine: Node
 var last_missing_kind := "3d"
-var last_missing_category := "Personajes 3D"
+var last_missing_category := ""
 var last_missing_entry_id := ""
 
 
@@ -44,6 +44,9 @@ func load_scene_file(path: String) -> bool:
 
 func load_scene_text(source: String) -> bool:
     last_error = ""
+    last_missing_entry_id = ""
+    last_missing_category = ""
+    last_missing_kind = "3d"
     var json_parser := JSON.new()
     var parse_result := json_parser.parse(source)
     if parse_result != OK:
@@ -294,12 +297,27 @@ func add_catalog_asset(resource_path: String, as_background: bool = true, asset_
 
     var placement_index := active_instances.size()
     instance.position = Vector3(float(placement_index) * 1.6, 0.0, 0.0)
+    var instance_id := "%s_%d" % [asset_id.replace(".", "_"), placement_index + 1]
     instance.set_meta("jedl_asset_id", asset_id)
-    instance.set_meta("jedl_entry_id", asset_id)
+    instance.set_meta("jedl_entry_id", instance_id)
+    instance.set_meta("jedl_layer", "gallery")
     world_root.add_child(instance)
     active_instances.append(instance)
     if timeline_engine != null:
-        timeline_engine.register_target(asset_id, instance)
+        timeline_engine.register_target(instance_id, instance)
+    if not scene_data.has("elements") or not scene_data["elements"] is Array:
+        scene_data["elements"] = []
+    var asset_record: Dictionary = catalog_manager.resolve_asset_id(asset_id) if catalog_manager != null else {}
+    scene_data["elements"].append({
+        "id": instance_id,
+        "assetId": asset_id,
+        "kind": String(asset_record.get("kind", "2d" if extension in ["png", "jpg", "jpeg", "webp"] else "3d")),
+        "category": String(asset_record.get("category", "")),
+        "position": [instance.position.x, instance.position.y, instance.position.z],
+        "rotation_degrees": [instance.rotation_degrees.x, instance.rotation_degrees.y, instance.rotation_degrees.z],
+        "scale": [instance.scale.x, instance.scale.y, instance.scale.z],
+        "layer": "gallery"
+    })
     _play_default_animation(instance)
     return true
 
