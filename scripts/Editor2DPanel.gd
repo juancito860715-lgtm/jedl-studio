@@ -258,3 +258,5 @@ func _find_character_entry() -> Dictionary:
 		if entry_value is Dictionary and String(entry_value.get("id", "")) == entry_id:
 			return entry_value
 	return {}
+
+# Panel logic stays in native Godot Controls; all scene data is supplied by SceneParser.
