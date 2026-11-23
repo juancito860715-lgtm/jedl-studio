@@ -173,13 +173,15 @@ func _test_corrupt_diagnostics_never_overwrite_each_other() -> void:
 
 func _clean() -> void:
 	ProjectStoreScript.simulate_rename_failure = false
+	# get_files_at() does not enumerate directories. The temp-write failure
+	# test deliberately creates recovery_a.json.tmp as a directory, so clean
+	# both files and directories to keep every test isolated.
 	for file_name in DirAccess.get_files_at(ProjectStoreScript.PROJECT_DIRECTORY):
 		if file_name.begins_with("recovery_"):
-			var absolute := _global(ProjectStoreScript.PROJECT_DIRECTORY + "/" + file_name)
-			if DirAccess.dir_exists_absolute(absolute):
-				DirAccess.remove_absolute(absolute)
-			else:
-				DirAccess.remove_absolute(absolute)
+			DirAccess.remove_absolute(_global(ProjectStoreScript.PROJECT_DIRECTORY + "/" + file_name))
+	for directory_name in DirAccess.get_directories_at(ProjectStoreScript.PROJECT_DIRECTORY):
+		if directory_name.begins_with("recovery_"):
+			DirAccess.remove_absolute(_global(ProjectStoreScript.PROJECT_DIRECTORY + "/" + directory_name))
 
 
 func _sample_scene(version: String) -> Dictionary:
