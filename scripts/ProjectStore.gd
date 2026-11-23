@@ -62,9 +62,9 @@ static func _read_document(path: String) -> Dictionary:
 	if content.is_empty():
 		return {}
 	var parsed: Variant = JSON.parse_string(content)
-	if not parsed is Dictionary or int(parsed.get("schemaVersion", -1)) != SCHEMA_VERSION:
+	if not (parsed is Dictionary) or int(parsed.get("schemaVersion", -1)) != SCHEMA_VERSION:
 		return {}
-	if not parsed.get("scene", null) is Dictionary or not parsed.get("timeline", null) is Dictionary:
+	if not (parsed.get("scene", null) is Dictionary) or not (parsed.get("timeline", null) is Dictionary):
 		return {}
 	return parsed
 
@@ -96,7 +96,10 @@ static func _project_path(project_id: String, suffix: String) -> String:
 static func _valid_id(project_id: String) -> bool:
 	if project_id.is_empty() or project_id.length() > 64:
 		return false
-	for character in project_id:
-		if not (character.is_valid_identifier() or character == "-"):
+	for index in range(project_id.length()):
+		var code := project_id.unicode_at(index)
+		var is_letter := (code >= 65 and code <= 90) or (code >= 97 and code <= 122)
+		var is_digit := code >= 48 and code <= 57
+		if not (is_letter or is_digit or code == 45 or code == 95):
 			return false
 	return true
