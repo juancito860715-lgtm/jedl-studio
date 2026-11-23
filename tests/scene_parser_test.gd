@@ -60,7 +60,7 @@ func _run_tests() -> void:
 
     var action_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1","position":[0,0,0]}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"fox_actor","property":"position","time":0.0,"duration":1.0,"to":[10,2,0]},{"target":"fox_actor","property":"rotation_degrees","time":0.0,"duration":2.0,"to":[0,90,0]}]}"""
     assert(parser.load_scene_text(action_json), "JSON transform actions must load and resolve their target by entry id")
-    var action_actor := parser.active_instances[0]
+    var action_actor: Node3D = parser.active_instances[0]
     parser.play_scene()
     parser._process(0.5)
     assert(is_equal_approx(action_actor.position.x, 5.0), "Move action must interpolate position at half duration")
@@ -77,6 +77,32 @@ func _run_tests() -> void:
 
     var invalid_property_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1"}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"fox_actor","property":"opacity","time":0,"duration":1,"to":[1,1,1]}]}"""
     assert(not parser.load_scene_text(invalid_property_json), "Unsupported action properties must be rejected")
+
+
+    var sequential_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1"}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"fox_actor","property":"position","time":0,"duration":1,"to":[10,0,0]},{"target":"fox_actor","property":"position","time":1,"duration":1,"to":[20,0,0]}]}"""
+    assert(parser.load_scene_text(sequential_json), "Non-overlapping actions on one property must compile as a sequence")
+    var sequential_actor: Node3D = parser.active_instances[0]
+    parser.play_scene()
+    parser._process(1.5)
+    assert(is_equal_approx(sequential_actor.position.x, 15.0), "Sequential actions must continue from the previous destination")
+    parser.pause_scene()
+    parser._process(0.25)
+    assert(is_equal_approx(sequential_actor.position.x, 15.0), "Paused playback must freeze the shared playhead")
+    parser.resume_scene()
+    parser.seek_scene(0.5)
+    assert(is_equal_approx(sequential_actor.position.x, 5.0), "Seeking must evaluate the same compiled animation")
+    parser.stop_scene()
+    assert(is_equal_approx(sequential_actor.position.x, 0.0), "Stopping must restore the initial pose")
+
+    var overlapping_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1"}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"fox_actor","property":"position","time":0,"duration":1.5,"to":[10,0,0]},{"target":"fox_actor","property":"position","time":1,"duration":1,"to":[20,0,0]}]}"""
+    var preserved_actor: Node3D = sequential_actor
+    assert(not parser.load_scene_text(overlapping_json), "Overlapping writes to the same property must be rejected")
+    assert(parser.active_instances.size() == 1 and parser.active_instances[0] == preserved_actor, "A failed candidate load must preserve the previously committed scene")
+    assert(parser.last_error.contains("solapadas"), "Overlapping action rejection must explain the conflict")
+
+    var ambiguous_json := """{"version":2,"characters":[{"id":"fox_one","assetId":"character.fox.khronos.v1"},{"id":"fox_two","assetId":"character.fox.khronos.v1"}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"character.fox.khronos.v1","property":"position","time":0,"duration":1,"to":[1,0,0]}]}"""
+    assert(not parser.load_scene_text(ambiguous_json), "An ambiguous assetId target must be rejected")
+    assert(parser.active_instances[0] == preserved_actor, "Ambiguous target failure must also preserve the committed scene")
 
     parser.queue_free()
     world.queue_free()
