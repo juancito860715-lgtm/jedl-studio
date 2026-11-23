@@ -51,4 +51,18 @@ Los PNG de la galería 2D se representan como Sprite2D en un CanvasLayer indepen
 
 ## Estado de aceptación
 
-Todos los criterios quedan **PENDIENTES DE CERTIFICACIÓN CI** hasta que `build_godot.yml` pase en el SHA exacto de esta rama. No se declara el hito cerrado ni se autoriza comenzar el Hito 2 antes de ese resultado.
+**Certificación CI aprobada:** ejecución #269 de `build_godot.yml`, commit `db18c773e3f899250c947fc94008277bedcd3e15`.
+
+- Catálogo offline, manifiesto, hashes y recursos importados: APROBADO.
+- Galerías 2D/3D separadas e inserción de recursos 2D: APROBADO EN CI.
+- Transformación 2D (posición, rotación y escala) mediante el motor compartido: APROBADO EN CI.
+- Timeline: pistas y marcadores visibles; seleccionar marcador cambia destino, propiedad y tiempo: APROBADO EN CI.
+- Acciones JSON y keyframes manuales: equivalencia, secuencias, concurrencia y edición: APROBADO EN CI.
+- Guardado, reapertura, restauración y reproducción de la animación persistida: APROBADO EN CI.
+- Exportación APK Android y carga de artefactos/registros: APROBADO.
+
+Artefactos de la ejecución #269:
+- APK debug: `jedl-studio-godot-android-debug-apk`, 26,816,016 bytes.
+- Registros: `jedl-studio-validation-logs`, 4,829 bytes.
+
+Las pruebas físicas en teléfono se difieren deliberadamente hasta que el proyecto completo esté finalizado, según el plan del usuario. Por tanto, la certificación actual cubre criterios automatizables en CI; no afirma una validación física del APK. La oclusión entre capas 2D/3D, la manipulación táctil directa y el rig por capas permanecen fuera del alcance de Hito 1 y se tratan en hitos posteriores.
