@@ -5,6 +5,8 @@ const ProjectStoreScript = preload("res://scripts/ProjectStore.gd")
 
 var scene_parser: Node
 var world_root: Node3D
+var canvas_2d_layer: CanvasLayer
+var canvas_2d_root: Node2D
 var camera: Camera3D
 var subtitle_label: Label
 var audio_player: AudioStreamPlayer
@@ -38,6 +40,14 @@ func _ready() -> void:
 	world_root = get_node_or_null("World") as Node3D
 	if world_root == null:
 		world_root = self
+	canvas_2d_layer = CanvasLayer.new()
+	canvas_2d_layer.name = "Independent2DCanvasLayer"
+	canvas_2d_layer.layer = 0
+	add_child(canvas_2d_layer)
+	canvas_2d_root = Node2D.new()
+	canvas_2d_root.name = "Independent2DCanvas"
+	canvas_2d_layer.add_child(canvas_2d_root)
+	_update_2d_canvas_layout()
 	camera = get_node_or_null("World/Camera3D") as Camera3D
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
 	_build_overlay()
@@ -46,6 +56,7 @@ func _ready() -> void:
 	scene_parser = SceneParserScript.new()
 	add_child(scene_parser)
 	scene_parser.world_root = world_root
+	scene_parser.canvas_root = canvas_2d_root
 	scene_parser.camera = camera
 	scene_parser.subtitle_label = subtitle_label
 	scene_parser.audio_player = audio_player
@@ -311,8 +322,17 @@ func _save_json_locally() -> void:
 
 
 func _on_viewport_size_changed() -> void:
+	_update_2d_canvas_layout()
 	if scene_parser != null:
 		scene_parser._fit_background_to_camera()
+
+
+func _update_2d_canvas_layout() -> void:
+	if canvas_2d_root == null:
+		return
+	var viewport_size := get_viewport().get_visible_rect().size
+	canvas_2d_root.position = viewport_size * 0.5
+	canvas_2d_root.scale = Vector2.ONE
 
 
 func _load_example_scene() -> void:
@@ -732,16 +752,30 @@ func _on_timeline_target_selected(index: int) -> void:
 		return
 	var target_id := String(timeline_target_option.get_item_metadata(index))
 	for instance in scene_parser.active_instances:
-		if is_instance_valid(instance) and String(instance.get_meta("jedl_entry_id", instance.name)) == target_id:
-			var vector: Vector3 = instance.position
+		if not is_instance_valid(instance) or String(instance.get_meta("jedl_entry_id", instance.name)) != target_id:
+			continue
+		var vector := Vector3.ZERO
+		if instance is Node2D:
+			var canvas_instance := instance as Node2D
 			match timeline_property_option.selected:
+				0:
+					vector = Vector3(canvas_instance.position.x / 100.0, -canvas_instance.position.y / 100.0, 0.0)
 				1:
-					vector = instance.rotation_degrees
+					vector = Vector3(0.0, 0.0, canvas_instance.rotation_degrees)
 				2:
-					vector = instance.scale
-			for axis in range(3):
-				timeline_value_spins[axis].set_value_no_signal(vector[axis])
-			return
+					vector = Vector3(canvas_instance.scale.x / 0.01, canvas_instance.scale.y / 0.01, 1.0)
+		elif instance is Node3D:
+			var stage_instance := instance as Node3D
+			match timeline_property_option.selected:
+				0:
+					vector = stage_instance.position
+				1:
+					vector = stage_instance.rotation_degrees
+				2:
+					vector = stage_instance.scale
+		for axis in range(3):
+			timeline_value_spins[axis].set_value_no_signal(vector[axis])
+		return
 
 
 func _sync_timeline_values() -> void:
