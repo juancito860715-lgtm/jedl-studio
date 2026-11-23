@@ -60,6 +60,7 @@ func _run_tests() -> void:
 
     var action_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1","position":[0,0,0]}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"fox_actor","property":"position","time":0.0,"duration":1.0,"to":[10,2,0]},{"target":"fox_actor","property":"rotation_degrees","time":0.0,"duration":2.0,"to":[0,90,0]}]}"""
     assert(parser.load_scene_text(action_json), "JSON transform actions must load and resolve their target by entry id")
+    assert(parser._timeline_player != null and parser._timeline_player.has_animation("JSONActions"), "JSON actions must compile into the shared AnimationPlayer resource")
     var action_actor: Node3D = parser.active_instances[0]
     parser.play_scene()
     parser._process(0.5)
@@ -74,6 +75,7 @@ func _run_tests() -> void:
     var unknown_target_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1"}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"missing_actor","property":"position","time":0,"duration":1,"to":[1,0,0]}]}"""
     assert(not parser.load_scene_text(unknown_target_json), "Actions targeting missing scene nodes must be rejected")
     assert(parser.last_error.contains("inexistente"), "Missing target rejection must explain the unresolved target")
+    assert(parser.active_instances.size() == 1 and parser.active_instances[0] == action_actor, "Unknown-target load must not replace the active scene")
 
     var invalid_property_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1"}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"fox_actor","property":"opacity","time":0,"duration":1,"to":[1,1,1]}]}"""
     assert(not parser.load_scene_text(invalid_property_json), "Unsupported action properties must be rejected")
@@ -93,6 +95,12 @@ func _run_tests() -> void:
     assert(is_equal_approx(sequential_actor.position.x, 5.0), "Seeking must evaluate the same compiled animation")
     parser.stop_scene()
     assert(is_equal_approx(sequential_actor.position.x, 0.0), "Stopping must restore the initial pose")
+    parser.set_loop_playback(true)
+    parser.play_scene()
+    parser._process(2.1)
+    assert(parser._playing and is_equal_approx(sequential_actor.position.x, 0.0), "Looping must restart the shared playhead and initial pose")
+    parser.set_loop_playback(false)
+    parser.stop_scene()
 
     var overlapping_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1"}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"fox_actor","property":"position","time":0,"duration":1.5,"to":[10,0,0]},{"target":"fox_actor","property":"position","time":1,"duration":1,"to":[20,0,0]}]}"""
     var preserved_actor: Node3D = sequential_actor

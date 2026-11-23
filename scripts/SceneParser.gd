@@ -549,7 +549,7 @@ func seek_scene(time_seconds: float) -> void:
             _timeline_player.pause()
         _timeline_player.seek(_playback_time, true)
     _next_event = 0
-    while _next_event < _events.size() and float(_events[_next_event]["time"]) <= _playback_time:
+    while _next_event < _events.size() and float(_events[_next_event]["time"]) < _playback_time:
         _next_event += 1
     if subtitle_label != null:
         subtitle_label.text = ""
