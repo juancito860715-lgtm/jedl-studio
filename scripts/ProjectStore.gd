@@ -6,6 +6,7 @@ const PROJECT_DIRECTORY := "user://projects"
 
 # Test seam: simulates failure after the original has been moved to .old.
 static var simulate_rename_failure := false
+static var simulate_final_rename_failure := false
 
 
 static func save_project(project_id: String, title: String, scene_data: Dictionary, timeline_data: Dictionary) -> bool:
@@ -141,18 +142,14 @@ static func _atomic_write(path: String, content: String, preserve_old_on_success
 		_restore_original(path, temp_path, old_path, had_original)
 		return false
 
-	if DirAccess.rename_absolute(_global(temp_path), _global(path)) != OK:
-		return _restore_original(path, temp_path, old_path, had_original)
+	if simulate_final_rename_failure or DirAccess.rename_absolute(_global(temp_path), _global(path)) != OK:
+		_restore_original(path, temp_path, old_path, had_original)
+		return false
 	if _read_text(path) != content:
 		return false
 
-	if had_original and not preserve_old_on_success:
-		if DirAccess.remove_absolute(_global(old_path)) != OK:
-			return false
-	elif had_original and preserve_old_on_success:
-		# The previous version is retained only until the new file is verified.
-		if DirAccess.remove_absolute(_global(old_path)) != OK:
-			return false
+	if had_original and DirAccess.remove_absolute(_global(old_path)) != OK:
+		return false
 	return true
 
 
