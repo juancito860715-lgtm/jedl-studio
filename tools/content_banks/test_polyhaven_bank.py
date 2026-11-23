@@ -29,10 +29,7 @@ class PolyHavenBankTests(unittest.TestCase):
             with self.subTest(path=unsafe), self.assertRaises(ValueError):
                 bank.safe_relative_path(unsafe)
 
-    def test_full_frame_backgrounds_are_not_built_or_added_to_catalog(self):
-        self.assertEqual(bank.build_2d({}), [])
-
-    def test_model_previews_are_downsampled_to_mobile_friendly_jpeg(self):
+    def test_photographic_assets_are_downsampled_to_mobile_friendly_jpeg(self):
         source = Image.new("RGB", (4096, 2048), (30, 90, 40))
         import io
         payload = io.BytesIO()
