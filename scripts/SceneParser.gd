@@ -4,13 +4,14 @@ class_name SceneParser
 const TimelineEngineScript = preload("res://scripts/TimelineEngine.gd")
 
 var world_root: Node3D
+var canvas_root: Node2D
 var camera: Camera3D
 var background_sprite: Sprite3D
 var subtitle_label: Control
 var audio_player: AudioStreamPlayer
 var catalog_manager: Node
 var scene_data: Dictionary = {}
-var active_instances: Array[Node3D] = []
+var active_instances: Array[Node] = []
 var _events: Array[Dictionary] = []
 var _playing := false
 var _playback_time := 0.0
@@ -159,7 +160,7 @@ func _instantiate_entries(entries: Array, expected_kind: String = "3d") -> bool:
 			last_error = "El recurso local no existe o no está importado: " + resource_path
 			push_error(last_error)
 			return false
-		var instance: Node3D
+		var instance: Node
 		var extension := resource_path.get_extension().to_lower()
 		if extension in ["png", "jpg", "jpeg", "webp"]:
 			var texture := load(resource_path) as Texture2D
@@ -167,7 +168,14 @@ func _instantiate_entries(entries: Array, expected_kind: String = "3d") -> bool:
 				last_error = "No se pudo abrir la textura 2D: " + resource_path
 				push_error(last_error)
 				return false
-			instance = _create_2d_element(texture, entry)
+			if expected_kind == "2d":
+				if canvas_root == null:
+					last_error = "El lienzo 2D independiente no está disponible."
+					push_error(last_error)
+					return false
+				instance = _create_2d_canvas_element(texture, entry)
+			else:
+				instance = _create_2d_element(texture, entry)
 		else:
 			var packed := load(resource_path) as PackedScene
 			if packed == null:
@@ -186,13 +194,20 @@ func _instantiate_entries(entries: Array, expected_kind: String = "3d") -> bool:
 		instance.set_meta("jedl_entry_id", entry_id)
 		instance.set_meta("jedl_asset_id", String(entry.get("assetId", entry.get("id", ""))))
 		instance.set_meta("jedl_layer", String(entry.get("layer", "objects")))
-		instance.position = _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
+		var position_value := _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
 		if entry.has("depth"):
-			instance.position.z = float(entry["depth"])
-		instance.rotation_degrees = _vector3_from(entry.get("rotation_degrees", [0.0, 0.0, 0.0]))
-		instance.scale = _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
-		if world_root != null:
+			position_value.z = float(entry["depth"])
+		var rotation_value := _vector3_from(entry.get("rotation_degrees", [0.0, 0.0, 0.0]))
+		var scale_value := _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
+		_apply_instance_transform(instance, position_value, rotation_value, scale_value)
+		if instance is Node2D:
+			canvas_root.add_child(instance)
+		elif instance is Node3D and world_root != null:
 			world_root.add_child(instance)
+		else:
+			instance.queue_free()
+			last_error = "No existe un contenedor compatible para el recurso: " + resource_path
+			return false
 		active_instances.append(instance)
 		if timeline_engine != null:
 			timeline_engine.register_target(entry_id, instance)
@@ -201,6 +216,31 @@ func _instantiate_entries(entries: Array, expected_kind: String = "3d") -> bool:
 			var should_loop := bool(entry.get("animation_loop", true))
 			_play_animation(instance, animation_name, should_loop)
 	return true
+
+
+func _create_2d_canvas_element(texture: Texture2D, entry: Dictionary = {}) -> Sprite2D:
+	var sprite := Sprite2D.new()
+	sprite.texture = texture
+	sprite.centered = true
+	sprite.position = Vector2(float(entry.get("position", [0.0, 0.0, 0.0])[0]) * 100.0, -float(entry.get("position", [0.0, 0.0, 0.0])[1]) * 100.0)
+	sprite.rotation_degrees = float(entry.get("rotation_degrees", [0.0, 0.0, 0.0])[2])
+	var scale_value := _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
+	sprite.scale = Vector2(scale_value.x * 0.01, scale_value.y * 0.01)
+	sprite.z_index = int(entry.get("z_index", 0))
+	return sprite
+
+
+func _apply_instance_transform(instance: Node, position_value: Vector3, rotation_value: Vector3, scale_value: Vector3) -> void:
+	if instance is Node2D:
+		var canvas_sprite := instance as Node2D
+		canvas_sprite.position = Vector2(position_value.x * 100.0, -position_value.y * 100.0)
+		canvas_sprite.rotation_degrees = rotation_value.z
+		canvas_sprite.scale = Vector2(scale_value.x * 0.01, scale_value.y * 0.01)
+	elif instance is Node3D:
+		var stage_instance := instance as Node3D
+		stage_instance.position = position_value
+		stage_instance.rotation_degrees = rotation_value
+		stage_instance.scale = scale_value
 
 
 func _create_2d_element(texture: Texture2D, entry: Dictionary = {}) -> Sprite3D:
@@ -265,11 +305,11 @@ func _fit_background_to_camera() -> void:
 
 
 func add_catalog_asset(resource_path: String, as_background: bool = true, asset_id: String = "") -> bool:
-	if world_root == null or resource_path.is_empty():
+	if resource_path.is_empty():
 		return false
 
 	var extension := resource_path.get_extension().to_lower()
-	var instance: Node3D
+	var instance: Node
 	if extension in ["png", "jpg", "jpeg", "webp"]:
 		if as_background:
 			if not set_background(resource_path):
@@ -277,9 +317,9 @@ func add_catalog_asset(resource_path: String, as_background: bool = true, asset_
 			background_sprite.set_meta("jedl_asset_id", asset_id)
 			return true
 		var texture := load(resource_path) as Texture2D
-		if texture == null:
+		if texture == null or canvas_root == null:
 			return false
-		instance = _create_2d_element(texture)
+		instance = _create_2d_canvas_element(texture)
 	elif extension in ["glb", "gltf", "tscn"]:
 		var packed := load(resource_path) as PackedScene
 		if packed == null:
@@ -296,12 +336,19 @@ func add_catalog_asset(resource_path: String, as_background: bool = true, asset_
 		return false
 
 	var placement_index := active_instances.size()
-	instance.position = Vector3(float(placement_index) * 1.6, 0.0, 0.0)
 	var instance_id := "%s_%d" % [asset_id.replace(".", "_"), placement_index + 1]
 	instance.set_meta("jedl_asset_id", asset_id)
 	instance.set_meta("jedl_entry_id", instance_id)
 	instance.set_meta("jedl_layer", "gallery")
-	world_root.add_child(instance)
+	if instance is Node2D:
+		(instance as Node2D).position = Vector2(float(placement_index) * 160.0, 0.0)
+		canvas_root.add_child(instance)
+	elif instance is Node3D and world_root != null:
+		(instance as Node3D).position = Vector3(float(placement_index) * 1.6, 0.0, 0.0)
+		world_root.add_child(instance)
+	else:
+		instance.queue_free()
+		return false
 	active_instances.append(instance)
 	if timeline_engine != null:
 		timeline_engine.register_target(instance_id, instance)
@@ -313,13 +360,42 @@ func add_catalog_asset(resource_path: String, as_background: bool = true, asset_
 		"assetId": asset_id,
 		"kind": String(asset_record.get("kind", "2d" if extension in ["png", "jpg", "jpeg", "webp"] else "3d")),
 		"category": String(asset_record.get("category", "")),
-		"position": [instance.position.x, instance.position.y, instance.position.z],
-		"rotation_degrees": [instance.rotation_degrees.x, instance.rotation_degrees.y, instance.rotation_degrees.z],
-		"scale": [instance.scale.x, instance.scale.y, instance.scale.z],
+		"position": _instance_position_data(instance),
+		"rotation_degrees": _instance_rotation_data(instance),
+		"scale": _instance_scale_data(instance),
 		"layer": "gallery"
 	})
 	_play_default_animation(instance)
 	return true
+
+
+func _instance_position_data(instance: Node) -> Array:
+	if instance is Node2D:
+		var canvas_instance := instance as Node2D
+		return [canvas_instance.position.x / 100.0, -canvas_instance.position.y / 100.0, 0.0]
+	if instance is Node3D:
+		var stage_instance := instance as Node3D
+		return [stage_instance.position.x, stage_instance.position.y, stage_instance.position.z]
+	return [0.0, 0.0, 0.0]
+
+
+func _instance_rotation_data(instance: Node) -> Array:
+	if instance is Node2D:
+		return [0.0, 0.0, (instance as Node2D).rotation_degrees]
+	if instance is Node3D:
+		var stage_instance := instance as Node3D
+		return [stage_instance.rotation_degrees.x, stage_instance.rotation_degrees.y, stage_instance.rotation_degrees.z]
+	return [0.0, 0.0, 0.0]
+
+
+func _instance_scale_data(instance: Node) -> Array:
+	if instance is Node2D:
+		var canvas_instance := instance as Node2D
+		return [canvas_instance.scale.x / 0.01, canvas_instance.scale.y / 0.01, 1.0]
+	if instance is Node3D:
+		var stage_instance := instance as Node3D
+		return [stage_instance.scale.x, stage_instance.scale.y, stage_instance.scale.z]
+	return [1.0, 1.0, 1.0]
 
 
 func _play_default_animation(instance: Node) -> void:
