@@ -446,12 +446,12 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         child.queue_free()
     var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind, category_filter)
     gallery_category_row.visible = kind == "3d"
-    var category_title := category_filter if not category_filter.is_empty() else ("Elementos 2D" if kind == "2d" else "Personajes y objetos 3D")
+    var category_title := category_filter if not category_filter.is_empty() else ("Recursos 2D" if kind == "2d" else "Personajes y objetos 3D")
     gallery_title.text = "%s · %d recursos" % [category_title, entries.size()]
     if entries.is_empty():
         var empty_label := Label.new()
         var catalog_error: String = catalog_manager.get_catalog_error()
-        empty_label.text = "No se pudieron cargar los recursos del inventario.\n" + catalog_error if not catalog_error.is_empty() else ("El banco de elementos 2D transparentes todavía no está instalado." if kind == "2d" else "Esta categoría aún no tiene recursos instalados.")
+        empty_label.text = "No se pudieron cargar los recursos del inventario.\n" + catalog_error if not catalog_error.is_empty() else ("El catálogo 2D no contiene recursos instalados." if kind == "2d" else "Esta categoría aún no tiene recursos instalados.")
         empty_label.add_theme_font_size_override("font_size", 18)
         gallery_list.add_child(empty_label)
     for index in range(mini(entries.size(), 300)):
@@ -489,17 +489,19 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         add_button.custom_minimum_size = Vector2(0, 52)
         add_button.pressed.connect(_animate_button.bind(add_button))
         var resource_path := String(item["path"])
-        add_button.pressed.connect(_add_gallery_asset.bind(resource_path, String(item.get("id", ""))))
+        var asset_id := String(item.get("id", ""))
+        var is_background := kind == "2d" and String(item.get("category", "")) == "Fondos fotográficos"
+        add_button.pressed.connect(_add_gallery_asset.bind(resource_path, asset_id, is_background))
         details.add_child(add_button)
     if json_panel != null:
         json_panel.visible = false
     gallery_panel.visible = true
     gallery_panel.move_to_front()
 
-func _add_gallery_asset(resource_path: String, asset_id: String = "") -> void:
+func _add_gallery_asset(resource_path: String, asset_id: String = "", as_background: bool = false) -> void:
     if scene_parser == null:
         return
-    if scene_parser.add_catalog_asset(resource_path, asset_id):
+    if scene_parser.add_catalog_asset(resource_path, asset_id, as_background):
         _frame_camera_to_content()
         if gallery_title != null:
             gallery_title.text = "Añadido a la escena: " + asset_id
