@@ -22,6 +22,7 @@ var timeline_panel: PanelContainer
 var timeline_target_option: OptionButton
 var timeline_property_option: OptionButton
 var timeline_time_spin: SpinBox
+var timeline_old_time_spin: SpinBox
 var timeline_value_spins: Array[SpinBox] = []
 var timeline_slider: HSlider
 var timeline_status: Label
@@ -572,10 +573,35 @@ func _build_timeline_panel(screen: Control) -> void:
 		spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		axis_column.add_child(spin)
 		timeline_value_spins.append(spin)
+	var old_time_row := HBoxContainer.new()
+	column.add_child(old_time_row)
+	var old_time_label := Label.new()
+	old_time_label.text = "Mover desde (s)"
+	old_time_row.add_child(old_time_label)
+	timeline_old_time_spin = SpinBox.new()
+	timeline_old_time_spin.min_value = 0.0
+	timeline_old_time_spin.max_value = 600.0
+	timeline_old_time_spin.step = 0.05
+	timeline_old_time_spin.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	old_time_row.add_child(timeline_old_time_spin)
+	var key_actions := HBoxContainer.new()
+	column.add_child(key_actions)
 	var add_key_button := Button.new()
-	add_key_button.text = "Crear / actualizar keyframe"
+	add_key_button.text = "Crear"
 	add_key_button.pressed.connect(_add_manual_keyframe)
-	column.add_child(add_key_button)
+	key_actions.add_child(add_key_button)
+	var edit_key_button := Button.new()
+	edit_key_button.text = "Editar valor"
+	edit_key_button.pressed.connect(_edit_manual_keyframe)
+	key_actions.add_child(edit_key_button)
+	var move_key_button := Button.new()
+	move_key_button.text = "Mover"
+	move_key_button.pressed.connect(_move_manual_keyframe)
+	key_actions.add_child(move_key_button)
+	var delete_key_button := Button.new()
+	delete_key_button.text = "Eliminar"
+	delete_key_button.pressed.connect(_delete_manual_keyframe)
+	key_actions.add_child(delete_key_button)
 	timeline_slider = HSlider.new()
 	timeline_slider.min_value = 0.0
 	timeline_slider.max_value = 1.0
@@ -664,6 +690,45 @@ func _add_manual_keyframe() -> void:
 	if engine.add_keyframe(target_id, property_name, timeline_time_spin.value, value):
 		timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
 		timeline_status.text = "Keyframe guardado · %d keyframes" % engine.get_keyframe_count()
+	else:
+		timeline_status.text = engine.last_error
+
+
+func _edit_manual_keyframe() -> void:
+	if scene_parser == null or timeline_target_option.item_count == 0:
+		return
+	var target_id := String(timeline_target_option.get_item_metadata(timeline_target_option.selected))
+	var property_name := ["position", "rotation_degrees", "scale"][timeline_property_option.selected]
+	var value := Vector3(timeline_value_spins[0].value, timeline_value_spins[1].value, timeline_value_spins[2].value)
+	var engine = scene_parser.timeline_engine
+	if engine.edit_keyframe(target_id, property_name, timeline_time_spin.value, value):
+		timeline_status.text = "Valor del keyframe actualizado."
+	else:
+		timeline_status.text = engine.last_error
+
+
+func _move_manual_keyframe() -> void:
+	if scene_parser == null or timeline_target_option.item_count == 0:
+		return
+	var target_id := String(timeline_target_option.get_item_metadata(timeline_target_option.selected))
+	var property_name := ["position", "rotation_degrees", "scale"][timeline_property_option.selected]
+	var engine = scene_parser.timeline_engine
+	if engine.move_keyframe(target_id, property_name, timeline_old_time_spin.value, timeline_time_spin.value):
+		timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
+		timeline_status.text = "Keyframe movido."
+	else:
+		timeline_status.text = engine.last_error
+
+
+func _delete_manual_keyframe() -> void:
+	if scene_parser == null or timeline_target_option.item_count == 0:
+		return
+	var target_id := String(timeline_target_option.get_item_metadata(timeline_target_option.selected))
+	var property_name := ["position", "rotation_degrees", "scale"][timeline_property_option.selected]
+	var engine = scene_parser.timeline_engine
+	if engine.delete_keyframe(target_id, property_name, timeline_time_spin.value):
+		timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
+		timeline_status.text = "Keyframe eliminado."
 	else:
 		timeline_status.text = engine.last_error
 
