@@ -8,7 +8,7 @@ signal character_selected(node: Node2D)
 const RigScript = preload("res://scripts/CharacterRig2D.gd")
 const StyleScript = preload("res://scripts/SceneStyleManager.gd")
 
-var _parser: Node
+var _parser: Variant
 var _canvas_root: Node2D
 var _selected_node: Node2D
 var _hair_picker: ColorPickerButton
@@ -21,7 +21,7 @@ var _status: Label
 var _style_originals: Dictionary = {}
 
 
-func configure(parser: Node, canvas_root: Node2D) -> void:
+func configure(parser: Variant, canvas_root: Node2D) -> void:
 	_parser = parser
 	_canvas_root = canvas_root
 	_build_panel()
