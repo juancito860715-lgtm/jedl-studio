@@ -44,7 +44,7 @@ func _run_test() -> void:
 	var leaf_sprite: Sprite2D
 	for scene_instance in main.scene_parser.active_instances:
 		if scene_instance is Sprite2D:
-			leaf_sprite = scene_instance
+			leaf_sprite = scene_instance as Sprite2D
 			break
 	assert(leaf_sprite != null, "A 2D sprite must be available for transform editing")
 	assert(main.scene_parser.timeline_engine.add_keyframe("leaf_demo", "position", 0.0, Vector3(1.0, 0.5, 0.0)), "2D canvas target must accept a shared-engine position keyframe")
