@@ -25,6 +25,8 @@ var timeline_time_spin: SpinBox
 var timeline_value_spins: Array[SpinBox] = []
 var timeline_slider: HSlider
 var timeline_status: Label
+var pending_scene_backup: Dictionary = {}
+var choosing_missing_alternative := false
 
 
 func _ready() -> void:
@@ -46,6 +48,7 @@ func _ready() -> void:
     scene_parser.subtitle_label = subtitle_label
     scene_parser.audio_player = audio_player
     scene_parser.catalog_manager = catalog_manager
+    scene_parser.scene_data = _blank_scene_document()
     subtitle_label.text = "Proyecto nuevo · escena vacía. Carga un JSON o añade recursos desde las galerías."
 
 
@@ -261,10 +264,7 @@ func _show_json_editor() -> void:
         return
     gallery_panel.visible = false
     if json_editor.text.is_empty():
-        var file := FileAccess.open("res://scenes/scene.example.json", FileAccess.READ)
-        if file != null:
-            json_editor.text = file.get_as_text()
-            file.close()
+        json_editor.text = JSON.stringify(_blank_scene_document(), "\t")
     json_status.text = "Contrato JEDL v2: characters, objects, elements, actions, subtitles y sounds."
     json_panel.visible = true
     json_panel.move_to_front()
@@ -273,8 +273,12 @@ func _show_json_editor() -> void:
 func _validate_and_load_json() -> void:
     if scene_parser == null:
         return
+    if pending_scene_backup.is_empty():
+        pending_scene_backup = scene_parser.scene_data.duplicate(true)
     if scene_parser.load_scene_text(json_editor.text):
         json_status.text = "JSON válido: escena cargada correctamente."
+        pending_scene_backup.clear()
+        choosing_missing_alternative = false
         gallery_panel.visible = false
         json_panel.visible = false
         _frame_camera_to_content()
@@ -319,9 +323,11 @@ func _load_example_scene() -> void:
     if camera != null:
         camera.current = true
     if scene_parser.load_scene_file("res://scenes/scene.example.json"):
+        pending_scene_backup.clear()
+        _refresh_timeline_targets()
         _frame_camera_to_content()
         if subtitle_label != null:
-            subtitle_label.text = "Escena cargada · %d elementos 3D" % scene_parser.active_instances.size()
+            subtitle_label.text = "Escena cargada · %d elementos" % scene_parser.active_instances.size()
     elif subtitle_label != null:
         subtitle_label.text = "Error: no se pudo cargar la escena de ejemplo."
 
@@ -380,8 +386,6 @@ func _play_scene() -> void:
         json_panel.visible = false
     if scene_parser == null:
         return
-    if scene_parser.scene_data.is_empty() or scene_parser.active_instances.is_empty():
-        _load_example_scene()
     _frame_camera_to_content()
     scene_parser.play_scene()
 
@@ -454,7 +458,28 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
 func _add_gallery_asset(resource_path: String, is_background: bool = true, asset_id: String = "") -> void:
     if scene_parser == null:
         return
-    if scene_parser.add_catalog_asset(resource_path, is_background, asset_id):
+    if choosing_missing_alternative:
+        var parsed: Variant = JSON.parse_string(json_editor.text)
+        var replaced := false
+        if parsed is Dictionary:
+            for collection_name in ["characters", "objects", "elements"]:
+                var collection: Variant = parsed.get(collection_name, [])
+                if collection is Array:
+                    for entry in collection:
+                        if entry is Dictionary and String(entry.get("id", "")) == scene_parser.last_missing_entry_id:
+                            entry["assetId"] = asset_id
+                            entry.erase("path")
+                            entry["kind"] = scene_parser.last_missing_kind
+                            entry["category"] = scene_parser.last_missing_category
+                            replaced = true
+        if replaced:
+            json_editor.text = JSON.stringify(parsed, "\t")
+            choosing_missing_alternative = false
+            _validate_and_load_json()
+        elif subtitle_label != null:
+            subtitle_label.text = "No se encontró el elemento JSON que requiere el recurso alternativo."
+        return
+    if scene_parser.add_catalog_asset(resource_path, false, asset_id):
         _frame_camera_to_content()
         _refresh_timeline_targets()
         if gallery_title != null:
@@ -468,16 +493,23 @@ func _add_gallery_asset(resource_path: String, is_background: bool = true, asset
 func _choose_missing_alternative() -> void:
 	if scene_parser == null:
 		return
+	choosing_missing_alternative = true
 	json_panel.visible = false
 	_show_gallery(scene_parser.last_missing_kind, scene_parser.last_missing_category)
 
 
 func _cancel_missing_resource() -> void:
+	if not pending_scene_backup.is_empty():
+		scene_parser.load_scene_text(JSON.stringify(pending_scene_backup))
+		json_editor.text = JSON.stringify(pending_scene_backup, "\t")
+		_refresh_timeline_targets()
+	pending_scene_backup.clear()
+	choosing_missing_alternative = false
 	if missing_alternative_button != null:
 		missing_alternative_button.visible = false
 		missing_cancel_button.visible = false
 	if json_status != null:
-		json_status.text = "Carga cancelada. La escena anterior permanece sin cambios."
+		json_status.text = "Carga cancelada. Se conservó la escena anterior."
 
 
 func _build_timeline_panel(screen: Control) -> void:
@@ -680,3 +712,16 @@ func _restore_project() -> void:
 func _duplicate_project() -> void:
 	var duplicated := ProjectStoreScript.duplicate_project("current", "currentcopy", "Copia de JEDL Studio")
 	json_status.text = "Proyecto duplicado como currentcopy." if duplicated else "Guarda primero el proyecto o elimina la copia existente."
+
+
+func _blank_scene_document() -> Dictionary:
+	return {
+		"version": 2,
+		"title": "Proyecto nuevo",
+		"characters": [],
+		"objects": [],
+		"elements": [],
+		"subtitles": [],
+		"sounds": [],
+		"actions": []
+	}
