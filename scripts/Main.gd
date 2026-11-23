@@ -12,6 +12,7 @@ var catalog_manager: Node
 var gallery_panel: PanelContainer
 var gallery_list: VBoxContainer
 var gallery_title: Label
+var gallery_category_row: HFlowContainer
 var json_panel: PanelContainer
 var json_editor: TextEdit
 var json_status: Label
@@ -47,8 +48,9 @@ func _ready() -> void:
     production_editor = ProductionEditorScript.new() as ProductionEditor
     add_child(production_editor)
     production_editor.configure(world_root)
-    # Arranca con una escena real cargada; Play nunca debe confirmar una escena vacía.
-    call_deferred("_load_example_scene")
+    # JEDL Studio siempre abre una composición nueva y vacía.
+    if subtitle_label != null:
+        subtitle_label.text = "Composición nueva · lienzo vacío"
 
 
 func _build_overlay() -> void:
@@ -96,7 +98,7 @@ func _build_overlay() -> void:
 
     var load_button := Button.new()
     load_button.text = "Escena"
-    load_button.pressed.connect(_load_example_scene)
+    load_button.pressed.connect(_new_blank_scene)
     load_button.pressed.connect(_animate_button.bind(load_button))
     primary_buttons["scene"] = load_button
     toolbar_row.add_child(load_button)
@@ -200,13 +202,11 @@ func _build_overlay() -> void:
     close_gallery.add_theme_font_size_override("font_size", 18)
     close_gallery.pressed.connect(func(): gallery_panel.visible = false)
     gallery_header.add_child(close_gallery)
-    var category_row := HFlowContainer.new()
-    category_row.add_theme_constant_override("separation", 6)
-    gallery_column.add_child(category_row)
+    gallery_category_row = HFlowContainer.new()
+    gallery_category_row.add_theme_constant_override("separation", 6)
+    gallery_column.add_child(gallery_category_row)
     for category_data in [
-        {"label": "Fondos 2D", "kind": "2d", "category": "Fondos fotográficos"},
-        {"label": "Elementos 2D", "kind": "2d", "category": "Elementos 2D individuales"},
-        {"label": "Personajes 3D", "kind": "3d", "category": "Personajes animados"},
+        {"label": "Personajes", "kind": "3d", "category": "Personajes animados"},
         {"label": "Vegetación", "kind": "3d", "category": "Árboles y vegetación"},
         {"label": "Troncos y rocas", "kind": "3d", "category": "Rocas y troncos"},
         {"label": "Mobiliario", "kind": "3d", "category": "Mobiliario"},
@@ -216,7 +216,7 @@ func _build_overlay() -> void:
         category_button.text = String(category_data["label"])
         category_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
         category_button.pressed.connect(_show_gallery.bind(String(category_data["kind"]), String(category_data["category"])))
-        category_row.add_child(category_button)
+        gallery_category_row.add_child(category_button)
 
     var gallery_scroll := ScrollContainer.new()
     gallery_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -236,11 +236,16 @@ func _show_json_editor() -> void:
         return
     gallery_panel.visible = false
     if json_editor.text.is_empty():
-        var file := FileAccess.open("res://scenes/scene.example.json", FileAccess.READ)
-        if file != null:
-            json_editor.text = file.get_as_text()
-            file.close()
-    json_status.text = "Contrato JEDL v2: background, characters, objects, elements, subtitles y sounds."
+        json_editor.text = """{
+  "version": 2,
+  "title": "Nueva escena",
+  "characters": [],
+  "objects": [],
+  "elements": [],
+  "subtitles": [],
+  "sounds": []
+}"""
+    json_status.text = "Composición vacía lista. Añade recursos o pega un JSON de escena."
     json_panel.visible = true
     json_panel.move_to_front()
 
@@ -270,28 +275,26 @@ func _save_json_locally() -> void:
 
 
 func _on_viewport_size_changed() -> void:
-    if scene_parser != null:
-        scene_parser._fit_background_to_camera()
+    # Los paneles usan anclajes relativos y se adaptan al cambio de orientación.
 
 
-func _load_example_scene() -> void:
-    # Escena es el retorno al visor: cierra cualquier panel que pudiera tapar el mundo 3D.
+func _new_blank_scene() -> void:
     if gallery_panel != null:
         gallery_panel.visible = false
     if json_panel != null:
         json_panel.visible = false
+    if production_panel != null:
+        production_panel.visible = false
     if scene_parser == null:
         return
     scene_parser.stop_scene()
-    if camera != null:
-        camera.current = true
-    if scene_parser.load_scene_file("res://scenes/scene.example.json"):
-        _frame_camera_to_content()
+    var blank_json := """{"version":2,"title":"Nueva escena","characters":[],"objects":[],"elements":[],"subtitles":[],"sounds":[]}"""
+    if scene_parser.load_scene_text(blank_json):
+        if camera != null:
+            camera.current = true
         if subtitle_label != null:
-            subtitle_label.text = "Escena cargada · %d elementos 3D" % scene_parser.active_instances.size()
+            subtitle_label.text = "Lienzo vacío · añade recursos o importa un JSON"
         _refresh_production_selection()
-    elif subtitle_label != null:
-        subtitle_label.text = "Error: no se pudo cargar la escena de ejemplo."
 
 
 func _calculate_camera_distance(bounds_size: Vector3, aspect_ratio: float, fov_degrees: float) -> float:
@@ -350,10 +353,12 @@ func _play_scene() -> void:
         production_panel.visible = false
     if scene_parser == null:
         return
-    if scene_parser.scene_data.is_empty() or scene_parser.active_instances.is_empty():
-        _load_example_scene()
+    if scene_parser.scene_data.is_empty():
+        _new_blank_scene()
     _frame_camera_to_content()
     scene_parser.play_scene()
+    if scene_parser.active_instances.is_empty() and subtitle_label != null:
+        subtitle_label.text = "La escena está vacía · añade recursos o importa un JSON"
 
 func _animate_button(button: Control) -> void:
     if not is_instance_valid(button):
@@ -370,12 +375,13 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         gallery_list.remove_child(child)
         child.queue_free()
     var entries: Array[Dictionary] = catalog_manager.scan_catalog(kind, category_filter)
-    var category_title := category_filter if not category_filter.is_empty() else ("Fondos fotográficos" if kind == "2d" else "Personajes y objetos 3D")
+    gallery_category_row.visible = kind == "3d"
+    var category_title := category_filter if not category_filter.is_empty() else ("Elementos 2D" if kind == "2d" else "Personajes y objetos 3D")
     gallery_title.text = "%s · %d recursos" % [category_title, entries.size()]
     if entries.is_empty():
         var empty_label := Label.new()
         var catalog_error: String = catalog_manager.get_catalog_error()
-        empty_label.text = "No se pudieron cargar los recursos del inventario.\n" + catalog_error if not catalog_error.is_empty() else "Esta categoría aún no tiene recursos individuales instalados.\nEl inventario no contiene elementos para este filtro."
+        empty_label.text = "No se pudieron cargar los recursos del inventario.\n" + catalog_error if not catalog_error.is_empty() else ("El banco de elementos 2D transparentes todavía no está instalado." if kind == "2d" else "Esta categoría aún no tiene recursos instalados.")
         empty_label.add_theme_font_size_override("font_size", 18)
         gallery_list.add_child(empty_label)
     for index in range(mini(entries.size(), 300)):
@@ -413,18 +419,17 @@ func _show_gallery(kind: String, category_filter: String = "") -> void:
         add_button.custom_minimum_size = Vector2(0, 52)
         add_button.pressed.connect(_animate_button.bind(add_button))
         var resource_path := String(item["path"])
-        var is_background := kind == "2d" and String(item.get("category", "")) == "Fondos fotográficos"
-        add_button.pressed.connect(_add_gallery_asset.bind(resource_path, is_background, String(item.get("id", ""))))
+        add_button.pressed.connect(_add_gallery_asset.bind(resource_path, String(item.get("id", ""))))
         details.add_child(add_button)
     if json_panel != null:
         json_panel.visible = false
     gallery_panel.visible = true
     gallery_panel.move_to_front()
 
-func _add_gallery_asset(resource_path: String, is_background: bool = true, asset_id: String = "") -> void:
+func _add_gallery_asset(resource_path: String, asset_id: String = "") -> void:
     if scene_parser == null:
         return
-    if scene_parser.add_catalog_asset(resource_path, is_background, asset_id):
+    if scene_parser.add_catalog_asset(resource_path, asset_id):
         _frame_camera_to_content()
         if gallery_title != null:
             gallery_title.text = "Añadido a la escena: " + asset_id
