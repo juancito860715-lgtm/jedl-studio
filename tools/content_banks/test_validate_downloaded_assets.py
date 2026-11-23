@@ -45,6 +45,11 @@ class DownloadedAssetsValidationTests(unittest.TestCase):
                  "license": "CC0-1.0", "licenseEvidence": "https://polyhaven.com/license",
                  "source": "https://polyhaven.com/a/test", "sha256": sha256(self.element),
                  "offline": True, "placeable": True},
+                {"id": "background.test", "kind": "2d", "category": "Fondos fotográficos",
+                 "path": "res://assets/gallery/2d/background.jpg", "preview_path": "res://assets/gallery/2d/background.jpg",
+                 "license": "CC0-1.0", "licenseEvidence": "https://polyhaven.com/license",
+                 "source": "https://polyhaven.com/a/background-test", "sha256": sha256(self.background),
+                 "offline": True, "placeable": True},
                 {"id": "model.test", "kind": "3d", "category": "Props",
                  "path": "res://assets/gallery/3d/model.glb", "license": "CC0-1.0",
                  "licenseEvidence": "https://polyhaven.com/license", "source": "https://polyhaven.com/a/test",
@@ -76,20 +81,18 @@ class DownloadedAssetsValidationTests(unittest.TestCase):
             "assets": assets, "files": files
         }), encoding="utf-8")
 
-    def test_accepts_transparent_2d_cutout_and_glb_without_photographic_backgrounds(self):
+    def test_accepts_optional_background_cutout_and_glb(self):
         result = validate_assets(self.root)
-        self.assertEqual(result["photographic_backgrounds"], 0)
+        self.assertEqual(result["photographic_backgrounds"], 1)
         self.assertEqual(result["elements_2d"], 1)
         self.assertEqual(result["models_3d"], 1)
-        self.assertEqual(result["files"], 3)
+        self.assertEqual(result["files"], 4)
 
-    def test_rejects_photographic_backgrounds(self):
-        self.catalog["assets"][0]["path"] = "res://assets/gallery/2d/background.jpg"
-        self.catalog["assets"][0]["preview_path"] = "res://assets/gallery/2d/background.jpg"
-        self.catalog["assets"][0]["category"] = "Fondos fotográficos"
-        self.catalog["assets"][0]["sha256"] = sha256(self.background)
+    def test_rejects_small_photographic_backgrounds(self):
+        Image.new("RGB", (256, 128), (20, 80, 40)).save(self.background, "JPEG")
+        self.catalog["assets"][1]["sha256"] = sha256(self.background)
         self.write_catalog_and_manifest()
-        with self.assertRaisesRegex(ValueError, "2D elements must be transparent cutouts"):
+        with self.assertRaisesRegex(ValueError, "resolution is too small"):
             validate_assets(self.root)
 
     def test_rejects_nontransparent_2d_assets(self):
@@ -106,14 +109,14 @@ class DownloadedAssetsValidationTests(unittest.TestCase):
             validate_assets(self.root)
 
     def test_rejects_corrupt_model_hash(self):
-        self.catalog["assets"][1]["sha256"] = "0" * 64
+        self.catalog["assets"][2]["sha256"] = "0" * 64
         self.write_catalog_and_manifest()
         with self.assertRaisesRegex(ValueError, "SHA-256 mismatch"):
             validate_assets(self.root)
 
     def test_rejects_bad_glb_header(self):
         self.model.write_bytes(b"not-a-glb-file")
-        self.catalog["assets"][1]["sha256"] = sha256(self.model)
+        self.catalog["assets"][2]["sha256"] = sha256(self.model)
         self.write_catalog_and_manifest()
         with self.assertRaisesRegex(ValueError, "GLB is truncated"):
             validate_assets(self.root)
@@ -121,8 +124,8 @@ class DownloadedAssetsValidationTests(unittest.TestCase):
     def test_rejects_external_network_dependencies(self):
         document = {"asset": {"version": "2.0"}, "buffers": [{"uri": "https://example.com/data.bin"}]}
         self.model.with_suffix(".gltf").write_text(json.dumps(document), encoding="utf-8")
-        self.catalog["assets"][1]["path"] = "res://assets/gallery/3d/model.gltf"
-        self.catalog["assets"][1]["sha256"] = sha256(self.model.with_suffix(".gltf"))
+        self.catalog["assets"][2]["path"] = "res://assets/gallery/3d/model.gltf"
+        self.catalog["assets"][2]["sha256"] = sha256(self.model.with_suffix(".gltf"))
         self.write_catalog_and_manifest()
         with self.assertRaisesRegex(ValueError, "External network URI"):
             validate_assets(self.root)
