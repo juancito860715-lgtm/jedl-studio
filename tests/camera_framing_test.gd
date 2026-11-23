@@ -48,8 +48,12 @@ func _run_test() -> void:
 			break
 	assert(leaf_sprite != null, "A 2D sprite must be available for transform editing")
 	assert(main.scene_parser.timeline_engine.add_keyframe("leaf_demo", "position", 0.0, Vector3(1.0, 0.5, 0.0)), "2D canvas target must accept a shared-engine position keyframe")
+	assert(main.scene_parser.timeline_engine.add_keyframe("leaf_demo", "rotation_degrees", 0.0, Vector3(0.0, 0.0, 30.0)), "2D canvas target must accept a rotation keyframe")
+	assert(main.scene_parser.timeline_engine.add_keyframe("leaf_demo", "scale", 0.0, Vector3(0.5, 0.75, 1.0)), "2D canvas target must accept a scale keyframe")
 	main.scene_parser.timeline_engine.seek(0.0)
 	assert(leaf_sprite.position.is_equal_approx(Vector2(100.0, -50.0)), "Shared timeline transforms must map 2D world units to canvas pixels")
+	assert(is_equal_approx(leaf_sprite.rotation_degrees, 30.0), "Shared timeline rotation must map to the 2D canvas rotation")
+	assert(leaf_sprite.scale.is_equal_approx(Vector2(0.5, 0.75)), "Shared timeline scale must preserve 2D sprite scale")
 	var gallery_asset: Dictionary = main.catalog_manager.scan_catalog("2d")[0]
 	main._add_gallery_asset(String(gallery_asset["path"]), false, String(gallery_asset["id"]))
 	assert(main.scene_parser.active_instances.size() == 4, "Adding a gallery item must create a separate scene instance")
