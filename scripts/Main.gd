@@ -59,6 +59,7 @@ func _build_overlay() -> void:
     add_child(layer)
     var screen := Control.new()
     screen.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+    screen.theme = _create_app_theme()
     layer.add_child(screen)
 
     var header := PanelContainer.new()
@@ -230,6 +231,64 @@ func _build_overlay() -> void:
     _build_production_panel(screen)
     audio_player = AudioStreamPlayer.new()
     add_child(audio_player)
+
+func _create_app_theme() -> Theme:
+    var app_theme := Theme.new()
+    app_theme.default_font_size = 16
+    app_theme.set_color("font_color", "Label", Color("#e8edf5"))
+    app_theme.set_color("font_color", "Button", Color("#f5f7fb"))
+    app_theme.set_color("font_hover_color", "Button", Color.WHITE)
+    app_theme.set_color("font_pressed_color", "Button", Color.WHITE)
+    app_theme.set_color("font_disabled_color", "Button", Color("#8792a3"))
+
+    var panel_style := StyleBoxFlat.new()
+    panel_style.bg_color = Color("#151d2b")
+    panel_style.border_color = Color("#2b3b52")
+    panel_style.set_border_width_all(1)
+    panel_style.set_corner_radius_all(16)
+    panel_style.content_margin_left = 14
+    panel_style.content_margin_right = 14
+    panel_style.content_margin_top = 12
+    panel_style.content_margin_bottom = 12
+    app_theme.set_stylebox("panel", "PanelContainer", panel_style)
+
+    var button_normal := StyleBoxFlat.new()
+    button_normal.bg_color = Color("#26364d")
+    button_normal.border_color = Color("#3a5271")
+    button_normal.set_border_width_all(1)
+    button_normal.set_corner_radius_all(12)
+    button_normal.content_margin_left = 12
+    button_normal.content_margin_right = 12
+    button_normal.content_margin_top = 10
+    button_normal.content_margin_bottom = 10
+    var button_hover := button_normal.duplicate() as StyleBoxFlat
+    button_hover.bg_color = Color("#344b69")
+    var button_pressed := button_normal.duplicate() as StyleBoxFlat
+    button_pressed.bg_color = Color("#176c83")
+    var button_disabled := button_normal.duplicate() as StyleBoxFlat
+    button_disabled.bg_color = Color("#202a39")
+    button_disabled.border_color = Color("#303b4b")
+    app_theme.set_stylebox("normal", "Button", button_normal)
+    app_theme.set_stylebox("hover", "Button", button_hover)
+    app_theme.set_stylebox("pressed", "Button", button_pressed)
+    app_theme.set_stylebox("focus", "Button", button_hover)
+    app_theme.set_stylebox("disabled", "Button", button_disabled)
+
+    var input_style := StyleBoxFlat.new()
+    input_style.bg_color = Color("#0e1520")
+    input_style.border_color = Color("#3b4c63")
+    input_style.set_border_width_all(1)
+    input_style.set_corner_radius_all(10)
+    input_style.content_margin_left = 10
+    input_style.content_margin_right = 10
+    input_style.content_margin_top = 8
+    input_style.content_margin_bottom = 8
+    app_theme.set_stylebox("normal", "TextEdit", input_style)
+    app_theme.set_stylebox("focus", "TextEdit", input_style)
+    app_theme.set_color("font_color", "TextEdit", Color("#e8edf5"))
+    app_theme.set_color("font_placeholder_color", "TextEdit", Color("#8190a5"))
+    return app_theme
+
 
 func _show_json_editor() -> void:
     if json_panel == null or json_editor == null:
