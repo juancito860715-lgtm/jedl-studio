@@ -359,7 +359,7 @@ func _read_property(target: Node, property_name: String) -> Vector3:
 			"rotation_degrees":
 				return Vector3(0.0, 0.0, canvas_target.rotation_degrees)
 			"scale":
-				return Vector3(canvas_target.scale.x / 0.01, canvas_target.scale.y / 0.01, 1.0)
+				return Vector3(canvas_target.scale.x, canvas_target.scale.y, 1.0)
 	if target is Node3D:
 		var stage_target := target as Node3D
 		match property_name:
@@ -381,7 +381,7 @@ func _write_property(target: Node, property_name: String, value: Vector3) -> voi
 			"rotation_degrees":
 				canvas_target.rotation_degrees = value.z
 			"scale":
-				canvas_target.scale = Vector2(value.x * 0.01, value.y * 0.01)
+				canvas_target.scale = Vector2(value.x, value.y)
 		return
 	if target is Node3D:
 		var stage_target := target as Node3D
