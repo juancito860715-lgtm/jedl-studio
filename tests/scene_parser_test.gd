@@ -10,7 +10,9 @@ func _initialize() -> void:
 
 func _run_tests() -> void:
 	var world := Node3D.new()
+	var canvas := Node2D.new()
 	root.add_child(world)
+	root.add_child(canvas)
 	var manager = CatalogManagerScript.new()
 	root.add_child(manager)
 	assert(manager.load_catalog(), "Local starter manifest must validate")
@@ -24,6 +26,7 @@ func _run_tests() -> void:
 	var parser = SceneParserScript.new()
 	root.add_child(parser)
 	parser.world_root = world
+	parser.canvas_root = canvas
 	parser.catalog_manager = manager
 	parser.camera = camera
 	parser.subtitle_label = subtitle
@@ -31,7 +34,7 @@ func _run_tests() -> void:
 
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example JSON must load")
 	assert(parser.active_instances.size() == 3, "Example must instantiate the character and two transparent 2D elements")
-	assert(parser.timeline_engine.get_keyframe_count() == 6, "JSON actions must be represented as editable keyframes")
+	assert(parser.timeline_engine.get_keyframe_count() == 5, "Adjacent JSON actions must share a boundary keyframe")
 	parser.seek_scene(1.0)
 	var actor: Node3D
 	for instance in parser.active_instances:
@@ -70,6 +73,7 @@ func _run_tests() -> void:
 
 	parser.queue_free()
 	world.queue_free()
+	canvas.queue_free()
 	camera.queue_free()
 	subtitle.queue_free()
 	audio.queue_free()
