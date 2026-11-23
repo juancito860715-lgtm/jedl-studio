@@ -241,7 +241,7 @@ func to_dictionary() -> Dictionary:
 
 func load_dictionary(data: Dictionary) -> bool:
 	last_error = ""
-	if int(data.get("schemaVersion", -1)) != 1 or not data.get("tracks", null) is Array:
+	if int(data.get("schemaVersion", -1)) != 1 or not (data.get("tracks", null) is Array):
 		return _fail("Formato de timeline no compatible.")
 	var candidate: Array[Dictionary] = []
 	for track_value in data["tracks"]:
@@ -363,7 +363,7 @@ func _apply_at(time_seconds: float) -> void:
 		var keys: Array = track["keyframes"]
 		if keys.is_empty():
 			continue
-		var value := _vector_from(keys[0]["value"]) as Vector3
+		var value: Vector3 = _vector_from(keys[0]["value"])
 		if time_seconds >= float(keys.back()["time"]):
 			value = _vector_from(keys.back()["value"])
 		elif time_seconds > float(keys[0]["time"]):
