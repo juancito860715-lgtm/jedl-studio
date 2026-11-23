@@ -1,5 +1,5 @@
 extends RefCounted
-class_name EditorSelection
+class_name JEDLEditorSelection
 
 # Selección geométrica sin física ni dependencias de escena.
 # Cada elemento contiene id, position, size, scale, rotation, offset,
@@ -46,12 +46,12 @@ static func _contains_point(item: Dictionary, point: Vector2) -> bool:
 
 static func _point_in_polygon(point: Vector2, vertices: Variant) -> bool:
 	var inside := false
-	var previous := vertices.size() - 1
+	var previous: int = vertices.size() - 1
 	for current in range(vertices.size()):
 		var a: Vector2 = vertices[current]
 		var b: Vector2 = vertices[previous]
 		if (a.y > point.y) != (b.y > point.y):
-			var crossing_x := (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x
+			var crossing_x: float = (b.x - a.x) * (point.y - a.y) / (b.y - a.y) + a.x
 			if point.x < crossing_x:
 				inside = not inside
 		previous = current
