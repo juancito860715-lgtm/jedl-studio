@@ -662,7 +662,7 @@ func _on_timeline_target_selected(index: int) -> void:
     var target_id := String(timeline_target_option.get_item_metadata(index))
     for instance in scene_parser.active_instances:
         if is_instance_valid(instance) and String(instance.get_meta("jedl_entry_id", instance.name)) == target_id:
-            var vector := instance.position
+            var vector: Vector3 = instance.position
             match timeline_property_option.selected:
                 1:
                     vector = instance.rotation_degrees
@@ -684,7 +684,7 @@ func _add_manual_keyframe() -> void:
         timeline_status.text = "Añade primero un elemento a la escena."
         return
     var target_id := String(timeline_target_option.get_item_metadata(timeline_target_option.selected))
-    var property_name := ["position", "rotation_degrees", "scale"][timeline_property_option.selected]
+    var property_name: String = String(["position", "rotation_degrees", "scale"][timeline_property_option.selected])
     var value := Vector3(timeline_value_spins[0].value, timeline_value_spins[1].value, timeline_value_spins[2].value)
     var engine = scene_parser.timeline_engine
     if engine.add_keyframe(target_id, property_name, timeline_time_spin.value, value):
