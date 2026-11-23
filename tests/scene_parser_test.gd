@@ -57,6 +57,27 @@ func _run_tests() -> void:
     assert(subtitle.text == "", "Subtitle must clear after its duration")
 
     parser.stop_scene()
+
+    var action_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1","position":[0,0,0]}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"fox_actor","property":"position","time":0.0,"duration":1.0,"to":[10,2,0]},{"target":"fox_actor","property":"rotation_degrees","time":0.0,"duration":2.0,"to":[0,90,0]}]}"""
+    assert(parser.load_scene_text(action_json), "JSON transform actions must load and resolve their target by entry id")
+    var action_actor := parser.active_instances[0]
+    parser.play_scene()
+    parser._process(0.5)
+    assert(is_equal_approx(action_actor.position.x, 5.0), "Move action must interpolate position at half duration")
+    assert(is_equal_approx(action_actor.position.y, 1.0), "Move action must interpolate every vector component")
+    assert(is_equal_approx(action_actor.rotation_degrees.y, 22.5), "Rotation action must interpolate independently")
+    parser._process(0.5)
+    assert(is_equal_approx(action_actor.position.x, 10.0), "Move action must reach its destination at its end time")
+    assert(is_equal_approx(action_actor.rotation_degrees.y, 45.0), "Longer concurrent rotation must continue after move ends")
+    parser.stop_scene()
+
+    var unknown_target_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1"}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"missing_actor","property":"position","time":0,"duration":1,"to":[1,0,0]}]}"""
+    assert(not parser.load_scene_text(unknown_target_json), "Actions targeting missing scene nodes must be rejected")
+    assert(parser.last_error.contains("inexistente"), "Missing target rejection must explain the unresolved target")
+
+    var invalid_property_json := """{"version":2,"characters":[{"id":"fox_actor","assetId":"character.fox.khronos.v1"}],"objects":[],"subtitles":[],"sounds":[],"actions":[{"target":"fox_actor","property":"opacity","time":0,"duration":1,"to":[1,1,1]}]}"""
+    assert(not parser.load_scene_text(invalid_property_json), "Unsupported action properties must be rejected")
+
     parser.queue_free()
     world.queue_free()
     camera.queue_free()
