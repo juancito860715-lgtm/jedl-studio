@@ -78,6 +78,7 @@ jobs:
           test -s tests/catalog_manager_test.gd
           test -s tests/timeline_engine_test.gd
           test -s tests/project_store_test.gd
+          test -s tests/project_store_recovery_test.gd
           test -s assets/gallery/catalog.json
           test -s assets/gallery/manifest.json
           set +e
@@ -113,6 +114,7 @@ jobs:
           run_godot_test res://tests/scene_parser_smoke.gd
           run_godot_test res://tests/timeline_engine_test.gd
           run_godot_test res://tests/project_store_test.gd
+          run_godot_test res://tests/project_store_recovery_test.gd
           timeout --signal=TERM --kill-after=10s 30s "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --quit-after 5
       - name: Prepare Android debug signing key
         run: |
