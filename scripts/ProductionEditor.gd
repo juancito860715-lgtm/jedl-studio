@@ -50,9 +50,19 @@ func ensure_unique_surface_material(mesh: MeshInstance3D, surface: int) -> Mater
         last_error = "El índice de superficie está fuera de los límites de la malla."
         return null
 
+    # Reutilizar el clon que este editor ya aisló para esta instancia/superficie.
+    # Así las sucesivas ediciones PBR no reemplazan el material bajo referencias activas.
+    const tracking_meta := "_jedl_unique_surface_material_ids"
+    var tracked_ids: Dictionary = {}
+    if mesh.has_meta(tracking_meta) and mesh.get_meta(tracking_meta) is Dictionary:
+        tracked_ids = mesh.get_meta(tracking_meta)
+    var current_override: Material = mesh.get_surface_override_material(surface)
+    if current_override != null and int(tracked_ids.get(surface, 0)) == current_override.get_instance_id():
+        return current_override
+
     # Resolver el material efectivo respetando la precedencia de Godot:
     # override de superficie, override global de instancia y material de la malla.
-    var source_material: Material = mesh.get_surface_override_material(surface)
+    var source_material: Material = current_override
     if source_material == null:
         source_material = mesh.material_override
     if source_material == null:
@@ -67,6 +77,8 @@ func ensure_unique_surface_material(mesh: MeshInstance3D, surface: int) -> Mater
         return null
 
     mesh.set_surface_override_material(surface, unique_material)
+    tracked_ids[surface] = unique_material.get_instance_id()
+    mesh.set_meta(tracking_meta, tracked_ids)
     return unique_material
 
 
