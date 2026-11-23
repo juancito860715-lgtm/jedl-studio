@@ -32,6 +32,16 @@ func _run_tests() -> void:
     var blank_json := """{"version":2,"characters":[],"objects":[],"elements":[],"subtitles":[],"sounds":[]}"""
     assert(parser.load_scene_text(blank_json), "A blank composition must be a valid starting scene")
     assert(parser.active_instances.is_empty(), "A new blank composition must contain no forced sample character")
+    assert(parser.background_sprite == null, "A new blank composition must not receive an automatic background")
+
+    var optional_background_json := """{"version":2,"characters":[],"objects":[],"elements":[],"subtitles":[],"sounds":[],"background":{"assetId":"background.mossy_forest","fit":"cover"}}"""
+    assert(parser.load_scene_text(optional_background_json), "A user-authored JSON scene must be able to select an optional 2D background by assetId")
+    assert(parser.background_sprite != null, "The selected JSON background must be instantiated")
+    assert(parser.background_sprite.get_parent() == camera, "The background must follow the active camera")
+    assert(parser.background_sprite.position.z < -1.0 and parser.background_sprite.render_priority < 0,
+        "The background must sit behind the 3D scene")
+    assert(parser.load_scene_text(blank_json), "Returning to a blank composition must succeed")
+    assert(parser.background_sprite == null, "Loading a blank composition must clear the previous optional background")
 
     var loaded: bool = parser.load_scene_file("res://scenes/scene.example.json")
     assert(loaded, "Example scene JSON must load")
