@@ -13,6 +13,7 @@ var _playing := false
 var _playback_time := 0.0
 var _next_event := 0
 var _active_animation_players: Array[Dictionary] = []
+var _action_tracks: Array[Dictionary] = []
 var last_error := ""
 
 
@@ -67,7 +68,12 @@ func load_scene_text(source: String) -> bool:
         if typeof(candidate["elements"]) != TYPE_ARRAY or not _instantiate_entries(candidate["elements"]):
             push_error("Scene JSON elements must be an array of scene resources")
             return false
-    _build_timeline()
+    if candidate.has("actions") and typeof(candidate["actions"]) != TYPE_ARRAY:
+        last_error = "El campo actions debe ser una lista []."
+        push_error(last_error)
+        return false
+    if not _build_timeline():
+        return false
     return true
 
 
@@ -127,6 +133,7 @@ func _instantiate_entries(entries: Array) -> bool:
             instance = candidate as Node3D
         instance.name = String(entry.get("name", entry.get("id", resource_path.get_file().get_basename())))
         instance.set_meta("jedl_asset_id", String(entry.get("assetId", entry.get("id", ""))))
+        instance.set_meta("jedl_entry_id", String(entry.get("id", "")))
         instance.set_meta("jedl_layer", String(entry.get("layer", "objects")))
         instance.position = _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
         if entry.has("depth"):
@@ -248,7 +255,45 @@ func _stop_animations() -> void:
             player.stop()
 
 
-func _build_timeline() -> void:
+func _build_timeline() -> bool:
+    _events.clear()
+    _action_tracks.clear()
+    for action_value in scene_data.get("actions", []):
+        if typeof(action_value) != TYPE_DICTIONARY:
+            last_error = "Cada acción debe ser un objeto JSON."
+            push_error(last_error)
+            return false
+        var action: Dictionary = action_value
+        var target_id := String(action.get("target", ""))
+        var property := String(action.get("property", ""))
+        if target_id.is_empty() or property not in ["position", "rotation_degrees", "scale"]:
+            last_error = "Acción inválida: target y property válidos son obligatorios."
+            push_error(last_error)
+            return false
+        var target_node: Node3D
+        for instance in active_instances:
+            if String(instance.get_meta("jedl_entry_id", "")) == target_id or String(instance.get_meta("jedl_asset_id", "")) == target_id or instance.name == target_id:
+                target_node = instance
+                break
+        if target_node == null:
+            last_error = "La acción referencia un elemento inexistente: " + target_id
+            push_error(last_error)
+            return false
+        var start_time := float(action.get("time", 0.0))
+        var duration := float(action.get("duration", 0.0))
+        var destination_value: Variant = action.get("to", null)
+        if start_time < 0.0 or duration <= 0.0 or typeof(destination_value) != TYPE_ARRAY or destination_value.size() != 3:
+            last_error = "Acción inválida: time >= 0, duration > 0 y to=[x,y,z] son obligatorios."
+            push_error(last_error)
+            return false
+        var origin := _get_transform_vector(target_node, property)
+        var destination := _vector3_from(destination_value)
+        if property == "scale" and (destination.x == 0.0 or destination.y == 0.0 or destination.z == 0.0):
+            last_error = "Una acción no puede establecer escala cero."
+            push_error(last_error)
+            return false
+        _action_tracks.append({"target": target_node, "property": property, "start": start_time, "duration": duration, "from": origin, "to": destination})
+        _events.append({"time": start_time + duration, "kind": "action_end"})
     for subtitle_value in scene_data.get("subtitles", []):
         if typeof(subtitle_value) != TYPE_DICTIONARY:
             continue
@@ -269,12 +314,17 @@ func _build_timeline() -> void:
     _events.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
         return float(a["time"]) < float(b["time"])
     )
+    return true
 
 
 func play_scene() -> void:
     _restart_animations()
     _playback_time = 0.0
     _next_event = 0
+    for track in _action_tracks:
+        var target := track["target"] as Node3D
+        if is_instance_valid(target):
+            _set_transform_vector(target, String(track["property"]), track["from"])
     _playing = true
     if subtitle_label != null:
         subtitle_label.text = ""
@@ -291,6 +341,7 @@ func _process(delta: float) -> void:
     if not _playing:
         return
     _playback_time += delta
+    _update_action_tracks()
     while _next_event < _events.size() and float(_events[_next_event]["time"]) <= _playback_time:
         _dispatch_event(_events[_next_event])
         _next_event += 1
@@ -313,6 +364,35 @@ func _dispatch_event(event: Dictionary) -> void:
                 audio_player.stream = stream
                 audio_player.play()
 
+func _get_transform_vector(target: Node3D, property: String) -> Vector3:
+    if property == "position":
+        return target.position
+    if property == "rotation_degrees":
+        return target.rotation_degrees
+    return target.scale
+
+
+func _set_transform_vector(target: Node3D, property: String, value: Vector3) -> void:
+    if property == "position":
+        target.position = value
+    elif property == "rotation_degrees":
+        target.rotation_degrees = value
+    elif property == "scale":
+        target.scale = value
+
+
+func _update_action_tracks() -> void:
+    for track in _action_tracks:
+        var target := track["target"] as Node3D
+        if not is_instance_valid(target):
+            continue
+        var elapsed := _playback_time - float(track["start"])
+        if elapsed < 0.0:
+            continue
+        var weight := clampf(elapsed / float(track["duration"]), 0.0, 1.0)
+        var origin: Vector3 = track["from"]
+        var destination: Vector3 = track["to"]
+        _set_transform_vector(target, String(track["property"]), origin.lerp(destination, weight))
 
 func _clear_instances() -> void:
     for instance in active_instances:
@@ -320,3 +400,4 @@ func _clear_instances() -> void:
             instance.queue_free()
     active_instances.clear()
     _active_animation_players.clear()
+    _action_tracks.clear()
