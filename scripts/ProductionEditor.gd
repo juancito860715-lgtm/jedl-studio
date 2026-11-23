@@ -1,6 +1,8 @@
 extends Node
 class_name ProductionEditor
 
+const UNIQUE_SURFACE_MATERIAL_META := "_jedl_unique_surface_material_ids"
+
 signal selection_changed(node: Node3D)
 signal transform_changed(node: Node3D)
 signal material_changed(node: Node3D)
@@ -52,10 +54,9 @@ func ensure_unique_surface_material(mesh: MeshInstance3D, surface: int) -> Mater
 
     # Reutilizar el clon que este editor ya aisló para esta instancia/superficie.
     # Así las sucesivas ediciones PBR no reemplazan el material bajo referencias activas.
-    const tracking_meta := "_jedl_unique_surface_material_ids"
     var tracked_ids: Dictionary = {}
-    if mesh.has_meta(tracking_meta) and mesh.get_meta(tracking_meta) is Dictionary:
-        tracked_ids = mesh.get_meta(tracking_meta)
+    if mesh.has_meta(UNIQUE_SURFACE_MATERIAL_META) and mesh.get_meta(UNIQUE_SURFACE_MATERIAL_META) is Dictionary:
+        tracked_ids = mesh.get_meta(UNIQUE_SURFACE_MATERIAL_META)
     var current_override: Material = mesh.get_surface_override_material(surface)
     if current_override != null and int(tracked_ids.get(surface, 0)) == current_override.get_instance_id():
         return current_override
@@ -78,7 +79,7 @@ func ensure_unique_surface_material(mesh: MeshInstance3D, surface: int) -> Mater
 
     mesh.set_surface_override_material(surface, unique_material)
     tracked_ids[surface] = unique_material.get_instance_id()
-    mesh.set_meta(tracking_meta, tracked_ids)
+    mesh.set_meta(UNIQUE_SURFACE_MATERIAL_META, tracked_ids)
     return unique_material
 
 
