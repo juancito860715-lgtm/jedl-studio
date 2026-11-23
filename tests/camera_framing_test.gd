@@ -60,6 +60,22 @@ func _run_test() -> void:
 	var inserted_sprite = main.scene_parser.active_instances.back()
 	assert(inserted_sprite is Sprite2D and inserted_sprite.get_parent() == main.canvas_2d_root, "Inserted gallery PNG must enter the independent 2D canvas")
 	assert(main.scene_parser.scene_data["elements"].size() == 3, "Inserted 2D resource identity and transform must be recorded in the project scene")
+	main._save_project()
+	var saved_timeline: Dictionary = main.scene_parser.timeline_engine.to_dictionary()
+	assert(not saved_timeline.is_empty(), "Edited animation must be serialized with the project")
+	assert(main.scene_parser.timeline_engine.delete_keyframe("leaf_demo", "position", 0.0), "Test mutation must change the in-memory animation")
+	main._open_saved_project()
+	assert(main.scene_parser.active_instances.size() == 4, "Opening a saved project must restore both 2D and 3D scene resources")
+	assert(main.scene_parser.timeline_engine.to_dictionary() == saved_timeline, "Project reopen must restore the edited timeline exactly")
+	var restored_leaf: Sprite2D
+	for scene_instance in main.scene_parser.active_instances:
+		if String(scene_instance.get_meta("jedl_entry_id", "")) == "leaf_demo":
+			restored_leaf = scene_instance as Sprite2D
+	assert(restored_leaf != null, "Reopened project must restore the original 2D resource identity")
+	main.scene_parser.timeline_engine.seek(0.0)
+	assert(restored_leaf.position.is_equal_approx(Vector2(100.0, -50.0)), "Reopened project must reproduce the saved 2D position")
+	assert(is_equal_approx(restored_leaf.rotation_degrees, 30.0), "Reopened project must reproduce the saved 2D rotation")
+	assert(restored_leaf.scale.is_equal_approx(Vector2(0.5, 0.75)), "Reopened project must reproduce the saved 2D scale")
 	assert(main.timeline_tracks_list.get_child_count() == 2, "Timeline editor must display one visible row for each animated property")
 	assert(main.timeline_tracks_list.get_child(0).get_child_count() == 4, "Position track must expose its three selectable keyframe markers")
 	main.scene_parser.timeline_engine.seek(1.25)
