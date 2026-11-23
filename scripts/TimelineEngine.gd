@@ -17,7 +17,7 @@ var loop_enabled := false
 var last_error := ""
 
 
-func register_target(target_id: String, target: Node3D) -> bool:
+func register_target(target_id: String, target: Node) -> bool:
 	if target_id.strip_edges().is_empty() or target == null:
 		return false
 	_targets[target_id] = target
@@ -350,25 +350,48 @@ func _vector_to_array(value: Vector3) -> Array:
 	return [value.x, value.y, value.z]
 
 
-func _read_property(target: Node3D, property_name: String) -> Vector3:
-	match property_name:
-		"position":
-			return target.position
-		"rotation_degrees":
-			return target.rotation_degrees
-		"scale":
-			return target.scale
+func _read_property(target: Node, property_name: String) -> Vector3:
+	if target is Node2D:
+		var canvas_target := target as Node2D
+		match property_name:
+			"position":
+				return Vector3(canvas_target.position.x / 100.0, -canvas_target.position.y / 100.0, 0.0)
+			"rotation_degrees":
+				return Vector3(0.0, 0.0, canvas_target.rotation_degrees)
+			"scale":
+				return Vector3(canvas_target.scale.x / 0.01, canvas_target.scale.y / 0.01, 1.0)
+	if target is Node3D:
+		var stage_target := target as Node3D
+		match property_name:
+			"position":
+				return stage_target.position
+			"rotation_degrees":
+				return stage_target.rotation_degrees
+			"scale":
+				return stage_target.scale
 	return Vector3.ZERO
 
 
-func _write_property(target: Node3D, property_name: String, value: Vector3) -> void:
-	match property_name:
-		"position":
-			target.position = value
-		"rotation_degrees":
-			target.rotation_degrees = value
-		"scale":
-			target.scale = value
+func _write_property(target: Node, property_name: String, value: Vector3) -> void:
+	if target is Node2D:
+		var canvas_target := target as Node2D
+		match property_name:
+			"position":
+				canvas_target.position = Vector2(value.x * 100.0, -value.y * 100.0)
+			"rotation_degrees":
+				canvas_target.rotation_degrees = value.z
+			"scale":
+				canvas_target.scale = Vector2(value.x * 0.01, value.y * 0.01)
+		return
+	if target is Node3D:
+		var stage_target := target as Node3D
+		match property_name:
+			"position":
+				stage_target.position = value
+			"rotation_degrees":
+				stage_target.rotation_degrees = value
+			"scale":
+				stage_target.scale = value
 
 
 func _apply_at(time_seconds: float) -> void:
@@ -376,8 +399,8 @@ func _apply_at(time_seconds: float) -> void:
 		var target_id := String(track["target_id"])
 		if not _targets.has(target_id):
 			continue
-		var target := _targets[target_id] as Node3D
-		if not is_instance_valid(target):
+		var target := _targets[target_id] as Node
+		if not is_instance_valid(target) or not (target is Node3D or target is Node2D):
 			continue
 		var keys: Array = track["keyframes"]
 		if keys.is_empty():
