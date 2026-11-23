@@ -115,6 +115,12 @@ jobs:
           run_godot_test res://tests/timeline_engine_test.gd
           run_godot_test res://tests/project_store_test.gd
           run_godot_test res://tests/project_store_recovery_test.gd
+          run_godot_test res://tests/touch_selection_test.gd
+          run_godot_test res://tests/transform_gesture_test.gd
+          run_godot_test res://tests/appearance_test.gd
+          run_godot_test res://tests/rig_pose_test.gd
+          run_godot_test res://tests/style_test.gd
+          run_godot_test res://tests/hito2_compatibility_test.gd
           timeout --signal=TERM --kill-after=10s 30s "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --quit-after 5
       - name: Prepare Android debug signing key
         run: |
