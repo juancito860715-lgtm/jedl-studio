@@ -15,6 +15,8 @@ func _run() -> void:
 	_clean()
 	_test_temp_write_failure_keeps_original()
 	_test_replace_failure_keeps_original()
+	_test_new_project_final_rename_failure_reports_error()
+	_test_whitespace_document_is_rejected()
 	_test_interrupted_save_recovers_last_valid_version()
 	_test_truncated_main_is_not_loaded_and_backup_can_be_restored()
 	_test_restore_without_valid_backup_changes_nothing()
@@ -27,7 +29,7 @@ func _run() -> void:
 	_test_corrupt_diagnostics_never_overwrite_each_other()
 	_clean()
 	if _failures.is_empty():
-		print("PROJECT_STORE_RECOVERY_TEST_OK (12 tests)")
+		print("PROJECT_STORE_RECOVERY_TEST_OK (14 tests)")
 		quit(0)
 	else:
 		for failure in _failures:
@@ -52,6 +54,20 @@ func _test_replace_failure_keeps_original() -> void:
 	ProjectStoreScript.simulate_rename_failure = false
 	_check(ProjectStoreScript.load_project("recovery_a").get("title", "") == "Original", "Original remains readable after rename failure")
 	_clean()
+
+
+func _test_new_project_final_rename_failure_reports_error() -> void:
+	_clean()
+	ProjectStoreScript.simulate_final_rename_failure = true
+	_check(not ProjectStoreScript.save_project("recovery_a", "Nuevo", _sample_scene("n"), _sample_timeline()), "Final rename failure on a new project must report failure")
+	ProjectStoreScript.simulate_final_rename_failure = false
+	_check(not FileAccess.file_exists(_path("recovery_a", "json")), "No partial file may remain after a failed first save")
+	_check(not FileAccess.file_exists(_path("recovery_a", "json.tmp")), "Temporary file is removed after failed first save")
+	_clean()
+
+
+func _test_whitespace_document_is_rejected() -> void:
+	_check(ProjectStoreScript._read_document_from_text("   \n\t  ", "recovery_a").is_empty(), "Whitespace-only project document is rejected")
 
 
 func _test_interrupted_save_recovers_last_valid_version() -> void:
@@ -173,6 +189,7 @@ func _test_corrupt_diagnostics_never_overwrite_each_other() -> void:
 
 func _clean() -> void:
 	ProjectStoreScript.simulate_rename_failure = false
+	ProjectStoreScript.simulate_final_rename_failure = false
 	# get_files_at() does not enumerate directories. The temp-write failure
 	# test deliberately creates recovery_a.json.tmp as a directory, so clean
 	# both files and directories to keep every test isolated.
