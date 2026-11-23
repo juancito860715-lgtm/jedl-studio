@@ -3,6 +3,7 @@ class_name SceneParser
 
 var world_root: Node3D
 var camera: Camera3D
+var background_sprite: Sprite3D
 var subtitle_label: Control
 var audio_player: AudioStreamPlayer
 var catalog_manager: Node
@@ -69,6 +70,35 @@ func load_scene_text(source: String) -> bool:
         push_error(last_error)
         return false
 
+    # El fondo es opcional: una composición nueva no recibe uno automáticamente.
+    # Se prepara fuera del árbol y solo sustituye al anterior si toda la escena valida.
+    var background_candidate: Sprite3D = null
+    var background_value: Variant = candidate.get("background", {})
+    if background_value is Dictionary and not background_value.is_empty():
+        var resolved_background: Dictionary = _resolve_scene_entry(background_value)
+        if resolved_background.is_empty():
+            return false
+        if String(resolved_background.get("kind", "2d")) != "2d":
+            last_error = "El recurso indicado como fondo debe ser un recurso 2D."
+            push_error(last_error)
+            return false
+        var background_path := String(resolved_background.get("path", ""))
+        background_candidate = _create_background_sprite(background_path)
+        if background_candidate == null:
+            return false
+        background_candidate.set_meta(
+            "jedl_asset_id",
+            String(resolved_background.get("assetId", resolved_background.get("id", "")))
+        )
+    elif background_value is String and not String(background_value).is_empty():
+        background_candidate = _create_background_sprite(String(background_value))
+        if background_candidate == null:
+            return false
+    elif not (background_value is Dictionary or background_value is String):
+        last_error = "El campo background debe ser un objeto, una ruta o estar ausente."
+        push_error(last_error)
+        return false
+
     var previous_scene_data := scene_data
     var previous_instances := active_instances.duplicate()
     var previous_events := _events.duplicate(true)
@@ -107,6 +137,8 @@ func load_scene_text(source: String) -> bool:
     if not valid:
         if last_error.is_empty():
             last_error = "No se pudo construir la escena candidata."
+        if background_candidate != null:
+            background_candidate.free()
         staging_root.queue_free()
         world_root = committed_root
         scene_data = previous_scene_data
@@ -127,6 +159,13 @@ func load_scene_text(source: String) -> bool:
         committed_root.add_child(child)
     staging_root.queue_free()
     world_root = committed_root
+
+    clear_background()
+    if background_candidate != null and camera != null:
+        background_sprite = background_candidate
+        camera.add_child(background_sprite)
+        camera.far = maxf(camera.far, 200.0)
+        _fit_background_to_camera()
 
     for old_instance in previous_instances:
         if is_instance_valid(old_instance):
@@ -231,13 +270,75 @@ func _create_2d_element(texture: Texture2D, entry: Dictionary = {}) -> Sprite3D:
     return sprite
 
 
-func add_catalog_asset(resource_path: String, asset_id: String = "") -> bool:
+func clear_background() -> void:
+    if background_sprite != null and is_instance_valid(background_sprite):
+        background_sprite.queue_free()
+    background_sprite = null
+
+
+func _create_background_sprite(resource_path: String) -> Sprite3D:
+    if camera == null or resource_path.is_empty():
+        last_error = "Se necesita una cámara y una ruta de fondo válida."
+        push_error(last_error)
+        return null
+    var texture := load(resource_path) as Texture2D
+    if texture == null:
+        last_error = "No se pudo cargar la textura de fondo: " + resource_path
+        push_error(last_error)
+        return null
+    var sprite := Sprite3D.new()
+    sprite.name = "SceneBackground"
+    sprite.texture = texture
+    sprite.billboard = BaseMaterial3D.BILLBOARD_DISABLED
+    sprite.pixel_size = 1.0
+    sprite.position = Vector3(0.0, 0.0, -80.0)
+    sprite.render_priority = -10
+    sprite.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+    var material := StandardMaterial3D.new()
+    material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+    material.cull_mode = BaseMaterial3D.CULL_DISABLED
+    material.albedo_texture = texture
+    sprite.material_override = material
+    return sprite
+
+
+func set_background(resource_path: String) -> bool:
+    var candidate := _create_background_sprite(resource_path)
+    if candidate == null:
+        return false
+    clear_background()
+    background_sprite = candidate
+    camera.add_child(background_sprite)
+    camera.far = maxf(camera.far, 200.0)
+    _fit_background_to_camera()
+    return true
+
+
+func _fit_background_to_camera() -> void:
+    if camera == null or background_sprite == null or background_sprite.texture == null:
+        return
+    var distance := absf(background_sprite.position.z)
+    var viewport_size := get_viewport().get_visible_rect().size
+    var aspect := viewport_size.x / maxf(viewport_size.y, 1.0)
+    var height := 2.0 * distance * tan(deg_to_rad(camera.fov) * 0.5)
+    var width := height * aspect
+    var texture_size := background_sprite.texture.get_size()
+    var cover_scale := maxf(width / maxf(texture_size.x, 1.0), height / maxf(texture_size.y, 1.0))
+    background_sprite.scale = Vector3(cover_scale, cover_scale, 1.0)
+
+
+func add_catalog_asset(resource_path: String, asset_id: String = "", as_background: bool = false) -> bool:
     if world_root == null or resource_path.is_empty():
         return false
 
     var extension := resource_path.get_extension().to_lower()
     var instance: Node3D
     if extension in ["png", "jpg", "jpeg", "webp"]:
+        if as_background:
+            if not set_background(resource_path):
+                return false
+            background_sprite.set_meta("jedl_asset_id", asset_id)
+            return true
         var texture := load(resource_path) as Texture2D
         if texture == null:
             return false
