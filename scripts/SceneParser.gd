@@ -304,15 +304,6 @@ func _configure_animation_loop(animation: Animation, should_loop: bool) -> void:
     animation.loop_mode = Animation.LOOP_LINEAR if should_loop else Animation.LOOP_NONE
 
 
-func _restart_animations() -> void:
-    for item in _active_animation_players:
-        var player := item.get("player") as AnimationPlayer
-        var animation_name := String(item.get("name", ""))
-        if is_instance_valid(player) and player.has_animation(animation_name):
-            player.play(animation_name)
-            player.seek(0.0, true)
-
-
 func _stop_animations() -> void:
     for item in _active_animation_players:
         var player := item.get("player") as AnimationPlayer
@@ -576,8 +567,9 @@ func stop_scene() -> void:
     _playing = false
     _playback_paused = false
     set_process(false)
-    if _timeline_player != null:
-        _timeline_player.stop()
+    if _timeline_player != null and _timeline_player.has_animation(_timeline_animation_name):
+        _timeline_player.play(_timeline_animation_name)
+        _timeline_player.pause()
         _timeline_player.seek(0.0, true)
     _stop_animations()
     _playback_time = 0.0
@@ -639,12 +631,6 @@ func _restart_animations() -> void:
             player.play(animation_name)
             player.seek(0.0, true)
 
-
-func _stop_animations() -> void:
-    for item in _active_animation_players:
-        var player := item.get("player") as AnimationPlayer
-        if is_instance_valid(player):
-            player.stop()
 
 func _clear_instances() -> void:
     for instance in active_instances:
