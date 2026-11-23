@@ -31,6 +31,32 @@ func _run_test() -> void:
 	main._load_example_scene()
 	assert(main.scene_parser.active_instances.size() == 3, "Example scene must load its local character and 2D sprites")
 	assert(main.scene_parser.timeline_engine.get_keyframe_count() == 6, "Example JSON must use the shared timeline")
+
+	var missing_document := {
+		"version": 2,
+		"characters": [{"id": "missing_actor", "assetId": "character.not.available", "category": "Personajes 3D"}],
+		"objects": [],
+		"elements": [],
+		"subtitles": [],
+		"sounds": [],
+		"actions": []
+	}
+	main.json_editor.text = JSON.stringify(missing_document)
+	main._validate_and_load_json()
+	assert(main.missing_alternative_button.visible, "Missing resource must offer an explicit same-category alternative")
+	main._cancel_missing_resource()
+	assert(main.scene_parser.active_instances.size() == 3, "Cancel must restore the previously loaded scene")
+
+	main.json_editor.text = JSON.stringify(missing_document)
+	main._validate_and_load_json()
+	main._choose_missing_alternative()
+	assert(main.gallery_panel.visible, "Alternative choice must open the matching gallery")
+	var alternative: Dictionary = main.catalog_manager.resolve_asset_id("character.jedl.starter.v1")
+	main._add_gallery_asset(String(alternative["path"]), false, "character.jedl.starter.v1")
+	assert(main.scene_parser.active_instances.size() == 1, "Choosing an alternative must reload the scene with that resource")
+	var repaired: Dictionary = JSON.parse_string(main.json_editor.text)
+	assert(repaired["characters"][0]["assetId"] == "character.jedl.starter.v1", "Alternative choice must replace the missing assetId explicitly")
+
 	main._show_json_editor()
 	assert(main.json_panel.visible, "JSON editor must open")
 	assert(JSON.parse_string(main.json_editor.text)["characters"].is_empty(), "New project JSON editor must begin with a blank scene")
