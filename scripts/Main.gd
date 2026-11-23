@@ -698,7 +698,7 @@ func _edit_manual_keyframe() -> void:
     if scene_parser == null or timeline_target_option.item_count == 0:
         return
     var target_id := String(timeline_target_option.get_item_metadata(timeline_target_option.selected))
-    var property_name := ["position", "rotation_degrees", "scale"][timeline_property_option.selected]
+    var property_name: String = String(["position", "rotation_degrees", "scale"][timeline_property_option.selected])
     var value := Vector3(timeline_value_spins[0].value, timeline_value_spins[1].value, timeline_value_spins[2].value)
     var engine = scene_parser.timeline_engine
     if engine.edit_keyframe(target_id, property_name, timeline_time_spin.value, value):
@@ -711,7 +711,7 @@ func _move_manual_keyframe() -> void:
     if scene_parser == null or timeline_target_option.item_count == 0:
         return
     var target_id := String(timeline_target_option.get_item_metadata(timeline_target_option.selected))
-    var property_name := ["position", "rotation_degrees", "scale"][timeline_property_option.selected]
+    var property_name: String = String(["position", "rotation_degrees", "scale"][timeline_property_option.selected])
     var engine = scene_parser.timeline_engine
     if engine.move_keyframe(target_id, property_name, timeline_old_time_spin.value, timeline_time_spin.value):
         timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
@@ -724,7 +724,7 @@ func _delete_manual_keyframe() -> void:
     if scene_parser == null or timeline_target_option.item_count == 0:
         return
     var target_id := String(timeline_target_option.get_item_metadata(timeline_target_option.selected))
-    var property_name := ["position", "rotation_degrees", "scale"][timeline_property_option.selected]
+    var property_name: String = String(["position", "rotation_degrees", "scale"][timeline_property_option.selected])
     var engine = scene_parser.timeline_engine
     if engine.delete_keyframe(target_id, property_name, timeline_time_spin.value):
         timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
