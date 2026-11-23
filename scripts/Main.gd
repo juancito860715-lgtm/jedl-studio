@@ -35,8 +35,8 @@ var timeline_status: Label
 var pending_scene_backup: Dictionary = {}
 var choosing_missing_alternative := false
 var overlay_screen: Control
-var editor_2d_panel: PanelContainer
-var gesture_controller: RefCounted
+var editor_2d_panel: Editor2DPanel
+var gesture_controller: TouchGestureController
 var selected_2d_node: Node2D
 
 
