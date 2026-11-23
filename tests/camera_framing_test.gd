@@ -1,6 +1,7 @@
 extends SceneTree
 
 const MainScene = preload("res://Main.tscn")
+const ProjectStoreScript = preload("res://scripts/ProjectStore.gd")
 
 
 func _initialize() -> void:
@@ -116,5 +117,8 @@ func _run_test() -> void:
 	main._play_scene()
 	assert(main.scene_parser.active_instances.is_empty(), "Play must not silently load a demo into a blank project")
 	main.queue_free()
+	for project_path in ["user://projects/current.json", "user://projects/current.backup.json", "user://projects/current.json.old", "user://projects/current.json.tmp"]:
+		if FileAccess.file_exists(project_path):
+			DirAccess.remove_absolute(ProjectSettings.globalize_path(project_path))
 	print("CAMERA_FRAMING_TEST_OK")
 	quit(0)
