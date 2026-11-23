@@ -44,6 +44,20 @@ func _initialize() -> void:
 	controller.sync_scene_entry(scene_entry, target)
 	if not _check(scene_entry.has("position") and scene_entry.has("scale") and scene_entry.has("rotation_degrees"), "gesture transforms must persist to scene data"):
 		return
+	var scaled_target := Node2D.new()
+	var scaled_controller = gesture_script.new()
+	scaled_controller.coordinate_transform = Transform2D(Vector2(0.5,0), Vector2(0,0.5), Vector2.ZERO)
+	var scaled_touch := InputEventScreenTouch.new()
+	scaled_touch.index = 0
+	scaled_touch.position = Vector2(10,10)
+	scaled_touch.pressed = true
+	scaled_controller.handle_event(scaled_touch, scaled_target)
+	var scaled_drag := InputEventScreenDrag.new()
+	scaled_drag.index = 0
+	scaled_drag.position = Vector2(20,15)
+	scaled_controller.handle_event(scaled_drag, scaled_target)
+	if not _check(scaled_target.position.is_equal_approx(Vector2(5,2.5)), "gesture positions must convert from viewport to canvas-local coordinates"):
+		return
 	print("TRANSFORM_GESTURE_TEST_OK")
 	quit(0)
 

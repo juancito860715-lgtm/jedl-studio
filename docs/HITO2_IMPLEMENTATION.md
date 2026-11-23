@@ -29,3 +29,11 @@ Editor táctil 2D, selección geométrica, transformación con uno/dos dedos, pe
 
 
 Validación incremental: las pruebas de pose también verifican serialización y restauración de pistas sobre targets re-registrados; los gestos convierten coordenadas de pantalla al espacio local del lienzo.
+
+## APIs oficiales verificadas (Godot 4.4)
+- [InputEventScreenTouch](https://docs.godotengine.org/en/4.4/classes/class_inputeventscreentouch.html): `index`, `position`, `pressed`.
+- [InputEventScreenDrag](https://docs.godotengine.org/en/4.4/classes/class_inputeventscreendrag.html): `index`, `position`, `relative`, `screen_relative`.
+- [Node2D](https://docs.godotengine.org/en/4.4/classes/class_node2d.html): transformaciones, `rotation_degrees`, `to_local`, `to_global`.
+- [CanvasItem](https://docs.godotengine.org/en/4.4/classes/class_canvasitem.html): `modulate`, `make_canvas_position_local`, `get_global_transform_with_canvas`.
+- [Sprite2D](https://docs.godotengine.org/en/4.4/classes/class_sprite2d.html): `texture`, `get_rect()`.
+- [Polygon2D](https://docs.godotengine.org/en/4.4/classes/class_polygon2d.html), [Marker2D](https://docs.godotengine.org/en/4.4/classes/class_marker2d.html), [Dictionary](https://docs.godotengine.org/en/4.4/classes/class_dictionary.html), [JSON](https://docs.godotengine.org/en/4.4/classes/class_json.html) y [Transform2D](https://docs.godotengine.org/en/4.4/classes/class_transform2d.html): geometría, pivotes, datos, serialización y conversión de coordenadas.

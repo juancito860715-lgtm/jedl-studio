@@ -341,7 +341,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _update_gesture_coordinate_transform() -> void:
 	if canvas_2d_root == null or gesture_controller == null:
 		return
-	var canvas_transform: Transform2D = canvas_2d_root.global_transform
+	var canvas_transform: Transform2D = canvas_2d_root.get_global_transform_with_canvas()
 	if absf(canvas_transform.determinant()) > 0.000001:
 		gesture_controller.coordinate_transform = canvas_transform.affine_inverse()
 	else:
@@ -351,7 +351,7 @@ func _update_gesture_coordinate_transform() -> void:
 func _select_2d_node_at(viewport_position: Vector2) -> Node2D:
 	if canvas_2d_root == null:
 		return null
-	var local_position := canvas_2d_root.to_local(viewport_position)
+	var local_position := canvas_2d_root.make_canvas_position_local(viewport_position)
 	var items: Array = []
 	var nodes_by_id: Dictionary = {}
 	var draw_order := 0
