@@ -18,7 +18,12 @@ func _run_tests() -> void:
     assert(not resolved_fox.is_empty(), "Animated 3D character assetId must resolve through the root manifest")
 
     var entries_2d: Array[Dictionary] = manager.scan_catalog("2d")
-    assert(entries_2d.is_empty(), "The catalog must not contain photographic backgrounds or other 2D backplates")
+    assert(entries_2d.size() == 12, "The catalog must retain the twelve curated optional photographic backgrounds")
+    for background in entries_2d:
+        assert(String(background.get("category", "")) == "Fondos fotográficos",
+            "Every selected full-frame 2D image must be classified as a background")
+        assert(String(background.get("path", "")).to_lower().ends_with(".jpg"),
+            "Photographic backgrounds must be packaged as JPEG files")
 
     var models: Array[Dictionary] = manager.scan_catalog("3d")
     assert(models.size() >= 12, "The 3D gallery must expose the curated core models and animated Fox")
@@ -42,6 +47,14 @@ func _run_tests() -> void:
     parser.world_root = world
     parser.catalog_manager = manager
     parser.camera = camera
+    var selected_background: Dictionary = entries_2d[0]
+    assert(parser.add_catalog_asset(
+        String(selected_background["path"]), String(selected_background["id"]), true
+    ), "A user-selected 2D photograph must be placeable as an optional camera background")
+    assert(parser.background_sprite != null and parser.background_sprite.get_parent() == camera,
+        "A selected background must remain attached to the camera behind the 3D scene")
+    assert(parser.background_sprite.render_priority < 0,
+        "The background must render behind ordinary scene objects")
     assert(parser.add_catalog_asset(String(models[0]["path"]), String(models[0]["id"])),
         "The scene engine must place a selected realistic 3D model")
     assert(parser.active_instances.size() == 1 and parser.active_instances.back() is Node3D,
