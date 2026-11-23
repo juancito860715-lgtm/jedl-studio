@@ -30,7 +30,12 @@ func _run_test() -> void:
 	assert(main.gallery_list.get_child_count() == 1, "3D gallery must show the local starter character")
 	main._load_example_scene()
 	assert(main.scene_parser.active_instances.size() == 3, "Example scene must load its local character and 2D sprites")
-	assert(main.scene_parser.timeline_engine.get_keyframe_count() == 6, "Example JSON must use the shared timeline")
+	assert(main.scene_parser.timeline_engine.get_keyframe_count() == 5, "Example JSON must use the shared timeline")
+	assert(main.timeline_tracks_list.get_child_count() == 2, "Timeline editor must display one visible row for each animated property")
+	assert(main.timeline_tracks_list.get_child(0).get_child_count() == 4, "Position track must expose its three selectable keyframe markers")
+	main.scene_parser.timeline_engine.seek(1.25)
+	assert(is_equal_approx(main.timeline_slider.value, 1.25), "Timeline slider must follow playback-engine playhead changes")
+	assert(is_equal_approx(main.timeline_time_spin.value, 1.25), "Timeline time field must follow playback-engine playhead changes")
 
 	var missing_document := {
 		"version": 2,
