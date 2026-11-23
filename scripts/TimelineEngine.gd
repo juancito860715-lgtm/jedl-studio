@@ -226,6 +226,13 @@ func get_keyframe_count() -> int:
 	return total
 
 
+func get_tracks_snapshot() -> Array[Dictionary]:
+	var snapshot: Array[Dictionary] = []
+	for track in _tracks:
+		snapshot.append(track.duplicate(true))
+	return snapshot
+
+
 func to_dictionary() -> Dictionary:
 	var output_tracks: Array[Dictionary] = []
 	for track in _tracks:
