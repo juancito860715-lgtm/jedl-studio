@@ -1,6 +1,8 @@
 extends Node
 class_name SceneParser
 
+const TimelineEngineScript = preload("res://scripts/TimelineEngine.gd")
+
 var world_root: Node3D
 var camera: Camera3D
 var background_sprite: Sprite3D
@@ -15,6 +17,15 @@ var _playback_time := 0.0
 var _next_event := 0
 var _active_animation_players: Array[Dictionary] = []
 var last_error := ""
+var timeline_engine: Node
+var last_missing_kind := "3d"
+var last_missing_category := "Personajes 3D"
+
+
+func _ready() -> void:
+	timeline_engine = TimelineEngineScript.new()
+	timeline_engine.name = "TimelineEngine"
+	add_child(timeline_engine)
 
 
 func load_scene_file(path: String) -> bool:
@@ -77,30 +88,40 @@ func load_scene_text(source: String) -> bool:
     elif background_data is String and not background_data.is_empty():
         if not set_background(background_data):
             return false
-    if not _instantiate_entries(scene_data["characters"]):
+    if not _instantiate_entries(scene_data["characters"], "3d"):
         if last_error.is_empty(): last_error = "No se pudieron crear los personajes. Revisa sus assetId y rutas."
         return false
-    if not _instantiate_entries(scene_data["objects"]):
+    if not _instantiate_entries(scene_data["objects"], "3d"):
         if last_error.is_empty(): last_error = "No se pudieron crear los objetos. Revisa sus assetId y rutas."
         return false
     if candidate.has("elements"):
-        if typeof(candidate["elements"]) != TYPE_ARRAY or not _instantiate_entries(candidate["elements"]):
+        if typeof(candidate["elements"]) != TYPE_ARRAY or not _instantiate_entries(candidate["elements"], "2d"):
             push_error("Scene JSON elements must be an array of scene resources")
             return false
-    _build_timeline()
+    if not _build_timeline():
+        return false
     return true
 
 
-func _resolve_scene_entry(raw_entry: Dictionary) -> Dictionary:
+func _resolve_scene_entry(raw_entry: Dictionary, expected_kind: String = "3d") -> Dictionary:
     var entry := raw_entry.duplicate(true)
     var asset_id := String(entry.get("assetId", ""))
     if asset_id.is_empty():
         return entry
     if catalog_manager == null:
-        push_error("Scene entry requires CatalogManager for assetId: " + asset_id)
+        last_missing_kind = String(entry.get("kind", expected_kind))
+        last_missing_category = String(entry.get("category", ""))
+        if last_missing_category.is_empty():
+            last_missing_category = "Personajes 3D" if last_missing_kind == "3d" else "Elementos 2D"
+        last_error = "No existe un catálogo disponible para resolver el recurso: " + asset_id
+        push_error(last_error)
         return {}
     var resolved: Dictionary = catalog_manager.resolve_asset_id(asset_id)
     if resolved.is_empty():
+        last_missing_kind = String(entry.get("kind", expected_kind))
+        last_missing_category = String(entry.get("category", ""))
+        if last_missing_category.is_empty():
+            last_missing_category = "Personajes 3D" if last_missing_kind == "3d" else "Elementos 2D"
         last_error = "No existe en el inventario el assetId: " + asset_id
         push_error(last_error)
         return {}
@@ -110,12 +131,12 @@ func _resolve_scene_entry(raw_entry: Dictionary) -> Dictionary:
     return entry
 
 
-func _instantiate_entries(entries: Array) -> bool:
+func _instantiate_entries(entries: Array, expected_kind: String = "3d") -> bool:
     for entry_value in entries:
         if typeof(entry_value) != TYPE_DICTIONARY:
             push_error("Scene entry must be an object")
             return false
-        var entry: Dictionary = _resolve_scene_entry(entry_value)
+        var entry: Dictionary = _resolve_scene_entry(entry_value, expected_kind)
         if entry.is_empty():
             return false
         var resource_path := String(entry.get("path", ""))
@@ -146,6 +167,8 @@ func _instantiate_entries(entries: Array) -> bool:
                 return false
             instance = candidate as Node3D
         instance.name = String(entry.get("name", entry.get("id", resource_path.get_file().get_basename())))
+        var entry_id := String(entry.get("id", instance.name))
+        instance.set_meta("jedl_entry_id", entry_id)
         instance.set_meta("jedl_asset_id", String(entry.get("assetId", entry.get("id", ""))))
         instance.set_meta("jedl_layer", String(entry.get("layer", "objects")))
         instance.position = _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
@@ -156,6 +179,8 @@ func _instantiate_entries(entries: Array) -> bool:
         if world_root != null:
             world_root.add_child(instance)
         active_instances.append(instance)
+        if timeline_engine != null:
+            timeline_engine.register_target(entry_id, instance)
         var animation_name := String(entry.get("animation", ""))
         if not animation_name.is_empty():
             var should_loop := bool(entry.get("animation_loop", true))
@@ -258,8 +283,11 @@ func add_catalog_asset(resource_path: String, as_background: bool = true, asset_
     var placement_index := active_instances.size()
     instance.position = Vector3(float(placement_index) * 1.6, 0.0, 0.0)
     instance.set_meta("jedl_asset_id", asset_id)
+    instance.set_meta("jedl_entry_id", asset_id)
     world_root.add_child(instance)
     active_instances.append(instance)
+    if timeline_engine != null:
+        timeline_engine.register_target(asset_id, instance)
     _play_default_animation(instance)
     return true
 
@@ -320,7 +348,7 @@ func _stop_animations() -> void:
             player.stop()
 
 
-func _build_timeline() -> void:
+func _build_timeline() -> bool:
     for subtitle_value in scene_data.get("subtitles", []):
         if typeof(subtitle_value) != TYPE_DICTIONARY:
             continue
@@ -341,10 +369,17 @@ func _build_timeline() -> void:
     _events.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
         return float(a["time"]) < float(b["time"])
     )
+    if timeline_engine != null:
+        if not timeline_engine.compile_json_actions(scene_data.get("actions", [])):
+            last_error = timeline_engine.last_error
+            return false
+    return true
 
 
 func play_scene() -> void:
     _restart_animations()
+    if timeline_engine != null:
+        timeline_engine.play()
     _playback_time = 0.0
     _next_event = 0
     _playing = true
@@ -357,6 +392,27 @@ func stop_scene() -> void:
     _playing = false
     set_process(false)
     _stop_animations()
+    if timeline_engine != null:
+        timeline_engine.stop()
+
+
+func pause_scene() -> void:
+    if timeline_engine != null:
+        timeline_engine.pause()
+    _playing = false
+    set_process(false)
+
+
+func resume_scene() -> void:
+    if timeline_engine != null:
+        timeline_engine.resume()
+    _playing = true
+    set_process(true)
+
+
+func seek_scene(time_seconds: float) -> void:
+    if timeline_engine != null:
+        timeline_engine.seek(time_seconds)
 
 
 func _process(delta: float) -> void:
@@ -392,3 +448,6 @@ func _clear_instances() -> void:
             instance.queue_free()
     active_instances.clear()
     _active_animation_players.clear()
+    if timeline_engine != null:
+        timeline_engine.clear_targets()
+        timeline_engine.clear_timeline()
