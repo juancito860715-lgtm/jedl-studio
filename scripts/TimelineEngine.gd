@@ -70,7 +70,7 @@ func compile_json_actions(actions: Array) -> bool:
 		var track_id := target_id + "|" + property_name
 		if last_end.has(track_id) and start_time < float(last_end[track_id]) - EPSILON:
 			return _fail("Hay acciones solapadas para " + target_id + " / " + property_name)
-		var target := _targets[target_id] as Node3D
+		var target := _targets[target_id] as Node
 		var start_value: Vector3 = last_value[track_id] if last_value.has(track_id) else _read_property(target, property_name)
 		if action.has("from"):
 			var parsed_from: Variant = _vector_from(action["from"])
