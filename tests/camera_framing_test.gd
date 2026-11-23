@@ -57,6 +57,7 @@ func _run_test() -> void:
 	var repaired: Dictionary = JSON.parse_string(main.json_editor.text)
 	assert(repaired["characters"][0]["assetId"] == "character.jedl.starter.v1", "Alternative choice must replace the missing assetId explicitly")
 
+	main.json_editor.text = JSON.stringify(main._blank_scene_document())
 	main._show_json_editor()
 	assert(main.json_panel.visible, "JSON editor must open")
 	assert(JSON.parse_string(main.json_editor.text)["characters"].is_empty(), "New project JSON editor must begin with a blank scene")
