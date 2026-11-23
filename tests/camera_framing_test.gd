@@ -50,6 +50,12 @@ func _run_test() -> void:
 	assert(main.scene_parser.timeline_engine.add_keyframe("leaf_demo", "position", 0.0, Vector3(1.0, 0.5, 0.0)), "2D canvas target must accept a shared-engine position keyframe")
 	main.scene_parser.timeline_engine.seek(0.0)
 	assert(leaf_sprite.position.is_equal_approx(Vector2(100.0, -50.0)), "Shared timeline transforms must map 2D world units to canvas pixels")
+	var gallery_asset: Dictionary = main.catalog_manager.scan_catalog("2d")[0]
+	main._add_gallery_asset(String(gallery_asset["path"]), false, String(gallery_asset["id"]))
+	assert(main.scene_parser.active_instances.size() == 4, "Adding a gallery item must create a separate scene instance")
+	var inserted_sprite = main.scene_parser.active_instances.back()
+	assert(inserted_sprite is Sprite2D and inserted_sprite.get_parent() == main.canvas_2d_root, "Inserted gallery PNG must enter the independent 2D canvas")
+	assert(main.scene_parser.scene_data["elements"].size() == 3, "Inserted 2D resource identity and transform must be recorded in the project scene")
 	assert(main.timeline_tracks_list.get_child_count() == 2, "Timeline editor must display one visible row for each animated property")
 	assert(main.timeline_tracks_list.get_child(0).get_child_count() == 4, "Position track must expose its three selectable keyframe markers")
 	main.scene_parser.timeline_engine.seek(1.25)
@@ -69,7 +75,7 @@ func _run_test() -> void:
 	main._validate_and_load_json()
 	assert(main.missing_alternative_button.visible, "Missing resource must offer an explicit same-category alternative")
 	main._cancel_missing_resource()
-	assert(main.scene_parser.active_instances.size() == 3, "Cancel must restore the previously loaded scene")
+	assert(main.scene_parser.active_instances.size() == 4, "Cancel must restore the previously loaded scene and inserted 2D resource")
 
 	main.json_editor.text = JSON.stringify(missing_document)
 	main._validate_and_load_json()
