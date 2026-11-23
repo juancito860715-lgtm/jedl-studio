@@ -6,8 +6,8 @@ JEDL Studio is a local-first Android production workspace built on Godot 4.4.1 a
 
 - `Main.tscn`: 3D stage, camera, lighting and runtime UI.
 - `scripts/CatalogManager.gd`: validates the checked-in offline catalog and manifest.
-- `scripts/SceneParser.gd`: validates scene JSON, resolves local asset IDs, instances 2D/3D resources and schedules subtitle/audio events.
-- `scripts/TimelineEngine.gd`: one keyframe engine for JSON actions and manually created keys.
+- `scripts/SceneParser.gd`: validates scene JSON, resolves local asset IDs, places Sprite2D resources on an independent 2D canvas and 3D resources on the stage, and schedules subtitle/audio events.
+- `scripts/TimelineEngine.gd`: one keyframe engine for JSON actions and manually created keys on Node2D and Node3D targets.
 - `scripts/ProjectStore.gd`: versioned JSON project persistence, backup restore and duplication under `user://projects`.
 - `assets/gallery/catalog.json` and `manifest.json`: checked-in starter catalog and integrity inventory.
 - `.github/workflows/build_godot.yml`: Godot 4.4.1 headless validation and Android debug APK export.
