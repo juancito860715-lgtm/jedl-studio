@@ -15,14 +15,14 @@ func _run_tests() -> void:
 		"objects": [],
 		"subtitles": [],
 		"sounds": [],
-		"actions": [{"target": "actor", "property": "position", "time": 0.0, "duration": 1.0, "to": [1, 0, 0]}]
+		"actions": [{"target": "actor", "property": "position", "time": 0.0, "duration": 1.0, "to": [1.0, 0.0, 0.0]}]
 	}
 	var timeline := {
 		"schemaVersion": 1,
 		"duration": 1.0,
 		"tracks": [{"target_id": "actor", "property": "position", "keyframes": [
-			{"time": 0.0, "value": [0, 0, 0]},
-			{"time": 1.0, "value": [1, 0, 0]}
+			{"time": 0.0, "value": [0.0, 0.0, 0.0]},
+			{"time": 1.0, "value": [1.0, 0.0, 0.0]}
 		]}]
 	}
 	assert(ProjectStoreScript.save_project("hito1roundtrip", "Proyecto de prueba", scene, timeline), "Project must save to user://")
