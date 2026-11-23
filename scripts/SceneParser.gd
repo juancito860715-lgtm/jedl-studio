@@ -119,6 +119,7 @@ func load_scene_text(source: String) -> bool:
         _next_event = previous_next_event
         _playing = previous_playing
         _playback_paused = previous_paused
+        set_process(previous_playing and not previous_paused)
         return false
 
     for child in staging_root.get_children():
@@ -136,6 +137,7 @@ func load_scene_text(source: String) -> bool:
     _playback_paused = false
     _playback_time = 0.0
     _next_event = 0
+    set_process(false)
     if subtitle_label != null:
         subtitle_label.text = ""
     if audio_player != null:
