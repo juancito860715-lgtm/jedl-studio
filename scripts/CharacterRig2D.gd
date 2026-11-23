@@ -74,7 +74,7 @@ static func add_pose_keyframes(engine: Node, target_prefix: String, character: N
 		var part := character.get_node_or_null(part_name) as Node2D
 		if part == null:
 			return false
-		var target_id := target_prefix + "." + part_name
+		var target_id: String = target_prefix + "." + String(part_name)
 		if not bool(engine.call("register_target", target_id, part)):
 			return false
 		var rotation_value := Vector3(0.0, 0.0, float(pose.get(part_name, 0.0)))
