@@ -18,8 +18,9 @@ func _run_tests() -> void:
     if _failure_count == 0:
         print("SURFACE_MATERIAL_ISOLATION_TEST_OK")
         quit(0)
-    push_error("SURFACE_MATERIAL_ISOLATION_TEST_FAILED: %d check(s)" % _failure_count)
-    quit(1)
+    else:
+        push_error("SURFACE_MATERIAL_ISOLATION_TEST_FAILED: %d check(s)" % _failure_count)
+        quit(1)
 
 
 func _check(condition: bool, message: String) -> void:
