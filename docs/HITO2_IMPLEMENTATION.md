@@ -26,3 +26,6 @@ Editor táctil 2D, selección geométrica, transformación con uno/dos dedos, pe
 - El estilo global de Hito 2 actúa sobre los CanvasItem 2D de la escena; no altera nodos 3D.
 - La selección usa límites geométricos (textura o polígonos) y no detección alfa por píxel ni física.
 - La prueba física en Redmi Note 10 queda expresamente pendiente hasta el final del proyecto.
+
+
+Validación incremental: las pruebas de pose también verifican serialización y restauración de pistas sobre targets re-registrados; los gestos convierten coordenadas de pantalla al espacio local del lienzo.
