@@ -25,6 +25,7 @@ var timeline_time_spin: SpinBox
 var timeline_old_time_spin: SpinBox
 var timeline_value_spins: Array[SpinBox] = []
 var timeline_slider: HSlider
+var timeline_tracks_list: VBoxContainer
 var timeline_status: Label
 var pending_scene_backup: Dictionary = {}
 var choosing_missing_alternative := false
@@ -50,6 +51,8 @@ func _ready() -> void:
 	scene_parser.audio_player = audio_player
 	scene_parser.catalog_manager = catalog_manager
 	scene_parser.scene_data = _blank_scene_document()
+	if scene_parser.timeline_engine != null:
+		scene_parser.timeline_engine.playhead_changed.connect(_on_timeline_playhead_changed)
 	subtitle_label.text = "Proyecto nuevo · escena vacía. Carga un JSON o añade recursos desde las galerías."
 
 
@@ -602,6 +605,16 @@ func _build_timeline_panel(screen: Control) -> void:
 	delete_key_button.text = "Eliminar"
 	delete_key_button.pressed.connect(_delete_manual_keyframe)
 	key_actions.add_child(delete_key_button)
+	var tracks_heading := Label.new()
+	tracks_heading.text = "Pistas y marcadores · selecciona un punto para editarlo"
+	column.add_child(tracks_heading)
+	var tracks_scroll := ScrollContainer.new()
+	tracks_scroll.custom_minimum_size = Vector2(0, 110)
+	tracks_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.add_child(tracks_scroll)
+	timeline_tracks_list = VBoxContainer.new()
+	timeline_tracks_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tracks_scroll.add_child(timeline_tracks_list)
 	timeline_slider = HSlider.new()
 	timeline_slider.min_value = 0.0
 	timeline_slider.max_value = 1.0
@@ -654,6 +667,64 @@ func _refresh_timeline_targets() -> void:
 		timeline_status.text = "%d keyframes · duración %.2f s" % [engine.get_keyframe_count(), engine.duration_seconds]
 	if timeline_target_option.item_count > 0:
 		_on_timeline_target_selected(0)
+	_refresh_timeline_tracks()
+
+
+func _refresh_timeline_tracks() -> void:
+	if timeline_tracks_list == null or scene_parser == null or scene_parser.timeline_engine == null:
+		return
+	for child in timeline_tracks_list.get_children():
+		timeline_tracks_list.remove_child(child)
+		child.queue_free()
+	var tracks: Array[Dictionary] = scene_parser.timeline_engine.get_tracks_snapshot()
+	if tracks.is_empty():
+		var empty_label := Label.new()
+		empty_label.text = "Sin keyframes. Selecciona un elemento y crea el primer punto."
+		timeline_tracks_list.add_child(empty_label)
+		return
+	for track in tracks:
+		var target_id := String(track.get("target_id", ""))
+		var property_name := String(track.get("property", ""))
+		var target_label := target_id
+		for instance in scene_parser.active_instances:
+			if is_instance_valid(instance) and String(instance.get_meta("jedl_entry_id", instance.name)) == target_id:
+				target_label = instance.name
+				break
+		var row := HBoxContainer.new()
+		timeline_tracks_list.add_child(row)
+		var heading := Label.new()
+		heading.text = "%s · %s" % [target_label, property_name]
+		heading.custom_minimum_size = Vector2(145, 0)
+		row.add_child(heading)
+		for key in track.get("keyframes", []):
+			var key_time := float(key.get("time", 0.0))
+			var marker := Button.new()
+			marker.text = "%.2fs" % key_time
+			marker.tooltip_text = "Seleccionar keyframe · %s" % str(key.get("value", []))
+			marker.custom_minimum_size = Vector2(76, 42)
+			marker.pressed.connect(_select_timeline_keyframe.bind(target_id, property_name, key_time))
+			row.add_child(marker)
+
+
+func _select_timeline_keyframe(target_id: String, property_name: String, key_time: float) -> void:
+	for index in range(timeline_target_option.item_count):
+		if String(timeline_target_option.get_item_metadata(index)) == target_id:
+			timeline_target_option.select(index)
+			break
+	var property_index := ["position", "rotation_degrees", "scale"].find(property_name)
+	if property_index >= 0:
+		timeline_property_option.select(property_index)
+	timeline_time_spin.set_value_no_signal(key_time)
+	_seek_timeline(key_time)
+	_sync_timeline_values()
+
+
+func _on_timeline_playhead_changed(seconds: float) -> void:
+	if timeline_slider == null:
+		return
+	timeline_slider.set_value_no_signal(seconds)
+	timeline_time_spin.set_value_no_signal(seconds)
+	_sync_timeline_values()
 
 
 func _on_timeline_target_selected(index: int) -> void:
@@ -690,6 +761,7 @@ func _add_manual_keyframe() -> void:
 	if engine.add_keyframe(target_id, property_name, timeline_time_spin.value, value):
 		timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
 		timeline_status.text = "Keyframe guardado · %d keyframes" % engine.get_keyframe_count()
+		_refresh_timeline_tracks()
 	else:
 		timeline_status.text = engine.last_error
 
@@ -703,6 +775,7 @@ func _edit_manual_keyframe() -> void:
 	var engine = scene_parser.timeline_engine
 	if engine.edit_keyframe(target_id, property_name, timeline_time_spin.value, value):
 		timeline_status.text = "Valor del keyframe actualizado."
+		_refresh_timeline_tracks()
 	else:
 		timeline_status.text = engine.last_error
 
@@ -716,6 +789,7 @@ func _move_manual_keyframe() -> void:
 	if engine.move_keyframe(target_id, property_name, timeline_old_time_spin.value, timeline_time_spin.value):
 		timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
 		timeline_status.text = "Keyframe movido."
+		_refresh_timeline_tracks()
 	else:
 		timeline_status.text = engine.last_error
 
@@ -729,6 +803,7 @@ func _delete_manual_keyframe() -> void:
 	if engine.delete_keyframe(target_id, property_name, timeline_time_spin.value):
 		timeline_slider.max_value = maxf(0.01, float(engine.duration_seconds))
 		timeline_status.text = "Keyframe eliminado."
+		_refresh_timeline_tracks()
 	else:
 		timeline_status.text = engine.last_error
 
