@@ -225,7 +225,7 @@ func _create_2d_canvas_element(texture: Texture2D, entry: Dictionary = {}) -> Sp
 	sprite.position = Vector2(float(entry.get("position", [0.0, 0.0, 0.0])[0]) * 100.0, -float(entry.get("position", [0.0, 0.0, 0.0])[1]) * 100.0)
 	sprite.rotation_degrees = float(entry.get("rotation_degrees", [0.0, 0.0, 0.0])[2])
 	var scale_value := _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
-	sprite.scale = Vector2(scale_value.x * 0.01, scale_value.y * 0.01)
+	sprite.scale = Vector2(scale_value.x, scale_value.y)
 	sprite.z_index = int(entry.get("z_index", 0))
 	return sprite
 
@@ -235,7 +235,7 @@ func _apply_instance_transform(instance: Node, position_value: Vector3, rotation
 		var canvas_sprite := instance as Node2D
 		canvas_sprite.position = Vector2(position_value.x * 100.0, -position_value.y * 100.0)
 		canvas_sprite.rotation_degrees = rotation_value.z
-		canvas_sprite.scale = Vector2(scale_value.x * 0.01, scale_value.y * 0.01)
+		canvas_sprite.scale = Vector2(scale_value.x, scale_value.y)
 	elif instance is Node3D:
 		var stage_instance := instance as Node3D
 		stage_instance.position = position_value
@@ -391,7 +391,7 @@ func _instance_rotation_data(instance: Node) -> Array:
 func _instance_scale_data(instance: Node) -> Array:
 	if instance is Node2D:
 		var canvas_instance := instance as Node2D
-		return [canvas_instance.scale.x / 0.01, canvas_instance.scale.y / 0.01, 1.0]
+		return [canvas_instance.scale.x, canvas_instance.scale.y, 1.0]
 	if instance is Node3D:
 		var stage_instance := instance as Node3D
 		return [stage_instance.scale.x, stage_instance.scale.y, stage_instance.scale.z]
