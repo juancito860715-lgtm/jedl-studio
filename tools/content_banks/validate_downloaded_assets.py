@@ -100,7 +100,7 @@ def validate_assets(root: Path = ROOT) -> dict:
         raise ValueError("Catalog and root manifest asset counts differ")
 
     ids: set[str] = set()
-    backgrounds = 0
+    elements_2d = 0
     models = 0
     for entry in entries:
         asset_id = str(entry.get("id", ""))
@@ -126,16 +126,16 @@ def validate_assets(root: Path = ROOT) -> dict:
             raise ValueError(f"Downloaded asset size mismatch: {asset_id}")
 
         if kind == "2d":
-            backgrounds += 1
-            if asset_path.suffix.lower() not in (".jpg", ".jpeg"):
-                raise ValueError(f"Only photographic JPEG backplates are allowed in the 2D gallery: {asset_id}")
-            if entry.get("category") != "Fondos fotográficos":
-                raise ValueError(f"2D assets must be photographic backgrounds only: {asset_id}")
+            elements_2d += 1
+            if asset_path.suffix.lower() not in (".png", ".webp"):
+                raise ValueError(f"2D elements must be transparent cutouts, not photographic backplates: {asset_id}")
+            if entry.get("category") != "Elementos 2D individuales":
+                raise ValueError(f"2D elements must use the individual cutout category: {asset_id}")
             with Image.open(asset_path) as image:
                 image.verify()
             with Image.open(asset_path) as image:
-                if image.width < 1024 or image.height < 512:
-                    raise ValueError(f"Photographic background resolution is too small: {asset_id}")
+                if "A" not in image.getbands() and "transparency" not in image.info:
+                    raise ValueError(f"2D elements must contain alpha transparency: {asset_id}")
         elif kind == "3d":
             models += 1
             validate_model(asset_path)
@@ -161,8 +161,8 @@ def validate_assets(root: Path = ROOT) -> dict:
         elif license_file:
             resolve_res_path(root, license_file)
 
-    if backgrounds == 0 or models == 0:
-        raise ValueError("Both photographic backgrounds and 3D models must be present")
+    if models == 0:
+        raise ValueError("At least one verified 3D model must be present; photographic backgrounds are not required")
 
     by_id = {str(item.get("assetId", "")): item for item in manifest_entries}
     if set(by_id) != ids:
@@ -197,7 +197,8 @@ def validate_assets(root: Path = ROOT) -> dict:
             raise ValueError(f"File SHA-256 differs from root manifest: {record.get('path')}")
     return {
         "assets": len(entries),
-        "photographic_backgrounds": backgrounds,
+        "photographic_backgrounds": 0,
+        "elements_2d": elements_2d,
         "models_3d": models,
         "files": len(files),
         "model_dependencies": sum(len(item.get("dependencies", [])) for item in manifest_entries),
