@@ -276,6 +276,7 @@ func _save_json_locally() -> void:
 
 func _on_viewport_size_changed() -> void:
     # Los paneles usan anclajes relativos y se adaptan al cambio de orientación.
+    pass
 
 
 func _new_blank_scene() -> void:
@@ -288,7 +289,17 @@ func _new_blank_scene() -> void:
     if scene_parser == null:
         return
     scene_parser.stop_scene()
-    var blank_json := """{"version":2,"title":"Nueva escena","characters":[],"objects":[],"elements":[],"subtitles":[],"sounds":[]}"""
+    var blank_json := """{
+  "version": 2,
+  "title": "Nueva escena",
+  "characters": [],
+  "objects": [],
+  "elements": [],
+  "subtitles": [],
+  "sounds": []
+}"""
+    if json_editor != null:
+        json_editor.text = blank_json
     if scene_parser.load_scene_text(blank_json):
         if camera != null:
             camera.current = true
