@@ -39,7 +39,7 @@ func _run_tests() -> void:
 	var actor: Node3D
 	for instance in parser.active_instances:
 		if String(instance.get_meta("jedl_entry_id", "")) == "starter_actor":
-			actor = instance
+			actor = instance as Node3D
 	assert(actor != null, "Stable scene entry ID must be attached to the instance")
 	assert(actor.position.is_equal_approx(Vector3(0.4, 0.0, 0.0)), "JSON action must interpolate the actor at one second")
 	assert(parser._events.size() == 4, "Two subtitles must create four timeline events")
