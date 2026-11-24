@@ -46,6 +46,7 @@ func load_scene_file(path: String) -> bool:
 
 
 func load_scene_text(source: String) -> bool:
+	_stop_event_audio()
 	last_error = ""
 	last_missing_entry_id = ""
 	last_missing_category = ""
@@ -694,9 +695,12 @@ func _apply_model_color(instance: Node, color_value: String) -> void:
 		for surface_index in range(mesh_instance.mesh.get_surface_count()):
 			var source_material := mesh_instance.get_active_material(surface_index)
 			if source_material is StandardMaterial3D:
-				var material := (source_material as StandardMaterial3D).duplicate() as StandardMaterial3D
-				material.albedo_color = tint
-				mesh_instance.set_surface_override_material(surface_index, material)
+				var source_standard := source_material as StandardMaterial3D
+				var source_color := source_standard.albedo_color
+				if source_color.r > source_color.g * 1.15 and source_color.r > source_color.b * 1.15:
+					var material := source_standard.duplicate() as StandardMaterial3D
+					material.albedo_color = tint
+					mesh_instance.set_surface_override_material(surface_index, material)
 
 
 func _stop_event_audio() -> void:
