@@ -144,7 +144,7 @@ func _build_overlay() -> void:
 	primary_buttons["play"] = play_button
 	toolbar_row.add_child(play_button)
 	var gallery_2d_button := Button.new()
-	gallery_2d_button.text = "Galería 2D"
+	gallery_2d_button.text = "Elementos 2D"
 	gallery_2d_button.pressed.connect(func(): _show_gallery("2d"))
 	gallery_2d_button.pressed.connect(_animate_button.bind(gallery_2d_button))
 	primary_buttons["gallery_2d"] = gallery_2d_button
@@ -168,7 +168,7 @@ func _build_overlay() -> void:
 	primary_buttons["timeline"] = timeline_button
 	toolbar_row.add_child(timeline_button)
 	var editor_2d_button := Button.new()
-	editor_2d_button.text = "Editor 2D"
+	editor_2d_button.text = "Editor de elementos 2D"
 	editor_2d_button.pressed.connect(_show_editor_2d_panel)
 	editor_2d_button.pressed.connect(_animate_button.bind(editor_2d_button))
 	primary_buttons["editor_2d"] = editor_2d_button
@@ -408,7 +408,7 @@ func _sync_selected_2d_scene_entry() -> void:
 	if selected_2d_node == null or scene_parser == null:
 		return
 	var entry_id := String(selected_2d_node.get_meta("jedl_entry_id", selected_2d_node.name))
-	for collection_name in ["characters_2d", "elements"]:
+	for collection_name in ["elements"]:
 		var collection: Variant = scene_parser.scene_data.get(collection_name, [])
 		if not (collection is Array):
 			continue
@@ -424,7 +424,7 @@ func _show_json_editor() -> void:
 	gallery_panel.visible = false
 	if json_editor.text.is_empty():
 		json_editor.text = JSON.stringify(_blank_scene_document(), "\t")
-	json_status.text = "Contrato JEDL v2: characters, objects, elements, actions, subtitles y sounds."
+	json_status.text = "Contrato JEDL v2: personajes 2.5D/3D riggeados, objects, elements, actions, subtitles y sounds."
 	json_panel.visible = true
 	json_panel.move_to_front()
 
