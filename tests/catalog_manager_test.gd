@@ -20,7 +20,10 @@ func _run_tests() -> void:
 		assert(item["license"] == "CC0-1.0", "Every starter sprite must have its verified license")
 		assert(ResourceLoader.exists(String(item["path"])), "Every 2D sprite must be packaged locally")
 	var models: Array[Dictionary] = manager.scan_catalog("3d")
-	assert(models.is_empty(), "Unrigged geometric starter must not appear as a selectable 3D character")
+	assert(models.size() == 8, "3D gallery must expose the rigged pedestrian, vehicle and six modular city assets")
+	var character_assets := models.filter(func(item: Dictionary): return String(item.get("character_format", "")) == "3d")
+	assert(character_assets.size() == 1, "Only the certified rigged 3D pedestrian may appear in the character category")
+	assert(String(character_assets[0]["id"]) == "character.tevy.casual_walker.v1", "Gallery must use the real Tevy CC0 pedestrian, not the geometric capsule placeholder")
 
 	var world := Node3D.new()
 	var canvas := Node2D.new()
@@ -35,8 +38,8 @@ func _run_tests() -> void:
 	parser.camera = camera
 	parser.catalog_manager = manager
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example scene must load from checked-in assets")
-	assert(parser.active_instances.size() == 2, "Sample must instantiate only two auxiliary 2D cutouts")
-	assert(parser.timeline_engine.get_keyframe_count() == 2, "Sample scene must animate an auxiliary element only")
+	assert(parser.active_instances.size() == 3, "Sample must instantiate the real 3D pedestrian and two auxiliary 2D cutouts")
+	assert(parser.timeline_engine.get_keyframe_count() == 4, "Sample scene must animate the pedestrian and an auxiliary element")
 	assert(parser.timeline_engine.duration_seconds == 2.0, "Auxiliary element timeline duration must be two seconds")
 
 	parser.queue_free()
