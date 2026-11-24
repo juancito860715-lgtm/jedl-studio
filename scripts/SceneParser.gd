@@ -18,6 +18,7 @@ var _playing := false
 var _playback_time := 0.0
 var _next_event := 0
 var _active_animation_players: Array[Dictionary] = []
+var _event_audio_players: Array[AudioStreamPlayer] = []
 var last_error := ""
 var timeline_engine: Node
 var last_missing_kind := "3d"
@@ -45,6 +46,7 @@ func load_scene_file(path: String) -> bool:
 
 
 func load_scene_text(source: String) -> bool:
+	_stop_event_audio()
 	last_error = ""
 	last_missing_entry_id = ""
 	last_missing_category = ""
@@ -202,6 +204,8 @@ func _instantiate_entries(entries: Array, expected_kind: String = "3d") -> bool:
 				push_error(last_error)
 				return false
 			instance = candidate as Node3D
+		if entry.has("color"):
+			_apply_model_color(instance, String(entry["color"]))
 		instance.name = String(entry.get("name", entry.get("id", resource_path.get_file().get_basename())))
 		var entry_id := String(entry.get("id", instance.name))
 		instance.set_meta("jedl_entry_id", entry_id)
@@ -485,7 +489,9 @@ func _build_timeline() -> bool:
 		_events.append({
 			"time": maxf(0.0, float(sound.get("time", 0.0))),
 			"kind": "sound",
-			"path": String(sound.get("path", ""))
+			"sound_id": String(sound.get("id", "")),
+			"path": String(sound.get("path", "")),
+			"loop": bool(sound.get("loop", false))
 		})
 	_events.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return float(a["time"]) < float(b["time"])
@@ -498,6 +504,7 @@ func _build_timeline() -> bool:
 
 
 func play_scene() -> void:
+	_stop_event_audio()
 	_restart_animations()
 	if timeline_engine != null:
 		timeline_engine.play()
@@ -510,6 +517,7 @@ func play_scene() -> void:
 
 
 func stop_scene() -> void:
+	_stop_event_audio()
 	_playing = false
 	set_process(false)
 	_stop_animations()
@@ -518,6 +526,9 @@ func stop_scene() -> void:
 
 
 func pause_scene() -> void:
+	for player in _event_audio_players:
+		if is_instance_valid(player):
+			player.stream_paused = true
 	if timeline_engine != null:
 		timeline_engine.pause()
 	_playing = false
@@ -525,6 +536,9 @@ func pause_scene() -> void:
 
 
 func resume_scene() -> void:
+	for player in _event_audio_players:
+		if is_instance_valid(player):
+			player.stream_paused = false
 	if timeline_engine != null:
 		timeline_engine.resume()
 	_playing = true
@@ -546,6 +560,7 @@ func _process(delta: float) -> void:
 	if _next_event >= _events.size():
 		_playing = false
 		set_process(false)
+		_stop_event_audio()
 
 
 func _dispatch_event(event: Dictionary) -> void:
@@ -554,13 +569,28 @@ func _dispatch_event(event: Dictionary) -> void:
 		subtitle_label.set("text", String(event.get("text", "")))
 	elif kind == "subtitle_clear" and subtitle_label != null:
 		subtitle_label.set("text", "")
-	elif kind == "sound" and audio_player != null:
+	elif kind == "sound":
 		var sound_path := String(event.get("path", ""))
-		if not sound_path.is_empty():
-			var stream := load(sound_path) as AudioStream
-			if stream != null:
-				audio_player.stream = stream
-				audio_player.play()
+		if sound_path.is_empty() or not ResourceLoader.exists(sound_path):
+			last_error = "No existe el archivo de audio local: " + sound_path
+			push_error(last_error)
+			return
+		var stream := load(sound_path) as AudioStream
+		if stream == null:
+			last_error = "No se pudo cargar el audio: " + sound_path
+			push_error(last_error)
+			return
+		if bool(event.get("loop", false)) and stream is AudioStreamWAV:
+			var wav := stream as AudioStreamWAV
+			wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+			wav.loop_begin = 0
+			wav.loop_end = int(wav.data.size() / 2)
+		var player := AudioStreamPlayer.new()
+		player.name = "T3Audio_" + String(event.get("sound_id", "cue"))
+		add_child(player)
+		player.stream = stream
+		_event_audio_players.append(player)
+		player.play()
 
 
 static func is_character_rig_compatible(instance: Node, character_format: String) -> bool:
@@ -654,6 +684,31 @@ func _instantiate_character_entries(entries: Array) -> bool:
 		if not animation_name.is_empty():
 			_play_animation(instance, animation_name, bool(entry.get("animation_loop", true)))
 	return true
+
+
+func _apply_model_color(instance: Node, color_value: String) -> void:
+	var tint := Color.from_string(color_value, Color.WHITE)
+	for mesh_value in instance.find_children("*", "MeshInstance3D", true, false):
+		var mesh_instance := mesh_value as MeshInstance3D
+		if mesh_instance == null or mesh_instance.mesh == null:
+			continue
+		for surface_index in range(mesh_instance.mesh.get_surface_count()):
+			var source_material := mesh_instance.get_active_material(surface_index)
+			if source_material is StandardMaterial3D:
+				var source_standard := source_material as StandardMaterial3D
+				var source_color := source_standard.albedo_color
+				if source_color.r > source_color.g * 1.15 and source_color.r > source_color.b * 1.15:
+					var material := source_standard.duplicate() as StandardMaterial3D
+					material.albedo_color = tint
+					mesh_instance.set_surface_override_material(surface_index, material)
+
+
+func _stop_event_audio() -> void:
+	for player in _event_audio_players:
+		if is_instance_valid(player):
+			player.stop()
+			player.queue_free()
+	_event_audio_players.clear()
 
 
 func _apply_scene_style(style: Dictionary) -> void:

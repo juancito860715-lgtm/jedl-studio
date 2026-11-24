@@ -28,10 +28,10 @@ func _run_test() -> void:
 	assert(main.gallery_list.get_child_count() == 3, "2D gallery must show all three local transparent sprites")
 	main._show_gallery("3d")
 	assert(main.gallery_panel.visible, "3D gallery must open independently")
-	assert(main.gallery_list.get_child_count() == 1, "3D gallery must show the local starter character")
+	assert(main.gallery_list.get_child_count() == 8, "3D gallery must show the rigged pedestrian, vehicle and modular city assets")
 	main._load_example_scene()
 	assert(main.scene_parser.active_instances.size() == 3, "Example scene must load its local character and 2D sprites")
-	assert(main.scene_parser.timeline_engine.get_keyframe_count() == 5, "Example JSON must use the shared timeline")
+	assert(main.scene_parser.timeline_engine.get_keyframe_count() == 4, "Example JSON must use the shared timeline for the real pedestrian and auxiliary element")
 	var canvas_sprite_count := 0
 	var stage_model_count := 0
 	for scene_instance in main.scene_parser.active_instances:
@@ -41,7 +41,7 @@ func _run_test() -> void:
 		elif scene_instance is Node3D:
 			stage_model_count += 1
 			assert(scene_instance.get_parent() == main.world_root, "3D resources must remain in the 3D stage")
-	assert(canvas_sprite_count == 2 and stage_model_count == 1, "The example must separate 2D sprites from its 3D character")
+	assert(canvas_sprite_count == 2 and stage_model_count == 1, "The example must separate 2D sprites from its real 3D character")
 	var leaf_sprite: Sprite2D
 	for scene_instance in main.scene_parser.active_instances:
 		if scene_instance is Sprite2D:
@@ -77,7 +77,7 @@ func _run_test() -> void:
 	assert(restored_leaf.position.is_equal_approx(Vector2(100.0, -50.0)), "Reopened project must reproduce the saved 2D position")
 	assert(is_equal_approx(restored_leaf.rotation_degrees, 30.0), "Reopened project must reproduce the saved 2D rotation")
 	assert(restored_leaf.scale.is_equal_approx(Vector2(0.5, 0.75)), "Reopened project must reproduce the saved 2D scale")
-	assert(main.timeline_tracks_list.get_child_count() == 5, "Timeline editor must display all five animated target/property tracks after project restoration")
+	assert(main.timeline_tracks_list.get_child_count() == 4, "Timeline editor must display the pedestrian and three auxiliary target/property tracks after project restoration")
 	assert(main.timeline_tracks_list.get_child(0).get_child_count() == 4, "Position track must expose its three selectable keyframe markers")
 	var first_track: Dictionary = main.scene_parser.timeline_engine.get_tracks_snapshot()[0]
 	var first_key: Dictionary = first_track["keyframes"][0]
@@ -109,11 +109,11 @@ func _run_test() -> void:
 	main._validate_and_load_json()
 	main._choose_missing_alternative()
 	assert(main.gallery_panel.visible, "Alternative choice must open the matching gallery")
-	var alternative: Dictionary = main.catalog_manager.resolve_asset_id("character.jedl.starter.v1")
-	main._add_gallery_asset(String(alternative["path"]), false, "character.jedl.starter.v1")
+	var alternative: Dictionary = main.catalog_manager.resolve_asset_id("character.tevy.casual_walker.v1")
+	main._add_gallery_asset(String(alternative["path"]), false, "character.tevy.casual_walker.v1")
 	assert(main.scene_parser.active_instances.size() == 1, "Choosing an alternative must reload the scene with that resource")
 	var repaired: Dictionary = JSON.parse_string(main.json_editor.text)
-	assert(repaired["characters"][0]["assetId"] == "character.jedl.starter.v1", "Alternative choice must replace the missing assetId explicitly")
+	assert(repaired["characters"][0]["assetId"] == "character.tevy.casual_walker.v1", "Alternative choice must replace the missing assetId explicitly")
 
 	main.json_editor.text = JSON.stringify(main._blank_scene_document())
 	main._show_json_editor()

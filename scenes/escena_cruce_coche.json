@@ -1,7 +1,7 @@
 {
   "version": 2,
-  "title": "Cruce urbano con coche azul",
-  "description": "Especificación de escena. No crea sustitutos geométricos: el peatón, el coche y las piezas urbanas se instanciarán únicamente cuando existan recursos reales y validados en el catálogo.",
+  "title": "Cruce urbano con peatón 3D y coche azul",
+  "description": "Escena reproducible con modelos 3D CC0 descargados y empaquetados antes de la importación Godot. Los recursos quedan dentro del APK; no se descargan durante la ejecución.",
   "scene_spec": {
     "id": "escena_cruce_coche",
     "duration": 9,
@@ -9,7 +9,7 @@
     "environment": {
       "type": "modular_environment",
       "domain": "urban_transport",
-      "description": "Calle urbana con calzada, dos aceras, edificios y mobiliario urbano. Construir con piezas modulares; no usar una fotografía como sustituto del entorno.",
+      "description": "Cruce urbano construido con piezas GLB modulares: calzada con paso peatonal, tramos rectos, edificios, farola y semáforo.",
       "camera": {
         "shot": "wide",
         "view": "street_level",
@@ -23,77 +23,254 @@
       {
         "id": "pedestrian_man",
         "type": "character",
-        "description": "Hombre adulto caminando y cruzando la calle desde la acera izquierda hasta la derecha.",
-        "format_preference": [
-          "2.5d",
-          "3d"
-        ],
+        "assetId": "character.tevy.casual_walker.v1",
+        "format": "3d",
+        "description": "Hombre adulto con rig humanoide y animación walk.",
         "required": true
       },
       {
         "id": "blue_car",
         "type": "vehicle",
-        "description": "Coche azul que permanece detenido al inicio, realiza la acción de puerta y después conduce por la calle.",
-        "color": "blue",
-        "format_preference": [
-          "3d",
-          "2.5d"
-        ],
+        "assetId": "vehicle.citykit.car.v1",
+        "description": "Hatchback 3D recoloreado azul; se desplaza por la calzada.",
+        "color": "#1769D2",
         "required": true
       }
     ],
-    "status": "specification_only_until_real_character_vehicle_and_environment_assets_are_installed"
+    "status": "assets_pinned_and_packaged_by_build",
+    "story_beats": [
+      {
+        "id": "pedestrian_crossing",
+        "time": 0,
+        "duration": 4.5,
+        "focus": "pedestrian_man",
+        "description": "El hombre cruza el paso peatonal con el ciclo walk del rig 3D.",
+        "sound_ids": [
+          "footsteps"
+        ]
+      },
+      {
+        "id": "car_door",
+        "time": 2.8,
+        "duration": 0.82,
+        "focus": "blue_car",
+        "description": "Se reproduce el efecto de puerta del coche.",
+        "sound_ids": [
+          "car_door"
+        ]
+      },
+      {
+        "id": "car_drives",
+        "time": 4,
+        "duration": 5,
+        "focus": "blue_car",
+        "description": "El coche azul recorre la calzada; el motor se mantiene en bucle hasta el final del plano.",
+        "sound_ids": [
+          "car_engine"
+        ]
+      }
+    ]
   },
-  "characters": [],
-  "objects": [],
+  "characters": [
+    {
+      "id": "pedestrian_man",
+      "assetId": "character.tevy.casual_walker.v1",
+      "format": "3d",
+      "category": "Personajes 3D",
+      "position": [
+        -2.5,
+        0,
+        0.55
+      ],
+      "rotation_degrees": [
+        0,
+        90,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "animation": "walk",
+      "animation_loop": true
+    }
+  ],
+  "objects": [
+    {
+      "id": "crosswalk",
+      "assetId": "environment.citykit.crosswalk.v1",
+      "kind": "3d",
+      "category": "Entornos urbanos",
+      "position": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "road_north",
+      "assetId": "environment.citykit.road_straight.v1",
+      "kind": "3d",
+      "category": "Entornos urbanos",
+      "position": [
+        0,
+        0,
+        -2
+      ]
+    },
+    {
+      "id": "road_south",
+      "assetId": "environment.citykit.road_straight.v1",
+      "kind": "3d",
+      "category": "Entornos urbanos",
+      "position": [
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "id": "building_west",
+      "assetId": "environment.citykit.house_simple.v1",
+      "kind": "3d",
+      "category": "Entornos urbanos",
+      "position": [
+        -3,
+        0,
+        -2
+      ],
+      "scale": [
+        1.4,
+        1.4,
+        1.4
+      ]
+    },
+    {
+      "id": "building_east",
+      "assetId": "environment.citykit.house_simple.v1",
+      "kind": "3d",
+      "category": "Entornos urbanos",
+      "position": [
+        3,
+        0,
+        2
+      ],
+      "scale": [
+        1.4,
+        1.4,
+        1.4
+      ]
+    },
+    {
+      "id": "traffic_light",
+      "assetId": "environment.citykit.traffic_light.v1",
+      "kind": "3d",
+      "category": "Entornos urbanos",
+      "position": [
+        -1.35,
+        0,
+        1.2
+      ],
+      "scale": [
+        0.9,
+        0.9,
+        0.9
+      ]
+    },
+    {
+      "id": "street_light",
+      "assetId": "environment.citykit.street_light.v1",
+      "kind": "3d",
+      "category": "Entornos urbanos",
+      "position": [
+        2.5,
+        0,
+        1.8
+      ]
+    },
+    {
+      "id": "blue_car",
+      "assetId": "vehicle.citykit.car.v1",
+      "kind": "3d",
+      "category": "Vehículos",
+      "position": [
+        3.5,
+        0,
+        -1.25
+      ],
+      "rotation_degrees": [
+        0,
+        90,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ],
+      "color": "#1769D2"
+    }
+  ],
   "elements": [],
   "background": {},
   "resource_requirements": [
     {
       "for": "pedestrian_man",
-      "type": "character",
-      "format_preference": [
-        "2.5d",
-        "3d"
-      ],
-      "category_preference": [
-        "Personajes 2.5D",
-        "Personajes 3D"
-      ],
-      "queries": [
-        "rigged illustrated human pedestrian",
-        "rigged stylized 3D human pedestrian"
-      ],
-      "status": "pending_real_catalog_asset",
-      "note": "Do not instantiate a placeholder. Select an assetId whose catalog character_format and rig validation match 2.5d or 3d."
+      "assetId": "character.tevy.casual_walker.v1",
+      "status": "resolved_in_offline_catalog"
     },
     {
       "for": "blue_car",
-      "type": "vehicle",
-      "format_preference": [
-        "3d"
-      ],
-      "queries": [
-        "blue passenger car with openable door and driving animation"
-      ],
-      "status": "pending_real_catalog_asset",
-      "note": "Select a real catalog asset and verify door and driving animations before adding actions."
+      "assetId": "vehicle.citykit.car.v1",
+      "status": "resolved_in_offline_catalog"
     },
     {
       "for": "urban_environment",
-      "type": "environment_piece",
-      "domain": "urban_transport",
-      "queries": [
-        "street road",
-        "sidewalk",
-        "urban buildings",
-        "street furniture"
+      "assetIds": [
+        "environment.citykit.crosswalk.v1",
+        "environment.citykit.road_straight.v1",
+        "environment.citykit.house_simple.v1",
+        "environment.citykit.traffic_light.v1",
+        "environment.citykit.street_light.v1"
       ],
-      "status": "pending_modular_catalog_assets",
-      "note": "Build from modular pieces; do not use a photo as the whole environment."
+      "status": "resolved_modular_glb_set"
     }
   ],
-  "actions": [],
+  "actions": [
+    {
+      "target": "pedestrian_man",
+      "property": "position",
+      "time": 0,
+      "duration": 4.5,
+      "from": [
+        -2.5,
+        0,
+        0.55
+      ],
+      "to": [
+        2.5,
+        0,
+        0.55
+      ]
+    },
+    {
+      "target": "blue_car",
+      "property": "position",
+      "time": 4,
+      "duration": 5,
+      "from": [
+        3.5,
+        0,
+        -1.25
+      ],
+      "to": [
+        -3.5,
+        0,
+        -1.25
+      ]
+    }
+  ],
   "motion_plan": [
     {
       "target": "pedestrian_man",
@@ -103,21 +280,22 @@
       "from": [
         -2.5,
         0,
-        0
+        0.55
       ],
       "to": [
         2.5,
         0,
-        0
+        0.55
       ],
-      "status": "pending_character_asset_and_walk_animation"
+      "animation": "walk",
+      "status": "asset_and_animation_bound"
     },
     {
       "target": "blue_car",
-      "action": "door_open_close",
+      "action": "door_sound_cue",
       "time": 2.8,
       "duration": 0.8,
-      "status": "pending_resource_and_animation_binding"
+      "status": "audio_asset_bound"
     },
     {
       "target": "blue_car",
@@ -127,14 +305,14 @@
       "from": [
         3.5,
         0,
-        -2
+        -1.25
       ],
       "to": [
         -3.5,
         0,
-        -2
+        -1.25
       ],
-      "status": "pending_resource_and_animation_binding"
+      "status": "asset_and_timeline_bound"
     }
   ],
   "subtitles": [
@@ -155,28 +333,27 @@
       "time": 0.4,
       "duration": 4,
       "category": "foley",
-      "description": "Pasos del hombre mientras cruza la calle.",
-      "path": "",
-      "status": "pending_audio_asset"
+      "description": "Pasos sincronizados con el cruce del peatón.",
+      "path": "res://assets/audio/t3/footsteps.wav",
+      "loop": false
     },
     {
       "id": "car_door",
       "time": 2.8,
-      "duration": 0.8,
+      "duration": 0.82,
       "category": "vehicle_foley",
-      "description": "Apertura y cierre de la puerta del coche azul.",
-      "path": "",
-      "status": "pending_audio_asset"
+      "description": "Sonido de apertura y cierre de puerta.",
+      "path": "res://assets/audio/t3/car_door.wav",
+      "loop": false
     },
     {
       "id": "car_engine",
       "time": 4,
       "duration": 5,
       "category": "vehicle_engine",
-      "description": "Motor del coche azul arrancando y sonando mientras conduce.",
-      "path": "",
-      "loop": true,
-      "status": "pending_audio_asset_and_loop_support"
+      "description": "Motor del coche azul durante la conducción.",
+      "path": "res://assets/audio/t3/car_engine_loop.wav",
+      "loop": true
     }
   ],
   "audio_sync": {
@@ -190,7 +367,7 @@
       {
         "sound_id": "car_door",
         "start": 2.8,
-        "end": 3.6
+        "end": 3.62
       },
       {
         "sound_id": "car_engine",
@@ -198,6 +375,6 @@
         "end": 9
       }
     ],
-    "note": "Los tiempos están definidos, pero los archivos de audio aún deben seleccionarse del catálogo. El motor actual reproduce sonidos con path válido; el bucle de motor requiere soporte específico."
+    "note": "Tres WAV locales incluidos en el paquete APK. El motor usa bucle mientras dura el tramo de conducción; los reproductores independientes permiten solapar pasos, puerta y motor."
   }
 }
