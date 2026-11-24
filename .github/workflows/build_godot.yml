@@ -54,40 +54,33 @@ jobs:
           TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.4.1.stable"
           mkdir -p "$TEMPLATE_DIR"
           cp -a "$RUNNER_TEMP/godot/templates/templates/." "$TEMPLATE_DIR/"
-      - name: Download animated Fox GLB test character and license
-        run: |
-          set -euo pipefail
-          mkdir -p assets/characters
-          curl --fail --location --retry 5 --retry-all-errors https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Fox/glTF-Binary/Fox.glb --output assets/characters/Fox.glb
-          curl --fail --location --retry 5 --retry-all-errors https://raw.githubusercontent.com/KhronosGroup/glTF-Sample-Assets/main/Models/Fox/LICENSE.md --output assets/characters/Fox.LICENSE.md
-          test -s assets/characters/Fox.glb
-          grep -q "CC0-1.0" assets/characters/Fox.LICENSE.md
-          grep -q "CC-BY-4.0" assets/characters/Fox.LICENSE.md
       - name: Set up Python for offline asset validation
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Install asset-bank build dependencies
-        run: python -m pip install --disable-pip-version-check pillow
-      - name: Build offline photorealistic asset galleries
+      - name: Verify checked-in offline catalog and manifest
         run: |
           set -euo pipefail
-          rm -rf assets/gallery/2d assets/gallery/3d assets/gallery/catalog.json
-          python tools/content_banks/fetch_polyhaven.py 2>&1 | tee "$RUNNER_TEMP/asset-download.log"
-          for test_file in test_fetch_kenney_cc0.py test_polyhaven_bank.py test_root_manifest.py test_validate_downloaded_assets.py; do
-            python -m unittest discover -s tools/content_banks -p "$test_file" -v 2>&1 | tee -a "$RUNNER_TEMP/asset-bank-tests.log"
-          done
+          test -s assets/gallery/catalog.json
+          test -s assets/gallery/manifest.json
           python tools/content_banks/build_root_manifest.py 2>&1 | tee "$RUNNER_TEMP/root-manifest.log"
-          python tools/content_banks/validate_downloaded_assets.py 2>&1 | tee "$RUNNER_TEMP/asset-integrity.log"
+          python tools/content_banks/test_local_catalog.py 2>&1 | tee "$RUNNER_TEMP/local-catalog.log"
+          git diff --exit-code -- assets/gallery/catalog.json assets/gallery/manifest.json
       - name: Import project resources before tests
         run: |
           set -euo pipefail
           test -s project.godot
           test -s export_presets.cfg
           test -s scripts/SceneParser.gd
+          test -s scripts/TimelineEngine.gd
+          test -s scripts/ProjectStore.gd
           test -s tests/scene_parser_test.gd
           test -s tests/catalog_manager_test.gd
+          test -s tests/timeline_engine_test.gd
+          test -s tests/project_store_test.gd
+          test -s tests/project_store_recovery_test.gd
           test -s assets/gallery/catalog.json
+          test -s assets/gallery/manifest.json
           set +e
           "$GODOT_BIN" --headless --editor --path "$GITHUB_WORKSPACE" --quit 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
           godot_status=${PIPESTATUS[0]}
@@ -119,6 +112,15 @@ jobs:
           run_godot_test res://tests/catalog_manager_test.gd
           run_godot_test res://tests/camera_framing_test.gd
           run_godot_test res://tests/scene_parser_smoke.gd
+          run_godot_test res://tests/timeline_engine_test.gd
+          run_godot_test res://tests/project_store_test.gd
+          run_godot_test res://tests/project_store_recovery_test.gd
+          run_godot_test res://tests/touch_selection_test.gd
+          run_godot_test res://tests/transform_gesture_test.gd
+          run_godot_test res://tests/appearance_test.gd
+          run_godot_test res://tests/rig_pose_test.gd
+          run_godot_test res://tests/style_test.gd
+          run_godot_test res://tests/hito2_compatibility_test.gd
           timeout --signal=TERM --kill-after=10s 30s "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --quit-after 5
       - name: Prepare Android debug signing key
         run: |

@@ -1,33 +1,27 @@
 # JEDL Studio
 
-JEDL Studio is migrating to Godot Engine 4.4.1 as its primary 3D/2.5D runtime. The Godot project lives at the repository root (project.godot, Main.tscn) and is exported to Android by GitHub Actions.
+JEDL Studio is a local-first Android production workspace built on Godot 4.4.1 and the GL Compatibility renderer.
 
 ## Godot project
 
-- Main.tscn: 3D stage, camera, lighting and runtime UI.
-- scripts/CatalogManager.gd: discovers GLB/glTF/TSCN characters and objects.
-- scripts/SceneParser.gd: loads JSON scenes, instances assets, plays named animations and schedules subtitles/audio.
-- scripts/MocapReceiver.gd: Godot-side integration contract for a native MediaPipe bridge and Skeleton3D bone rotations.
-- assets/characters, assets/objects, assets/audio: offline asset-bank locations.
-- .github/workflows/build_godot.yml: headless validation and Android debug APK artifact.
+- `Main.tscn`: 3D stage, camera, lighting and runtime UI.
+- `scripts/CatalogManager.gd`: validates the checked-in offline catalog and manifest.
+- `scripts/SceneParser.gd`: validates scene JSON, resolves local asset IDs, places Sprite2D resources on an independent 2D canvas and 3D resources on the stage, and schedules subtitle/audio events.
+- `scripts/TimelineEngine.gd`: one keyframe engine for JSON actions and manually created keys on Node2D and Node3D targets.
+- `scripts/ProjectStore.gd`: versioned JSON project persistence, backup restore and duplication under `user://projects`.
+- `assets/gallery/catalog.json` and `manifest.json`: checked-in starter catalog and integrity inventory.
+- `.github/workflows/build_godot.yml`: Godot 4.4.1 headless validation and Android debug APK export.
 
-CI downloads the Khronos Fox animated GLB as a test fixture. The model uses CC0-1.0 and CC-BY-4.0 components; its attribution/license file is downloaded beside it. Credits: PixelMannen (model), tomkranis (rig/animation), AsoboStudio and scurest (glTF conversion). This fixture does not mean a complete character gallery or native MediaPipe plugin is finished.
+## Offline starter content
 
-## Build without a local computer
+The starter catalog contains original CC0-1.0 transparent PNG sprites and an original primitive 3D character scene. These resources are included in the repository; the app does not download gallery resources at runtime or during the Hito 1 validation job.
 
-GitHub Actions installs Godot 4.4.1, matching Android export templates and Android SDK, validates the sample JSON/GLB, exports an ARM64 Android debug APK, and uploads it as jedl-studio-godot-android-debug-apk.
+Every future catalog addition must include stable asset identity, exact license evidence, a local license notice where applicable, SHA-256 and offline dependencies.
 
 ## Scene JSON
 
-See scenes/scene.example.json. Supported fields:
-- characters and objects: path, position, rotation_degrees, scale, optional animation.
-- subtitles: time, duration, text.
-- sounds: time, path, optional volume_db.
+See `scenes/scene.example.json`. Root fields include `characters`, `objects`, `elements`, `subtitles`, `sounds` and `actions`. An action has `target`, `property`, `time`, `duration` and `to`. Supported transform properties are `position`, `rotation_degrees` and `scale`.
 
-## MediaPipe boundary
+## Current scope
 
-MocapReceiver.gd defines the expected method for the native bridge. The repository does not yet contain the native MediaPipe Android plugin or a proven end-to-end camera/video-to-Skeleton3D pipeline. The receiver is an integration point only.
-
-## Legacy Android implementation
-
-The previous Kotlin implementation remains in app/ for reference during migration. The former Android CI is retained as a manually dispatchable legacy workflow.
+Hito 1 covers the offline starter catalog, independent 2D/3D galleries, JSON actions and a shared editable keyframe timeline, plus versioned local project persistence. Touch manipulation, character rig editing, global styles, audio mixing/MP4 export and MediaPipe retargeting remain later milestones and are not claimed as implemented.

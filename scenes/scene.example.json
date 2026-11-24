@@ -1,48 +1,71 @@
 {
   "version": 2,
-  "title": "JEDL Studio - escena de prueba",
+  "title": "JEDL Studio · escena inicial local",
   "characters": [
     {
-      "id": "fox_demo",
-      "assetId": "character.fox.khronos.v1",
-      "position": [
-        0,
-        0,
-        0
-      ],
-      "rotation_degrees": [
-        0,
-        180,
-        0
-      ],
-      "scale": [
-        1,
-        1,
-        1
-      ],
-      "animation": "Walk",
-      "depth": 0,
+      "id": "starter_actor",
+      "assetId": "character.jedl.starter.v1",
+      "position": [0, 0, 0],
+      "rotation_degrees": [0, 0, 0],
+      "scale": [1, 1, 1],
       "layer": "characters"
     }
   ],
   "objects": [],
+  "elements": [
+    {
+      "id": "leaf_demo",
+      "assetId": "2d.leaf_cluster.v1",
+      "kind": "2d",
+      "category": "Elementos 2D",
+      "position": [-1.4, 1.2, 0.1],
+      "scale": [0.8, 0.8, 0.8],
+      "layer": "foreground"
+    },
+    {
+      "id": "star_demo",
+      "assetId": "2d.star_token.v1",
+      "kind": "2d",
+      "category": "Elementos 2D",
+      "position": [1.4, 1.4, 0.1],
+      "scale": [0.55, 0.55, 0.55],
+      "layer": "foreground"
+    }
+  ],
   "subtitles": [
     {
       "time": 0.25,
-      "duration": 2.8,
-      "text": "JEDL Studio: escena 3D cargada desde JSON"
+      "duration": 2.5,
+      "text": "JEDL Studio: escena local desde JSON"
     },
     {
-      "time": 3.3,
-      "duration": 2.2,
-      "text": "Personajes, objetos, animación y medios sincronizados"
+      "time": 3.0,
+      "duration": 2.0,
+      "text": "Acciones JSON y keyframes manuales comparten el timeline"
     }
   ],
   "sounds": [],
-  "background": {
-    "id": "background.mossy_forest",
-    "assetId": "background.mossy_forest",
-    "fit": "cover"
-  },
-  "elements": []
+  "actions": [
+    {
+      "target": "starter_actor",
+      "property": "position",
+      "time": 0.0,
+      "duration": 2.0,
+      "to": [0.8, 0.0, 0.0]
+    },
+    {
+      "target": "starter_actor",
+      "property": "position",
+      "time": 2.0,
+      "duration": 2.0,
+      "to": [0.0, 0.0, 0.0]
+    },
+    {
+      "target": "starter_actor",
+      "property": "rotation_degrees",
+      "time": 0.0,
+      "duration": 4.0,
+      "to": [0.0, 360.0, 0.0]
+    }
+  ]
 }
