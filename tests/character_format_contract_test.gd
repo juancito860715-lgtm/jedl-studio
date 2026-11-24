@@ -65,6 +65,8 @@ func _run_tests() -> void:
 	attachment.bone_name = "root"
 	skeleton_25d.add_child(attachment)
 	var sprite := Sprite3D.new()
+	var image := Image.create(2, 2, false, Image.FORMAT_RGBA8)
+	sprite.texture = ImageTexture.create_from_image(image)
 	attachment.add_child(sprite)
 	assert(SceneParserScript.is_character_rig_compatible(rig_25d, "2.5d"),
 		"2.5D characters must have a Skeleton3D and illustrated Sprite3D parts attached to bones")
@@ -78,6 +80,7 @@ func _run_tests() -> void:
 	var mesh_instance := MeshInstance3D.new()
 	mesh_instance.mesh = BoxMesh.new()
 	mesh_instance.skin = Skin.new()
+	mesh_instance.skeleton = NodePath("../Skeleton3D")
 	rig_3d.add_child(mesh_instance)
 	assert(SceneParserScript.is_character_rig_compatible(rig_3d, "3d"),
 		"3D characters must contain a Skeleton3D and a skinned MeshInstance3D")
