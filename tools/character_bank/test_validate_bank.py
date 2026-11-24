@@ -141,7 +141,15 @@ class CharacterBankContractTests(unittest.TestCase):
         self.manifest["parts"] = [
             part for part in self.manifest["parts"] if part["slot"] != "leg_left"
         ]
-        self._assert_invalid("defaultParts")
+        head = self._part("head")
+        alternate_path = self.bank_dir / "parts" / "head_alt.png"
+        alternate_path.write_bytes(_png(20, 20))
+        alternate = dict(head)
+        alternate["id"] = "head.alternate"
+        alternate["path"] = f"res://assets/characters/banks/{BANK_ID}/parts/head_alt.png"
+        alternate["sha256"] = hashlib.sha256(alternate_path.read_bytes()).hexdigest()
+        self.manifest["parts"].append(alternate)
+        self._assert_invalid("missing rig slots")
 
     def test_unknown_slot_is_rejected(self) -> None:
         self._part("head")["slot"] = "face"
