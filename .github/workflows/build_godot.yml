@@ -60,6 +60,11 @@ jobs:
           python-version: "3.11"
       - name: Fetch pinned T3 CC0 models and generate offline sound cues
         run: python tools/fetch_t3_assets.py
+      - name: Normalize GLB compression for Godot 4.5.1
+        run: |
+          set -euo pipefail
+          npm install --no-save --no-package-lock @gltf-transform/core@4.2.1 @gltf-transform/extensions@4.2.1 @gltf-transform/functions@4.2.1 meshoptimizer@0.22.0
+          node tools/normalize_t3_gltf.mjs
       - name: Verify checked-in offline catalog and manifest
         run: |
           set -euo pipefail
