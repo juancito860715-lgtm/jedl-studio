@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, feat/catalog-and-3d-production-editor]
   workflow_dispatch:
 
 permissions:
@@ -35,25 +35,34 @@ jobs:
         run: |
           yes | sdkmanager --licenses
           sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0" "cmdline-tools;latest" "cmake;3.10.2.4988404" "ndk;23.2.8568313"
-      - name: Download pinned Godot 4.4.1 editor
+      - name: Download pinned Godot 4.5.1 editor (Betsy shutdown fix)
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/godot"
-          curl --fail --location --retry 5 --retry-all-errors https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip --output "$RUNNER_TEMP/godot/editor.zip"
+          curl --fail --location --retry 5 --retry-all-errors https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_linux.x86_64.zip --output "$RUNNER_TEMP/godot/editor.zip"
           unzip -q "$RUNNER_TEMP/godot/editor.zip" -d "$RUNNER_TEMP/godot"
-          GODOT_BIN="$RUNNER_TEMP/godot/Godot_v4.4.1-stable_linux.x86_64"
+          GODOT_BIN="$RUNNER_TEMP/godot/Godot_v4.5.1-stable_linux.x86_64"
           chmod +x "$GODOT_BIN"
           echo "GODOT_BIN=$GODOT_BIN" >> "$GITHUB_ENV"
-          "$GODOT_BIN" --version
+          GODOT_VERSION="$("$GODOT_BIN" --version)"
+          echo "$GODOT_VERSION"
+          [[ "$GODOT_VERSION" == 4.5.1.stable.* ]] || { echo "Expected Godot 4.5.1 stable, got: $GODOT_VERSION"; exit 1; }
+          echo "GODOT_VERSION=$GODOT_VERSION" >> "$GITHUB_ENV"
       - name: Install matching Android export templates
         run: |
           set -euo pipefail
-          curl --fail --location --retry 5 --retry-all-errors https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_export_templates.tpz --output "$RUNNER_TEMP/godot/templates.tpz"
+          curl --fail --location --retry 5 --retry-all-errors https://github.com/godotengine/godot/releases/download/4.5.1-stable/Godot_v4.5.1-stable_export_templates.tpz --output "$RUNNER_TEMP/godot/templates.tpz"
           mkdir -p "$RUNNER_TEMP/godot/templates"
           unzip -q "$RUNNER_TEMP/godot/templates.tpz" -d "$RUNNER_TEMP/godot/templates"
-          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.4.1.stable"
+          TEMPLATE_DIR="$HOME/.local/share/godot/export_templates/4.5.1.stable"
           mkdir -p "$TEMPLATE_DIR"
           cp -a "$RUNNER_TEMP/godot/templates/templates/." "$TEMPLATE_DIR/"
+      - name: Prepare virtual software display for UI tests and export
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y xvfb libvulkan1 mesa-vulkan-drivers
+          command -v xvfb-run
       - name: Download animated Fox GLB test character and license
         run: |
           set -euo pipefail
@@ -72,31 +81,81 @@ jobs:
       - name: Build offline photorealistic asset galleries
         run: |
           set -euo pipefail
+          echo "Pinned Godot engine for validation: Godot ${GODOT_VERSION}"
           rm -rf assets/gallery/2d assets/gallery/3d assets/gallery/catalog.json
           python tools/content_banks/fetch_polyhaven.py 2>&1 | tee "$RUNNER_TEMP/asset-download.log"
-          for test_file in test_fetch_kenney_cc0.py test_polyhaven_bank.py test_root_manifest.py test_validate_downloaded_assets.py; do
+          python tools/content_banks/fetch_extended_sources.py 2>&1 | tee "$RUNNER_TEMP/extended-source-download.log"
+          python tools/content_banks/filter_godot_compat_assets.py 2>&1 | tee "$RUNNER_TEMP/glb-compatibility.log"
+          for test_file in test_fetch_kenney_cc0.py test_polyhaven_bank.py test_extended_sources.py test_filter_godot_compat_assets.py test_root_manifest.py test_validate_downloaded_assets.py test_verify_godot_import_artifacts.py test_verify_godot_negative_import.py test_validate_catalog_validation_report.py; do
             python -m unittest discover -s tools/content_banks -p "$test_file" -v 2>&1 | tee -a "$RUNNER_TEMP/asset-bank-tests.log"
           done
           python tools/content_banks/build_root_manifest.py 2>&1 | tee "$RUNNER_TEMP/root-manifest.log"
           python tools/content_banks/validate_downloaded_assets.py 2>&1 | tee "$RUNNER_TEMP/asset-integrity.log"
-      - name: Import project resources before tests
+      - name: Import project resources in verified GNOME portal session
         run: |
           set -euo pipefail
           test -s project.godot
           test -s export_presets.cfg
           test -s scripts/SceneParser.gd
           test -s tests/scene_parser_test.gd
-          test -s tests/catalog_manager_test.gd
           test -s assets/gallery/catalog.json
+          grep -Fqx 'rendering/driver/threads/thread_model=1' project.godot
+          echo 'Godot rendering thread model: Safe (1)'
+          docker pull debian:trixie-slim
+          docker run --rm \
+            --env GITHUB_WORKSPACE=/workspace \
+            --env RUNNER_TEMP=/runner-temp \
+            --env GODOT_BIN=/godot/Godot_v4.5.1-stable_linux.x86_64 \
+            --volume "$GITHUB_WORKSPACE:/workspace" \
+            --volume "$RUNNER_TEMP:/runner-temp" \
+            --volume "$RUNNER_TEMP/godot:/godot:ro" \
+            --workdir /workspace \
+            debian:trixie-slim \
+            bash tools/ci/run_godot_import_with_portal.sh
+          # The portal import runs in Docker as root against the mounted workspace.
+          # Restore runner ownership before host-side tests and Android export.
+          test -d "$GITHUB_WORKSPACE/.godot"
+          sudo chown -R "$(id -u):$(id -g)" "$GITHUB_WORKSPACE/.godot"
+          test -w "$GITHUB_WORKSPACE/.godot"
+          mkdir -p "$GITHUB_WORKSPACE/.godot/editor" "$GITHUB_WORKSPACE/.godot/exported"
+          test -w "$GITHUB_WORKSPACE/.godot/editor"
+          test -w "$GITHUB_WORKSPACE/.godot/exported"
+          test -d .godot/imported
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path(".").resolve()
+          manifest = json.loads((root / "assets/gallery/manifest.json").read_text())
+          for item in manifest["files"]:
+              source_rel = item["path"][6:]
+              if Path(source_rel).suffix.lower() not in {".jpg", ".jpeg"}:
+                  continue
+              sidecar = root / (source_rel + ".import")
+              print(f"IMPORT_SIDECAR_BEGIN {item['path']} exists={sidecar.is_file()}")
+              if sidecar.is_file():
+                  print(sidecar.read_text(encoding="utf-8", errors="replace"))
+              print(f"IMPORT_SIDECAR_END {item['path']}")
+          PY
+          python tools/content_banks/verify_godot_import_artifacts.py 2>&1 | tee "$RUNNER_TEMP/godot-import-artifacts.log"
+      - name: Prove Godot rejects a valid GLB requiring unsupported meshopt with its real importer
+        run: |
+          set -euo pipefail
+          python tools/content_banks/verify_godot_negative_import.py --godot "$GODOT_BIN" 2>&1 | tee "$RUNNER_TEMP/godot-negative-import.log"
+      - name: Load, instantiate and inspect every catalog resource
+        run: |
+          set -euo pipefail
           set +e
-          "$GODOT_BIN" --headless --editor --path "$GITHUB_WORKSPACE" --quit 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
+          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script res://tests/catalog_asset_validation.gd --verbose 2>&1 | tee "$RUNNER_TEMP/catalog-asset-validation.log"
           godot_status=${PIPESTATUS[0]}
           set -e
-          if [ "$godot_status" -ne 0 ] || grep -E 'SCRIPT ERROR:|Parse Error:|Failed to load script|ERROR: Failed to load script' "$RUNNER_TEMP/godot-import.log"; then
-            echo "Godot project import contains script errors; refusing to build an APK."
+          if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Failed to instantiate' "$RUNNER_TEMP/catalog-asset-validation.log"; then
+            echo "At least one active catalog resource failed import, integrity, dependency, instantiation or renderability checks."
             exit 1
           fi
-          test -d .godot
+          grep -q 'CATALOG_ASSET_VALIDATION_OK:' "$RUNNER_TEMP/catalog-asset-validation.log"
+          python tools/content_banks/build_root_manifest.py 2>&1 | tee "$RUNNER_TEMP/root-manifest-after-godot.log"
+          python tools/content_banks/validate_downloaded_assets.py 2>&1 | tee "$RUNNER_TEMP/asset-integrity-after-godot.log"
+          python tools/content_banks/validate_catalog_validation_report.py 2>&1 | tee "$RUNNER_TEMP/catalog-report-validation.log"
       - name: Run Godot parser and scene tests
         timeout-minutes: 8
         run: |
@@ -106,11 +165,11 @@ jobs:
             local log_file="$RUNNER_TEMP/$(basename "$test_script").log"
             echo "::group::Godot test: $test_script"
             set +e
-            timeout --signal=TERM --kill-after=10s 90s "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --script "$test_script" --quit-after 120 2>&1 | tee "$log_file"
+            timeout --signal=TERM --kill-after=10s 90s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --path "$GITHUB_WORKSPACE" --script "$test_script" --quit-after 120 2>&1 | tee "$log_file"
             local godot_status=${PIPESTATUS[0]}
             set -e
-            if [ "$godot_status" -ne 0 ] || grep -E 'SCRIPT ERROR:|Parse Error:|Failed to load script|ERROR: Failed to load script|Assertion failed|Invalid call\.' "$log_file"; then
-              echo "Godot test emitted script/runtime errors: $test_script"
+            if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load|Assertion failed|Invalid call\.' "$log_file"; then
+              echo "Godot test emitted an error: $test_script"
               exit 1
             fi
             echo "::endgroup::"
@@ -118,8 +177,9 @@ jobs:
           run_godot_test res://tests/scene_parser_test.gd
           run_godot_test res://tests/catalog_manager_test.gd
           run_godot_test res://tests/camera_framing_test.gd
+          run_godot_test res://tests/production_editor_test.gd
           run_godot_test res://tests/scene_parser_smoke.gd
-          timeout --signal=TERM --kill-after=10s 30s "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --quit-after 5
+          timeout --signal=TERM --kill-after=10s 30s xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --path "$GITHUB_WORKSPACE" --quit-after 5
       - name: Prepare Android debug signing key
         run: |
           mkdir -p "$HOME/.android"
@@ -147,11 +207,11 @@ jobs:
           set -euo pipefail
           mkdir -p build
           set +e
-          "$GODOT_BIN" --headless --path "$GITHUB_WORKSPACE" --export-debug "Android" build/JEDLStudio-debug.apk 2>&1 | tee "$RUNNER_TEMP/godot-export.log"
+          xvfb-run -a env LIBGL_ALWAYS_SOFTWARE=1 GALLIUM_DRIVER=llvmpipe "$GODOT_BIN" --rendering-method gl_compatibility --rendering-driver opengl3 --audio-driver Dummy --path "$GITHUB_WORKSPACE" --export-debug "Android" build/JEDLStudio-debug.apk 2>&1 | tee "$RUNNER_TEMP/godot-export.log"
           godot_status=${PIPESTATUS[0]}
           set -e
-          if [ "$godot_status" -ne 0 ] || grep -E 'SCRIPT ERROR:|Parse Error:|Failed to load script|ERROR: Failed to load script' "$RUNNER_TEMP/godot-export.log"; then
-            echo "Godot export contains script errors; refusing to publish this APK."
+          if [ "$godot_status" -ne 0 ] || grep -E 'ERROR:|SCRIPT ERROR:|Parse Error:|Failed to load' "$RUNNER_TEMP/godot-export.log"; then
+            echo "Godot export contains errors; refusing to publish this APK."
             exit 1
           fi
           test -s build/JEDLStudio-debug.apk
@@ -166,7 +226,16 @@ jobs:
             build/JEDLStudio-debug.apk.sha256
           if-no-files-found: error
           retention-days: 14
-
+      - name: Upload per-resource validation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-studio-resource-validation
+          path: |
+            assets/gallery/glb_compatibility_report.json
+            assets/gallery/validation_report.json
+          if-no-files-found: warn
+          retention-days: 14
       - name: Upload validation logs
         if: always()
         uses: actions/upload-artifact@v4
@@ -174,4 +243,19 @@ jobs:
           name: jedl-studio-validation-logs
           path: ${{ runner.temp }}/*.log
           if-no-files-found: warn
+          retention-days: 14
+      - name: Upload consolidated Phase A audit evidence
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jedl-studio-evidence-run-${{ github.run_number }}
+          path: |
+            docs/asset_exclusions.json
+            docs/audits/FASE_A_CLOSURE_REPORT.md
+            assets/gallery/glb_compatibility_report.json
+            assets/gallery/validation_report.json
+            build/JEDLStudio-debug.apk
+            build/JEDLStudio-debug.apk.sha256
+            ${{ runner.temp }}/*.log
+          if-no-files-found: error
           retention-days: 14

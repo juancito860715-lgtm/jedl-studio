@@ -121,6 +121,9 @@ def validate_assets(root: Path = ROOT) -> dict:
         declared_hash = str(entry.get("sha256", ""))
         if len(declared_hash) != 64 or sha256(asset_path) != declared_hash:
             raise ValueError(f"Downloaded asset SHA-256 mismatch: {asset_id}")
+        declared_size = int(entry.get("sizeBytes", -1))
+        if declared_size != asset_path.stat().st_size:
+            raise ValueError(f"Downloaded asset size mismatch: {asset_id}")
 
         if kind == "2d":
             backgrounds += 1
@@ -164,11 +167,24 @@ def validate_assets(root: Path = ROOT) -> dict:
     by_id = {str(item.get("assetId", "")): item for item in manifest_entries}
     if set(by_id) != ids:
         raise ValueError("Catalog asset IDs differ from root manifest")
+    file_records = {str(item.get("path", "")): item for item in manifest.get("files", [])}
     for entry in entries:
         record = by_id[entry["id"]]
-        for field, manifest_field in (("path", "path"), ("sha256", "sha256"), ("license", "license")):
+        for field, manifest_field in (("path", "path"), ("sha256", "sha256"), ("license", "license"), ("sizeBytes", "sizeBytes")):
             if str(entry.get(field, "")) != str(record.get(manifest_field, "")):
                 raise ValueError(f"Catalog/manifest {field} mismatch for {entry['id']}")
+        dependencies = record.get("dependencies", [])
+        if not isinstance(dependencies, list):
+            raise ValueError(f"Manifest dependencies are not an array: {entry['id']}")
+        for dependency in dependencies:
+            if dependency not in file_records:
+                raise ValueError(f"Model dependency is absent from manifest file inventory: {entry['id']} -> {dependency}")
+            dependency_path = resolve_res_path(root, dependency)
+            dependency_record = file_records[dependency]
+            if dependency_path.stat().st_size != int(dependency_record.get("sizeBytes", -1)):
+                raise ValueError(f"Model dependency size differs from manifest: {dependency}")
+            if sha256(dependency_path) != str(dependency_record.get("sha256", "")):
+                raise ValueError(f"Model dependency SHA-256 differs from manifest: {dependency}")
 
     files = manifest.get("files", [])
     if not isinstance(files, list) or not files:
@@ -179,7 +195,13 @@ def validate_assets(root: Path = ROOT) -> dict:
             raise ValueError(f"File size differs from root manifest: {record.get('path')}")
         if sha256(path) != str(record.get("sha256", "")):
             raise ValueError(f"File SHA-256 differs from root manifest: {record.get('path')}")
-    return {"assets": len(entries), "photographic_backgrounds": backgrounds, "models_3d": models, "files": len(files)}
+    return {
+        "assets": len(entries),
+        "photographic_backgrounds": backgrounds,
+        "models_3d": models,
+        "files": len(files),
+        "model_dependencies": sum(len(item.get("dependencies", [])) for item in manifest_entries),
+    }
 
 
 def main() -> None:

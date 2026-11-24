@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "exclusions": [
+    {
+      "assetId": "character.tevy.casual_walker.v1",
+      "status": "excluded",
+      "exclusion_date": "2026-11-22",
+      "audit_reference": "PR #13 / Run #178 / Auditoría FIX-A5 (2026-11-22)",
+      "reason": "EXT_meshopt_compression y KHR_mesh_quantization no están soportadas nativamente en Godot 4.x; la importación, instanciación y renderización de Tevy no están demostradas.",
+      "unsupportedExtensions": [
+        "EXT_meshopt_compression",
+        "KHR_mesh_quantization"
+      ],
+      "activeCatalogAllowed": false,
+      "reentryCriteria": [
+        "Convertir el modelo sin extensiones de compresión no soportadas o documentar una ruta de importación compatible.",
+        "Preservar y comparar geometría, materiales, esqueleto y clips de animación.",
+        "Superar la importación real con la versión Godot fijada por CI.",
+        "Instanciar con un conteo de nodos descendientes mayor que cero.",
+        "Superar las comprobaciones de superficies MeshInstance3D y límites no vacíos.",
+        "Superar el informe completo de validación de recursos antes de reingresar al catálogo."
+      ]
+    }
+  ]
+}

@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import struct
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 DEFAULT_CATALOG = "assets/gallery/catalog.json"
 DEFAULT_OUTPUT = "assets/gallery/manifest.json"
@@ -33,6 +35,61 @@ def resolve_res_path(root: Path, resource_path: str) -> Path:
     if not candidate.is_file() or not candidate.is_relative_to(root):
         raise ValueError(f"Asset path does not resolve to a file inside the project: {resource_path}")
     return candidate
+
+
+def read_model_document(path: Path) -> dict:
+    if path.suffix.lower() == ".gltf":
+        document = json.loads(path.read_text(encoding="utf-8"))
+    elif path.suffix.lower() == ".glb":
+        payload = path.read_bytes()
+        if len(payload) < 20:
+            raise ValueError(f"GLB is truncated while collecting dependencies: {path}")
+        magic, version, declared_length = struct.unpack_from("<4sII", payload, 0)
+        if magic != b"glTF" or version != 2 or declared_length != len(payload):
+            raise ValueError(f"GLB header/version/length is invalid while collecting dependencies: {path}")
+        chunk_length, chunk_type = struct.unpack_from("<II", payload, 12)
+        if chunk_type != 0x4E4F534A or 20 + chunk_length > len(payload):
+            raise ValueError(f"GLB JSON chunk is invalid while collecting dependencies: {path}")
+        document = json.loads(
+            payload[20:20 + chunk_length].decode("utf-8").rstrip(" \t\r\n\x00")
+        )
+    else:
+        return {}
+    if not isinstance(document, dict) or not isinstance(document.get("asset"), dict):
+        raise ValueError(f"Invalid glTF document while collecting dependencies: {path}")
+    return document
+
+
+def model_dependencies(root: Path, model_path: Path) -> list[str]:
+    """Return every external buffer/image dependency as a safe res:// path."""
+    if model_path.suffix.lower() not in (".gltf", ".glb"):
+        return []
+    document = read_model_document(model_path)
+    dependencies: set[str] = set()
+    for collection in ("buffers", "images"):
+        values = document.get(collection, [])
+        if not isinstance(values, list):
+            raise ValueError(f"Invalid {collection} dependency list: {model_path}")
+        for item in values:
+            if not isinstance(item, dict):
+                raise ValueError(f"Invalid {collection} dependency record: {model_path}")
+            uri = item.get("uri", "")
+            if not isinstance(uri, str) or not uri or uri.startswith("data:"):
+                continue
+            parsed = urlparse(uri)
+            if parsed.scheme or parsed.netloc:
+                raise ValueError(f"External network URI is forbidden in packaged glTF: {uri}")
+            decoded = unquote(uri).replace("\\", "/")
+            parts = decoded.split("/")
+            if decoded.startswith("/") or any(part in ("", ".", "..") for part in parts):
+                raise ValueError(f"Unsafe glTF dependency path: {uri}")
+            dependency = (model_path.parent / Path(*parts)).resolve(strict=True)
+            if not dependency.is_file() or not dependency.is_relative_to(model_path.parent.resolve()):
+                raise ValueError(f"Missing or escaped glTF dependency: {uri}")
+            if not dependency.is_relative_to(root):
+                raise ValueError(f"glTF dependency escaped project root: {uri}")
+            dependencies.add("res://" + dependency.relative_to(root).as_posix())
+    return sorted(dependencies)
 
 
 def build_manifest(
@@ -90,14 +147,23 @@ def build_manifest(
 
         asset_file = resolve_res_path(root, entry.get("path", ""))
         actual_hash = sha256_file(asset_file)
+        actual_size = asset_file.stat().st_size
         declared_hash = entry.get("sha256")
         if declared_hash and declared_hash != actual_hash:
             raise ValueError(f"SHA-256 mismatch for {asset_id}")
+        declared_size = entry.get("sizeBytes")
+        if declared_size is not None and int(declared_size) != actual_size:
+            raise ValueError(f"File size mismatch for {asset_id}")
         entry["sha256"] = actual_hash
+        entry["sizeBytes"] = actual_size
 
         preview_path = entry.get("preview_path", "")
         if preview_path:
             resolve_res_path(root, preview_path)
+        dependencies = model_dependencies(root, asset_file) if entry["kind"] == "3d" else []
+        if preview_path and preview_path != entry["path"]:
+            dependencies.append(preview_path)
+        dependencies = sorted(set(dependencies))
         manifest_assets.append({
             "assetId": asset_id,
             "kind": entry["kind"],
@@ -112,12 +178,13 @@ def build_manifest(
             "licenseFile": str(entry.get("licenseFile", "")),
             "attribution": str(entry.get("attribution", "")),
             "sha256": actual_hash,
+            "sizeBytes": actual_size,
+            "dependencies": dependencies,
             "offline": True,
             "placeable": True,
         })
 
-    # Persist computed hashes back into the catalog so the app and root manifest
-    # share one canonical asset identity and digest.
+    # Persist canonical asset hashes and sizes in the catalog.
     catalog_path.write_text(json.dumps(catalog, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
     excluded = output_path.resolve(strict=False)
@@ -143,6 +210,13 @@ def build_manifest(
             })
     if not files:
         raise ValueError("No offline asset files were found")
+
+    # Every declared model dependency must be represented in the root inventory.
+    inventory_paths = {item["path"] for item in files}
+    for asset in manifest_assets:
+        for dependency in asset["dependencies"]:
+            if dependency not in inventory_paths:
+                raise ValueError(f"Model dependency is absent from root inventory: {asset['assetId']} -> {dependency}")
 
     catalog_hash = sha256_file(catalog_path)
     total_bytes = sum(item["sizeBytes"] for item in files)
