@@ -5,9 +5,9 @@ JEDL Studio is migrating to Godot Engine 4.4.1 as its primary 3D/2.5D runtime. T
 ## Godot project
 
 - Main.tscn: 3D stage, camera, lighting and runtime UI.
-- scripts/CatalogManager.gd: discovers GLB/glTF/TSCN characters and objects.
+- scripts/CatalogManager.gd: validates the offline root manifest, resolves stable asset IDs, and discovers packaged GLB/glTF/TSCN resources.
 - scripts/SceneParser.gd: loads JSON scenes, instances assets, plays named animations and schedules subtitles/audio.
-- scripts/MocapReceiver.gd: Godot-side integration contract for a native MediaPipe bridge and Skeleton3D bone rotations.
+- MediaPipe: the native Android plugin and camera/video capture bridge are not implemented in the current Godot runtime.
 - assets/characters, assets/objects, assets/audio: offline asset-bank locations.
 - .github/workflows/build_godot.yml: headless validation and Android debug APK artifact.
 
@@ -20,13 +20,19 @@ GitHub Actions installs Godot 4.4.1, matching Android export templates and Andro
 ## Scene JSON
 
 See scenes/scene.example.json. Supported fields:
-- characters and objects: path, position, rotation_degrees, scale, optional animation.
+- characters and objects: stable assetId, position, rotation_degrees, scale, optional animation. Legacy path-only entries remain supported.
 - subtitles: time, duration, text.
 - sounds: time, path, optional volume_db.
 
+## Offline asset identity
+
+The Godot build generates `assets/gallery/manifest.json` after downloading the curated build-time asset set. The root manifest records stable asset IDs, file sizes, SHA-256 hashes, source/license metadata and the catalog hash. Scene JSON should use `assetId`; `CatalogManager.gd` resolves it to the packaged resource. The app does not download assets at runtime.
+
+The current catalog contains four photographic 2D backgrounds, six 3D environment props and one animated Fox sample. The Fox is a test character, not a complete human 3D avatar. The separate 42-piece Kotlin-era avatar generator is not yet connected to the Godot gallery as a rigged 2D character.
+
 ## MediaPipe boundary
 
-MocapReceiver.gd defines the expected method for the native bridge. The repository does not yet contain the native MediaPipe Android plugin or a proven end-to-end camera/video-to-Skeleton3D pipeline. The receiver is an integration point only.
+The current main branch does not contain `scripts/MocapReceiver.gd`, a native MediaPipe Android plugin, or a working camera/video-to-Skeleton3D capture path. Therefore no functional MediaPipe capture option is available in this Godot build yet. The legacy Kotlin implementation under `app/` is retained for reference and is not part of the primary Godot runtime.
 
 ## Legacy Android implementation
 

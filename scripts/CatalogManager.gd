@@ -56,7 +56,7 @@ func load_catalog() -> bool:
         return _fail("Offline manifest fileCount is inconsistent")
 
     for file_value in manifest_files:
-        if not file_value is Dictionary:
+        if typeof(file_value) != TYPE_DICTIONARY:
             return _fail("Offline manifest contains an invalid file record")
         var file_record: Dictionary = file_value
         var file_path := String(file_record.get("path", ""))
@@ -67,7 +67,7 @@ func load_catalog() -> bool:
             return _fail("Offline manifest contains an empty file record: " + file_path)
 
     for asset_value in manifest_assets:
-        if not asset_value is Dictionary:
+        if typeof(asset_value) != TYPE_DICTIONARY:
             return _fail("Offline manifest contains an invalid asset record")
         var asset: Dictionary = asset_value
         var asset_id := String(asset.get("assetId", ""))
@@ -87,7 +87,7 @@ func load_catalog() -> bool:
     if typeof(catalog_assets) != TYPE_ARRAY or catalog_assets.is_empty():
         return _fail("Asset catalog has no assets")
     for entry_value in catalog_assets:
-        if not entry_value is Dictionary:
+        if typeof(entry_value) != TYPE_DICTIONARY:
             return _fail("Asset catalog contains an invalid entry")
         var entry: Dictionary = entry_value
         var asset_id := String(entry.get("id", ""))
