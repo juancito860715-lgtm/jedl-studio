@@ -36,8 +36,8 @@ func _run_tests() -> void:
 	parser.catalog_manager = manager
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example scene must load from checked-in assets")
 	assert(parser.active_instances.size() == 2, "Sample must instantiate only two auxiliary 2D cutouts")
-	assert(parser.timeline_engine.get_keyframe_count() == 0, "Sample scene must not animate a placeholder character")
-	assert(parser.timeline_engine.duration_seconds == 0.0, "Empty sample actions must leave the character timeline empty")
+	assert(parser.timeline_engine.get_keyframe_count() == 2, "Sample scene must animate an auxiliary element only")
+	assert(parser.timeline_engine.duration_seconds == 2.0, "Auxiliary element timeline duration must be two seconds")
 
 	parser.queue_free()
 	camera.queue_free()
