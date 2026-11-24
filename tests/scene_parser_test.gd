@@ -57,6 +57,13 @@ func _run_tests() -> void:
 	parser.stop_scene()
 	assert(not parser.timeline_engine.is_playing, "Stop must stop the shared timeline")
 
+	assert(parser.load_scene_file("res://scenes/escena_cruce_coche.json"), "Crossing-car specification must load under the 2.5D/3D-only contract")
+	assert(parser.active_instances.is_empty(), "Crossing-car scene must not invent pedestrian, vehicle or environment placeholders")
+	assert(parser.scene_data["characters"].is_empty(), "Pedestrian remains pending until a real 2.5D/3D catalog resource exists")
+	assert(not parser.scene_data.has("characters_2d"), "Migrated scene must not contain the prohibited characters_2d field")
+	assert(parser.scene_data["resource_requirements"].size() == 3, "Scene must declare real character, vehicle and modular environment requirements")
+	assert(parser.scene_data["motion_plan"][0]["status"] == "pending_character_asset_and_walk_animation", "Pedestrian motion remains explicitly pending until the character asset is available")
+
 	var missing_scene := {
 		"version": 2,
 		"characters": [{"id": "missing_actor", "format": "3d", "assetId": "character.does.not.exist.v1", "category": "Personajes 3D"}],
