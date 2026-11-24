@@ -20,9 +20,7 @@ func _run_tests() -> void:
 		assert(item["license"] == "CC0-1.0", "Every starter sprite must have its verified license")
 		assert(ResourceLoader.exists(String(item["path"])), "Every 2D sprite must be packaged locally")
 	var models: Array[Dictionary] = manager.scan_catalog("3d")
-	assert(models.size() == 1, "3D gallery must expose the local starter character")
-	assert(models[0]["id"] == "character.jedl.starter.v1", "3D starter identity must remain stable")
-	assert(ResourceLoader.exists(String(models[0]["path"])), "Starter 3D scene must be packaged locally")
+	assert(models.is_empty(), "Unrigged geometric starter must not appear as a selectable 3D character")
 
 	var world := Node3D.new()
 	var canvas := Node2D.new()
@@ -37,9 +35,9 @@ func _run_tests() -> void:
 	parser.camera = camera
 	parser.catalog_manager = manager
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example scene must load from checked-in assets")
-	assert(parser.active_instances.size() == 3, "Sample must instantiate one 3D character and two 2D cutouts")
-	assert(parser.timeline_engine.get_keyframe_count() == 5, "JSON actions must compile to shared keyframes")
-	assert(parser.timeline_engine.duration_seconds == 4.0, "Sample timeline duration must be four seconds")
+	assert(parser.active_instances.size() == 2, "Sample must instantiate only two auxiliary 2D cutouts")
+	assert(parser.timeline_engine.get_keyframe_count() == 0, "Sample scene must not animate a placeholder character")
+	assert(parser.timeline_engine.duration_seconds == 0.0, "Empty sample actions must leave the character timeline empty")
 
 	parser.queue_free()
 	camera.queue_free()
