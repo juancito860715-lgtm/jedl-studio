@@ -33,10 +33,10 @@ func _run_smoke_test() -> void:
 	parser.audio_player = audio
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example JSON should load offline")
 	assert(parser.scene_data.has("characters"), "Scene should expose characters")
-	assert(parser.active_instances.size() == 3, "Local 3D character and 2D cutouts should instantiate")
-	assert(parser.timeline_engine.get_keyframe_count() == 5, "JSON actions should compile into deduplicated shared keyframes")
+	assert(parser.active_instances.size() == 2, "Only 2D auxiliary cutouts should instantiate; no character placeholder is allowed")
+	assert(parser.timeline_engine.get_keyframe_count() == 0, "Empty sample actions must not create character keyframes")
 	assert(parser._events.size() == 4, "Subtitle timeline should contain display and clear events")
 	parser.play_scene()
 	assert(parser.timeline_engine.is_playing, "Timeline playback should start")
-	print("GODOT_SMOKE_OK characters=1 transparent_2d=2 keyframes=5")
+	print("GODOT_SMOKE_OK characters=0 auxiliary_2d=2 keyframes=0")
 	quit(0)
