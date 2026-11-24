@@ -1,0 +1,149 @@
+{
+  "version": 2,
+  "title": "Cruce urbano con coche azul",
+  "description": "Un hombre cruza una calle urbana mientras un coche azul se prepara y después conduce por la vía. Las señales de audio se colocan en la misma escala temporal que las acciones.",
+  "scene_spec": {
+    "id": "escena_cruce_coche",
+    "duration": 9.0,
+    "units": "seconds",
+    "environment": {
+      "type": "modular_environment",
+      "domain": "urban_transport",
+      "description": "Calle urbana con calzada, dos aceras, edificios y mobiliario urbano. Construir con piezas modulares; no usar una fotografía como sustituto del entorno.",
+      "camera": {
+        "shot": "wide",
+        "view": "street_level",
+        "focus": ["pedestrian_man", "blue_car"]
+      }
+    },
+    "entities": [
+      {
+        "id": "pedestrian_man",
+        "type": "character",
+        "description": "Hombre adulto caminando y cruzando la calle desde la acera izquierda hasta la derecha.",
+        "format_preference": ["2.5d", "3d"],
+        "required": true
+      },
+      {
+        "id": "blue_car",
+        "type": "vehicle",
+        "description": "Coche azul que permanece detenido al inicio, realiza la acción de puerta y después conduce por la calle.",
+        "color": "blue",
+        "format_preference": ["3d", "2.5d"],
+        "required": true
+      }
+    ]
+  },
+  "characters": [],
+  "characters_2d": [
+    {
+      "id": "pedestrian_man",
+      "name": "Hombre cruzando",
+      "position": [-2.5, 0.0, 0.0],
+      "rotation_degrees": [0.0, 0.0, 0.0],
+      "scale": [1.0, 1.0, 1.0],
+      "layer": "characters",
+      "appearance": {
+        "description": "Figura humana adulta de aspecto neutral, ropa urbana sencilla"
+      }
+    }
+  ],
+  "objects": [],
+  "elements": [],
+  "background": {},
+  "resource_requirements": [
+    {
+      "for": "urban_environment",
+      "type": "environment_piece",
+      "domain": "urban_transport",
+      "queries": ["street road", "sidewalk", "urban buildings", "street furniture"],
+      "note": "Resolver únicamente con IDs presentes en el catálogo instalado. No asignar IDs ficticios."
+    },
+    {
+      "for": "blue_car",
+      "type": "vehicle",
+      "domain": "urban_transport",
+      "queries": ["blue passenger car"],
+      "note": "El recurso concreto debe seleccionarse del catálogo antes de instanciarlo."
+    }
+  ],
+  "actions": [
+    {
+      "target": "pedestrian_man",
+      "property": "position",
+      "time": 0.0,
+      "duration": 4.5,
+      "from": [-2.5, 0.0, 0.0],
+      "to": [2.5, 0.0, 0.0]
+    }
+  ],
+  "motion_plan": [
+    {
+      "target": "blue_car",
+      "action": "door_open_close",
+      "time": 2.8,
+      "duration": 0.8,
+      "status": "pending_resource_and_animation_binding"
+    },
+    {
+      "target": "blue_car",
+      "action": "drive_forward",
+      "time": 4.0,
+      "duration": 5.0,
+      "from": [3.5, 0.0, -2.0],
+      "to": [-3.5, 0.0, -2.0],
+      "status": "pending_resource_and_animation_binding"
+    }
+  ],
+  "subtitles": [
+    {
+      "time": 0.0,
+      "duration": 4.5,
+      "text": "Un hombre cruza la calle."
+    },
+    {
+      "time": 4.5,
+      "duration": 4.5,
+      "text": "El coche azul arranca y conduce."
+    }
+  ],
+  "sounds": [
+    {
+      "id": "footsteps",
+      "time": 0.4,
+      "duration": 4.0,
+      "category": "foley",
+      "description": "Pasos del hombre mientras cruza la calle.",
+      "path": "",
+      "status": "pending_audio_asset"
+    },
+    {
+      "id": "car_door",
+      "time": 2.8,
+      "duration": 0.8,
+      "category": "vehicle_foley",
+      "description": "Apertura y cierre de la puerta del coche azul.",
+      "path": "",
+      "status": "pending_audio_asset"
+    },
+    {
+      "id": "car_engine",
+      "time": 4.0,
+      "duration": 5.0,
+      "category": "vehicle_engine",
+      "description": "Motor del coche azul arrancando y sonando mientras conduce.",
+      "path": "",
+      "loop": true,
+      "status": "pending_audio_asset_and_loop_support"
+    }
+  ],
+  "audio_sync": {
+    "timeline_origin": 0.0,
+    "cues": [
+      {"sound_id": "footsteps", "start": 0.4, "end": 4.4},
+      {"sound_id": "car_door", "start": 2.8, "end": 3.6},
+      {"sound_id": "car_engine", "start": 4.0, "end": 9.0}
+    ],
+    "note": "Los tiempos están definidos, pero los archivos de audio aún deben seleccionarse del catálogo. El motor actual reproduce sonidos con path válido; el bucle de motor requiere soporte específico."
+  }
+}
