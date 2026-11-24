@@ -81,8 +81,6 @@ func _ready() -> void:
 	overlay_screen.add_child(editor_2d_panel)
 	editor_2d_panel.configure(scene_parser, canvas_2d_root)
 	editor_2d_panel.close_requested.connect(func(): editor_2d_panel.visible = false)
-	editor_2d_panel.character_added.connect(_refresh_timeline_targets)
-	editor_2d_panel.character_selected.connect(_on_editor_character_selected)
 	editor_2d_panel.visible = false
 	subtitle_label.text = "Proyecto nuevo · escena vacía. Carga un JSON o añade recursos desde las galerías."
 
@@ -312,10 +310,6 @@ func _show_editor_2d_panel() -> void:
 		timeline_panel.visible = false
 	editor_2d_panel.visible = true
 	editor_2d_panel.move_to_front()
-
-
-func _on_editor_character_selected(node: Node2D) -> void:
-	selected_2d_node = node
 
 
 func _unhandled_input(event: InputEvent) -> void:

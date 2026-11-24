@@ -575,13 +575,17 @@ static func is_character_rig_compatible(instance: Node, character_format: String
 			var attachments := skeleton.find_children("*", "BoneAttachment3D", true, false)
 			for attachment_value in attachments:
 				var attachment := attachment_value as BoneAttachment3D
-				if attachment != null and not attachment.find_children("*", "Sprite3D", true, false).is_empty():
-					return true
+				if attachment == null:
+					continue
+				for sprite_value in attachment.find_children("*", "Sprite3D", true, false):
+					var sprite := sprite_value as Sprite3D
+					if sprite != null and sprite.texture != null:
+						return true
 		else:
 			var meshes := instance.find_children("*", "MeshInstance3D", true, false)
 			for mesh_value in meshes:
 				var mesh_instance := mesh_value as MeshInstance3D
-				if mesh_instance != null and mesh_instance.skin != null:
+				if mesh_instance != null and mesh_instance.skin != null and not mesh_instance.skeleton.is_empty():
 					return true
 	return false
 

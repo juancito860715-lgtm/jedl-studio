@@ -25,6 +25,8 @@ No se asignan nombres, identificadores ni dominios individuales a esos 24 recurs
 ### 2.1 Lo que el inventario actual no demuestra
 
 - No demuestra que exista una galería 2.5D suficiente.
+- Los personajes 2D procedurales de polígonos/cápsulas están prohibidos y no pueden exponerse en la galería de personajes.
+- Una entrada de categoría `Personajes ...` sin `character_format` certificado queda oculta y no se puede instanciar como personaje.
 - Los fondos fotográficos no cuentan como edificios, calles, suelos ni piezas modulares.
 - No demuestra cobertura completa de todos los dominios (urbano, interior, naturaleza, mar, espacio o fantasía).
 - No implica que todos los recursos puedan utilizarse en cualquier dispositivo o escena sin revisar memoria, dependencias y rendimiento.
@@ -48,8 +50,9 @@ Cada entrada tendrá un tipo funcional y un formato:
 ### 3.2 Formatos
 
 - `3d`: recurso tridimensional importable por Godot.
-- `2.5d`: personaje o elemento ilustrado preparado para colocarse y animarse sin rigging manual por parte del usuario.
-- `2d`: imagen o elemento plano auxiliar.
+- `2.5d`: personaje espacial ilustrado; requiere escena `PackedScene` con raíz `Node3D`, `Skeleton3D` con huesos y piezas `Sprite3D` bajo `BoneAttachment3D` enlazados a huesos. Se registra como `character_format: "2.5d"`.
+- `3d`: personaje volumétrico; requiere raíz `Node3D`, `Skeleton3D` con huesos y al menos un `MeshInstance3D` con `Skin`. Se registra como `character_format: "3d"`.
+- `2d`: imagen, icono o elemento plano auxiliar; nunca es un personaje ni satisface el requisito 2.5D.
 - `audio`: archivo de audio compatible con el reproductor del proyecto.
 
 El formato describe el recurso; no crea una ruta distinta del lenguaje JSON.
@@ -71,7 +74,7 @@ La presencia de un dominio en esta lista solo define una categoría prevista. El
 
 ## 5. Metadatos obligatorios por recurso
 
-Cada entrada del manifiesto debe contener los siguientes campos. Los valores concretos deben extraerse del recurso y su fuente:
+Cada entrada del manifiesto debe contener los siguientes campos. Los valores concretos deben extraerse del recurso y su fuente. Los recursos de tipo `character` deben incluir además `character_format` (`2.5d` o `3d`) y superar la validación de rig correspondiente:
 
 | Campo | Tipo | Significado |
 |---|---|---|

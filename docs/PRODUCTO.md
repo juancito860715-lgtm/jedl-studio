@@ -41,8 +41,9 @@ El usuario también debe poder crear y editar escenas manualmente sin utilizar e
 Los tipos de contenido incluyen personajes, objetos, vehículos, entornos, vegetación y elementos de escena. Un recurso puede estar disponible en formato 3D o 2.5D. El formato es un atributo del recurso, no una sintaxis alternativa del JSON.
 
 - **3D:** modelos y escenas tridimensionales importados y validados por Godot.
-- **2.5D:** personajes y elementos ilustrados preparados para colocarse y animarse sin exigir al usuario rigging ni configuración técnica manual.
-- **2D auxiliar:** imágenes y elementos planos cuando su uso esté definido por el catálogo; no sustituyen el sistema de entornos modulares.
+- **2.5D (personajes):** personaje ilustrado espacial, compuesto por piezas Sprite3D colocadas en BoneAttachment3D dentro de un Skeleton3D con huesos reales. La escena debe declarar `format: "2.5d"` y el catálogo debe certificar `character_format: "2.5d"`.
+- **3D (personajes):** modelo volumétrico con raíz Node3D, Skeleton3D con huesos y MeshInstance3D con Skin. La escena debe declarar `format: "3d"` y el catálogo debe certificar `character_format: "3d"`.
+- **2D auxiliar:** imágenes planas, iconos y elementos decorativos. No son personajes, no se admiten en `characters` y nunca pueden reemplazar un personaje 2.5D o 3D.
 
 La disponibilidad real de cada formato depende de los paquetes verificados. No se anunciará un dominio como cubierto si no tiene recursos utilizables.
 
