@@ -2,7 +2,7 @@ name: JEDL Studio Godot Android
 
 on:
   push:
-    branches: [main]
+    branches: [main, hito-3-character-bank-contract]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -66,6 +66,8 @@ jobs:
           python tools/content_banks/build_root_manifest.py 2>&1 | tee "$RUNNER_TEMP/root-manifest.log"
           python tools/content_banks/test_local_catalog.py 2>&1 | tee "$RUNNER_TEMP/local-catalog.log"
           git diff --exit-code -- assets/gallery/catalog.json assets/gallery/manifest.json
+      - name: Validate character bank contract (Python standard library)
+        run: python tools/character_bank/test_validate_bank.py
       - name: Import project resources before tests
         run: |
           set -euo pipefail
