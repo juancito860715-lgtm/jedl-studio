@@ -113,7 +113,7 @@ func _run_test() -> void:
 	main._add_gallery_asset(String(alternative["path"]), false, "character.tevy.casual_walker.v1")
 	assert(main.scene_parser.active_instances.size() == 1, "Choosing an alternative must reload the scene with that resource")
 	var repaired: Dictionary = JSON.parse_string(main.json_editor.text)
-	assert(repaired["characters"][0]["assetId"] == "character.jedl.starter.v1", "Alternative choice must replace the missing assetId explicitly")
+	assert(repaired["characters"][0]["assetId"] == "character.tevy.casual_walker.v1", "Alternative choice must replace the missing assetId explicitly")
 
 	main.json_editor.text = JSON.stringify(main._blank_scene_document())
 	main._show_json_editor()
