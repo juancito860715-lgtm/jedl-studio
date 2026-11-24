@@ -13,25 +13,47 @@ jobs:
           fetch-depth: 0
 
       - name: "Verificar actualización de ESTADO_Y_PLAN.md"
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
         run: |
-          git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.event.pull_request.head.sha }} > changed_files.txt
-          
-          CODE_CHANGED=$(grep -E '^(scripts/|scenes/|tests/)' changed_files.txt || true)
-          DOCS_CHANGED=$(grep -E '^docs/ESTADO_Y_PLAN.md' changed_files.txt || true)
-          
-          if [ -n "$CODE_CHANGED" ] && [ -z "$DOCS_CHANGED" ]; then
-            echo "❌ ERROR: Se modificó código pero NO se actualizó docs/ESTADO_Y_PLAN.md."
-            echo "Archivos de código modificados: $CODE_CHANGED"
-            exit 1
-          fi
-          echo "✅ Documentación actualizada correctamente."
+          set -euo pipefail
+          git diff --name-only "$BASE_SHA" "$HEAD_SHA" > changed_files.txt
+
+          python3 - <<'PY'
+          from pathlib import Path
+          changed = Path("changed_files.txt").read_text(encoding="utf-8").splitlines()
+          code_changed = [
+              path for path in changed
+              if not path.startswith("docs/")
+              and (
+                  path.startswith(("assets/", "scripts/", "scenes/", "tests/"))
+                  or path.endswith(".gd")
+              )
+          ]
+          docs_changed = "docs/ESTADO_Y_PLAN.md" in changed
+
+          if code_changed and not docs_changed:
+              print("ERROR: Se modificó código o assets, pero no se actualizó docs/ESTADO_Y_PLAN.md.")
+              print("Archivos detectados:")
+              for path in code_changed:
+                  print(f" - {path}")
+              raise SystemExit(1)
+
+          print("OK: documentación de estado actualizada o no hubo cambios de código/assets.")
+          PY
 
       - name: "Verificar aprobación del usuario (Etiqueta)"
-        if: github.event.pull_request.mergeable_state == 'clean' || github.event.pull_request.mergeable_state == 'unstable'
+        env:
+          PR_LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
         run: |
-          LABELS="${{ join(github.event.pull_request.labels.*.name, ',') }}"
-          if [[ ! "$LABELS" == *"aprobado-por-usuario"* ]]; then
-            echo "❌ ERROR: Falta la etiqueta 'aprobado-por-usuario'."
-            exit 1
-          fi
-          echo "✅ PR aprobada por el usuario."
+          python3 - <<'PY'
+          import json
+          import os
+          labels = json.loads(os.environ.get("PR_LABELS_JSON", "[]"))
+          required = "aprobado-por-usuario"
+          if required not in labels:
+              print(f"ERROR: Falta la etiqueta obligatoria '{required}'.")
+              raise SystemExit(1)
+          print(f"OK: PR aprobada mediante la etiqueta '{required}'.")
+          PY
