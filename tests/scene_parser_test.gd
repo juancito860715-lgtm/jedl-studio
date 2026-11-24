@@ -49,7 +49,7 @@ func _run_tests() -> void:
 	parser.play_scene()
 	assert(parser._playing, "Subtitle/audio event playback should start")
 	parser._process(0.25)
-	assert(subtitle.text == "JEDL Studio: escena local desde JSON", "First subtitle must appear at 0.25 seconds")
+	assert(subtitle.text == "JEDL Studio: escena de elementos locales", "First subtitle must appear at 0.25 seconds")
 	parser.pause_scene()
 	assert(parser.timeline_engine.is_paused, "Timeline pause must pause the shared animation engine")
 	parser.resume_scene()
