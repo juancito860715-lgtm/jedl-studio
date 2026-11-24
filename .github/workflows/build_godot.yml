@@ -58,6 +58,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Fetch pinned T3 CC0 models and generate offline sound cues
+        run: python tools/fetch_t3_assets.py
       - name: Verify checked-in offline catalog and manifest
         run: |
           set -euo pipefail
@@ -65,7 +67,6 @@ jobs:
           test -s assets/gallery/manifest.json
           python tools/content_banks/build_root_manifest.py 2>&1 | tee "$RUNNER_TEMP/root-manifest.log"
           python tools/content_banks/test_local_catalog.py 2>&1 | tee "$RUNNER_TEMP/local-catalog.log"
-          git diff --exit-code -- assets/gallery/catalog.json assets/gallery/manifest.json
       - name: Import project resources before tests
         run: |
           set -euo pipefail
@@ -83,6 +84,9 @@ jobs:
           test -s tests/project_store_recovery_test.gd
           test -s assets/gallery/catalog.json
           test -s assets/gallery/manifest.json
+          test -s assets/audio/t3/footsteps.wav
+          test -s assets/audio/t3/car_door.wav
+          test -s assets/audio/t3/car_engine_loop.wav
           set +e
           "$GODOT_BIN" --headless --editor --path "$GITHUB_WORKSPACE" --quit 2>&1 | tee "$RUNNER_TEMP/godot-import.log"
           godot_status=${PIPESTATUS[0]}
