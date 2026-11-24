@@ -63,6 +63,9 @@ func _run_tests() -> void:
 	assert(not parser.scene_data.has("characters_2d"), "Migrated scene must not contain the prohibited characters_2d field")
 	assert(parser.scene_data["resource_requirements"].size() == 3, "Scene must declare real character, vehicle and modular environment requirements")
 	assert(parser.scene_data["motion_plan"][0]["status"] == "pending_character_asset_and_walk_animation", "Pedestrian motion remains explicitly pending until the character asset is available")
+	assert(parser.scene_data["scene_spec"]["story_beats"].size() == 3, "Crossing scene must define pedestrian, door and driving beats")
+	assert(parser.scene_data["audio_sync"]["cues"].size() == 3, "Crossing scene must synchronize footsteps, door and engine cues")
+	assert(parser.scene_data["sounds"].map(func(item: Dictionary): return String(item["id"])) == ["footsteps", "car_door", "car_engine"], "All three requested sound cues must be present in timeline order")
 
 	var missing_scene := {
 		"version": 2,
