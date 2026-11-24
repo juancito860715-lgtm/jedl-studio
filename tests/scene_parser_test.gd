@@ -34,7 +34,7 @@ func _run_tests() -> void:
 
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example JSON must load")
 	assert(parser.active_instances.size() == 2, "Example must instantiate only the two transparent 2D auxiliary elements; no character is auto-created")
-	assert(parser.timeline_engine.get_keyframe_count() == 0, "Blank example must not create character animation keyframes")
+	assert(parser.timeline_engine.get_keyframe_count() == 2, "Only the auxiliary leaf element should create two keyframes")
 	var canvas_sprite_count := 0
 	for scene_instance in parser.active_instances:
 		if scene_instance is Sprite2D:
