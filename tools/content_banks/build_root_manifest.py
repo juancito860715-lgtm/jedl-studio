@@ -9,7 +9,7 @@ from pathlib import Path
 
 DEFAULT_CATALOG = "assets/gallery/catalog.json"
 DEFAULT_OUTPUT = "assets/gallery/manifest.json"
-ASSET_ROOTS = ("assets/gallery", "assets/characters")
+ASSET_ROOTS = ("assets/gallery", "assets/characters", "assets/audio")
 
 
 def sha256_file(path: Path) -> str:
