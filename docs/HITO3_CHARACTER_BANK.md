@@ -21,6 +21,8 @@ El identificador del contrato es jedl_humanoid_v1, esquema 1. Los seis slots obl
 
 Un banco puede contener varias variantes para un mismo slot. Debe declarar una pieza predeterminada para cada uno de los seis slots.
 
+**Limitación del rig actual:** esta versión refleja los seis nodos de Hito 2. Cada brazo y cada pierna es una sola pieza; no hay antebrazo, espinilla ni articulaciones jerárquicas de codo/rodilla. Este contrato no certifica todavía un humano completamente articulado. Antes de incorporar arte final, el rig debe ampliarse y el contrato debe versionarse para sus nuevos slots.
+
 ## Ubicación del paquete
 
 Cada banco se guarda en:
