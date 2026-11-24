@@ -1,10 +1,10 @@
 {
   "version": 2,
   "title": "Cruce urbano con coche azul",
-  "description": "Un hombre cruza una calle urbana mientras un coche azul se prepara y después conduce por la vía. Las señales de audio se colocan en la misma escala temporal que las acciones.",
+  "description": "Especificación de escena. No crea sustitutos geométricos: el peatón, el coche y las piezas urbanas se instanciarán únicamente cuando existan recursos reales y validados en el catálogo.",
   "scene_spec": {
     "id": "escena_cruce_coche",
-    "duration": 9.0,
+    "duration": 9,
     "units": "seconds",
     "environment": {
       "type": "modular_environment",
@@ -13,7 +13,10 @@
       "camera": {
         "shot": "wide",
         "view": "street_level",
-        "focus": ["pedestrian_man", "blue_car"]
+        "focus": [
+          "pedestrian_man",
+          "blue_car"
+        ]
       }
     },
     "entities": [
@@ -21,7 +24,10 @@
         "id": "pedestrian_man",
         "type": "character",
         "description": "Hombre adulto caminando y cruzando la calle desde la acera izquierda hasta la derecha.",
-        "format_preference": ["2.5d", "3d"],
+        "format_preference": [
+          "2.5d",
+          "3d"
+        ],
         "required": true
       },
       {
@@ -29,55 +35,83 @@
         "type": "vehicle",
         "description": "Coche azul que permanece detenido al inicio, realiza la acción de puerta y después conduce por la calle.",
         "color": "blue",
-        "format_preference": ["3d", "2.5d"],
+        "format_preference": [
+          "3d",
+          "2.5d"
+        ],
         "required": true
       }
-    ]
+    ],
+    "status": "specification_only_until_real_character_vehicle_and_environment_assets_are_installed"
   },
   "characters": [],
-  "characters_2d": [
-    {
-      "id": "pedestrian_man",
-      "name": "Hombre cruzando",
-      "position": [-2.5, 0.0, 0.0],
-      "rotation_degrees": [0.0, 0.0, 0.0],
-      "scale": [1.0, 1.0, 1.0],
-      "layer": "characters",
-      "appearance": {
-        "description": "Figura humana adulta de aspecto neutral, ropa urbana sencilla"
-      }
-    }
-  ],
   "objects": [],
   "elements": [],
   "background": {},
   "resource_requirements": [
     {
-      "for": "urban_environment",
-      "type": "environment_piece",
-      "domain": "urban_transport",
-      "queries": ["street road", "sidewalk", "urban buildings", "street furniture"],
-      "note": "Resolver únicamente con IDs presentes en el catálogo instalado. No asignar IDs ficticios."
+      "for": "pedestrian_man",
+      "type": "character",
+      "format_preference": [
+        "2.5d",
+        "3d"
+      ],
+      "category_preference": [
+        "Personajes 2.5D",
+        "Personajes 3D"
+      ],
+      "queries": [
+        "rigged illustrated human pedestrian",
+        "rigged stylized 3D human pedestrian"
+      ],
+      "status": "pending_real_catalog_asset",
+      "note": "Do not instantiate a placeholder. Select an assetId whose catalog character_format and rig validation match 2.5d or 3d."
     },
     {
       "for": "blue_car",
       "type": "vehicle",
+      "format_preference": [
+        "3d"
+      ],
+      "queries": [
+        "blue passenger car with openable door and driving animation"
+      ],
+      "status": "pending_real_catalog_asset",
+      "note": "Select a real catalog asset and verify door and driving animations before adding actions."
+    },
+    {
+      "for": "urban_environment",
+      "type": "environment_piece",
       "domain": "urban_transport",
-      "queries": ["blue passenger car"],
-      "note": "El recurso concreto debe seleccionarse del catálogo antes de instanciarlo."
+      "queries": [
+        "street road",
+        "sidewalk",
+        "urban buildings",
+        "street furniture"
+      ],
+      "status": "pending_modular_catalog_assets",
+      "note": "Build from modular pieces; do not use a photo as the whole environment."
     }
   ],
-  "actions": [
+  "actions": [],
+  "motion_plan": [
     {
       "target": "pedestrian_man",
-      "property": "position",
-      "time": 0.0,
+      "action": "walk_across_street",
+      "time": 0,
       "duration": 4.5,
-      "from": [-2.5, 0.0, 0.0],
-      "to": [2.5, 0.0, 0.0]
-    }
-  ],
-  "motion_plan": [
+      "from": [
+        -2.5,
+        0,
+        0
+      ],
+      "to": [
+        2.5,
+        0,
+        0
+      ],
+      "status": "pending_character_asset_and_walk_animation"
+    },
     {
       "target": "blue_car",
       "action": "door_open_close",
@@ -88,16 +122,24 @@
     {
       "target": "blue_car",
       "action": "drive_forward",
-      "time": 4.0,
-      "duration": 5.0,
-      "from": [3.5, 0.0, -2.0],
-      "to": [-3.5, 0.0, -2.0],
+      "time": 4,
+      "duration": 5,
+      "from": [
+        3.5,
+        0,
+        -2
+      ],
+      "to": [
+        -3.5,
+        0,
+        -2
+      ],
       "status": "pending_resource_and_animation_binding"
     }
   ],
   "subtitles": [
     {
-      "time": 0.0,
+      "time": 0,
       "duration": 4.5,
       "text": "Un hombre cruza la calle."
     },
@@ -111,7 +153,7 @@
     {
       "id": "footsteps",
       "time": 0.4,
-      "duration": 4.0,
+      "duration": 4,
       "category": "foley",
       "description": "Pasos del hombre mientras cruza la calle.",
       "path": "",
@@ -128,8 +170,8 @@
     },
     {
       "id": "car_engine",
-      "time": 4.0,
-      "duration": 5.0,
+      "time": 4,
+      "duration": 5,
       "category": "vehicle_engine",
       "description": "Motor del coche azul arrancando y sonando mientras conduce.",
       "path": "",
@@ -138,12 +180,47 @@
     }
   ],
   "audio_sync": {
-    "timeline_origin": 0.0,
+    "timeline_origin": 0,
     "cues": [
-      {"sound_id": "footsteps", "start": 0.4, "end": 4.4},
-      {"sound_id": "car_door", "start": 2.8, "end": 3.6},
-      {"sound_id": "car_engine", "start": 4.0, "end": 9.0}
+      {
+        "sound_id": "footsteps",
+        "start": 0.4,
+        "end": 4.4
+      },
+      {
+        "sound_id": "car_door",
+        "start": 2.8,
+        "end": 3.6
+      },
+      {
+        "sound_id": "car_engine",
+        "start": 4,
+        "end": 9
+      }
     ],
     "note": "Los tiempos están definidos, pero los archivos de audio aún deben seleccionarse del catálogo. El motor actual reproduce sonidos con path válido; el bucle de motor requiere soporte específico."
-  }
+  },
+  "entities": [
+    {
+      "id": "pedestrian_man",
+      "type": "character",
+      "description": "Hombre adulto caminando y cruzando la calle desde la acera izquierda hasta la derecha.",
+      "format_preference": [
+        "2.5d",
+        "3d"
+      ],
+      "required": true
+    },
+    {
+      "id": "blue_car",
+      "type": "vehicle",
+      "description": "Coche azul que permanece detenido al inicio, realiza la acción de puerta y después conduce por la calle.",
+      "color": "blue",
+      "format_preference": [
+        "3d",
+        "2.5d"
+      ],
+      "required": true
+    }
+  ]
 }
