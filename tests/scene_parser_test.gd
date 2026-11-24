@@ -33,8 +33,8 @@ func _run_tests() -> void:
 	parser.audio_player = audio
 
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example JSON must load")
-	assert(parser.active_instances.size() == 2, "Example must instantiate only the two transparent 2D auxiliary elements; no character is auto-created")
-	assert(parser.timeline_engine.get_keyframe_count() == 2, "Only the auxiliary leaf element should create two keyframes")
+	assert(parser.active_instances.size() == 3, "Example must instantiate one rigged 3D pedestrian and two transparent 2D auxiliary elements")
+	assert(parser.timeline_engine.get_keyframe_count() == 4, "The pedestrian and auxiliary leaf must each compile two keyframes")
 	var canvas_sprite_count := 0
 	for scene_instance in parser.active_instances:
 		if scene_instance is Sprite2D:
@@ -42,7 +42,7 @@ func _run_tests() -> void:
 			assert(scene_instance.get_parent() == canvas, "Every 2D scene element must be parented to the dedicated canvas")
 	assert(canvas_sprite_count == 2, "JSON 2D elements must instantiate as Sprite2D nodes")
 	parser.seek_scene(1.0)
-	assert(parser.active_instances.all(func(item: Node): return not item.has_meta("jedl_character_format")), "Example scene must not instantiate a placeholder character")
+	assert(parser.active_instances.filter(func(item: Node): return item.has_meta("jedl_character_format")).size() == 1, "Example must instantiate exactly one certified 3D character")
 	assert(parser._events.size() == 4, "Two subtitles must create four timeline events")
 	assert(parser._events[0]["kind"] == "subtitle", "Subtitle events must be sorted by time")
 
@@ -57,15 +57,18 @@ func _run_tests() -> void:
 	parser.stop_scene()
 	assert(not parser.timeline_engine.is_playing, "Stop must stop the shared timeline")
 
-	assert(parser.load_scene_file("res://scenes/escena_cruce_coche.json"), "Crossing-car specification must load under the 2.5D/3D-only contract")
-	assert(parser.active_instances.is_empty(), "Crossing-car scene must not invent pedestrian, vehicle or environment placeholders")
-	assert(parser.scene_data["characters"].is_empty(), "Pedestrian remains pending until a real 2.5D/3D catalog resource exists")
+	assert(parser.load_scene_file("res://scenes/escena_cruce_coche.json"), "Crossing-car scene must load with all pinned local assets")
+	assert(parser.active_instances.size() == 9, "Crossing-car scene must instantiate one pedestrian, one car and seven modular environment instances")
+	assert(parser.scene_data["characters"].size() == 1 and parser.scene_data["characters"][0]["assetId"] == "character.tevy.casual_walker.v1", "Crossing scene must bind the actual rigged pedestrian")
 	assert(not parser.scene_data.has("characters_2d"), "Migrated scene must not contain the prohibited characters_2d field")
 	assert(parser.scene_data["resource_requirements"].size() == 3, "Scene must declare real character, vehicle and modular environment requirements")
-	assert(parser.scene_data["motion_plan"][0]["status"] == "pending_character_asset_and_walk_animation", "Pedestrian motion remains explicitly pending until the character asset is available")
+	assert(parser.scene_data["motion_plan"][0]["status"] == "asset_and_animation_bound", "Pedestrian walk animation must be bound to the installed 3D model")
 	assert(parser.scene_data["scene_spec"]["story_beats"].size() == 3, "Crossing scene must define pedestrian, door and driving beats")
 	assert(parser.scene_data["audio_sync"]["cues"].size() == 3, "Crossing scene must synchronize footsteps, door and engine cues")
 	assert(parser.scene_data["sounds"].map(func(item: Dictionary): return String(item["id"])) == ["footsteps", "car_door", "car_engine"], "All three requested sound cues must be present in timeline order")
+	for sound in parser.scene_data["sounds"]:
+		assert(FileAccess.file_exists(String(sound["path"])), "Every scene sound must exist as a packaged local WAV")
+	assert(parser.timeline_engine.get_tracks_snapshot().size() == 2, "JSON must compile pedestrian and vehicle movement tracks")
 
 	var missing_scene := {
 		"version": 2,
