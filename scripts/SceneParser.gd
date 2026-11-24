@@ -2,7 +2,6 @@ extends Node
 class_name SceneParser
 
 const TimelineEngineScript = preload("res://scripts/TimelineEngine.gd")
-const CharacterRig2DScript = preload("res://scripts/CharacterRig2D.gd")
 const SceneStyleManagerScript = preload("res://scripts/SceneStyleManager.gd")
 
 var world_root: Node3D
@@ -74,6 +73,10 @@ func load_scene_text(source: String) -> bool:
 		last_error = "El campo actions debe ser una lista []."
 		push_error(last_error)
 		return false
+	if candidate.has("characters_2d"):
+		last_error = "characters_2d está obsoleto: JEDL Studio solo admite personajes 2.5d y 3d articulados, cargados desde el catálogo."
+		push_error(last_error)
+		return false
 	_clear_instances()
 	clear_background()
 	scene_data = candidate
@@ -99,7 +102,7 @@ func load_scene_text(source: String) -> bool:
 	elif background_data is String and not background_data.is_empty():
 		if not set_background(background_data):
 			return false
-	if not _instantiate_entries(scene_data["characters"], "3d"):
+	if not _instantiate_character_entries(scene_data["characters"]):
 		if last_error.is_empty(): last_error = "No se pudieron crear los personajes. Revisa sus assetId y rutas."
 		return false
 	if not _instantiate_entries(scene_data["objects"], "3d"):
@@ -108,10 +111,6 @@ func load_scene_text(source: String) -> bool:
 	if candidate.has("elements"):
 		if typeof(candidate["elements"]) != TYPE_ARRAY or not _instantiate_entries(candidate["elements"], "2d"):
 			push_error("Scene JSON elements must be an array of scene resources")
-			return false
-	if candidate.has("characters_2d"):
-		if not (candidate["characters_2d"] is Array) or not _instantiate_2d_characters(candidate["characters_2d"]):
-			last_error = "La colección characters_2d debe contener personajes 2D válidos."
 			return false
 	if candidate.has("appearances") and not (candidate["appearances"] is Array):
 		last_error = "El campo appearances debe ser una lista."
@@ -136,7 +135,7 @@ func _resolve_scene_entry(raw_entry: Dictionary, expected_kind: String = "3d") -
 		last_missing_kind = String(entry.get("kind", expected_kind))
 		last_missing_category = String(entry.get("category", ""))
 		if last_missing_category.is_empty():
-			last_missing_category = "Personajes 3D" if last_missing_kind == "3d" else "Elementos 2D"
+			last_missing_category = "Personajes 2.5D" if last_missing_kind == "2.5d" else ("Personajes 3D" if last_missing_kind == "3d" else "Elementos 2D")
 		last_error = "No existe un catálogo disponible para resolver el recurso: " + asset_id
 		push_error(last_error)
 		return {}
@@ -150,7 +149,7 @@ func _resolve_scene_entry(raw_entry: Dictionary, expected_kind: String = "3d") -
 		last_error = "No existe en el inventario el assetId: " + asset_id
 		push_error(last_error)
 		return {}
-	for key in ["path", "kind", "category", "license", "sha256"]:
+	for key in ["path", "kind", "category", "license", "sha256", "format", "character_format"]:
 		if resolved.has(key):
 			entry[key] = resolved[key]
 	return entry
@@ -564,42 +563,92 @@ func _dispatch_event(event: Dictionary) -> void:
 				audio_player.play()
 
 
-func _instantiate_2d_characters(entries: Array) -> bool:
-	if canvas_root == null:
-		last_error = "El lienzo 2D independiente no está disponible."
+static func is_character_rig_compatible(instance: Node, character_format: String) -> bool:
+	if not (instance is Node3D) or character_format not in ["2.5d", "3d"]:
 		return false
+	var skeletons := instance.find_children("*", "Skeleton3D", true, false)
+	for skeleton_value in skeletons:
+		var skeleton := skeleton_value as Skeleton3D
+		if skeleton == null or skeleton.get_bone_count() < 1:
+			continue
+		if character_format == "2.5d":
+			var attachments := skeleton.find_children("*", "BoneAttachment3D", true, false)
+			for attachment_value in attachments:
+				var attachment := attachment_value as BoneAttachment3D
+				if attachment != null and not attachment.find_children("*", "Sprite3D", true, false).is_empty():
+					return true
+		else:
+			var meshes := instance.find_children("*", "MeshInstance3D", true, false)
+			for mesh_value in meshes:
+				var mesh_instance := mesh_value as MeshInstance3D
+				if mesh_instance != null and mesh_instance.skin != null:
+					return true
+	return false
+
+
+func _instantiate_character_entries(entries: Array) -> bool:
 	for entry_value in entries:
 		if not (entry_value is Dictionary):
-			last_error = "Cada personaje 2D debe ser un objeto."
+			last_error = "Cada personaje debe ser un objeto JSON."
 			return false
-		var entry: Dictionary = entry_value
-		var entry_id := String(entry.get("id", ""))
+		var raw_entry: Dictionary = entry_value
+		var entry_id := String(raw_entry.get("id", ""))
+		var character_format := String(raw_entry.get("format", "")).to_lower()
 		if entry_id.is_empty():
-			last_error = "Cada personaje 2D requiere un id."
+			last_error = "Cada personaje requiere un id estable."
 			return false
-		var proportions: Variant = entry.get("proportions", {})
-		if not (proportions is Dictionary):
-			proportions = {}
-		var character := CharacterRig2DScript.create_character(String(entry.get("name", entry_id)), proportions)
-		character.name = String(entry.get("name", entry_id))
-		character.set_meta("jedl_entry_id", entry_id)
-		character.set_meta("jedl_asset_id", "character.2d.procedural.v1")
-		character.set_meta("jedl_character_2d", true)
+		if character_format not in ["2.5d", "3d"]:
+			last_error = "El personaje '%s' debe declarar format '2.5d' o '3d'; el formato 2d no está permitido." % entry_id
+			return false
+		if String(raw_entry.get("assetId", "")).is_empty():
+			last_error = "El personaje '%s' requiere un assetId real del catálogo." % entry_id
+			return false
+		var entry := _resolve_scene_entry(raw_entry, character_format)
+		if entry.is_empty():
+			return false
+		var catalog_format := String(entry.get("character_format", "")).to_lower()
+		if catalog_format != character_format:
+			last_error = "El assetId '%s' no está certificado en el catálogo como personaje %s." % [String(entry.get("assetId", "")), character_format]
+			last_missing_entry_id = entry_id
+			last_missing_kind = character_format
+			last_missing_category = "Personajes 2.5D" if character_format == "2.5d" else "Personajes 3D"
+			return false
+		var resource_path := String(entry.get("path", ""))
+		if resource_path.is_empty() or not ResourceLoader.exists(resource_path):
+			last_missing_entry_id = entry_id
+			last_missing_kind = character_format
+			last_missing_category = "Personajes 2.5D" if character_format == "2.5d" else "Personajes 3D"
+			last_error = "No existe el recurso de personaje instalado: " + resource_path
+			return false
+		var packed := load(resource_path) as PackedScene
+		if packed == null:
+			last_error = "El personaje debe ser una escena riggeada importada, no una imagen suelta: " + resource_path
+			return false
+		var instance := packed.instantiate()
+		if not is_character_rig_compatible(instance, character_format):
+			instance.queue_free()
+			last_error = "El recurso '%s' no cumple el rig %s: se requiere Skeleton3D y partes 2.5D adjuntas a huesos o malla 3D con Skin." % [resource_path, character_format]
+			return false
+		instance.name = String(entry.get("name", entry.get("title", entry_id))).validate_node_name()
+		instance.set_meta("jedl_entry_id", entry_id)
+		instance.set_meta("jedl_asset_id", String(entry.get("assetId", "")))
+		instance.set_meta("jedl_character_format", character_format)
+		instance.set_meta("jedl_layer", String(entry.get("layer", "characters")))
 		var position_value := _vector3_from(entry.get("position", [0.0, 0.0, 0.0]))
 		var rotation_value := _vector3_from(entry.get("rotation_degrees", [0.0, 0.0, 0.0]))
 		var scale_value := _vector3_from(entry.get("scale", [1.0, 1.0, 1.0]))
-		_apply_instance_transform(character, position_value, rotation_value, scale_value)
-		canvas_root.add_child(character)
-		active_instances.append(character)
+		_apply_instance_transform(instance, position_value, rotation_value, scale_value)
+		if world_root == null:
+			instance.queue_free()
+			last_error = "El escenario 3D no está disponible para colocar el personaje."
+			return false
+		world_root.add_child(instance)
+		active_instances.append(instance)
 		if timeline_engine != null:
-			timeline_engine.register_target(entry_id, character)
-			CharacterRig2DScript.register_pose_targets(timeline_engine, entry_id, character)
-		var appearance: Variant = entry.get("appearance", {})
-		if appearance is Dictionary and not appearance.is_empty():
-			CharacterRig2DScript.apply_appearance(character, appearance)
-		var pose: Variant = entry.get("pose", {})
-		if pose is Dictionary and not pose.is_empty():
-			CharacterRig2DScript.apply_pose(character, pose)
+			timeline_engine.register_target(entry_id, instance)
+		var animation_name := String(entry.get("animation", ""))
+		if not animation_name.is_empty():
+			_play_animation(instance, animation_name, bool(entry.get("animation_loop", true)))
 	return true
 
 

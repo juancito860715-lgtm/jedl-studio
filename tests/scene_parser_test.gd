@@ -33,8 +33,8 @@ func _run_tests() -> void:
 	parser.audio_player = audio
 
 	assert(parser.load_scene_file("res://scenes/scene.example.json"), "Example JSON must load")
-	assert(parser.active_instances.size() == 3, "Example must instantiate the character and two transparent 2D elements")
-	assert(parser.timeline_engine.get_keyframe_count() == 5, "Adjacent JSON actions must share a boundary keyframe")
+	assert(parser.active_instances.size() == 2, "Example must instantiate only the two transparent 2D auxiliary elements; no character is auto-created")
+	assert(parser.timeline_engine.get_keyframe_count() == 0, "Blank example must not create character animation keyframes")
 	var canvas_sprite_count := 0
 	for scene_instance in parser.active_instances:
 		if scene_instance is Sprite2D:
@@ -42,12 +42,7 @@ func _run_tests() -> void:
 			assert(scene_instance.get_parent() == canvas, "Every 2D scene element must be parented to the dedicated canvas")
 	assert(canvas_sprite_count == 2, "JSON 2D elements must instantiate as Sprite2D nodes")
 	parser.seek_scene(1.0)
-	var actor: Node3D
-	for instance in parser.active_instances:
-		if String(instance.get_meta("jedl_entry_id", "")) == "starter_actor":
-			actor = instance as Node3D
-	assert(actor != null, "Stable scene entry ID must be attached to the instance")
-	assert(actor.position.is_equal_approx(Vector3(0.4, 0.0, 0.0)), "JSON action must interpolate the actor at one second")
+	assert(parser.active_instances.all(func(item: Node): return not item.has_meta("jedl_character_format")), "Example scene must not instantiate a placeholder character")
 	assert(parser._events.size() == 4, "Two subtitles must create four timeline events")
 	assert(parser._events[0]["kind"] == "subtitle", "Subtitle events must be sorted by time")
 
@@ -64,7 +59,7 @@ func _run_tests() -> void:
 
 	var missing_scene := {
 		"version": 2,
-		"characters": [{"id": "missing_actor", "assetId": "character.does.not.exist.v1", "category": "Personajes 3D"}],
+		"characters": [{"id": "missing_actor", "format": "3d", "assetId": "character.does.not.exist.v1", "category": "Personajes 3D"}],
 		"objects": [],
 		"elements": [],
 		"subtitles": [],

@@ -136,6 +136,10 @@ func scan_catalog(kind: String, category_filter: String = "") -> Array[Dictionar
     for source_entry in _all_entries:
         if String(source_entry.get("kind", "")) != kind:
             continue
+        var category := String(source_entry.get("category", ""))
+        if category.begins_with("Personajes") and String(source_entry.get("character_format", "")) not in ["2.5d", "3d"]:
+            push_warning("Character asset hidden: missing certified 2.5D/3D rig metadata: " + String(source_entry.get("id", "")))
+            continue
         if not category_filter.is_empty() and String(source_entry.get("category", "")) != category_filter:
             continue
         var resource_path := String(source_entry.get("path", ""))
