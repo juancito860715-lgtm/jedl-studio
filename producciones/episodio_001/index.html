@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>JEDL Studio · El secreto del viejo taller</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#100c0a;font-family:system-ui,sans-serif}canvas{display:block}
+#hud{position:fixed;inset:0;pointer-events:none;color:#fff}
+#brand{position:absolute;top:14px;left:16px;font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:#e8cda2;text-shadow:0 2px 8px #000}
+#status{position:absolute;top:40px;left:16px;right:16px;font-size:12px;color:#f4dfbf;text-shadow:0 2px 8px #000}
+#subtitle{position:absolute;left:7%;right:7%;bottom:12%;text-align:center;font-size:clamp(18px,3vw,28px);font-weight:650;line-height:1.25;text-shadow:0 2px 4px #000,0 0 12px #000;background:#100c0a99;border-radius:12px;padding:12px 16px;min-height:2.4em}
+#controls{position:fixed;left:0;right:0;bottom:18px;display:flex;justify-content:center;gap:10px;z-index:5}
+button{pointer-events:auto;border:1px solid #d5b783;background:#34251b;color:#fff;border-radius:30px;padding:12px 20px;font-size:14px;font-weight:650}
+#progress{position:absolute;bottom:0;left:0;height:4px;background:#d8a85c;width:0;transition:width .1s linear}
+#end{position:absolute;inset:0;display:none;place-items:center;text-align:center;background:#100c0acc;font-size:22px}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head>
+<body>
+<div id="hud"><div id="brand">JEDL STUDIO · PRODUCCIÓN 001</div><div id="status">Preparando taller y personajes…</div><div id="subtitle"></div><div id="progress"></div><div id="end">Fin de la escena<br><button id="again">Reproducir otra vez</button></div></div>
+<div id="controls"><button id="start">▶ Iniciar escena · 30 s</button><button id="mute">Voz: activada</button></div>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+
+const ASSETS={
+ inventor:{url:'https://gobkit.com/freebies/human001/GrandmaShopper.glb',label:'Inventora (modelo CC0)',scale:1.0},
+ nina:{url:'https://gobkit.com/freebies/human001/Schoolkid.glb',label:'Aprendiz (modelo CC0)',scale:0.92},
+ banco:{url:'https://tevy.dev/models/salvage-workbench/v1/lod0.glb',label:'Banco de trabajo (CC0)',scale:1.0}
+};
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x24160f);scene.fog=new THREE.Fog(0x24160f,13,32);
+const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.1,100);camera.position.set(0,3.2,10);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;document.body.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xffdcb1,0x28150e,1.7));
+const key=new THREE.DirectionalLight(0xffd2a0,3.0);key.position.set(-4,8,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);
+const fill=new THREE.PointLight(0xff9b4a,75,18);fill.position.set(4,4,1);scene.add(fill);
+const floor=new THREE.Mesh(new THREE.PlaneGeometry(30,22),new THREE.MeshStandardMaterial({color:0x493126,roughness:.9}));floor.rotation.x=-Math.PI/2;floor.position.y=-.03;floor.receiveShadow=true;scene.add(floor);
+function box(w,h,d,color,x,y,z,rough=.78){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color,roughness:rough}));m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;scene.add(m);return m}
+function gear(radius,teeth,x,y,z,depth,color,speed){const g=new THREE.Group();g.position.set(x,y,z);const metal=new THREE.MeshStandardMaterial({color,metalness:.72,roughness:.32});const core=new THREE.Mesh(new THREE.CylinderGeometry(radius*.48,radius*.48,depth,32),metal);core.rotation.x=Math.PI/2;g.add(core);const ring=new THREE.Mesh(new THREE.TorusGeometry(radius*.78,depth*.22,8,48),metal);g.add(ring);for(let i=0;i<teeth;i++){const a=i/teeth*Math.PI*2;const tooth=new THREE.Mesh(new THREE.BoxGeometry(radius*.24,depth*.75,radius*.42),metal);tooth.position.set(Math.cos(a)*radius*.88,Math.sin(a)*radius*.88,0);tooth.rotation.z=a;g.add(tooth)}for(let i=0;i<6;i++){const spoke=new THREE.Mesh(new THREE.BoxGeometry(radius*.1,radius*.76,depth*.8),metal);spoke.rotation.z=i*Math.PI/3;g.add(spoke)}scene.add(g);gears.push({g,speed});return g}
+const gears=[];
+box(14,5,.45,0x3a2419,0,2.5,-4);
+for(let i=0;i<5;i++)box(.08,4.7,.1,0x68462c,-6+i*3,2.5,-3.72);
+box(13,.18,.4,0x9a693e,0,4.65,-3.65);
+for(let i=0;i<8;i++)box(.9,.09,.26,0x7b4c2b,-5.6+i*1.6,1.2+(i%3)*.7,-3.62);
+gear(1.25,12,-3.8,3.6,-3.1,.28,0xc18a45,.22);gear(.72,10,-1.8,4.15,-3.05,.22,0xa87537,-.34);gear(1.0,14,2.7,3.7,-3.0,.25,0xb47a3c,.18);gear(.55,9,4.4,4.55,-3.05,.2,0x9b6734,-.3);
+box(4.8,.18,1.25,0x603a22,0,1.35,-.3);box(4.8,.14,.15,0x9b683c,0,1.47,.27);box(.18,1.35,.18,0x4a2b1b,-2.15,.65,-.2);box(.18,1.35,.18,0x4a2b1b,2.15,.65,-.2);
+for(let i=0;i<3;i++){const jar=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,.5,16),new THREE.MeshStandardMaterial({color:[0x9d633b,0x56705b,0xb18a4d][i],roughness:.3}));jar.position.set(-1.5+i*.42,1.72,-.1);scene.add(jar)}
+const loader=new GLTFLoader();const actors={inventor:null,nina:null};const mixers=[];const loadErrors=[];
+function normalizeModel(root,height){const b=new THREE.Box3().setFromObject(root);const size=b.getSize(new THREE.Vector3());const scale=height/Math.max(size.y,.01);root.scale.setScalar(scale);root.position.y-=b.min.y*scale;root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.metalness=Math.min(o.material.metalness||0,.15);o.material.roughness=Math.max(o.material.roughness||.5,.55)}}})}
+function loadModel(key,height,pos){return new Promise(resolve=>loader.load(ASSETS[key].url,g=>{const root=g.scene;normalizeModel(root,height);root.position.x=pos.x;root.position.z=pos.z;root.rotation.y=pos.rot||0;scene.add(root);if(g.animations.length){const mixer=new THREE.AnimationMixer(root);mixers.push(mixer);const idle=g.animations.find(a=>a.name.toLowerCase()==='idle')||g.animations[0];mixer.clipAction(idle).play();root.userData.mixer=mixer;root.userData.clips=g.animations}actors[key]=root;resolve(true)},undefined,e=>{loadErrors.push(ASSETS[key].label);resolve(false)}))}
+const title=document.getElementById('status');const subtitle=document.getElementById('subtitle');const progress=document.getElementById('progress');const end=document.getElementById('end');
+const scripts=[
+{t:4.0,d:3.8,who:'inventor',text:'¿Sabes por qué nunca dejo de reparar estas máquinas?'},
+{t:9.0,d:3.5,who:'nina',text:'¿Porque todavía guardan muchos secretos?'},
+{t:14.0,d:4.2,who:'inventor',text:'¡Exactamente! Cada engranaje cuenta una historia.'},
+{t:20.0,d:3.6,who:'nina',text:'Entonces quiero aprender a descubrirlas.'},
+{t:25.0,d:4.2,who:'inventor',text:'Ven, hoy comienza tu primera aventura.'}
+];
+const shots=[
+{t:0,p:[0,3.3,11],look:[0,2,-1]},
+{t:4,p:[-2.6,2.4,5.3],look:[-1.3,1.6,0]},
+{t:9,p:[2.2,2.1,4.5],look:[1.2,1.3,0]},
+{t:14,p:[-1.5,2.0,4.0],look:[-1,1.7,-.2]},
+{t:20,p:[2.3,2.0,4.1],look:[1.2,1.3,0]},
+{t:25,p:[0,3.0,7.2],look:[0,1.8,-.5]}
+];
+let running=false,elapsed=0,last=0,muted=false,spoken=new Set(),audioCtx=null;
+function speak(item){if(muted||!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(item.text);u.lang='es-ES';u.rate=item.who==='nina'?1.04:.88;u.pitch=item.who==='nina'?1.16:.78;const voices=speechSynthesis.getVoices();const v=voices.find(x=>x.lang.toLowerCase().startsWith('es'));if(v)u.voice=v;speechSynthesis.speak(u)}
+function cameraAt(t){let i=0;while(i<shots.length-1&&shots[i+1].t<=t)i++;const a=shots[i],b=shots[Math.min(i+1,shots.length-1)],f=b.t===a.t?0:THREE.MathUtils.clamp((t-a.t)/(b.t-a.t),0,1);camera.position.lerpVectors(new THREE.Vector3(...a.p),new THREE.Vector3(...b.p),f);camera.lookAt(new THREE.Vector3(...a.look).lerp(new THREE.Vector3(...b.look),f))}
+function startAmbience(){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type='sine';osc.frequency.value=58;gain.gain.value=.018;osc.connect(gain);gain.connect(audioCtx.destination);osc.start()}catch(e){}}
+function start(){if(running)return;running=true;elapsed=0;spoken.clear();end.style.display='none';document.getElementById('controls').style.display='none';subtitle.textContent='';if(window.speechSynthesis)speechSynthesis.cancel();startAmbience();last=performance.now();requestAnimationFrame(tick)}
+function tick(now){if(!running)return;const dt=Math.min((now-last)/1000,.05);last=now;elapsed+=dt;for(const m of mixers)m.update(dt);for(const g of gears)g.g.rotation.z+=g.speed*dt;cameraAt(elapsed);for(const s of scripts){if(elapsed>=s.t&&!spoken.has(s.t)){spoken.add(s.t);subtitle.textContent=s.text;speak(s)}}const active=[...scripts].reverse().find(s=>elapsed>=s.t&&elapsed<s.t+s.d);if(!active&&elapsed<4)subtitle.textContent='';progress.style.width=Math.min(100,elapsed/30*100)+'%';if(elapsed>=30){running=false;subtitle.textContent='';document.getElementById('controls').style.display='flex';end.style.display='grid';if(audioCtx){audioCtx.close();audioCtx=null}return}renderer.render(scene,camera);requestAnimationFrame(tick)}
+document.getElementById('start').addEventListener('click',start);document.getElementById('again').addEventListener('click',start);document.getElementById('mute').addEventListener('click',e=>{muted=!muted;e.target.textContent='Voz: '+(muted?'silenciada':'activada');if(muted&&window.speechSynthesis)speechSynthesis.cancel()});
+Promise.all([loadModel('inventor',2.05,{x:-1.55,z:.15,rot:0}),loadModel('nina',1.65,{x:1.55,z:.25,rot:0}),loadModel('banco',1.0,{x:0,z:-.65,rot:0})]).then(results=>{title.textContent=loadErrors.length?'Aviso: no se cargaron '+loadErrors.join(', ')+'. Comprueba la conexión.':'Recursos 3D cargados. Pulsa Iniciar para reproducir.';document.getElementById('start').disabled=false;renderer.render(scene,camera)});
+renderer.setAnimationLoop(()=>{if(!running)renderer.render(scene,camera)});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+document.getElementById('start').disabled=true;renderer.render(scene,camera);
+</script>
+</body></html>
