@@ -3,123 +3,47 @@
   "title": "El secreto del viejo taller",
   "duration_seconds": 30,
   "language": "es",
-  "visual_reference": "Imagen de referencia aportada por el usuario: taller cálido con engranajes, inventor mayor y niña aprendiz.",
+  "visual_reference": "Taller cálido con engranajes, inventor mayor de barba blanca, suéter verde y overol rojo, junto a una niña aprendiz con ropa rosa.",
   "cast": [
-    {
-      "id": "inventor",
-      "asset": "https://gobkit.com/freebies/human001/GrandmaShopper.glb",
-      "asset_name": "GrandmaShopper",
-      "role": "inventora",
-      "license": "CC0-1.0",
-      "animation_clips": [
-        "Idle",
-        "Walk",
-        "Run",
-        "Special"
-      ]
-    },
-    {
-      "id": "nina",
-      "asset": "https://gobkit.com/freebies/human001/Schoolkid.glb",
-      "asset_name": "Schoolkid",
-      "role": "aprendiz",
-      "license": "CC0-1.0",
-      "animation_clips": [
-        "Idle",
-        "Walk",
-        "Run",
-        "Special"
-      ]
-    }
+    {"id":"inventor","role":"inventor mayor masculino","appearance":"cabello y barba blancos, gafas, suéter verde y overol rojo","asset":"procedural:inventor","license":"original project geometry"},
+    {"id":"nina","role":"niña aprendiz","appearance":"cabello oscuro, ropa rosa y detalles escolares","asset":"procedural:apprentice","license":"original project geometry"}
   ],
   "props": [
-    {
-      "id": "workbench",
-      "asset": "https://tevy.dev/models/tool-chest-bench/v1/lod2.glb",
-      "license": "CC0-1.0"
-    }
+    {"id":"workbench","asset":"procedural:workbench","license":"original project geometry"},
+    {"id":"workshop","asset":"procedural:workshop-gears","license":"original project geometry"}
   ],
   "dialogue": [
-    {
-      "time": 4,
-      "speaker": "inventor",
-      "text": "¿Sabes por qué nunca dejo de reparar estas máquinas?"
-    },
-    {
-      "time": 9,
-      "speaker": "nina",
-      "text": "¿Porque todavía guardan muchos secretos?"
-    },
-    {
-      "time": 14,
-      "speaker": "inventor",
-      "text": "¡Exactamente! Cada engranaje cuenta una historia."
-    },
-    {
-      "time": 20,
-      "speaker": "nina",
-      "text": "Entonces quiero aprender a descubrirlas."
-    },
-    {
-      "time": 25,
-      "speaker": "inventor",
-      "text": "Ven, hoy comienza tu primera aventura."
-    }
+    {"time":4,"speaker":"inventor","text":"¿Sabes por qué nunca dejo de reparar estas máquinas?"},
+    {"time":9,"speaker":"nina","text":"¿Porque todavía guardan muchos secretos?"},
+    {"time":14,"speaker":"inventor","text":"¡Exactamente! Cada engranaje cuenta una historia."},
+    {"time":20,"speaker":"nina","text":"Entonces quiero aprender a descubrirlas."},
+    {"time":25,"speaker":"inventor","text":"Ven, hoy comienza tu primera aventura."}
   ],
   "shots": [
-    {
-      "time": 0,
-      "type": "gran plano general",
-      "camera": "presentación del taller y los dos personajes"
-    },
-    {
-      "time": 3.5,
-      "type": "plano medio",
-      "camera": "inventor: establece la pregunta"
-    },
-    {
-      "time": 8.5,
-      "type": "plano medio",
-      "camera": "aprendiz: reacción y escucha"
-    },
-    {
-      "time": 13.5,
-      "type": "plano medio corto",
-      "camera": "regreso al inventor"
-    },
-    {
-      "time": 17.5,
-      "type": "plano detalle",
-      "camera": "manos y mecanismo sobre la mesa"
-    },
-    {
-      "time": 20,
-      "type": "primer plano",
-      "camera": "reacción de la aprendiz"
-    },
-    {
-      "time": 24.5,
-      "type": "primer plano",
-      "camera": "invitación del inventor"
-    },
-    {
-      "time": 27,
-      "type": "plano conjunto",
-      "camera": "cierre con ambos personajes"
-    }
+    {"time":0,"type":"plano general","camera":"presentación del taller, banco y ambos personajes"},
+    {"time":3.5,"type":"plano medio","camera":"el inventor plantea la pregunta"},
+    {"time":8.5,"type":"plano medio","camera":"la niña responde"},
+    {"time":13.5,"type":"plano medio corto","camera":"reacción del inventor"},
+    {"time":17.5,"type":"plano detalle","camera":"mecanismo sobre el banco"},
+    {"time":20,"type":"primer plano","camera":"reacción de la aprendiz"},
+    {"time":24.5,"type":"primer plano","camera":"invitación del inventor"},
+    {"time":27,"type":"plano conjunto","camera":"cierre con ambos personajes"}
   ],
   "audio": {
-    "voices": "Síntesis del navegador. La voz española depende de las voces instaladas en el dispositivo; todavía no hay archivos de locución integrados.",
-    "ambience": "Pista ambiental sintetizada con Web Audio; todavía no es una banda sonora ni un archivo de música CC0 integrado.",
-    "subtitles": "Subtítulos temporizados incluidos en el reproductor.",
-    "lip_sync": "La ventana temporizada de cada diálogo activa la actuación aunque Web Speech falle; se mueve mandíbula o morph target solo si el GLB expone un control facial compatible. Debe verificarse en los modelos concretos."
+    "dialogue": "Web Speech API en español cuando el dispositivo ofrece una voz compatible; subtítulos temporizados como respaldo.",
+    "music": "motivo ambiental procedural Web Audio, no pista musical grabada.",
+    "lip_sync": "apertura de boca y gestos sincronizados con las ventanas de diálogo; no usa morph targets externos."
+  },
+  "runtime": {
+    "renderer": "Three.js 0.160.0 desde jsDelivr (MIT)",
+    "external_3d_assets": false,
+    "offline": false,
+    "reason": "La biblioteca Three.js aún se carga desde CDN; la geometría de personajes, banco y taller está integrada en el HTML."
   },
   "limitations": [
-    "Los personajes siguen siendo modelos temporales de Gobkit: GrandmaShopper y Schoolkid no reproducen fielmente al inventor masculino y a la niña de la referencia.",
-    "Los GLB se solicitan desde sus servidores originales y no están descargados dentro del repositorio; la escena requiere conexión.",
-    "La actuación facial depende de que los modelos incluyan morph targets compatibles; los gestos corporales dependen de nombres de huesos reconocibles.",
-    "La voz sigue dependiendo de Web Speech API y de la disponibilidad de voces españolas del navegador; no se garantiza la misma voz en todos los teléfonos.",
-    "El audio ambiental actual es sintetizado y provisional; no hay pista musical ni efectos de sonido pregrabados.",
-    "La prueba automatizada comprueba estructura y sintaxis, no sustituye una reproducción real en Safari ni verifica la descarga de GLB."
+    "Los personajes y el taller son modelos geométricos originales de estilo low-poly, no modelos de alta fidelidad ni una reproducción exacta de la imagen de referencia.",
+    "La voz depende de las voces disponibles en Safari/iOS; no hay locuciones pregrabadas.",
+    "La música es ambiental procedural y no sustituye una banda sonora profesional.",
+    "La validación automatizada comprueba estructura y sintaxis; la reproducción visual y auditiva debe comprobarse en el dispositivo."
   ]
 }
