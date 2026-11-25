@@ -30,7 +30,7 @@ const ASSETS={
  banco:{url:'https://tevy.dev/models/tool-chest-bench/v1/lod2.glb',label:'Banco de trabajo (CC0)',scale:1.0}
 };
 const scene=new THREE.Scene();scene.background=new THREE.Color(0x24160f);scene.fog=new THREE.Fog(0x24160f,13,32);
-const camera=new THREE.PerspectiveCamera(innerWidth<700?52:42,innerWidth/innerHeight,.1,100);camera.position.set(0,3.6,13.5);
+const camera=new THREE.PerspectiveCamera(innerWidth<700?64:42,innerWidth/innerHeight,.1,100);camera.position.set(0,4.0,16);
 const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'low-power'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;document.body.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xffdcb1,0x28150e,1.7));
 const key=new THREE.DirectionalLight(0xffd2a0,3.0);key.position.set(-4,8,5);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);
@@ -48,7 +48,7 @@ box(4.8,.18,1.25,0x603a22,0,1.35,-.3);box(4.8,.14,.15,0x9b683c,0,1.47,.27);box(.
 for(let i=0;i<3;i++){const jar=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,.5,16),new THREE.MeshStandardMaterial({color:[0x9d633b,0x56705b,0xb18a4d][i],roughness:.3}));jar.position.set(-1.5+i*.42,1.72,-.1);scene.add(jar)}
 const loader=new GLTFLoader();const actors={inventor:null,nina:null};const mixers=[];const loadErrors=[];
 function normalizeModel(root,height){const b=new THREE.Box3().setFromObject(root);const size=b.getSize(new THREE.Vector3());const scale=height/Math.max(size.y,.01);root.scale.setScalar(scale);root.position.y-=b.min.y*scale;root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;if(o.material){o.material.metalness=Math.min(o.material.metalness||0,.15);o.material.roughness=Math.max(o.material.roughness||.5,.55)}}})}
-function loadModel(key,height,pos){return new Promise(resolve=>loader.load(ASSETS[key].url,g=>{const root=g.scene;normalizeModel(root,height);root.position.x=pos.x;root.position.z=pos.z;root.rotation.y=pos.rot||0;scene.add(root);if(g.animations.length){const mixer=new THREE.AnimationMixer(root);mixers.push(mixer);const idle=g.animations.find(a=>a.name.toLowerCase()==='idle')||g.animations[0];mixer.clipAction(idle).play();root.userData.mixer=mixer;root.userData.clips=g.animations}actors[key]=root;resolve(true)},undefined,e=>{loadErrors.push(ASSETS[key].label);resolve(false)}))}
+function loadModel(key,height,pos){return new Promise(resolve=>loader.load(ASSETS[key].url,g=>{const root=g.scene;normalizeModel(root,height);root.position.x=pos.x;root.position.z=pos.z;root.rotation.y=pos.rot||0;scene.add(root);bindActorControls(root);if(g.animations.length){const mixer=new THREE.AnimationMixer(root);mixers.push(mixer);const idle=g.animations.find(a=>a.name.toLowerCase()==='idle')||g.animations[0];mixer.clipAction(idle).play();root.userData.mixer=mixer;root.userData.clips=g.animations}actors[key]=root;resolve(true)},undefined,e=>{loadErrors.push(ASSETS[key].label);resolve(false)}))}
 const title=document.getElementById('status');const subtitle=document.getElementById('subtitle');const progress=document.getElementById('progress');const end=document.getElementById('end');
 const scripts=[
 {t:4.0,d:3.8,who:'inventor',text:'¿Sabes por qué nunca dejo de reparar estas máquinas?'},
@@ -59,24 +59,41 @@ const scripts=[
 ];
 const mobile=innerWidth<700;
 const shots=mobile?[
-{t:0,p:[0,4.0,15.5],look:[0,2.0,-1]},
-{t:4,p:[-2.0,3.0,9.0],look:[-1.4,1.8,0]},
-{t:9,p:[2.0,2.8,8.5],look:[1.3,1.6,0]},
-{t:14,p:[-1.4,2.8,8.2],look:[-.9,1.7,-.2]},
-{t:20,p:[2.0,2.8,8.4],look:[1.2,1.6,0]},
-{t:25,p:[0,3.8,12.5],look:[0,1.8,-.5]}
+{t:0,p:[0,4.4,16.5],look:[0,2.0,-1]},             // master wide: establish workshop
+{t:3.5,p:[-2.7,3.2,11.8],look:[-1.45,2.0,0]},    // inventor medium
+{t:8.5,p:[2.7,3.1,11.6],look:[1.45,1.9,0]},      // apprentice medium
+{t:13.5,p:[-2.2,3.0,10.8],look:[-1.1,2.0,-.1]},   // inventor reaction
+{t:17.5,p:[0,2.3,8.6],look:[0,1.35,-.35]},        // insert: workbench / hands
+{t:20,p:[2.7,3.0,11.4],look:[1.35,1.9,0]},        // apprentice close
+{t:24.5,p:[-1.8,3.0,11.0],look:[-1.2,1.9,0]},     // inventor close
+{t:27,p:[0,4.0,15.5],look:[0,1.8,-.5]}            // two-shot closing
 ]:[
-{t:0,p:[0,3.3,11],look:[0,2,-1]},
-{t:4,p:[-2.6,2.4,6.5],look:[-1.3,1.6,0]},
-{t:9,p:[2.2,2.1,6.2],look:[1.2,1.3,0]},
-{t:14,p:[-1.5,2.0,6.0],look:[-1,1.7,-.2]},
-{t:20,p:[2.3,2.0,6.1],look:[1.2,1.3,0]},
-{t:25,p:[0,3.0,8.8],look:[0,1.8,-.5]}
+{t:0,p:[0,3.6,12.5],look:[0,2,-1]},
+{t:3.5,p:[-2.5,2.6,8.3],look:[-1.3,1.7,0]},
+{t:8.5,p:[2.4,2.5,8.2],look:[1.3,1.6,0]},
+{t:13.5,p:[-2.1,2.6,8.0],look:[-1.1,1.8,-.1]},
+{t:17.5,p:[0,2.0,6.5],look:[0,1.3,-.35]},
+{t:20,p:[2.4,2.5,8.0],look:[1.3,1.6,0]},
+{t:24.5,p:[-1.8,2.5,7.9],look:[-1.2,1.7,0]},
+{t:27,p:[0,3.3,11.5],look:[0,1.8,-.5]}
 ];
-let running=false,elapsed=0,last=0,muted=false,spoken=new Set(),audioCtx=null,spanishVoice=null;
+let running=false,elapsed=0,last=0,muted=false,spoken=new Set(),audioCtx=null,spanishVoice=null,activeSpeaker=null;
 function refreshVoices(){if(!('speechSynthesis'in window))return;const voices=speechSynthesis.getVoices();spanishVoice=voices.find(v=>/^es([_-]|$)/i.test(v.lang))||null;}
 if('speechSynthesis'in window){refreshVoices();speechSynthesis.addEventListener('voiceschanged',refreshVoices);}
-function speak(item){if(muted||!('speechSynthesis'in window))return;const u=new SpeechSynthesisUtterance(item.text);u.lang=spanishVoice?.lang||'es-ES';u.rate=item.who==='nina'?1.04:.88;u.pitch=item.who==='nina'?1.16:.78;if(spanishVoice)u.voice=spanishVoice;speechSynthesis.speak(u)}
+function speak(item){
+if(muted||!('speechSynthesis'in window))return;
+speechSynthesis.cancel();
+const u=new SpeechSynthesisUtterance(item.text);
+u.lang=spanishVoice?.lang||'es-ES';
+u.rate=item.who==='nina'?1.02:.88;
+u.pitch=item.who==='nina'?1.12:.82;
+if(spanishVoice)u.voice=spanishVoice;
+u.onstart=()=>{activeSpeaker=item.who};
+u.onend=()=>{if(activeSpeaker===item.who)activeSpeaker=null};
+u.onerror=()=>{activeSpeaker=null;title.textContent='La voz del navegador falló; los subtítulos siguen activos.'};
+speechSynthesis.resume();
+speechSynthesis.speak(u);
+}
 function cameraAt(t){let i=0;while(i<shots.length-1&&shots[i+1].t<=t)i++;const a=shots[i],b=shots[Math.min(i+1,shots.length-1)],f=b.t===a.t?0:THREE.MathUtils.clamp((t-a.t)/(b.t-a.t),0,1);const eased=f*f*(3-2*f);camera.position.lerpVectors(new THREE.Vector3(...a.p),new THREE.Vector3(...b.p),eased);camera.lookAt(new THREE.Vector3(...a.look).lerp(new THREE.Vector3(...b.look),eased))}
 function startAmbience(){try{
 audioCtx=new(window.AudioContext||window.webkitAudioContext)();
@@ -88,11 +105,11 @@ notes.forEach((hz,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain
 audioCtx.resume();
 }catch(e){title.textContent='Audio no disponible; los subtítulos siguen activos.'}}
 function start(){if(running)return;running=true;elapsed=0;spoken.clear();end.style.display='none';document.getElementById('controls').style.display='none';subtitle.textContent='';if(window.speechSynthesis)speechSynthesis.cancel();startAmbience();last=performance.now();requestAnimationFrame(tick)}
-function tick(now){if(!running)return;const dt=Math.min((now-last)/1000,.05);last=now;elapsed+=dt;for(const m of mixers)m.update(dt);for(const g of gears)g.g.rotation.z+=g.speed*dt;cameraAt(elapsed);for(const s of scripts){if(elapsed>=s.t&&!spoken.has(s.t)){spoken.add(s.t);subtitle.textContent=s.text;speak(s)}}const active=[...scripts].reverse().find(s=>elapsed>=s.t&&elapsed<s.t+s.d);if(!active&&elapsed<4)subtitle.textContent='';progress.style.width=Math.min(100,elapsed/30*100)+'%';if(elapsed>=30){running=false;subtitle.textContent='';document.getElementById('controls').style.display='flex';end.style.display='grid';if(audioCtx){audioCtx.close();audioCtx=null}return}renderer.render(scene,camera);requestAnimationFrame(tick)}
+function tick(now){if(!running)return;const dt=Math.min((now-last)/1000,.05);last=now;elapsed+=dt;for(const m of mixers)m.update(dt);animateActorPerformance(elapsed);for(const g of gears)g.g.rotation.z+=g.speed*dt;cameraAt(elapsed);for(const s of scripts){if(elapsed>=s.t&&!spoken.has(s.t)){spoken.add(s.t);subtitle.textContent=s.text;speak(s)}}const active=[...scripts].reverse().find(s=>elapsed>=s.t&&elapsed<s.t+s.d);if(!active&&elapsed<4)subtitle.textContent='';progress.style.width=Math.min(100,elapsed/30*100)+'%';if(elapsed>=30){running=false;subtitle.textContent='';document.getElementById('controls').style.display='flex';end.style.display='grid';if(audioCtx){audioCtx.close();audioCtx=null}return}renderer.render(scene,camera);requestAnimationFrame(tick)}
 document.getElementById('start').addEventListener('click',start);document.getElementById('again').addEventListener('click',start);document.getElementById('mute').addEventListener('click',e=>{muted=!muted;e.target.textContent='Voz: '+(muted?'silenciada':'activada');if(muted&&window.speechSynthesis)speechSynthesis.cancel()});
 Promise.all([loadModel('inventor',2.05,{x:-1.55,z:.15,rot:0}),loadModel('nina',1.65,{x:1.55,z:.25,rot:0}),loadModel('banco',1.0,{x:0,z:-.65,rot:0})]).then(results=>{refreshVoices();const voiceNote=('speechSynthesis'in window)?(spanishVoice?'Voz española disponible.':'No se detectó voz española; los subtítulos funcionarán igualmente.'):'Este navegador no ofrece síntesis de voz; los subtítulos funcionarán.';title.textContent=(loadErrors.length?'Aviso: no se cargaron '+loadErrors.join(', ')+'. ':'Recursos 3D cargados. ')+voiceNote+' Pulsa Iniciar.';document.getElementById('start').disabled=false;renderer.render(scene,camera)});
 renderer.setAnimationLoop(()=>{if(!running)renderer.render(scene,camera)});
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<700?52:42;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<700?64:42;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 document.getElementById('start').disabled=true;renderer.render(scene,camera);
 </script>
 </body></html>
