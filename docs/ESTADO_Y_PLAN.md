@@ -128,3 +128,5 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - 2026-11-24 — El usuario autorizó expresamente proceder con la reconstrucción HTML del episodio 001; PR #37 etiquetada `aprobado-por-usuario` para satisfacer la protección de integración.
 
 - 2026-11-24 — PR #38: autorización del usuario para unificar publicación de Pages; el despliegue nativo de GitHub Pages es el único publicador y el workflow del episodio queda como validador.
+
+- 2026-11-24 — PR #38: se unifica la publicación con el flujo nativo de GitHub Pages y se elimina el paso de etiqueta de aprobación duplicada del workflow de PR; se conserva la validación obligatoria de actualización de esta memoria del proyecto.
