@@ -17,6 +17,8 @@ assert.ok(html.includes('new THREE.PerspectiveCamera'), 'Falta la cámara Three.
 assert.ok(html.includes('function cameraAt(t)'), 'Falta el control de planos');
 assert.ok(html.includes('function bindActorControls(root)'), 'Falta la detección de huesos y morph targets');
 assert.ok(html.includes('function animateActorPerformance(t)'), 'Falta la actuación corporal procedural');
+assert.ok(html.includes("if(/jaw/.test(name)&&speaking)"), 'Falta la articulación mandibular durante el diálogo');
+assert.ok(html.includes('activeSpeaker=active?.who||null'), 'La actuación debe seguir el tiempo del guion aunque Web Speech no esté disponible');
 assert.ok(html.includes('activeSpeaker'), 'Falta el seguimiento de la voz activa');
 assert.ok(html.includes('camera.fov=innerWidth<700?64:42'), 'Falta el encuadre ampliado para móvil');
 assert.ok(html.includes('SpeechSynthesisUtterance'), 'Falta la síntesis de voz');
