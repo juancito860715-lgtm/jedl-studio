@@ -1,28 +1,47 @@
 # Episodio 001 — El secreto del viejo taller
 
-Primera prueba de producción audiovisual de JEDL Studio con Three.js.
+Primera producción HTML de JEDL Studio con Three.js.
 
 ## Abrir
 
-Abrir `index.html` desde un servidor web estático o GitHub Pages. Se necesita internet para cargar Three.js y los modelos GLB externos.
+Abrir este directorio mediante GitHub Pages o un servidor web estático. Se necesita internet para Three.js y los GLB externos.
 
-## Contenido previsto
+## Montaje actual
 
-- Duración programada: 30 segundos.
-- Dos personajes 3D CC0 con clips integrados.
-- Taller con banco de trabajo y engranajes procedurales.
-- Seis encuadres de cámara.
-- Diálogos en español mediante voces disponibles en el navegador.
-- Subtítulos y ambiente sonoro generado por Web Audio.
+- Duración de reproducción: 30 segundos.
+- Dos personajes GLB externos de Gobkit, con animación idle disponible.
+- Taller procedural y banco de trabajo GLB CC0 en LOD2.
+- Ocho encuadres: plano general, dos planos medios, regreso al inventor, detalle de manos/mecanismo, dos primeros planos y plano conjunto.
+- Cámara con transición suavizada y campo de visión ampliado para pantallas estrechas.
+- Diálogos y subtítulos temporizados.
+- Actuación procedural: movimiento sutil de cabeza/brazos y apertura de boca cuando los GLB exponen huesos o morph targets con nombres compatibles.
+- La ventana de diálogo del guion controla la actuación aunque Web Speech no esté disponible; si el rig expone mandíbula o morph targets compatibles, se anima la boca durante esa ventana.
+- Audio ambiental provisional generado con Web Audio API.
+- Voz mediante Web Speech API, con detección de voces españolas.
 
-## Controles
+## Limitaciones conocidas — no ocultar
 
-Pulsa «Iniciar escena · 30 s». El navegador debe permitir audio. El botón de voz permite silenciar los diálogos.
+1. **Selección de personajes pendiente:** GrandmaShopper es una mujer mayor y no corresponde al inventor masculino de la referencia; Schoolkid es un modelo genérico. Ambos son placeholders funcionales, no el casting artístico aprobado.
+2. Los GLB son dependencias remotas y no están empaquetados localmente.
+3. La síntesis de voz depende de Safari/iOS y de las voces instaladas. No hay locución grabada y no se garantiza la misma voz en todos los teléfonos.
+4. La música actual es una textura sonora procedural, no una banda sonora musical ni una pista de estudio.
+5. El lip-sync es aproximado y solo actúa si el modelo expone morph targets faciales compatibles.
+6. La validación de CI comprueba JSON, estructura, funciones y sintaxis JavaScript; no demuestra la reproducción real de los modelos, las voces ni el audio en un teléfono.
 
-## Estado honesto
+## Criterio para aceptar nuevos personajes
 
-Esta es una primera integración/prototipo. Los modelos se cargan desde sus fuentes externas, no están empaquetados localmente. La voz depende de las voces instaladas en el dispositivo; no hay locución profesional grabada. El movimiento corporal utiliza clips genéricos disponibles en los GLB; todavía no existe sincronización labial ni actuación facial. No se exporta MP4.
+No se reemplazarán por un modelo solo porque su nombre parezca apropiado. El recurso debe cumplir:
+- apariencia coherente con el inventor mayor masculino y la niña aprendiz de la referencia;
+- licencia libre verificable y compatible con el uso del proyecto;
+- GLB íntegro, tamaño razonable para móvil, texturas embebidas o locales;
+- esqueleto y clips de animación inspeccionados;
+- morph targets faciales o un plan de actuación comprobable;
+- pruebas de carga y reproducción en navegador móvil.
 
 ## Recursos y licencias
 
-Consulta [LICENCIAS.md](./LICENCIAS.md) y [guion.json](./guion.json).
+Consultar [LICENCIAS.md](./LICENCIAS.md) y [guion.json](./guion.json).
+
+## Controles
+
+Pulsa «Iniciar escena · 30 s». El audio se activa desde ese gesto del usuario, como exige el navegador. El botón de voz permite silenciar la síntesis de diálogos.

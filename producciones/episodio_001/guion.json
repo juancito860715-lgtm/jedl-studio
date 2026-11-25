@@ -35,7 +35,7 @@
   "props": [
     {
       "id": "workbench",
-      "asset": "https://tevy.dev/models/salvage-workbench/v1/lod0.glb",
+      "asset": "https://tevy.dev/models/tool-chest-bench/v1/lod2.glb",
       "license": "CC0-1.0"
     }
   ],
@@ -70,43 +70,56 @@
     {
       "time": 0,
       "type": "gran plano general",
-      "camera": "avance de presentación"
+      "camera": "presentación del taller y los dos personajes"
     },
     {
-      "time": 4,
+      "time": 3.5,
       "type": "plano medio",
-      "camera": "inventora"
+      "camera": "inventor: establece la pregunta"
     },
     {
-      "time": 9,
-      "type": "primer plano",
-      "camera": "aprendiz"
+      "time": 8.5,
+      "type": "plano medio",
+      "camera": "aprendiz: reacción y escucha"
     },
     {
-      "time": 14,
-      "type": "sobre el hombro",
-      "camera": "inventora"
+      "time": 13.5,
+      "type": "plano medio corto",
+      "camera": "regreso al inventor"
+    },
+    {
+      "time": 17.5,
+      "type": "plano detalle",
+      "camera": "manos y mecanismo sobre la mesa"
     },
     {
       "time": 20,
       "type": "primer plano",
-      "camera": "aprendiz"
+      "camera": "reacción de la aprendiz"
     },
     {
-      "time": 25,
+      "time": 24.5,
+      "type": "primer plano",
+      "camera": "invitación del inventor"
+    },
+    {
+      "time": 27,
       "type": "plano conjunto",
-      "camera": "travelling de cierre"
+      "camera": "cierre con ambos personajes"
     }
   ],
   "audio": {
-    "voices": "Web Speech API del navegador; voces instaladas localmente, selección es-ES si está disponible. No es un archivo de voz pregrabado.",
-    "ambience": "tono ambiental sintetizado con Web Audio API; no es música orquestal.",
-    "subtitles": "incluidos en el reproductor HTML"
+    "voices": "Síntesis del navegador. La voz española depende de las voces instaladas en el dispositivo; todavía no hay archivos de locución integrados.",
+    "ambience": "Pista ambiental sintetizada con Web Audio; todavía no es una banda sonora ni un archivo de música CC0 integrado.",
+    "subtitles": "Subtítulos temporizados incluidos en el reproductor.",
+    "lip_sync": "La ventana temporizada de cada diálogo activa la actuación aunque Web Speech falle; se mueve mandíbula o morph target solo si el GLB expone un control facial compatible. Debe verificarse en los modelos concretos."
   },
   "limitations": [
-    "Los personajes y el banco son recursos externos CC0; la reproducción requiere conexión.",
-    "El navegador decide qué voces españolas están instaladas; timbre y duración pueden variar.",
-    "El clip es reproducible en HTML; no incluye exportación MP4.",
-    "La escena usa animaciones Idle y movimientos de cámara; la gesticulación sincronizada y el lip-sync quedan para una siguiente iteración."
+    "Los personajes siguen siendo modelos temporales de Gobkit: GrandmaShopper y Schoolkid no reproducen fielmente al inventor masculino y a la niña de la referencia.",
+    "Los GLB se solicitan desde sus servidores originales y no están descargados dentro del repositorio; la escena requiere conexión.",
+    "La actuación facial depende de que los modelos incluyan morph targets compatibles; los gestos corporales dependen de nombres de huesos reconocibles.",
+    "La voz sigue dependiendo de Web Speech API y de la disponibilidad de voces españolas del navegador; no se garantiza la misma voz en todos los teléfonos.",
+    "El audio ambiental actual es sintetizado y provisional; no hay pista musical ni efectos de sonido pregrabados.",
+    "La prueba automatizada comprueba estructura y sintaxis, no sustituye una reproducción real en Safari ni verifica la descarga de GLB."
   ]
 }

@@ -109,3 +109,13 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 
   - 2026-11-24 — Migración del caso T3 `escena_cruce_coche.json`: retirado `characters_2d`, `actions` queda vacío mientras no existan instancias reales y `motion_plan` conserva los movimientos como pendientes de enlazar. Se añaden requisitos de catálogo para peatón 2.5D/3D, coche 3D y piezas urbanas modulares. Test `scene_parser_test.gd` carga la escena y verifica que no aparecen sustitutos ni placeholders.
   - 2026-11-24 — Run #309 (Godot 4.5.1) confirmó importación limpia y pasó `character_format_contract_test.gd`; falló `scene_parser_test.gd` porque, al retirar el personaje de demostración, el test seguía esperando pausa de una línea temporal sin acciones. Corregido el ejemplo: la animación de 2 keyframes ahora mueve únicamente el elemento gráfico auxiliar `leaf_demo`, nunca un personaje. Se actualizaron las expectativas de smoke y catálogo y se añadió prueba de carga de `escena_cruce_coche.json` sin placeholders. Run #309 queda registrado como fallo de test, no como APK producido; pendiente nueva ejecución completa.
+
+## Actualización — Episodio HTML 001 (2026-11-25)
+
+- Se amplió la secuencia de cámara a ocho planos con encuadres específicos para móvil y transiciones suavizadas.
+- Se añadieron controles de actuación procedural sobre huesos y morph targets faciales cuando el GLB los exponga.
+- Se mejoró la gestión de voz del navegador y se documentó que no existe aún locución grabada ni música final.
+- El banco de trabajo usa el GLB CC0 Tool Chest and Bench LOD2 (4.952 triángulos, 195 KB), URL versionada.
+- La CI HTML valida JSON, ocho planos, estructura de diálogos, hooks de actuación y sintaxis JavaScript.
+- Pendiente: sustituir GrandmaShopper y Schoolkid por personajes que sí correspondan a la referencia, con licencia verificable y rig inspeccionado; integrar voz y música como archivos locales; probar carga, sonido y sincronía en Safari/iPhone.
+- Esta actualización afecta exclusivamente a la producción HTML. No se solicita APK; el workflow Android existente puede activarse automáticamente por la configuración general de PR.
