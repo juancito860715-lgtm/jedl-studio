@@ -126,3 +126,5 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - 2026-11-24 — Episodio HTML 001 (PR #37): se sustituye la escena 3D procedural anterior por una ilustración SVG original autocontenida, con taller y dos protagonistas dibujados en el propio HTML, ocho encuadres interpolados, gestos, subtítulos y síntesis de voz del navegador. Se eliminan dependencias CDN/modelos externos. Validador actualizado; run de episodio #45543026319 validó estructura y sintaxis correctamente. La política de gobernanza requiere registrar este cambio en este archivo; la verificación visual real en Safari/iPhone queda pendiente y no se declara cerrada. Música grabada y locuciones profesionales no incluidas.
 
 - 2026-11-24 — El usuario autorizó expresamente proceder con la reconstrucción HTML del episodio 001; PR #37 etiquetada `aprobado-por-usuario` para satisfacer la protección de integración.
+
+- 2026-11-24 — PR #38: autorización del usuario para unificar publicación de Pages; el despliegue nativo de GitHub Pages es el único publicador y el workflow del episodio queda como validador.
