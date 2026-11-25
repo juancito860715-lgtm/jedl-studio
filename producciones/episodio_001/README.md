@@ -15,6 +15,7 @@ Abrir este directorio mediante GitHub Pages o un servidor web estático. Se nece
 - Cámara con transición suavizada y campo de visión ampliado para pantallas estrechas.
 - Diálogos y subtítulos temporizados.
 - Actuación procedural: movimiento sutil de cabeza/brazos y apertura de boca cuando los GLB exponen huesos o morph targets con nombres compatibles.
+- La ventana de diálogo del guion controla la actuación aunque Web Speech no esté disponible; si el rig expone mandíbula o morph targets compatibles, se anima la boca durante esa ventana.
 - Audio ambiental provisional generado con Web Audio API.
 - Voz mediante Web Speech API, con detección de voces españolas.
 
