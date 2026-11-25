@@ -30,8 +30,8 @@ func _run_test() -> void:
 	assert(main.gallery_panel.visible, "3D gallery must open independently")
 	assert(main.gallery_list.get_child_count() == 1, "3D gallery must show the local starter character")
 	main._load_example_scene()
-	assert(main.scene_parser.active_instances.size() == 3, "Example scene must load its local character and 2D sprites")
-	assert(main.scene_parser.timeline_engine.get_keyframe_count() == 5, "Example JSON must use the shared timeline")
+	assert(main.scene_parser.active_instances.size() == 2, "Example scene must load its two local 2D elements; no certified character is currently installed")
+	assert(main.scene_parser.timeline_engine.get_keyframe_count() == 2, "Example JSON must use the shared timeline for its two auxiliary-element keyframes")
 	var canvas_sprite_count := 0
 	var stage_model_count := 0
 	for scene_instance in main.scene_parser.active_instances:
@@ -41,7 +41,7 @@ func _run_test() -> void:
 		elif scene_instance is Node3D:
 			stage_model_count += 1
 			assert(scene_instance.get_parent() == main.world_root, "3D resources must remain in the 3D stage")
-	assert(canvas_sprite_count == 2 and stage_model_count == 1, "The example must separate 2D sprites from its 3D character")
+	assert(canvas_sprite_count == 2 and stage_model_count == 0, "The example must keep its two auxiliary sprites in the 2D canvas and must not invent an uncertified 3D character")
 	var leaf_sprite: Sprite2D
 	for scene_instance in main.scene_parser.active_instances:
 		if scene_instance is Sprite2D:
@@ -57,7 +57,7 @@ func _run_test() -> void:
 	assert(leaf_sprite.scale.is_equal_approx(Vector2(0.5, 0.75)), "Shared timeline scale must preserve 2D sprite scale")
 	var gallery_asset: Dictionary = main.catalog_manager.scan_catalog("2d")[0]
 	main._add_gallery_asset(String(gallery_asset["path"]), false, String(gallery_asset["id"]))
-	assert(main.scene_parser.active_instances.size() == 4, "Adding a gallery item must create a separate scene instance")
+	assert(main.scene_parser.active_instances.size() == 3, "Adding a gallery item must create a separate scene instance")
 	var inserted_sprite = main.scene_parser.active_instances.back()
 	assert(inserted_sprite is Sprite2D and inserted_sprite.get_parent() == main.canvas_2d_root, "Inserted gallery PNG must enter the independent 2D canvas")
 	assert(main.scene_parser.scene_data["elements"].size() == 3, "Inserted 2D resource identity and transform must be recorded in the project scene")
@@ -66,7 +66,7 @@ func _run_test() -> void:
 	assert(not saved_timeline.is_empty(), "Edited animation must be serialized with the project")
 	assert(main.scene_parser.timeline_engine.delete_keyframe("leaf_demo", "position", 0.0), "Test mutation must change the in-memory animation")
 	main._open_saved_project()
-	assert(main.scene_parser.active_instances.size() == 4, "Opening a saved project must restore both 2D and 3D scene resources")
+	assert(main.scene_parser.active_instances.size() == 3, "Opening a saved project must restore all three 2D scene resources")
 	assert(main.scene_parser.timeline_engine.to_dictionary() == saved_timeline, "Project reopen must restore the edited timeline exactly")
 	var restored_leaf: Sprite2D
 	for scene_instance in main.scene_parser.active_instances:
@@ -77,7 +77,7 @@ func _run_test() -> void:
 	assert(restored_leaf.position.is_equal_approx(Vector2(100.0, -50.0)), "Reopened project must reproduce the saved 2D position")
 	assert(is_equal_approx(restored_leaf.rotation_degrees, 30.0), "Reopened project must reproduce the saved 2D rotation")
 	assert(restored_leaf.scale.is_equal_approx(Vector2(0.5, 0.75)), "Reopened project must reproduce the saved 2D scale")
-	assert(main.timeline_tracks_list.get_child_count() == 5, "Timeline editor must display all five animated target/property tracks after project restoration")
+	assert(main.timeline_tracks_list.get_child_count() == 4, "Timeline editor must display the example position track and the three edited leaf target/property tracks after restoration")
 	assert(main.timeline_tracks_list.get_child(0).get_child_count() == 4, "Position track must expose its three selectable keyframe markers")
 	var first_track: Dictionary = main.scene_parser.timeline_engine.get_tracks_snapshot()[0]
 	var first_key: Dictionary = first_track["keyframes"][0]
@@ -103,7 +103,7 @@ func _run_test() -> void:
 	main._validate_and_load_json()
 	assert(main.missing_alternative_button.visible, "Missing resource must offer an explicit same-category alternative")
 	main._cancel_missing_resource()
-	assert(main.scene_parser.active_instances.size() == 4, "Cancel must restore the previously loaded scene and inserted 2D resource")
+	assert(main.scene_parser.active_instances.size() == 3, "Cancel must restore the previously loaded scene and inserted 2D resource")
 
 	main.json_editor.text = JSON.stringify(missing_document)
 	main._validate_and_load_json()
