@@ -1,4 +1,4 @@
-name: Episode 001 — validate HTML
+name: Episode 001 — validate and publish HTML
 
 on:
   pull_request:
@@ -17,6 +17,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: episode-001-pages
+  cancel-in-progress: false
+
 jobs:
   validate:
     name: Validate episode structure and timeline
@@ -24,5 +28,34 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
       - name: Validate 30-second episode
         run: node scripts/validate_episode_001.mjs
+
+  deploy:
+    name: Publish site to GitHub Pages
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Package repository site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
