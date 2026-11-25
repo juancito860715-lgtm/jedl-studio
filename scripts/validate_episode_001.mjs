@@ -21,7 +21,7 @@ assert.ok(html.includes('new SpeechSynthesisUtterance'),'Falta voz del navegador
 assert.ok(html.includes('voiceschanged'),'Falta detección asíncrona de voces');
 assert.ok(html.includes('subtitle.textContent'),'Faltan subtítulos');
 assert.ok(html.includes('requestAnimationFrame(tick)'),'Falta reloj de reproducción');
-assert.ok(html.includes('external_3d_assets": false'),'El guion debe declarar que no hay modelos externos');
+assert.equal(script.runtime.external_3d_assets,false,'El guion debe declarar que no hay modelos externos');
 assert.ok(!html.includes('GLTFLoader'),'No deben existir descargas GLB');
 assert.ok(!html.includes('GrandmaShopper'),'No debe reutilizarse el modelo de casting incorrecto');
 assert.ok(!html.includes('Schoolkid.glb'),'No debe depender del modelo externo de aprendiz');
