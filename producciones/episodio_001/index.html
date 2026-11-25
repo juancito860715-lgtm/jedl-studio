@@ -1,192 +1,158 @@
 <!doctype html>
 <html lang="es">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#160d09">
-<title>JEDL Studio · El secreto del viejo taller</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#1b100d"><title>El secreto del viejo taller — JEDL Studio</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#160d09;color:#fff;font-family:system-ui,-apple-system,sans-serif}canvas{display:block;width:100%;height:100%;touch-action:pan-y}
-#hud{position:fixed;inset:0;pointer-events:none;z-index:2}
-#brand{position:absolute;top:max(14px,env(safe-area-inset-top));left:16px;font-size:11px;letter-spacing:.16em;color:#f0d4a5;text-shadow:0 2px 8px #000}
-#status{position:absolute;top:38px;left:16px;right:16px;font-size:11px;color:#f5e3c9;text-shadow:0 2px 8px #000}
-#subtitle{position:absolute;left:6%;right:6%;bottom:calc(12% + env(safe-area-inset-bottom));min-height:2.5em;padding:12px 16px;border-radius:14px;background:#160d09d9;text-align:center;font-size:clamp(17px,4.3vw,25px);font-weight:700;line-height:1.22;text-shadow:0 2px 5px #000;box-shadow:0 8px 28px #0006}
-#controls{position:fixed;left:0;right:0;bottom:calc(18px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:10px;z-index:4}
-button{pointer-events:auto;border:1px solid #e1bd7d;background:#382418;color:#fff;border-radius:30px;padding:12px 19px;font-size:14px;font-weight:700;box-shadow:0 4px 16px #0006}button:disabled{opacity:.55}
-#progress{position:absolute;bottom:0;left:0;height:4px;background:#e3b96e;width:0}
-#end{position:absolute;inset:0;display:none;place-items:center;text-align:center;background:#100905b8;font-size:23px;font-weight:700;pointer-events:auto}
-@media(max-height:650px){#subtitle{bottom:14%;font-size:16px;padding:9px}#status{top:34px}}
-</style>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}</script>
-</head>
-<body>
-<div id="hud"><div id="brand">JEDL STUDIO · PRODUCCIÓN 001</div><div id="status">Preparando el taller…</div><div id="subtitle"></div><div id="progress"></div><div id="end">Fin de la escena<br><button id="again">Reproducir otra vez</button></div></div>
-<div id="controls"><button id="start" disabled>▶ Iniciar escena · 30 s</button><button id="mute">Voz: activada</button></div>
-<script type="module">
-import * as THREE from 'three';
-
-const scene=new THREE.Scene();
-scene.background=new THREE.Color(0x21130c);
-scene.fog=new THREE.Fog(0x21130c,18,34);
-const camera=new THREE.PerspectiveCamera(innerWidth<700?47:39,innerWidth/innerHeight,.1,80);
-camera.position.set(0,5.0,15.5);
-const renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:'low-power'});
-renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));
-renderer.setSize(innerWidth,innerHeight);
-renderer.shadowMap.enabled=true;
-renderer.shadowMap.type=THREE.PCFSoftShadowMap;
-renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.12;
-document.body.prepend(renderer.domElement);
-
-scene.add(new THREE.HemisphereLight(0xffdfb8,0x35180e,2.0));
-const key=new THREE.DirectionalLight(0xffd4a0,3.1);key.position.set(-4,9,7);key.castShadow=true;key.shadow.mapSize.set(1024,1024);scene.add(key);
-const warm=new THREE.PointLight(0xff9b48,95,19);warm.position.set(4,4,1);scene.add(warm);
-const fill=new THREE.PointLight(0xffd6a0,35,15);fill.position.set(-5,3,4);scene.add(fill);
-
-const mat=(color,rough=.75,metal=0)=>new THREE.MeshStandardMaterial({color,roughness:rough,metalness:metal});
-const wood=mat(0x60351f),woodLight=mat(0x9a5c31),darkWood=mat(0x321b12),gold=mat(0xc58a3f,.32,.72),iron=mat(0x493a2d,.4,.7);
-const floor=new THREE.Mesh(new THREE.PlaneGeometry(40,32),mat(0x57301d));floor.rotation.x=-Math.PI/2;floor.position.y=-.08;floor.receiveShadow=true;scene.add(floor);
-function block(parent,w,h,d,material,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),material);m.position.set(x,y,z);m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
-function sphere(parent,x,y,z,sx,sy,sz,material){const m=new THREE.Mesh(new THREE.SphereGeometry(1,14,10),material);m.position.set(x,y,z);m.scale.set(sx,sy,sz);m.castShadow=true;parent.add(m);return m}
-const wall=new THREE.Group();scene.add(wall);
-block(wall,16,5.5,.5,darkWood,0,3.0,-4.3);
-for(let x=-7;x<=7;x+=2.3)block(wall,.1,5.2,.12,woodLight,x,3,-4.0);
-block(wall,16,.18,.7,woodLight,0,5.65,-4.0);
-for(let i=0;i<7;i++)block(wall,1.35,.1,.18,woodLight,-6+i*2,1.4+(i%3)*.55,-3.92);
-const gears=[];
-function gear(r,teeth,x,y,z,speed){
- const g=new THREE.Group();g.position.set(x,y,z);
- const ring=new THREE.Mesh(new THREE.TorusGeometry(r*.75,r*.18,8,40),gold);g.add(ring);
- const hub=new THREE.Mesh(new THREE.CylinderGeometry(r*.32,r*.32,.22,24),gold);hub.rotation.x=Math.PI/2;g.add(hub);
- for(let i=0;i<teeth;i++){const a=i/teeth*Math.PI*2;const t=block(g,r*.25,.2,r*.34,gold,Math.cos(a)*r*.88,Math.sin(a)*r*.88,0);t.rotation.z=a}
- for(let i=0;i<6;i++){const s=block(g,.09,r*.65,.14,iron,0,0,0);s.rotation.z=i*Math.PI/3}
- scene.add(g);gears.push({g,speed});
-}
-gear(1.25,12,-4.6,4.1,-3.65,.24);gear(.72,10,-2.3,4.7,-3.6,-.32);gear(1.0,14,3.1,4.1,-3.6,.19);gear(.58,9,5.25,5.0,-3.6,-.27);
-
-// Workbench built into the scene: no remote model downloads.
-const bench=new THREE.Group();scene.add(bench);
-block(bench,5.3,.22,1.45,wood,0,1.55,-.05);
-block(bench,5.35,.12,1.5,woodLight,0,1.72,-.05);
-for(const x of [-2.35,2.35]){block(bench,.22,1.55,.22,darkWood,x,.78,-.48);block(bench,.22,1.55,.22,darkWood,x,.78,.42)}
-block(bench,4.7,.12,.16,woodLight,0,.62,-.45);
-block(bench,1.0,.12,.45,mat(0x21833c),0,1.88,-.02);
-for(let i=0;i<8;i++)block(bench,.09,.12,.08,mat(0x145b2d),-.38+i*.11,1.91,.22);
-const smallGear=new THREE.Mesh(new THREE.TorusGeometry(.28,.07,8,24),gold);smallGear.position.set(0,2.05,-.3);bench.add(smallGear);
-block(bench,.48,.6,.38,mat(0x3a4b39),1.75,2.03,-.15);
-const cup=new THREE.Mesh(new THREE.CylinderGeometry(.17,.14,.52,16),mat(0xeee0c4));cup.position.set(1.75,2.58,-.15);bench.add(cup);
-block(bench,.04,.4,.04,mat(0xc82d22),1.75,3.0,-.15).rotation.z=-.18;
-
-// Original procedural characters: intentionally local, stable, and cast correctly.
-const skin=mat(0xc98758),skinLight=mat(0xe0a36f),white=mat(0xf0e8d8),black=mat(0x211914),eye=mat(0x17120f,.3),green=mat(0x416b43),red=mat(0x9c3027),pink=mat(0xe58ba8),pinkDark=mat(0x9f536c),blue=mat(0x31465c);
-function makePerson(kind,x,z){
- const isOld=kind==='inventor',root=new THREE.Group();root.position.set(x,0,z);scene.add(root);
- const body=new THREE.Group();body.position.y=1.35;root.add(body);
- const torso=sphere(body,0,0,0,isOld?.52:.39,isOld?.65:.48,.32,isOld?green:pink);
- if(isOld){
-  // Red overall bib and straps over the green sweater.
-  block(body,.64,.55,.12,red,0,-.22,.29);
-  for(const sx of [-.22,.22]){const strap=block(body,.13,.52,.1,red,sx,.17,.3);strap.rotation.z=sx<0?-.18:.18}
-  sphere(body,0,-.43,.34,.12,.12,.06,gold);
- } else {
-  block(body,.16,.65,.1,blue,-.18,.04,.27).rotation.z=-.22;
-  block(body,.16,.65,.1,blue,.18,.04,.27).rotation.z=.22;
-  block(body,.16,.16,.12,red,0,-.34,.31);
- }
- const head=new THREE.Group();head.position.set(0,isOld?1.02:.78,0);body.add(head);
- sphere(head,0,0,0,isOld?.47:.39,isOld?.5:.43,.38,skin);
- // ears
- for(const sx of [-1,1])sphere(head,sx*(isOld?.45:.37),-.02,0,.09,.14,.1,skinLight);
- // eyes, pupils and brows
- for(const sx of [-1,1]){
-  sphere(head,sx*.16,.04,.335,.105,.12,.045,white);
-  sphere(head,sx*.16,.035,.378,.047,.075,.025,eye);
-  block(head,.2,.045,.05, isOld?white:darkWood,sx*.16,.22,.34).rotation.z=sx*.08;
- }
- // nose and smile
- sphere(head,0,-.09,.4,.075,.09,.07,skinLight);
- const mouth=block(head,.17,.045,.035,mat(0x6e241c),0,-.22,.365);
- // beard and moustache for the elderly male inventor
- if(isOld){
-  const beard=sphere(head,0,-.31,.27,.34,.26,.18,white);
-  sphere(head,-.13,-.18,.39,.18,.09,.08,white);sphere(head,.13,-.18,.39,.18,.09,.08,white);
-  sphere(head,0,-.39,.38,.2,.13,.08,white);
-  // swept-back white hair
-  sphere(head,0,.39,-.03,.48,.18,.36,white);
-  sphere(head,-.34,.22,-.02,.14,.28,.3,white);sphere(head,.34,.22,-.02,.14,.28,.3,white);
-  // glasses
-  for(const sx of [-1,1]){const frame=new THREE.Mesh(new THREE.TorusGeometry(.145,.025,6,24),black);frame.position.set(sx*.16,.04,.39);head.add(frame)}
-  block(head,.13,.025,.025,black,0,.04,.4);
- } else {
-  // Dark bob haircut and pink hair clips.
-  sphere(head,0,.34,-.04,.43,.2,.39,black);
-  sphere(head,-.35,.08,-.02,.12,.36,.27,black);sphere(head,.35,.08,-.02,.12,.36,.27,black);
-  block(head,.11,.06,.035,mat(0xffd36c),-.24,.26,.34).rotation.z=-.35;
- }
- // Neck
- block(body,.19,.22,.2,skin,0,.52,0);
- // Arms on pivots for dialogue gestures.
- const arms=[];
- for(const sx of [-1,1]){
-  const pivot=new THREE.Group();pivot.position.set(sx*(isOld?.43:.34),.27,0);body.add(pivot);
-  const sleeve=sphere(pivot,sx*.22,-.13,0,.27,.19,.2,isOld?green:pink);
-  const fore=sphere(pivot,sx*.43,-.24,.02,.25,.13,.14,isOld?green:pink);
-  const hand=sphere(pivot,sx*.65,-.26,.05,.14,.13,.13,skinLight);
-  arms.push(pivot);
- }
- // Legs and shoes
- for(const sx of [-1,1]){
-  block(root,.23,.55,.25,isOld?red:blue,sx*.2,.57,0);
-  sphere(root,sx*.2,.24,.13,.2,.12,.31,mat(0x6a4936));
-  sphere(root,sx*.2,.24,.33,.2,.1,.16,mat(0x2b211b));
- }
- return {root,body,head,arms,mouth,kind};
-}
-const inventor=makePerson('inventor',-1.55,.2);
-const nina=makePerson('nina',1.55,.25);
-const actors={inventor,nina};
-
-// Framing keeps faces and the bench in the visible middle of a tall phone screen.
-const mobile=innerWidth<700;
-const shots=[
- {t:0,p:[0,5.2,16.8],look:[0,2.45,-.3]},
- {t:3.5,p:[-2.3,4.1,13.0],look:[-1.45,2.45,.1]},
- {t:8.5,p:[2.25,3.9,12.7],look:[1.45,2.3,.1]},
- {t:13.5,p:[-2.0,4.0,12.7],look:[-1.35,2.4,.1]},
- {t:17.5,p:[0,3.3,11.2],look:[0,1.8,-.15]},
- {t:20,p:[2.2,3.8,12.7],look:[1.4,2.35,.1]},
- {t:24.5,p:[-1.9,3.9,12.6],look:[-1.3,2.4,.1]},
- {t:27,p:[0,5.0,16.2],look:[0,2.35,-.3]}
-];
-const scripts=[
- {t:4,d:3.8,who:'inventor',text:'¿Sabes por qué nunca dejo de reparar estas máquinas?'},
- {t:9,d:3.5,who:'nina',text:'¿Porque todavía guardan muchos secretos?'},
- {t:14,d:4.2,who:'inventor',text:'¡Exactamente! Cada engranaje cuenta una historia.'},
- {t:20,d:3.6,who:'nina',text:'Entonces quiero aprender a descubrirlas.'},
- {t:25,d:4.2,who:'inventor',text:'Ven, hoy comienza tu primera aventura.'}
-];
-const status=document.getElementById('status'),subtitle=document.getElementById('subtitle'),progress=document.getElementById('progress'),end=document.getElementById('end');
-let running=false,elapsed=0,last=0,muted=false,spoken=new Set(),audioCtx=null,spanishVoice=null,activeSpeaker=null;
-function refreshVoices(){if(!('speechSynthesis'in window))return;const vs=speechSynthesis.getVoices();spanishVoice=vs.find(v=>/^es([_-]|$)/i.test(v.lang))||null}
-if('speechSynthesis'in window){refreshVoices();speechSynthesis.addEventListener('voiceschanged',refreshVoices)}
-function cameraAt(t){let i=0;while(i<shots.length-1&&shots[i+1].t<=t)i++;const a=shots[i],b=shots[Math.min(i+1,shots.length-1)],f=b.t===a.t?0:THREE.MathUtils.clamp((t-a.t)/(b.t-a.t),0,1),e=f*f*(3-2*f);camera.position.lerpVectors(new THREE.Vector3(...a.p),new THREE.Vector3(...b.p),e);camera.lookAt(new THREE.Vector3(...a.look).lerp(new THREE.Vector3(...b.look),e))}
-function speak(s){if(muted||!('speechSynthesis'in window))return;speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(s.text);u.lang=spanishVoice?.lang||'es-ES';u.rate=s.who==='nina'?1.02:.88;u.pitch=s.who==='nina'?1.12:.78;if(spanishVoice)u.voice=spanishVoice;speechSynthesis.speak(u)}
-function startAmbience(){try{audioCtx=new(window.AudioContext||window.webkitAudioContext)();const master=audioCtx.createGain();master.gain.value=.13;master.connect(audioCtx.destination);const notes=[110,164.81,220,261.63,293.66,261.63,196,220,261.63,329.63,293.66,220];notes.forEach((hz,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain(),t=audioCtx.currentTime+.2+i*2.1;o.type=i<2?'triangle':'sine';o.frequency.value=hz;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(i<2?.018:.032,t+.12);g.gain.exponentialRampToValueAtTime(.0001,t+1.8);o.connect(g);g.connect(master);o.start(t);o.stop(t+1.9)});audioCtx.resume()}catch(e){status.textContent='Audio no disponible; los subtítulos siguen activos.'}}
-function animate(t){
- for(const [id,a] of Object.entries(actors)){const speaking=activeSpeaker===id,phase=t*5+(id==='nina'?1.2:0);a.head.rotation.z=Math.sin(t*1.15+(id==='nina'?1:0))*.025+(speaking?Math.sin(phase)*.035:0);a.body.position.y=1.35+Math.sin(t*2+(id==='nina'?1:0))*.025;a.arms.forEach((arm,i)=>{const side=i===0?-1:1;arm.rotation.z=(speaking?side*(id==='inventor'?.38:.22):side*.04)+Math.sin(phase*.7+i)*.035});a.mouth.scale.y=speaking?.9+Math.max(0,Math.sin(phase*2))*.8:.35}
- for(const g of gears)g.g.rotation.z+=g.speed*.016;
- smallGear.rotation.z+=.025;
-}
-function render(){renderer.render(scene,camera)}
-function tick(now){if(!running)return;const dt=Math.min((now-last)/1000,.05);last=now;elapsed+=dt;animate(elapsed);cameraAt(elapsed);for(const s of scripts){if(elapsed>=s.t&&!spoken.has(s.t)){spoken.add(s.t);subtitle.textContent=s.text;speak(s)}}const active=[...scripts].reverse().find(s=>elapsed>=s.t&&elapsed<s.t+s.d);activeSpeaker=active?.who||null;if(!active&&elapsed<4)subtitle.textContent='';progress.style.width=Math.min(100,elapsed/30*100)+'%';render();if(elapsed>=30){running=false;subtitle.textContent='';document.getElementById('controls').style.display='flex';end.style.display='grid';if(audioCtx){audioCtx.close();audioCtx=null}return}requestAnimationFrame(tick)}
-function start(){if(running)return;running=true;elapsed=0;spoken.clear();activeSpeaker=null;end.style.display='none';document.getElementById('controls').style.display='none';subtitle.textContent='';if(window.speechSynthesis)speechSynthesis.cancel();startAmbience();last=performance.now();requestAnimationFrame(tick)}
-document.getElementById('start').addEventListener('click',start);
-document.getElementById('again').addEventListener('click',start);
-document.getElementById('mute').addEventListener('click',e=>{muted=!muted;e.currentTarget.textContent='Voz: '+(muted?'silenciada':'activada');if(muted&&window.speechSynthesis)speechSynthesis.cancel()});
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.fov=innerWidth<700?47:39;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));render()});
-status.textContent='Taller y personajes integrados. No se requieren modelos 3D externos.';
-document.getElementById('start').disabled=false;
-cameraAt(0);render();
-</script>
-</body></html>
+:root{color-scheme:dark}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#1b100d;color:#fff;font-family:Georgia,serif}#stage{position:fixed;inset:0;background:#24150f}svg{width:100%;height:100%;display:block;object-fit:cover}#shade{position:fixed;inset:0;pointer-events:none;background:linear-gradient(180deg,#160b0929 0%,transparent 22%,transparent 68%,#100806b8 100%)}#brand{position:fixed;top:max(13px,env(safe-area-inset-top));left:16px;font:600 10px/1.2 system-ui;letter-spacing:.22em;color:#f7d8a5;text-shadow:0 2px 5px #000}#subtitle{position:fixed;left:5%;right:5%;bottom:calc(100px + env(safe-area-inset-bottom));min-height:3em;display:grid;place-items:center;text-align:center;padding:12px 18px;background:linear-gradient(90deg,#1b100de8,#382018ed,#1b100de8);border:1px solid #d7ad6d88;border-radius:3px;font-size:clamp(17px,3.6vw,27px);line-height:1.2;text-shadow:0 2px 4px #000;opacity:0;transition:opacity .35s;box-shadow:0 10px 30px #0007}#subtitle.show{opacity:1}#controls{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom));left:0;right:0;display:flex;justify-content:center;gap:10px}button{border:1px solid #e5c38d;background:#37231b;color:#fff;padding:12px 18px;border-radius:2px;font:600 13px system-ui;letter-spacing:.04em}#progress{position:fixed;bottom:0;left:0;height:3px;background:#e6bd7c;width:0;box-shadow:0 0 12px #e6bd7c}#end{display:none;position:fixed;inset:0;place-items:center;background:#100906b9;font:28px Georgia;text-align:center}#end button{margin-top:20px}#scene{transform-origin:center;transition:transform 1.3s cubic-bezier(.2,.7,.2,1)}.dust{animation:float 8s ease-in-out infinite alternate}.gear{transform-box:fill-box;transform-origin:center;animation:turn 22s linear infinite}.gear.rev{animation-direction:reverse}.flame{transform-origin:bottom;animation:flicker .18s infinite alternate}.inventor-arm,.girl-arm{transform-box:fill-box;transform-origin:top center}.speaking #oldmouth,.speaking #girlmouth{animation:talk .18s infinite alternate}.breath{animation:breathe 3.4s ease-in-out infinite alternate}.blink{animation:blink 5.5s infinite}@keyframes turn{to{transform:rotate(360deg)}}@keyframes float{to{transform:translate(22px,-26px);opacity:.25}}@keyframes flicker{to{transform:scaleX(.82) scaleY(1.08)}}@keyframes talk{to{transform:scaleY(1.9)}}@keyframes breathe{to{transform:translateY(-4px)}}@keyframes blink{0%,46%,49%,100%{transform:scaleY(1)}47%,48%{transform:scaleY(.08)}}@media(max-aspect-ratio:5/4){#subtitle{bottom:calc(90px + env(safe-area-inset-bottom));font-size:clamp(16px,4.1vw,22px)}}
+</style></head><body>
+<div id="stage">
+<svg id="art" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Un inventor de barba blanca enseña a una niña en un taller cálido lleno de engranajes">
+<defs>
+ <linearGradient id="wall" x2="0" y2="1"><stop stop-color="#513021"/><stop offset=".58" stop-color="#382018"/><stop offset="1" stop-color="#21130f"/></linearGradient>
+ <linearGradient id="light" x2="0" y2="1"><stop stop-color="#ffdba0" stop-opacity=".92"/><stop offset="1" stop-color="#e58c42" stop-opacity="0"/></linearGradient>
+ <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#bd8050"/><stop offset=".22" stop-color="#8b4f2e"/><stop offset="1" stop-color="#482619"/></linearGradient>
+ <linearGradient id="green" x2="0" y2="1"><stop stop-color="#66835a"/><stop offset="1" stop-color="#263e30"/></linearGradient>
+ <linearGradient id="red" x2="0" y2="1"><stop stop-color="#c84d39"/><stop offset="1" stop-color="#79251f"/></linearGradient>
+ <linearGradient id="pink" x2="0" y2="1"><stop stop-color="#f7b4c2"/><stop offset="1" stop-color="#b65d78"/></linearGradient>
+ <radialGradient id="lamp"><stop stop-color="#fff0bc" stop-opacity=".85"/><stop offset="1" stop-color="#ffc16b" stop-opacity="0"/></radialGradient>
+ <pattern id="grain" width="130" height="48" patternUnits="userSpaceOnUse"><path d="M0 9 Q35 2 70 10 T130 7 M0 33 Q45 26 90 35 T130 30" fill="none" stroke="#e4ad75" stroke-opacity=".09" stroke-width="2"/></pattern>
+ <filter id="glow"><feGaussianBlur stdDeviation="18"/></filter>
+ <filter id="shadow"><feGaussianBlur stdDeviation="12"/></filter>
+</defs>
+<g id="scene">
+<!-- warm workshop -->
+<rect width="1600" height="900" fill="url(#wall)"/><rect width="1600" height="900" fill="url(#grain)"/>
+<path d="M0 0H1600V150H0Z" fill="#1d110e" opacity=".45"/><path d="M0 610H1600V900H0Z" fill="#21140f"/>
+<path d="M0 740L1600 690V900H0Z" fill="#382016"/><path d="M0 745L1600 695" stroke="#b77a4b" stroke-width="8" opacity=".4"/>
+<!-- beams -->
+<path d="M0 115H1600M0 132H1600" stroke="#21120e" stroke-width="24"/><path d="M130 0L190 620M1470 0L1400 610" stroke="#21120e" stroke-width="34"/>
+<!-- arched window -->
+<path d="M110 330V160Q110 75 200 75H385Q475 75 475 160V330Z" fill="#1b1715" stroke="#9b6741" stroke-width="18"/>
+<path d="M132 318V162Q132 98 200 98H385Q453 98 453 162V318Z" fill="#6d7c78"/>
+<path d="M132 235Q285 180 453 225V318H132Z" fill="#dca36a" opacity=".65"/>
+<path d="M292 99V318M132 207H453" stroke="#573522" stroke-width="13"/>
+<path d="M132 315L453 315" stroke="#e5b27c" stroke-width="6"/>
+<!-- hanging lamps -->
+<path d="M770 0V116M1280 0V100" stroke="#1b100d" stroke-width="8"/>
+<path d="M720 115Q770 160 820 115L802 92H738Z" fill="#352019" stroke="#bd8a52" stroke-width="5"/>
+<ellipse cx="770" cy="155" rx="190" ry="165" fill="url(#lamp)" filter="url(#glow)"/>
+<path d="M1230 100Q1280 140 1330 100L1310 80H1250Z" fill="#352019" stroke="#bd8a52" stroke-width="5"/>
+<ellipse cx="1280" cy="145" rx="150" ry="130" fill="url(#lamp)" filter="url(#glow)"/>
+<!-- shelves and jars -->
+<path d="M530 245H1490V270H530Z" fill="#8d5937"/><path d="M550 270H1470" stroke="#d39a61" stroke-width="5"/>
+<g fill="#b4a07b" stroke="#39251b" stroke-width="8"><rect x="580" y="165" width="70" height="78" rx="12"/><rect x="675" y="185" width="58" height="58" rx="10"/><rect x="1380" y="155" width="74" height="88" rx="12"/></g>
+<g fill="#e6b66e" opacity=".55"><rect x="590" y="190" width="50" height="35"/><rect x="685" y="202" width="38" height="26"/><rect x="1390" y="182" width="54" height="45"/></g>
+<!-- hanging tools -->
+<g stroke="#1c1713" stroke-width="12" fill="none"><path d="M890 130V245M945 130V250M1000 130V238M1055 130V255"/></g>
+<g stroke="#d6aa73" stroke-width="9" stroke-linecap="round"><path d="M875 245L905 245M930 250L960 250M985 238L1015 238M1040 255L1070 255"/></g>
+<!-- big gears -->
+<g class="gear" transform="translate(650 410)" fill="none" stroke="#c58a4b"><circle r="112" stroke-width="23"/><circle r="78" stroke-width="12"/><circle r="26" stroke-width="16"/><path d="M0-110V-78M0 78V110M-110 0H-78M78 0H110M-78-78L-55-55M55 55L78 78M78-78L55-55M-55 55L-78 78" stroke-width="20"/></g>
+<g class="gear rev" transform="translate(830 385)" fill="none" stroke="#a86e3c"><circle r="78" stroke-width="18"/><circle r="48" stroke-width="10"/><circle r="15" stroke-width="12"/><path d="M0-78V-58M0 58V78M-78 0H-58M58 0H78M-55-55L-40-40M40 40L55 55M55-55L40-40M-40 40L-55 55" stroke-width="15"/></g>
+<g class="gear" transform="translate(1390 390)" fill="none" stroke="#b57b42"><circle r="95" stroke-width="20"/><circle r="62" stroke-width="11"/><circle r="20" stroke-width="14"/><path d="M0-95V-70M0 70V95M-95 0H-70M70 0H95M-67-67L-48-48M48 48L67 67M67-67L48-48M-48 48L-67 67" stroke-width="17"/></g>
+<!-- foreground bench -->
+<path d="M160 570Q800 545 1450 575L1510 630H100L160 570Z" fill="#29180f" opacity=".7" filter="url(#shadow)"/>
+<path d="M100 570Q800 540 1500 570L1470 635H130Z" fill="url(#wood)" stroke="#d29a61" stroke-width="10"/>
+<path d="M160 600Q800 578 1440 600" stroke="#e5b07b" stroke-width="5" opacity=".5"/>
+<path d="M200 635L170 900H300L330 635M1280 635L1310 900H1440L1410 635" fill="#492619" stroke="#9a603a" stroke-width="12"/>
+<path d="M175 720H325M1300 720H1435" stroke="#b17a4c" stroke-width="10"/>
+<!-- tabletop tools / invention -->
+<g transform="translate(1050 525)"><path d="M-70 0L-55-55H55L70 0Z" fill="#52604a" stroke="#c79a65" stroke-width="8"/><circle cy="-45" r="37" fill="#d9b16f" stroke="#54351e" stroke-width="9"/><circle cy="-45" r="11" fill="#60432a"/><path d="M0-45L24-66" stroke="#60432a" stroke-width="6"/><path d="M-35 5V28M35 5V28" stroke="#d6aa73" stroke-width="9"/></g>
+<g transform="translate(1280 540)"><path d="M-20 0V-80Q0-100 20-80V0Z" fill="#d4d0b4" stroke="#69432c" stroke-width="8"/><path d="M0-88V-115" stroke="#b9a47a" stroke-width="8"/><path d="M-5-115L-40-150M5-115L42-150" stroke="#c5a06e" stroke-width="9" stroke-linecap="round"/></g>
+<g transform="translate(410 535)"><path d="M-45 0L-25-60H25L45 0Z" fill="#8a3d2d" stroke="#d5a16c" stroke-width="7"/><circle cy="-60" r="22" fill="#d8ad70"/><path d="M0-78V-110" stroke="#61412b" stroke-width="8"/></g>
+<!-- inventor character -->
+<g id="inventor" transform="translate(575 290)">
+<ellipse cx="0" cy="560" rx="205" ry="28" fill="#110b08" opacity=".55" filter="url(#shadow)"/>
+<g class="breath">
+<!-- legs -->
+<path d="M-105 390L-112 520Q-125 560-175 565Q-200 580-175 596H-55Q-30 575-55 550L-35 405Z" fill="#9a3429" stroke="#291813" stroke-width="12"/>
+<path d="M25 400L45 520Q35 560 85 570Q115 575 135 590H210Q225 565 190 550L135 525L110 390Z" fill="#a63e2e" stroke="#291813" stroke-width="12"/>
+<path d="M-180 582Q-115 550-53 580L-45 610H-185Z M85 580Q150 555 215 585L225 610H80Z" fill="#3a2920" stroke="#17100d" stroke-width="10"/>
+<!-- torso sweater -->
+<path d="M-150 160Q-105 115 0 120Q105 115 150 165L185 390Q110 435 0 425Q-110 435-185 390Z" fill="url(#green)" stroke="#201a14" stroke-width="13"/>
+<path d="M-145 180Q-110 150-78 150L-100 400M145 180Q110 150 78 150L100 400" fill="none" stroke="#93a47a" stroke-width="8" opacity=".42"/>
+<!-- overall bib and straps -->
+<path d="M-95 235Q0 220 95 235L85 390Q0 425-85 390Z" fill="url(#red)" stroke="#351b16" stroke-width="10"/>
+<path d="M-95 155L-70 265M95 155L70 265" stroke="#bd5943" stroke-width="28" stroke-linecap="round"/>
+<circle cx="-70" cy="263" r="10" fill="#e5bd79"/><circle cx="70" cy="263" r="10" fill="#e5bd79"/>
+<path d="M-45 320H45" stroke="#e48d6a" stroke-width="5" opacity=".55"/>
+<!-- arms -->
+<g id="oldLeft" class="inventor-arm"><path d="M-145 180Q-205 195-225 285L-210 360Q-180 380-160 345L-150 265Z" fill="#456347" stroke="#201a14" stroke-width="12"/><path d="M-210 345Q-235 370-218 395Q-195 410-173 382L-165 352Z" fill="#d99c70" stroke="#4a2b1e" stroke-width="9"/></g>
+<g id="oldRight" class="inventor-arm"><path d="M145 180Q205 195 230 270L220 340Q190 370 165 340L155 260Z" fill="#456347" stroke="#201a14" stroke-width="12"/><path d="M218 330Q245 345 240 375Q220 402 195 377L185 345Z" fill="#d99c70" stroke="#4a2b1e" stroke-width="9"/></g>
+<!-- neck -->
+<path d="M-48 105V155Q0 195 48 155V105Z" fill="#bd805d"/>
+<!-- head and ears -->
+<ellipse cx="-118" cy="25" rx="26" ry="39" fill="#d49a73" stroke="#4b2c20" stroke-width="8"/><ellipse cx="118" cy="25" rx="26" ry="39" fill="#d49a73" stroke="#4b2c20" stroke-width="8"/>
+<path d="M-125 20Q-135-100-80-145Q0-205 80-145Q135-95 125 20Q105 120 70 160Q0 190-70 160Q-110 115-125 20Z" fill="#dca47c" stroke="#3a251c" stroke-width="12"/>
+<!-- hair -->
+<path d="M-125 12Q-165-105-85-170Q-35-212 30-184Q110-210 145-120Q165-55 125 8L100-75Q65-120 20-115Q-35-145-82-85Z" fill="#e6dfca" stroke="#66594a" stroke-width="9"/>
+<path d="M-125-15Q-155 60-120 120L-88 95L-95 15M125-15Q155 60 120 120L88 95L95 15" fill="#e6dfca" stroke="#66594a" stroke-width="8"/>
+<!-- brows, eyes, glasses -->
+<path d="M-85-10Q-55-28-28-8M28-8Q55-28 85-10" stroke="#6b5140" stroke-width="11" fill="none" stroke-linecap="round"/>
+<g class="blink"><ellipse cx="-55" cy="20" rx="12" ry="16" fill="#fff5dc"/><ellipse cx="55" cy="20" rx="12" ry="16" fill="#fff5dc"/><circle cx="-53" cy="22" r="6" fill="#30231d"/><circle cx="57" cy="22" r="6" fill="#30231d"/></g>
+<g fill="none" stroke="#30251f" stroke-width="7"><rect x="-91" y="-3" width="72" height="53" rx="17"/><rect x="19" y="-3" width="72" height="53" rx="17"/><path d="M-19 17H19"/></g>
+<path d="M0 22L-12 68L9 72" fill="none" stroke="#a96f50" stroke-width="8" stroke-linecap="round"/>
+<!-- mustache and beard -->
+<path d="M-66 75Q-95 50-105 88Q-98 122-45 116Q0 105 0 88Q0 105 45 116Q98 122 105 88Q95 50 66 75Q30 60 0 88Q-30 60-66 75Z" fill="#eee8d8" stroke="#8d8374" stroke-width="7"/>
+<path d="M-88 112Q-90 185 0 205Q90 185 88 112Q50 148 0 145Q-50 148-88 112Z" fill="#e9e2d2" stroke="#8d8374" stroke-width="8"/>
+<path d="M-55 151L-35 182M0 155V190M55 151L35 182" stroke="#b8ae9c" stroke-width="6" opacity=".7"/>
+<ellipse id="oldmouth" cx="0" cy="102" rx="13" ry="5" fill="#51271e"/>
+</g></g>
+<!-- girl character -->
+<g id="girl" transform="translate(1110 350)">
+<ellipse cx="0" cy="500" rx="150" ry="24" fill="#110b08" opacity=".55" filter="url(#shadow)"/>
+<g class="breath">
+<!-- legs and shoes -->
+<path d="M-62 355L-70 475Q-105 510-125 520Q-145 545-115 555H-15Q5 530-20 505L-5 360Z" fill="#dca0a0" stroke="#38201d" stroke-width="11"/>
+<path d="M30 360L42 475Q20 510 50 520Q85 535 90 555H175Q195 535 160 515L100 485L95 355Z" fill="#dca0a0" stroke="#38201d" stroke-width="11"/>
+<path d="M-130 540H-15L-10 570H-140ZM65 540H175L185 570H55Z" fill="#633e39" stroke="#241714" stroke-width="9"/>
+<!-- dress -->
+<path d="M-115 140Q0 110 115 140L155 380Q0 420-155 380Z" fill="url(#pink)" stroke="#40222a" stroke-width="12"/>
+<path d="M-85 170L-50 365M85 170L50 365" stroke="#ffd2d5" stroke-width="7" opacity=".55"/>
+<path d="M-150 375Q0 405 150 375" stroke="#f5c0c7" stroke-width="10"/>
+<!-- collar -->
+<path d="M-55 130L0 185L55 130" fill="#f8e4d7" stroke="#6e3b43" stroke-width="7"/>
+<!-- arms -->
+<g id="girlLeft" class="girl-arm"><path d="M-100 165Q-155 190-170 270L-145 330Q-120 345-110 315L-112 255Z" fill="#eaa7b2" stroke="#40232a" stroke-width="10"/><path d="M-150 320Q-180 340-160 370Q-140 385-125 360L-120 330Z" fill="#d99a79" stroke="#563426" stroke-width="8"/></g>
+<g id="girlRight" class="girl-arm"><path d="M100 165Q155 190 170 270L145 330Q120 345 110 315L112 255Z" fill="#eaa7b2" stroke="#40232a" stroke-width="10"/><path d="M150 320Q180 340 160 370Q140 385 125 360L120 330Z" fill="#d99a79" stroke="#563426" stroke-width="8"/></g>
+<path d="M-35 90V150Q0 175 35 150V90" fill="#d69a79"/>
+<!-- face -->
+<ellipse cx="0" cy="10" rx="112" ry="132" fill="#e4ad88" stroke="#482c24" stroke-width="11"/>
+<!-- hair cap and flowing locks -->
+<path d="M-115 10Q-150-105-55-150Q35-190 105-120Q145-75 115 25Q95-50 50-75Q-20-40-75-70Z" fill="#28201d" stroke="#171311" stroke-width="10"/>
+<path d="M-112-12Q-155 70-118 205Q-80 250-70 155L-78 40M112-12Q155 70 118 205Q80 250 70 155L78 40" fill="#29201d" stroke="#171311" stroke-width="10"/>
+<path d="M-70-105Q-20-140 45-110" stroke="#655047" stroke-width="9" fill="none"/>
+<!-- face expression -->
+<path d="M-75-5Q-50-25-25-7M25-7Q50-25 75-5" stroke="#4b3028" stroke-width="9" fill="none" stroke-linecap="round"/>
+<g class="blink"><ellipse cx="-48" cy="25" rx="12" ry="17" fill="#fff5e5"/><ellipse cx="48" cy="25" rx="12" ry="17" fill="#fff5e5"/><circle cx="-45" cy="27" r="6" fill="#30231d"/><circle cx="51" cy="27" r="6" fill="#30231d"/></g>
+<path d="M0 32L-9 67L7 69" fill="none" stroke="#b87960" stroke-width="7" stroke-linecap="round"/>
+<path d="M-28 88Q0 112 28 88" fill="none" stroke="#8f414c" stroke-width="7" stroke-linecap="round"/>
+<ellipse id="girlmouth" cx="0" cy="91" rx="10" ry="4" fill="#78343d"/>
+<!-- hair clip -->
+<path d="M75-88L110-108L125-78L90-58Z" fill="#e9b86c" stroke="#54362a" stroke-width="7"/>
+</g></g>
+<!-- foreground highlights and floating dust -->
+<g fill="#ffd99a"><circle class="dust" cx="300" cy="420" r="4" opacity=".7"/><circle class="dust" cx="970" cy="300" r="3" opacity=".65"/><circle class="dust" cx="1190" cy="230" r="4" opacity=".55"/><circle class="dust" cx="760" cy="520" r="3" opacity=".7"/></g>
+<rect width="1600" height="900" fill="none" stroke="#120b08" stroke-width="34" opacity=".6"/>
+</g></svg></div>
+<div id="shade"></div><div id="brand">JEDL STUDIO · CUENTO ANIMADO 001</div><div id="subtitle" aria-live="polite"></div>
+<div id="controls"><button id="start">▶ VER EPISODIO · 30 S</button><button id="mute">VOZ ACTIVADA</button></div><div id="progress"></div>
+<div id="end">El secreto del viejo taller<br><button id="again">VOLVER A VER</button></div>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id),scene=$('scene'),art=$('art'),sub=$('subtitle'),progress=$('progress'),end=$('end'),controls=$('controls');
+const shots=[{t:0,v:'viewBox(0 0 1600 900)'},{t:3.5,v:'viewBox(330 130 700 590)'},{t:8.5,v:'viewBox(850 180 570 570)'},{t:13.5,v:'viewBox(330 130 700 590)'},{t:17.5,v:'viewBox(720 360 470 330)'},{t:20,v:'viewBox(850 180 570 570)'},{t:24.5,v:'viewBox(330 130 700 590)'},{t:27,v:'viewBox(0 0 1600 900)'}];
+const lines=[{t:4,d:4.6,who:'inventor',text:'¿Sabes por qué nunca dejo de reparar estas máquinas?'},{t:9,d:4.5,who:'nina',text:'¿Porque todavía guardan muchos secretos?'},{t:14,d:4.7,who:'inventor',text:'¡Exactamente! Cada engranaje cuenta una historia.'},{t:20,d:4.5,who:'nina',text:'Entonces quiero aprender a descubrirlas.'},{t:25,d:4.5,who:'inventor',text:'Ven, hoy comienza tu primera aventura.'}];
+let running=false,muted=false,startAt=0,spoken=new Set(),voice=null,raf=0;
+function voices(){if(!('speechSynthesis'in window))return;voice=speechSynthesis.getVoices().find(v=>/^es(-|_|$)/i.test(v.lang))||null}
+if('speechSynthesis'in window){voices();speechSynthesis.addEventListener('voiceschanged',voices)}
+function say(line){if(muted||!('speechSynthesis'in window))return; speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(line.text);u.lang=voice?.lang||'es-ES';u.voice=voice||null;u.rate=line.who==='nina'?1.02:.91;u.pitch=line.who==='nina'?1.12:.83;speechSynthesis.speak(u)}
+function shotAt(t){let i=0;while(i<shots.length-1&&shots[i+1].t<=t)i++;const a=shots[i],b=shots[Math.min(i+1,shots.length-1)],f=b.t===a.t?0:Math.max(0,Math.min(1,(t-a.t)/(b.t-a.t)));art.setAttribute('viewBox',a.v.slice(8,-1));if(i<shots.length-1&&f>.0){const av=a.v.slice(8,-1).split(' ').map(Number),bv=b.v.slice(8,-1).split(' ').map(Number);const e=f*f*(3-2*f);art.setAttribute('viewBox',av.map((n,j)=>n+(bv[j]-n)*e).join(' '))}}
+function pose(t,who){const old=$('inventor'),girl=$('girl');old.classList.toggle('speaking',who==='inventor');girl.classList.toggle('speaking',who==='nina');$('oldLeft').style.transform=who==='inventor'?'rotate(-13deg)':'rotate(0deg)';$('oldRight').style.transform=who==='inventor'?'rotate(18deg)':'rotate(0deg)';$('girlLeft').style.transform=who==='nina'?'rotate(-12deg)':'rotate(0deg)';$('girlRight').style.transform=who==='nina'?'rotate(12deg)':'rotate(0deg)';}
+function tick(now){if(!running)return;const t=(now-startAt)/1000;shotAt(t);const active=[...lines].reverse().find(x=>t>=x.t&&t<x.t+x.d);pose(t,active?.who);if(active){sub.textContent=active.text;sub.classList.add('show');if(!spoken.has(active.t)){spoken.add(active.t);say(active)}}else{sub.classList.remove('show')}progress.style.width=Math.min(100,t/30*100)+'%';if(t>=30){finish();return}raf=requestAnimationFrame(tick)}
+function finish(){running=false;cancelAnimationFrame(raf);pose(30,null);sub.classList.remove('show');controls.style.display='flex';end.style.display='grid';progress.style.width='100%';if('speechSynthesis'in window)speechSynthesis.cancel()}
+function start(){if(running)return;running=true;spoken.clear();if('speechSynthesis'in window)speechSynthesis.cancel();end.style.display='none';controls.style.display='none';progress.style.width='0';sub.classList.remove('show');startAt=performance.now();raf=requestAnimationFrame(tick)}
+$('start').addEventListener('click',start);$('again').addEventListener('click',start);$('mute').addEventListener('click',()=>{muted=!muted;$('mute').textContent=muted?'VOZ SILENCIADA':'VOZ ACTIVADA';if(muted&&'speechSynthesis'in window)speechSynthesis.cancel()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&running){running=false;cancelAnimationFrame(raf);if('speechSynthesis'in window)speechSynthesis.cancel();controls.style.display='flex';$('start').textContent='▶ CONTINUAR EPISODIO'}});$('start').addEventListener('click',()=>{$('start').textContent='▶ VER EPISODIO · 30 S'});
+})();
+</script></body></html>
