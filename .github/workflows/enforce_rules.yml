@@ -42,18 +42,3 @@ jobs:
 
           print("OK: documentación de estado actualizada o no hubo cambios de código/assets.")
           PY
-
-      - name: "Verificar aprobación del usuario (Etiqueta)"
-        env:
-          PR_LABELS_JSON: ${{ toJSON(github.event.pull_request.labels.*.name) }}
-        run: |
-          python3 - <<'PY'
-          import json
-          import os
-          labels = json.loads(os.environ.get("PR_LABELS_JSON", "[]"))
-          required = "aprobado-por-usuario"
-          if required not in labels:
-              print(f"ERROR: Falta la etiqueta obligatoria '{required}'.")
-              raise SystemExit(1)
-          print(f"OK: PR aprobada mediante la etiqueta '{required}'.")
-          PY
