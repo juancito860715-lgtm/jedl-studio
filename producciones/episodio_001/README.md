@@ -1,24 +1,18 @@
 # Episodio 001 — El secreto del viejo taller
 
-Reproductor cinematográfico HTML de 30 segundos para navegador móvil.
+Escena animada 2D de 30 segundos, implementada con SVG, CSS y JavaScript nativos.
 
-## Qué incluye
-- Taller, engranajes, banco y herramientas construidos dentro de la escena Three.js.
-- Inventor masculino mayor con barba y cabello blancos, gafas, suéter verde y overol rojo.
-- Niña aprendiz con cabello oscuro y ropa rosa.
-- Personajes y utilería generados proceduralmente: no se descargan modelos GLB externos.
-- Ocho encuadres, cámara con transiciones suavizadas y composición ajustada a pantallas estrechas.
-- Cinco diálogos con subtítulos temporizados, voz española del navegador cuando está disponible y gestos sincronizados.
-- Ambiente sonoro procedural mediante Web Audio.
+## Cambios de esta versión
+- Se elimina Three.js, el CDN y toda descarga de modelos o texturas.
+- El taller, engranajes, banco, herramientas, inventor y aprendiz están dibujados dentro del propio HTML.
+- Arte vectorial original con luz cálida, madera, metal, sombras, polvo ambiental y composición panorámica.
+- Ocho encuadres animados mediante cambio interpolado del viewBox.
+- Gestos, respiración, parpadeo y boca animada durante las líneas.
+- Cinco diálogos subtitulados y síntesis de voz española cuando el navegador la ofrece.
+- No requiere librerías ni recursos externos; el archivo puede abrirse sin conexión.
 
-## Abrir
-Abrir mediante GitHub Pages. Se requiere conexión para cargar Three.js desde jsDelivr. Los personajes, el banco y el taller no dependen de servidores externos.
+## Reproducción
+Abrir esta página y pulsar «VER EPISODIO · 30 S». Safari/iOS puede ofrecer voces distintas según el dispositivo. La voz sintetizada no es una locución grabada.
 
-## Límites conocidos
-- Los personajes son geometría low-poly original, no modelos artísticos detallados ni una copia exacta de la referencia.
-- La voz depende de Web Speech API y de las voces disponibles en el teléfono; no hay archivos de locución grabados.
-- El audio es una textura musical procedural, no una banda sonora de estudio.
-- El validador de CI verifica el guion, estructura y sintaxis JavaScript, pero no reemplaza la reproducción real en Safari/iPhone.
-
-## Controles
-Pulsa «Iniciar escena · 30 s». La voz puede silenciarse con el segundo botón.
+## Límites declarados
+Es una animación ilustrada vectorial 2D, no una película 3D ni una producción con actores/locuciones grabadas. Esta automatización valida el HTML y JavaScript, pero no puede certificar la apariencia en un iPhone físico.
