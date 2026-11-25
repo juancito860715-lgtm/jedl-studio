@@ -1,19 +1,10 @@
 # Procedencia y licencias — Episodio 001
 
-Fecha de selección: 2026-11-24.
+## Recursos incluidos en el código
+- Personajes, taller, engranajes y banco: geometría procedural original escrita para JEDL Studio en este proyecto. No se descargan modelos de terceros.
+- Three.js 0.160.0: biblioteca de renderizado 3D distribuida bajo licencia MIT, cargada desde jsDelivr: https://github.com/mrdoob/three.js/blob/dev/LICENSE
 
-| Recurso | URL exacta | Licencia declarada por la fuente | Uso en la escena |
-|---|---|---|---|
-| GrandmaShopper.glb | https://gobkit.com/freebies/human001/GrandmaShopper.glb | CC0 1.0 | Inventora mayor (personaje estilizado riggeado) |
-| Schoolkid.glb | https://gobkit.com/freebies/human001/Schoolkid.glb | CC0 1.0 | Aprendiz |
-| Tool Chest and Bench LOD2 | https://tevy.dev/models/tool-chest-bench/v1/lod2.glb | CC0 1.0 | Banco de trabajo |
+No se atribuye CC0 a los modelos procedurales del proyecto ni se mantienen las antiguas referencias a GrandmaShopper, Schoolkid o Tool Chest and Bench.
 
-## Evidencia y condiciones
-
-- El manifiesto público de Gobkit declara CC0 1.0 para los modelos del paquete humano 001 y enumera los clips Idle, Walk, Run, Death, Hit, Attack y Special. Fuente: https://gobkit.com/api/free
-- La ficha vigente de Tool Chest and Bench declara CC0 1.0 y ofrece tres LOD; la escena usa LOD2 (4,952 triángulos, 195 KB) para reducir carga móvil. Fuente: https://tevy.dev/models/tool-chest-bench
-- Three.js se carga desde jsDelivr y no se almacena en el repositorio en esta primera prueba.
-
-## Limitaciones de esta primera entrega
-
-Los GLB se referencian desde sus URLs de origen y no están todavía descargados dentro del repositorio. Por ello, esta versión necesita conexión y queda sujeta a disponibilidad de los proveedores. Antes de declarar el episodio autocontenido/offline se deben descargar los binarios, calcular SHA-256, comprobar el contenido real y conservar los avisos de licencia.
+## Dependencia de red
+La biblioteca Three.js se obtiene desde https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js. Por ello, el episodio no es todavía completamente offline.
