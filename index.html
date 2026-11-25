@@ -1,92 +1,15 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JEDL Studio 3D</title>
-    <style>
-        body { margin: 0; overflow: hidden; background-color: #87CEEB; }
-        #info { position: absolute; top: 10px; width: 100%; text-align: center; color: white; font-family: sans-serif; font-size: 16px; text-shadow: 2px 2px 4px #000; z-index: 100;}
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="0;url=./producciones/episodio_001/">
+<title>JEDL Studio · Episodio 001</title>
+<style>
+body{margin:0;min-height:100vh;display:grid;place-items:center;background:#17100c;color:#fff;font-family:system-ui,sans-serif;text-align:center;padding:24px;box-sizing:border-box}
+main{max-width:32rem}a{color:#f2c98d;font-size:1.1rem}
+</style>
+<script>location.replace('./producciones/episodio_001/');</script>
 </head>
-<body>
-    <div id="info">¡Si ves un cubo rojo y un casco, funcionó!</div>
-    
-    <!-- Cargamos la librería principal (Versión ultra compatible) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- Cargamos el control táctil -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    <!-- Cargamos el lector de modelos 3D -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-
-    <script>
-        // 1. ESCENA Y CÁMARA
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x87CEEB); // Color de cielo
-
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 5, 10);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        document.body.appendChild(renderer.domElement);
-
-        // 2. LUCES
-        const luzAmbiente = new THREE.AmbientLight(0xffffff, 0.8);
-        scene.add(luzAmbiente);
-
-        const luzSol = new THREE.DirectionalLight(0xffffff, 1);
-        luzSol.position.set(10, 20, 10);
-        scene.add(luzSol);
-
-        // 3. SUELO
-        const geometrySuelo = new THREE.PlaneGeometry(50, 50);
-        const materialSuelo = new THREE.MeshStandardMaterial({ color: 0x556B2F }); // Verde
-        const suelo = new THREE.Mesh(geometrySuelo, materialSuelo);
-        suelo.rotation.x = -Math.PI / 2; 
-        scene.add(suelo);
-
-        // 4. UN CUBO ROJO (Para asegurar que el motor 3D funciona)
-        const geometryCubo = new THREE.BoxGeometry(2, 2, 2);
-        const materialCubo = new THREE.MeshStandardMaterial({ color: 0xff0000 });
-        const cubo = new THREE.Mesh(geometryCubo, materialCubo);
-        cubo.position.y = 1;
-        cubo.position.x = -2;
-        scene.add(cubo);
-
-        // 5. CARGAR UN MODELO 3D REAL (Desde internet)
-        const loader = new THREE.GLTFLoader();
-        const urlModelo = 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/models/gltf/DamagedHelmet/glTF/DamagedHelmet.gltf';
-        
-        loader.load(urlModelo, function (gltf) {
-            const modelo = gltf.scene;
-            modelo.scale.set(2, 2, 2);
-            modelo.position.set(2, 2, 0); // Lo ponemos a la derecha
-            scene.add(modelo);
-        }, undefined, function (error) {
-            console.log("Error al cargar modelo: ", error);
-        });
-
-        // 6. CONTROLES TÁCTILES
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.target.set(0, 2, 0);
-
-        // 7. BUCLE DE ANIMACIÓN
-        function animate() {
-            requestAnimationFrame(animate);
-            cubo.rotation.x += 0.02;
-            cubo.rotation.y += 0.02;
-            controls.update();
-            renderer.render(scene, camera);
-        }
-        animate();
-
-        // Ajustar si giras el teléfono
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
-</body>
+<body><main><h1>JEDL Studio</h1><p>Abriendo la escena HTML de 30 segundos…</p><p><a href="./producciones/episodio_001/">Si no se abre automáticamente, pulsa aquí para ver el episodio.</a></p></main></body>
 </html>
