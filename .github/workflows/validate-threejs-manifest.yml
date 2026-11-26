@@ -25,6 +25,12 @@ jobs:
           python-version: "3.12"
       - name: Run R31 numerical reference tests
         run: python -m unittest discover -s tests/threejs -p "test_*.py" -v
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Run JavaScript CPU parity tests
+        run: node --test tests/threejs/r31_kernels.test.mjs
       - name: Run structural and consistency audit
         run: |
           python tools/threejs_manifest_audit.py \
