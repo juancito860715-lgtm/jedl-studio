@@ -1,0 +1,36 @@
+name: Validate Three.js Manifest
+
+on:
+  push:
+    paths:
+      - "docs/threejs/**"
+      - "tools/threejs_manifest_audit.py"
+      - ".github/workflows/validate-threejs-manifest.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Install Python interpreter
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run structural and consistency audit
+        run: |
+          python tools/threejs_manifest_audit.py \
+            --manifest docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json \
+            --report threejs-manifest-audit.json
+      - name: Upload audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: threejs-manifest-audit
+          path: threejs-manifest-audit.json
+          if-no-files-found: warn
