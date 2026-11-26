@@ -1,6 +1,6 @@
 {
   "title": "Matriz de validación R31",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "generated_from": {
     "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
     "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
@@ -1048,5 +1048,36 @@
       },
       "review_notes": "QEF necesita regularización, solución estable y regla de conectividad/topología; especificar interpolación de intersecciones y tratamiento de celdas degeneradas."
     }
-  ]
+  ],
+  "numerical_reference_suite": {
+    "status": "PASS",
+    "ci_run": "45910681719",
+    "ci_url": "https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45910681719",
+    "commit": "51f8f35fa02452be34b7ca702f4be21c0a2af25b",
+    "tests_passed": 27,
+    "tests_failed": 0,
+    "techniques_with_at_least_one_isolated_kernel": 23,
+    "scope": "Python standard-library reference kernels. Each technique has at least one isolated test, but several tests cover only a mathematical sub-kernel or a chosen illustrative convention, not the complete research algorithm."
+  },
+  "coverage_notes": [
+    "Stop-motion jitter test validates deterministic bounded hash output, not an artistic stop-motion result.",
+    "Hair test validates the GGX normal-distribution sub-kernel only; the complete BCSDF/lobes/PDF are not implemented or validated.",
+    "Kuwahara test validates one illustrative inverse-variance weighted mean; it is not a reproduction of the full anisotropic/multiscale filter.",
+    "Impasto and terrain tests validate a linear height gradient and an oriented periodic-noise kernel, not the complete production techniques.",
+    "Camera test validates one orthogonalized frame transport case; antiparallel and degenerate tangent cases remain to be added.",
+    "Depth/normal test validates a scalar cue expression on simple samples; depth linearization and screen-space behavior remain untested.",
+    "Watercolor test validates constant-field preservation under 1D semi-Lagrangian backtracing; diffusion, drying and boundary cases remain untested.",
+    "Boids test validates steering-vector directions for a single neighbor; population dynamics and stability remain untested.",
+    "Voxel test validates greedy merging on a 2D mask; 3D winding, AO/material keys and chunk boundaries remain untested.",
+    "Dual Contouring test validates a regularized plane QEF toy case; Hermite extraction and mesh connectivity remain untested."
+  ],
+  "visual_evidence": {
+    "status": "NOT_EXECUTED",
+    "tests": 0
+  },
+  "runtime_compatibility": {
+    "javascript_cpu": "NOT_EXECUTED",
+    "webgl2": "NOT_EXECUTED",
+    "webgpu_tsl": "NOT_EXECUTED"
+  }
 }
