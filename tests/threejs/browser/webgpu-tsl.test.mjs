@@ -28,10 +28,13 @@ test("Three.js WebGPURenderer uses native WebGPU, compiles TSL and matches rende
   ]});
   try{
     const page=await browser.newPage({viewport:{width:64,height:64}});
-    const errors=[];page.on("pageerror",e=>errors.push(e.message));
+    const errors=[],consoleErrors=[];
+    page.on("pageerror",e=>errors.push(e.message));
+    page.on("console",message=>{if(message.type()==="error")consoleErrors.push(message.text());});
     await page.goto(`http://127.0.0.1:${address.port}/tests/threejs/browser/webgpu-tsl.html`);
-    await page.waitForFunction(()=>window.webgpuTslResult!==undefined,{timeout:30000});
+    await page.waitForFunction(()=>window.webgpuTslResult!==undefined,null,{timeout:20000});
     const result=await page.evaluate(()=>window.webgpuTslResult);
+    assert.equal(result.error,undefined,`WebGPU/TSL initialization failed: ${result.error||JSON.stringify(result.diagnostics)}; pageErrors=${JSON.stringify(errors)}; console=${JSON.stringify(consoleErrors)}`);
     assert.deepEqual(errors,[]);
     assert.equal(result.threeRevision,"180");
     assert.equal(result.isWebGPUBackend,true,"A WebGL2 fallback is not a WebGPU pass");
