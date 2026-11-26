@@ -1,6 +1,6 @@
 {
   "title": "Matriz de compatibilidad de ejecución Three.js",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "based_on": {
     "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
     "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
@@ -13,16 +13,20 @@
       "scope": "Pruebas numéricas aisladas en Python estándar; no son ejecución JavaScript ni Three.js."
     },
     "javascript_cpu": {
-      "status": "NOT_EXECUTED",
-      "reason": "Falta portar los kernels de referencia a módulos JavaScript y ejecutar pruebas con Node/Three.js."
+      "status": "PASS",
+      "tests": 22,
+      "ci_run": "45910814029",
+      "ci_url": "https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45910814029",
+      "commit": "d630399a8e657115a0c34be53ad2498ddb131704",
+      "scope": "JavaScript ES modules executed with Node.js 22; 22 parity tests compare JS results against the Python reference values. These are isolated CPU kernels, not browser rendering."
     },
     "webgl2": {
       "status": "NOT_EXECUTED",
-      "reason": "No se ha creado ni ejecutado un contexto WebGL2 real; no hay evidencia de compilación GLSL ES 3.00 ni render de prueba."
+      "reason": "No real browser WebGL2 context or shader compilation/render probe has passed yet."
     },
     "webgpu_tsl": {
       "status": "NOT_EXECUTED",
-      "reason": "No se ha creado ni ejecutado un dispositivo WebGPU real ni nodos TSL equivalentes; compatibilidad declarada no es evidencia."
+      "reason": "No real WebGPU adapter/device or Three.js TSL pipeline has passed yet."
     }
   },
   "compatibility_rules": [
@@ -34,41 +38,24 @@
   ],
   "next_execution_batch": [
     {
-      "stage": "JS CPU",
-      "tests": [
-        "temporal quantization",
-        "FABRIK",
-        "dual-quaternion normalization/blending",
-        "XPBD distance constraint",
-        "spatial hash cell indexing",
-        "structure tensor eigenvector/orientation",
-        "SDF smooth minimum",
-        "RK4 integration",
-        "Beer-Lambert transmittance",
-        "Schlick Fresnel"
-      ],
-      "exit_criteria": "All JavaScript tests match reference values within stated tolerances."
-    },
-    {
       "stage": "WebGL2",
       "tests": [
-        "compile representative GLSL ES 3.00 kernels",
-        "SDF smooth-min fragment render",
-        "halftone pattern render",
-        "depth/normal edge pass",
-        "volume transmittance pass"
+        "Create a real WebGL2 context in headless Chromium with a software adapter only as a CI smoke test",
+        "Compile/link GLSL ES 3.00 vertex and fragment shaders",
+        "Render and read back SDF smooth-min, halftone and depth/normal probes",
+        "Check pixel values against numeric references"
       ],
-      "exit_criteria": "No shader compile/link errors; numerical probes and rendered outputs match reference tolerances."
+      "exit_criteria": "Context creation, shader compile/link and pixel probes pass; record adapter/renderer and precision. A software CI pass does not certify target-phone performance."
     },
     {
       "stage": "WebGPU/TSL",
       "tests": [
-        "port SDF smooth minimum to TSL",
-        "port Schlick Fresnel to TSL",
-        "port volume transmittance to TSL",
-        "validate storage/compute only where needed"
+        "Create a real WebGPU adapter/device",
+        "Create Three.js WebGPURenderer and TSL node material",
+        "Port SDF smooth minimum, Schlick Fresnel and Beer-Lambert transmittance",
+        "Read back numeric render probes"
       ],
-      "exit_criteria": "Device and pipeline creation succeed; shader validation and numeric probes pass."
+      "exit_criteria": "Adapter/device and render pipeline succeed; shader validation and numeric probes match tolerances. WebGPU result remains separate from WebGL2."
     }
   ],
   "known_limits": [
