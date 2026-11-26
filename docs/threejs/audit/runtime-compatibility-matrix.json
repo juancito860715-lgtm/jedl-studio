@@ -1,6 +1,6 @@
 {
   "title": "Matriz de compatibilidad de ejecución Three.js",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "based_on": {
     "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
     "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
@@ -21,12 +21,42 @@
       "scope": "JavaScript ES modules executed with Node.js 22; 22 parity tests compare JS results against the Python reference values. These are isolated CPU kernels, not browser rendering."
     },
     "webgl2": {
-      "status": "NOT_EXECUTED",
-      "reason": "No real browser WebGL2 context or shader compilation/render probe has passed yet."
+      "status": "PASS",
+      "ci_run": "45910943284",
+      "ci_url": "https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45910943284",
+      "commit": "431e27268fc602cb6af97150f759ec8d26c6534c",
+      "evidence": {
+        "browser": "Chromium headless",
+        "renderer": "Three.js r180 WebGLRenderer",
+        "context": "WebGL 2",
+        "shader_language": "GLSL ES 3.00",
+        "three_renderer_compile": true,
+        "shader_compile_and_link": true,
+        "framebuffer_readback": true,
+        "pixel_probes": {
+          "sdf_smooth_min": {
+            "expected": 96,
+            "tolerance": 1
+          },
+          "fresnel_schlick": {
+            "expected": 255,
+            "tolerance": 1
+          },
+          "beer_lambert": {
+            "expected": 94,
+            "tolerance": 1
+          }
+        },
+        "test_result": "1 passed, 0 failed"
+      },
+      "scope": "CI software-rendered WebGL2 smoke/integration validation. This proves shader compilation and deterministic pixel probes in Chromium/SwiftShader, not hardware performance or mobile-device compatibility."
     },
     "webgpu_tsl": {
-      "status": "NOT_EXECUTED",
-      "reason": "No real WebGPU adapter/device or Three.js TSL pipeline has passed yet."
+      "status": "IN_PROGRESS",
+      "test_commit": "98560557df3a60dd673d27abb2888ea51a3063cc",
+      "ci_run": "45911419907",
+      "ci_url": "https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45911419907",
+      "scope": "A separate test requires a native WebGPU backend (fallback to WebGL2 is explicitly rejected), Three.js TSL node compilation, render submission and screenshot pixel readback."
     }
   },
   "compatibility_rules": [
