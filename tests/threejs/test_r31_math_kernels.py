@@ -137,7 +137,7 @@ class TestR31NumericalKernels(unittest.TestCase):
     def test_dual_quaternion_normalization_and_orthogonality(self):
         qr, qd = dual_quaternion_normalize((2, 0, 0, 0), (1, 3, 0, 0))
         self.assertVecAlmostEqual(qr, (1, 0, 0, 0))
-        self.assertVecAlmostEqual(qd, (0, 0, 0, 0))
+        self.assertVecAlmostEqual(qd, (0, 1.5, 0, 0))
         self.assertAlmostEqual(sum(a*b for a,b in zip(qr, qd)), 0.0)
 
     def test_dual_quaternion_rejects_zero_real_part(self):
