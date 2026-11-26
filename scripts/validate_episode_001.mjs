@@ -21,6 +21,7 @@ assert.ok(html.includes('requestAnimationFrame(tick)'),'Falta reloj de reproducc
 assert.ok(html.includes('elapsedBeforePause=0'),'Falta estado de pausa/reanudación');
 assert.ok(html.includes('startAt=performance.now()-elapsedBeforePause*1000'),'La reanudación debe conservar el tiempo transcurrido');
 assert.ok(html.includes("document.addEventListener('visibilitychange'"),'Falta gestión al cambiar de pestaña o aplicación');
+assert.ok(html.includes('if(active)spoken.delete(active.t)'),'La línea de diálogo interrumpida debe poder reproducirse al reanudar');
 assert.ok(html.includes("$('start').addEventListener('click',()=>start(false))"),'El botón principal debe continuar desde la posición guardada');
 assert.ok(html.includes("$('again').addEventListener('click',()=>start(true))"),'El botón de repetir debe reiniciar desde cero');
 assert.equal(script.runtime.external_libraries,false,'No debe requerir bibliotecas externas');
