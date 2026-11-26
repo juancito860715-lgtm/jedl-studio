@@ -68,6 +68,9 @@ def audit(path: Path):
     if dup_sources: errors.append(f"IDs SRC duplicados: {dup_sources}")
 
     missing_names = [i for i,t in enumerate(technique_records) if not isinstance(t.get("name"),str) or not t["name"].strip()]
+    # El manifiesto contiene dos esquemas: técnicas históricas (equation/algorithm)
+    # y ampliaciones R31 (equations/algorithm_steps/pseudocode). No mezclarlos.
+    research_records = [t for t in technique_records if t.get("research_id")]
     def has_equation(t):
         singular = t.get("equation")
         plural = t.get("equations")
@@ -75,10 +78,11 @@ def audit(path: Path):
             isinstance(plural, list) and any(isinstance(x, str) and x.strip() for x in plural)
         )
     missing_equations = [t.get("name",f"record_{i}") for i,t in enumerate(technique_records) if not has_equation(t)]
-    missing_algorithm_steps = [t.get("name",f"record_{i}") for i,t in enumerate(technique_records)
-                               if not isinstance(t.get("algorithm_steps"), list) or not t["algorithm_steps"]]
-    missing_pseudocode = [t.get("name",f"record_{i}") for i,t in enumerate(technique_records)
-                          if not isinstance(t.get("pseudocode"), str) or not t["pseudocode"].strip()]
+    research_missing_equations = [t.get("name","unnamed") for t in research_records if not has_equation(t)]
+    research_missing_algorithm_steps = [t.get("name","unnamed") for t in research_records
+                                        if not isinstance(t.get("algorithm_steps"), list) or not t["algorithm_steps"]]
+    research_missing_pseudocode = [t.get("name","unnamed") for t in research_records
+                                   if not isinstance(t.get("pseudocode"), str) or not t["pseudocode"].strip()]
     refs = [sid for s in styles if isinstance(s,dict) for sid in (s.get("source_ids") or []) if isinstance(sid,str)]
     unresolved_refs = sorted(set(refs)-set(source_ids))
     report = {
@@ -94,8 +98,11 @@ def audit(path: Path):
                    "unresolved_style_source_refs":unresolved_refs},
       "mathematics":{"equation_fields_present":len(technique_records)-len(missing_equations),
                      "equation_fields_missing":len(missing_equations),"missing_equation_techniques":missing_equations,
-                     "techniques_missing_algorithm_steps":missing_algorithm_steps,
-                     "techniques_missing_pseudocode":missing_pseudocode,
+                     "research_records_found":len(research_records),
+                     "research_records_missing_equations":research_missing_equations,
+                     "research_records_missing_algorithm_steps":research_missing_algorithm_steps,
+                     "research_records_missing_pseudocode":research_missing_pseudocode,
+                     "legacy_schema_note":"Las técnicas históricas usan campos como algorithm y derivation; no se les exige el esquema R31 algorithm_steps/pseudocode.",
                      "coverage_status":"INCOMPLETE" if missing_equations else "EQUATION_FIELD_COVERAGE_COMPLETE",
                      "equation_correctness":"NOT_CERTIFIED",
                      "reason":"La presencia de cadenas no demuestra validez algebraica, dimensional, física ni numérica. Cada fórmula requiere fuente, hipótesis, unidades, dominio y casos de referencia independientes."},
