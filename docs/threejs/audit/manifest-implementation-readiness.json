@@ -10,7 +10,43 @@
   "purpose": "Inventario estructural de cobertura; no certifica validez matemática. Sirve para impedir que presencia de texto sea confundida con verificación.",
   "preservation": {
     "baseline_records": "No modificar ni eliminar durante esta auditoría; las correcciones futuras serán aditivas y trazables.",
-    "crimson_loong": "Excluir las técnicas ya revisadas/demostradas de cualquier repetición de investigación; conservar su evidencia y marcarla como preservada una vez identificada con precisión."
+    "crimson_loong": {
+      "source_file": "docs/threejs/audit/crimson-loong-preservation.json",
+      "status": "PRESERVE_EXISTING_REVIEW; DO_NOT_REPEAT_RESEARCH",
+      "reviewed_code_families": [
+        "SDF primitives, CSG y smooth min/max",
+        "Bezier curves with variable radii; symmetry; Surface Nets",
+        "procedural periodic value noise, FBM y Voronoi",
+        "volumetric cloud raymarching",
+        "displaced parametric rocks, instancing y procedural vegetation",
+        "wind shader y dragon material shader",
+        "planar water reflections; multiscale analytic waves, currents, waterfalls, wakes, foam y disturbance rings",
+        "particle/FX systems",
+        "HDR, SSAO, bloom, light rays, color correction y lens effects",
+        "cubic monotone camera splines"
+      ],
+      "source_files": [
+        "src/10_sdf.js",
+        "src/15_tex.js",
+        "src/20_sky.js",
+        "src/30_rock.js",
+        "src/40_flora.js",
+        "src/58_dlook.js",
+        "src/60_dragon.js",
+        "src/66_wake.js",
+        "src/68_water.js",
+        "src/70_fx.js",
+        "src/80_post.js",
+        "src/88_film.js"
+      ],
+      "evidence_boundary": {
+        "user_reported": "El usuario indica que el proyecto y las técnicas ya fueron revisados y funcionaron.",
+        "independently_retested_in_this_run": false,
+        "action": "Conservar las referencias y la clasificación previa; no marcar de nuevo como no probadas ni repetir la investigación.",
+        "portability": "La evidencia previa de Crimson Loong no certifica automáticamente compatibilidad con cada versión, navegador, renderer o dispositivo objetivo del nuevo proyecto."
+      },
+      "handling": "No repetir investigación ni pruebas sobre estas familias. La relación exacta entre familias y fichas individuales del inventario debe mapearse antes de asignarles un estado por ficha; no clasificarlas como matemáticamente incompletas por defecto."
+    }
   },
   "counts": {
     "total": 541,
@@ -30,7 +66,7 @@
     "pseudocode_presence": "Solo confirma que hay pseudocódigo; no valida ejecutabilidad.",
     "units_explicit": "Solo confirma presencia explícita de unidades; no infiere unidades desde nombres.",
     "source_ids": "Solo cuenta referencias enlazadas por ID dentro de la ficha; referencias globales o citas temáticas no equivalen a correspondencia fórmula-fuente.",
-    "mathematical_status": "Todos quedan NOT_YET_INDEPENDENTLY_AUDITED hasta superar revisión y pruebas."
+    "mathematical_status": "NOT_YET_INDEPENDENTLY_AUDITED se aplica únicamente a fichas que no estén cubiertas por la preservación previa de Crimson Loong; las familias preservadas se excluyen de repetición y requieren mapeo por ficha, no revalidación."
   },
   "records": [
     {
