@@ -8205,5 +8205,26 @@
       "classification": "BASELINE_V3_RECORD",
       "mathematical_status": "NOT_YET_INDEPENDENTLY_AUDITED"
     }
-  ]
+  ],
+  "audit_consistency_checks": {
+    "date": "2026-11-26",
+    "python_source_test_functions": 27,
+    "javascript_source_test_cases": 24,
+    "existing_validation_matrix": {
+      "path": "docs/threejs/audit/r31-validation-matrix.json",
+      "version": "1.3.0",
+      "declares_python_numeric_tests": 13,
+      "declares_records_with_numeric_kernel_tests": 10,
+      "declares_javascript_tests_passed": 22,
+      "recorded_python_ci_run": "45910681719",
+      "recorded_javascript_ci_run": "45910814029"
+    },
+    "discrepancies": [
+      "The current Python test source contains 27 test functions, while the validation matrix declares 13 numeric tests. Reconcile test-count semantics and regenerate the matrix from test discovery rather than hand-maintaining totals.",
+      "The current JavaScript test source contains 24 test cases, while the validation matrix declares 22 passed. Re-run Node tests on the current commit and regenerate the matrix.",
+      "The source-coverage file labels all 23 R31 records as bibliographically covered, but its rule includes authored procedural conventions and family-level references; this is not equivalent to a primary publication supporting every exact equation.",
+      "The 27 Python tests and 24 JavaScript cases are source-file counts, not evidence that the current HEAD CI executed them. Execution must be confirmed by a run tied to the current commit."
+    ],
+    "required_action": "Run Python and Node suites against the current HEAD, capture exact discovery totals and results, then regenerate both validation/source coverage metadata without inflating kernel-level coverage into complete-algorithm validation."
+  }
 }
