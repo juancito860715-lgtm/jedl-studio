@@ -1,38 +1,61 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><title>Three.js WebGPU TSL probe</title></head>
 <body><canvas id="probe" width="4" height="4"></canvas>
+<script>window.webgpuTslState={stage:"document-loaded",gpuAvailable:!!navigator.gpu};</script>
 <script type="module">
 import * as THREE from "/node_modules/three/build/three.webgpu.js";
 import { float, vec3, abs, max, min, pow, exp } from "/node_modules/three/build/three.tsl.js";
+const state=window.webgpuTslState;
 const canvas=document.getElementById("probe");
-const renderer=new THREE.WebGPURenderer({canvas,antialias:false,alpha:false,powerPreference:"low-power"});
-renderer.setSize(4,4,false);
-renderer.outputColorSpace=THREE.LinearSRGBColorSpace;
-renderer.toneMapping=THREE.NoToneMapping;
-await renderer.init();
-if(!renderer.backend?.isWebGPUBackend) {
-  throw new Error("WebGPURenderer initialized without a native WebGPU backend; fallback is not accepted as WebGPU evidence");
+const withTimeout=(promise,label,ms=12000)=>Promise.race([
+  promise,
+  new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+" timed out after "+ms+"ms")),ms))
+]);
+try {
+  state.stage="three-module-loaded";
+  if(!navigator.gpu) throw new Error("navigator.gpu is unavailable in this Chromium context");
+  state.stage="requesting-adapter";
+  const adapter=await withTimeout(navigator.gpu.requestAdapter({powerPreference:"low-power"}),"WebGPU requestAdapter");
+  if(!adapter) throw new Error("navigator.gpu.requestAdapter returned null");
+  state.adapter=adapter.info?.description||adapter.name||"adapter-info-unavailable";
+  state.stage="adapter-acquired";
+  const renderer=new THREE.WebGPURenderer({canvas,antialias:false,alpha:false,powerPreference:"low-power"});
+  renderer.setSize(4,4,false);
+  renderer.outputColorSpace=THREE.LinearSRGBColorSpace;
+  renderer.toneMapping=THREE.NoToneMapping;
+  state.stage="renderer-init";
+  await withTimeout(renderer.init(),"Three.js WebGPURenderer.init");
+  state.backend=renderer.backend?.constructor?.name||"unknown";
+  state.isWebGPUBackend=renderer.backend?.isWebGPUBackend===true;
+  if(!state.isWebGPUBackend) throw new Error("WebGPURenderer initialized without a native WebGPU backend; fallback is not accepted");
+  state.stage="building-tsl";
+  const a=float(0.0), b=float(0.0), k=float(0.5);
+  const h=max(k.sub(abs(a.sub(b))),0.0).div(k);
+  const smoothMinimum=min(a,b).sub(h.mul(h).mul(k).mul(0.25));
+  const fresnel=float(0.04).add(float(0.96).mul(pow(float(1.0).sub(float(0.0)),5.0)));
+  const transmittance=exp(float(-1.0));
+  const material=new THREE.MeshBasicNodeMaterial();
+  material.colorNode=vec3(smoothMinimum.add(0.5),fresnel,transmittance);
+  material.toneMapped=false;
+  const scene=new THREE.Scene();
+  scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),material));
+  const camera=new THREE.OrthographicCamera(-1,1,1,-1,0.1,10);
+  camera.position.z=1;
+  state.stage="rendering-tsl";
+  await withTimeout(renderer.renderAsync(scene,camera),"Three.js TSL render");
+  await withTimeout(renderer.backend.device.queue.onSubmittedWorkDone(),"WebGPU queue completion");
+  state.stage="complete";
+  window.webgpuTslResult={
+    threeRevision:THREE.REVISION,
+    backend:renderer.backend.constructor.name,
+    isWebGPUBackend:renderer.backend.isWebGPUBackend===true,
+    adapter:state.adapter,
+    rendered:true,
+    width:canvas.width,height:canvas.height
+  };
+} catch(error) {
+  state.stage="error";
+  state.error=String(error?.stack||error);
+  window.webgpuTslResult={error:state.error,diagnostics:{...state}};
 }
-const a=float(0.0), b=float(0.0), k=float(0.5);
-const h=max(k.sub(abs(a.sub(b))),0.0).div(k);
-const smoothMinimum=min(a,b).sub(h.mul(h).mul(k).mul(0.25));
-const fresnel=float(0.04).add(float(0.96).mul(pow(float(1.0).sub(float(0.0)),5.0)));
-const transmittance=exp(float(-1.0));
-const material=new THREE.MeshBasicNodeMaterial();
-material.colorNode=vec3(smoothMinimum.add(0.5),fresnel,transmittance);
-material.toneMapped=false;
-const scene=new THREE.Scene();
-scene.add(new THREE.Mesh(new THREE.PlaneGeometry(2,2),material));
-const camera=new THREE.OrthographicCamera(-1,1,1,-1,0.1,10);
-camera.position.z=1;
-await renderer.renderAsync(scene,camera);
-await renderer.backend.device.queue.onSubmittedWorkDone();
-window.webgpuTslResult={
-  threeRevision:THREE.REVISION,
-  backend:renderer.backend.constructor.name,
-  isWebGPUBackend:renderer.backend.isWebGPUBackend===true,
-  adapter:renderer.backend.device?.adapterInfo?.description||"adapter-info-unavailable",
-  rendered:true,
-  width:canvas.width,height:canvas.height
-};
 </script></body></html>
