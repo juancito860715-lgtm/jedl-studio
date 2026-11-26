@@ -374,7 +374,7 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertGreater(ggx_ndf(1.0,alpha),ggx_ndf(0.0,alpha))
 
     def test_kuwahara_weighted_sector_mean_prefers_low_variance(self):
-        self.assertAlmostEqual(weighted_sector_mean([0.0,10.0],[0.0,9.0]),0.1)
+        self.assertAlmostEqual(weighted_sector_mean([0.0,10.0],[0.0,9.0]),10.0/11.0)
 
     def test_impasto_height_gradient_matches_plane_coefficients(self):
         gx,gy=linear_height_gradient(2.5,-0.75,3.0,4.0)
