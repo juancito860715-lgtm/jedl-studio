@@ -1,16 +1,18 @@
 {
   "title": "Matriz de validación R31",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "generated_from": {
     "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
     "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
     "audit_commit": "c4d688835a51e51c263cfac64cd66bdc5d494fc3",
-    "structural_audit": "PASS"
+    "structural_audit": "PASS",
+    "numerical_test_commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+    "ci_run": "https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45910057844"
   },
   "interpretation": {
     "formulas_documented": "La ficha contiene una o más cadenas en equations; esto no certifica corrección.",
-    "numeric_tests": "NOT_EXECUTED; los casos se deben implementar y ejecutar contra valores de referencia.",
-    "visual_evidence": "NOT_PROVIDED_IN_R31_RECORDS; evidence_status no equivale a prueba visual.",
+    "numeric_tests": "13 pruebas automatizadas de kernels numéricos pasaron en GitHub Actions. Validan componentes matemáticos aislados, no la técnica completa, su renderizado ni su fidelidad física.",
+    "visual_evidence": "No se ejecutaron pruebas visuales en navegador/renderizador; permanecer NOT_CONFIRMED.",
     "compatibility": "Los valores de compatibility son declaraciones documentales, no ejecuciones de CPU/WebGL2/WebGPU.",
     "assumptions_and_units": "No existen campos dedicados assumptions/hypotheses/units en los 23 registros. Algunos parameters incluyen unidades en texto, no normalizadas."
   },
@@ -23,8 +25,9 @@
     "source_missing": 14,
     "explicit_assumptions": 0,
     "explicit_units": 0,
-    "numeric_tests_executed": 0,
-    "visual_tests_confirmed": 0
+    "numeric_tests_executed": 13,
+    "visual_tests_confirmed": 0,
+    "records_with_numeric_kernel_tests": 10
   },
   "records": [
     {
@@ -64,7 +67,7 @@
         "required_case": "Aclarar unidades de amplitud y si jitter se suma en espacio local o mundo; definir hash y canales para reproducibilidad."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Aclarar unidades de amplitud y si jitter se suma en espacio local o mundo; definir hash y canales para reproducibilidad."
     },
@@ -102,11 +105,17 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "Falta ecuación explícita de las proyecciones backward/forward y caso de objetivo inalcanzable; el pseudocódigo no detalla el caso de alcance."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_fabrik_reaches_reachable_target_and_preserves_lengths",
+          "test_fabrik_unreachable_target_extends_chain_to_max_reach"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Falta ecuación explícita de las proyecciones backward/forward y caso de objetivo inalcanzable; el pseudocódigo no detalla el caso de alcance."
     },
@@ -143,11 +152,17 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "La normalización debe incluir ortogonalización de la parte dual respecto de la real; definir convención de multiplicación y transformación."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_dual_quaternion_normalization_and_orthogonality",
+          "test_dual_quaternion_rejects_zero_real_part"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "La normalización debe incluir ortogonalización de la parte dual respecto de la real; definir convención de multiplicación y transformación."
     },
@@ -183,11 +198,16 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "Definir origen temporal, comportamiento para t<0 y política de muestreo/interpolación entre canales."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_temporal_quantization_floor"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Definir origen temporal, comportamiento para t<0 y política de muestreo/interpolación entre canales."
     },
@@ -224,11 +244,17 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "Indicar unidades de compliance según tipo de constraint, gradientes, masas inversas y reinicio/acumulación de lambda por substep."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_xpbd_rigid_distance_constraint_one_projection",
+          "test_xpbd_compliance_reduces_single_step_correction"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Indicar unidades de compliance según tipo de constraint, gradientes, masas inversas y reinicio/acumulación de lambda por substep."
     },
@@ -265,11 +291,16 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "Concretar dimensión, tamaño de celda respecto al radio y número de celdas vecinas; la clave hash no sustituye verificar coordenadas de celda."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_spatial_hash_floor_including_negative_coordinates"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Concretar dimensión, tamaño de celda respecto al radio y número de celdas vecinas; la clave hash no sustituye verificar coordenadas de celda."
     },
@@ -313,7 +344,7 @@
         "required_case": "La ecuación está declarada esquemática; no es implementable fielmente sin la BCSDF completa, términos R/TT/TRT, geometría y PDF del artículo."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "La ecuación está declarada esquemática; no es implementable fielmente sin la BCSDF completa, términos R/TT/TRT, geometría y PDF del artículo."
     },
@@ -353,11 +384,16 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "Aclarar si la orientación buscada es gradiente (autovector mayor) o dirección de pincelada/isófota (perpendicular); especificar convención de ejes."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_structure_tensor_orientation_axis_aligned"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Aclarar si la orientación buscada es gradiente (autovector mayor) o dirección de pincelada/isófota (perpendicular); especificar convención de ejes."
     },
@@ -402,7 +438,7 @@
         "required_case": "Falta la función explícita de pesos f(σ²), definición de sectores, escala y mezcla multiescala; el pseudocódigo es esquemático."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Falta la función explícita de pesos f(σ²), definición de sectores, escala y mezcla multiescala; el pseudocódigo es esquemático."
     },
@@ -445,7 +481,7 @@
         "required_case": "La normal requiere gradiente en espacio tangente y factor de escala/altura coherente con unidades de posición; no mezclar coordenadas UV y mundo sin conversión."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "La normal requiere gradiente en espacio tangente y factor de escala/altura coherente con unidades de posición; no mezclar coordenadas UV y mundo sin conversión."
     },
@@ -487,7 +523,7 @@
         "required_case": "La dirección de drenaje suele apuntar cuesta abajo; distinguir -∇h de la dirección de gradiente y definir el campo de flujo/ruido N_structured."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "La dirección de drenaje suele apuntar cuesta abajo; distinguir -∇h de la dirección de gradiente y definir el campo de flujo/ruido N_structured."
     },
@@ -524,11 +560,16 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "Exigir k>0 o rama k=0; k tiene unidades de distancia. El smooth-min deja de ser distancia exacta en la zona de unión."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_smooth_min_disjoint_and_midpoint"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Exigir k>0 o rama k=0; k tiene unidades de distancia. El smooth-min deja de ser distancia exacta en la zona de unión."
     },
@@ -570,7 +611,7 @@
         "required_case": "Definir tratamiento de tangente nula, antiparalela y reinicio del marco; la fórmula de transporte requiere robustez numérica."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Definir tratamiento de tangente nula, antiparalela y reinicio del marco; la fórmula de transporte requiere robustez numérica."
     },
@@ -613,7 +654,7 @@
         "required_case": "λ debe reconciliar unidades entre profundidad y término normal; definir profundidad lineal, vecindad, umbral dependiente de cámara y convención step."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "λ debe reconciliar unidades entre profundidad y término normal; definir profundidad lineal, vecindad, umbral dependiente de cámara y convención step."
     },
@@ -654,7 +695,7 @@
         "required_case": "Definir frecuencia en píxeles/celdas, rotación de coordenadas, antialiasing y umbral; documentar la convención GLSL step(edge,x)."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Definir frecuencia en píxeles/celdas, rotación de coordenadas, antialiasing y umbral; documentar la convención GLSL step(edge,x)."
     },
@@ -695,7 +736,7 @@
         "required_case": "Definir espacio de p, normalización de d, unidades de spacing y antialiasing; fract introduce discontinuidad periódica que debe filtrarse."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Definir espacio de p, normalización de d, unidades de spacing y antialiasing; fract introduce discontinuidad periódica que debe filtrarse."
     },
@@ -739,7 +780,7 @@
         "required_case": "La ecuación de retrotrazado omite en la fórmula discreta difusión y secado; especificar interpolación, condiciones de borde y unidades de u, D y k."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "La ecuación de retrotrazado omite en la fórmula discreta difusión y secado; especificar interpolación, condiciones de borde y unidades de u, D y k."
     },
@@ -777,11 +818,16 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "En RK4 definir k1..k4 como derivadas evaluadas en estados intermedios; distinguir unidades si se usan incrementos ya multiplicados por dt."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_rk4_exponential_decay_converges"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "En RK4 definir k1..k4 como derivadas evaluadas en estados intermedios; distinguir unidades si se usan incrementos ya multiplicados por dt."
     },
@@ -822,7 +868,7 @@
         "required_case": "Definir S_i, A_i, C_i, radio/pesos y unidades; falta ecuación de actualización de velocidad y límites de aceleración/velocidad."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Definir S_i, A_i, C_i, radio/pesos y unidades; falta ecuación de actualización de velocidad y límites de aceleración/velocidad."
     },
@@ -863,7 +909,7 @@
         "required_case": "Definir igualdad de face key (material, normal, UV/atributos), winding, vecinos entre chunks y prueba de equivalencia de superficie/área."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "Definir igualdad de face key (material, normal, UV/atributos), winding, vecinos entre chunks y prueba de equivalencia de superficie/área."
     },
@@ -902,11 +948,16 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "La suma debe aclarar si σ_sρ/σ_tρ se incluye en sourceLight; definir unidades de σ_t, densidad, paso, fase y composición premultiplicada."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_beer_lambert_reference_value"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "La suma debe aclarar si σ_sρ/σ_tρ se incluye en sourceLight; definir unidades de σ_t, densidad, paso, fase y composición premultiplicada."
     },
@@ -943,11 +994,16 @@
       },
       "declared_evidence_status": "derivado/pendiente de prototipo",
       "numeric_test": {
-        "status": "NOT_EXECUTED",
-        "required_case": "F0 debe estar en espacio lineal; definir conductor RGB/dieléctrico y cara frontal; fórmula no reemplaza el BRDF completo."
+        "status": "PASS_KERNEL_ONLY",
+        "test_names": [
+          "test_fresnel_schlick_endpoints"
+        ],
+        "ci_run": "45910057844",
+        "commit": "b9547da89ddef6b91d9493b83be9bbdd6e0ef62a",
+        "scope": "Prueba numérica aislada del núcleo indicado; no certifica algoritmo completo ni implementación Three.js."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "F0 debe estar en espacio lineal; definir conductor RGB/dieléctrico y cara frontal; fórmula no reemplaza el BRDF completo."
     },
@@ -988,7 +1044,7 @@
         "required_case": "QEF necesita regularización, solución estable y regla de conectividad/topología; especificar interpolación de intersecciones y tratamiento de celdas degeneradas."
       },
       "visual_test": {
-        "status": "NOT_CONFIRMED"
+        "status": "NOT_EXECUTED"
       },
       "review_notes": "QEF necesita regularización, solución estable y regla de conectividad/topología; especificar interpolación de intersecciones y tratamiento de celdas degeneradas."
     }
