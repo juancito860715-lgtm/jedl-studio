@@ -32,11 +32,13 @@ jobs:
       - name: Run JavaScript CPU parity tests
         run: node --test tests/threejs/r31_kernels.test.mjs
       - name: Install browser test dependencies
-        run: npm install --no-save --no-package-lock three@0.180.0 playwright@1.56.1
+        run: npm install --no-save --no-package-lock three@0.180.0 playwright@1.56.1 pngjs@7.0.0
       - name: Install Chromium with SwiftShader
         run: npx playwright install --with-deps chromium
       - name: Run real WebGL2 integration test
         run: node --test tests/threejs/browser/webgl2.test.mjs
+      - name: Run native WebGPU TSL integration test
+        run: node --test tests/threejs/browser/webgpu-tsl.test.mjs
       - name: Run structural and consistency audit
         run: |
           python tools/threejs_manifest_audit.py \
