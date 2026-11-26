@@ -129,6 +129,166 @@ def fabrik(points, lengths, target, root, iterations=64, tolerance=1e-9):
     return pts
 
 
+
+
+# Additional isolated kernels for the remaining R31 records. These are
+# explicitly scoped reference kernels, not full production algorithms.
+def deterministic_jitter(frame, seed, channel, amplitude):
+    if amplitude < 0:
+        raise ValueError("amplitude must be nonnegative")
+    x = (int(frame) * 0x9E3779B1 + int(seed) * 0x85EBCA77 + int(channel) * 0xC2B2AE3D) & 0xFFFFFFFF
+    x ^= x >> 16
+    x = (x * 0x7FEB352D) & 0xFFFFFFFF
+    x ^= x >> 15
+    x = (x * 0x846CA68B) & 0xFFFFFFFF
+    x ^= x >> 16
+    unit = x / 4294967296.0
+    return amplitude * (2.0 * unit - 1.0)
+
+
+def ggx_ndf(cos_theta, alpha):
+    if alpha <= 0:
+        raise ValueError("alpha must be positive")
+    c = min(1.0, max(0.0, cos_theta))
+    a2 = alpha * alpha
+    denom = c*c*(a2-1.0)+1.0
+    return a2 / (math.pi * denom * denom)
+
+
+def weighted_sector_mean(means, variances):
+    if not means or len(means) != len(variances):
+        raise ValueError("means and variances must be nonempty and same length")
+    if any(v < 0 for v in variances):
+        raise ValueError("variances must be nonnegative")
+    weights = [1.0/(1.0+v) for v in variances]
+    return sum(m*w for m,w in zip(means,weights))/sum(weights)
+
+
+def linear_height_gradient(a, b, x, y):
+    # h(x,y)=a*x+b*y; central differences have this exact gradient.
+    eps = 1e-5
+    h = lambda px,py: a*px+b*py
+    gx = (h(x+eps,y)-h(x-eps,y))/(2*eps)
+    gy = (h(x,y+eps)-h(x,y-eps))/(2*eps)
+    return gx,gy
+
+
+def oriented_periodic_noise(position, direction, frequency):
+    length = math.sqrt(sum(v*v for v in direction))
+    if length == 0 or frequency <= 0:
+        raise ValueError("direction and frequency must be nonzero/positive")
+    d = tuple(v/length for v in direction)
+    phase = sum(p*v for p,v in zip(position,d))*frequency
+    return math.sin(phase)
+
+
+def transport_normal(normal, new_tangent):
+    dot = sum(a*b for a,b in zip(normal,new_tangent))
+    projected = [normal[i]-dot*new_tangent[i] for i in range(3)]
+    length = math.sqrt(sum(v*v for v in projected))
+    if length < 1e-12:
+        axis = (1.0,0.0,0.0) if abs(new_tangent[0]) < 0.9 else (0.0,1.0,0.0)
+        dot2 = sum(a*b for a,b in zip(axis,new_tangent))
+        projected = [axis[i]-dot2*new_tangent[i] for i in range(3)]
+        length = math.sqrt(sum(v*v for v in projected))
+    return tuple(v/length for v in projected)
+
+
+def depth_normal_edge(z0, z1, n0, n1, normal_weight):
+    if normal_weight < 0:
+        raise ValueError("normal_weight must be nonnegative")
+    dot = sum(a*b for a,b in zip(n0,n1))
+    return abs(z0-z1)+normal_weight*(1.0-max(-1.0,min(1.0,dot)))
+
+
+def halftone_pattern(x, y, frequency):
+    if frequency <= 0:
+        raise ValueError("frequency must be positive")
+    return 0.5+0.5*math.sin(math.pi*frequency*x)*math.sin(math.pi*frequency*y)
+
+
+def hatch_phase(position, direction, spacing):
+    length = math.sqrt(sum(v*v for v in direction))
+    if length == 0 or spacing <= 0:
+        raise ValueError("direction and spacing must be nonzero/positive")
+    d = tuple(v/length for v in direction)
+    value = sum(p*v for p,v in zip(position,d))/spacing
+    return value-math.floor(value)
+
+
+def sample_linear_1d(values, x):
+    if x <= 0:
+        return values[0]
+    if x >= len(values)-1:
+        return values[-1]
+    i = math.floor(x)
+    f = x-i
+    return values[i]*(1-f)+values[i+1]*f
+
+
+def semi_lagrangian_advect_1d(values, velocity, dt):
+    return [sample_linear_1d(values, i-velocity*dt) for i in range(len(values))]
+
+
+def boid_steering(position, velocity, neighbor_positions, neighbor_velocities):
+    if not neighbor_positions:
+        return (0.0,0.0)
+    count=len(neighbor_positions)
+    center=tuple(sum(p[k] for p in neighbor_positions)/count for k in range(2))
+    avg_v=tuple(sum(v[k] for v in neighbor_velocities)/count for k in range(2))
+    separation=tuple(sum(position[k]-p[k] for p in neighbor_positions)/count for k in range(2))
+    alignment=tuple(avg_v[k]-velocity[k] for k in range(2))
+    cohesion=tuple(center[k]-position[k] for k in range(2))
+    return separation,alignment,cohesion
+
+
+def greedy_rectangles(mask):
+    grid=[list(row) for row in mask]
+    h=len(grid); w=len(grid[0]) if h else 0
+    rects=[]
+    for y in range(h):
+        for x in range(w):
+            key=grid[y][x]
+            if key is None:
+                continue
+            x2=x
+            while x2<w and grid[y][x2]==key:
+                x2+=1
+            y2=y+1
+            while y2<h and all(grid[y2][xx]==key for xx in range(x,x2)):
+                y2+=1
+            for yy in range(y,y2):
+                for xx in range(x,x2):
+                    grid[yy][xx]=None
+            rects.append((x,y,x2,y2,key))
+    return rects
+
+
+def volume_composite(segments):
+    trans=1.0
+    radiance=0.0
+    for sigma_t, density, ds, source in segments:
+        mu=sigma_t*density
+        alpha=1.0-math.exp(-mu*ds)
+        radiance += trans*alpha*source
+        trans *= 1.0-alpha
+    return radiance,trans
+
+
+def regularized_plane_qef(points_normals, center, regularization):
+    # Solve diagonal normal equations for a tiny deterministic reference case.
+    if regularization < 0:
+        raise ValueError("regularization must be nonnegative")
+    A=[regularization]*3
+    b=[regularization*c for c in center]
+    for point,normal in points_normals:
+        for axis in range(3):
+            A[axis]+=normal[axis]*normal[axis]
+            projection=sum(normal[k]*point[k] for k in range(3))
+            b[axis]+=normal[axis]*projection
+    return tuple(b[i]/A[i] if A[i] else center[i] for i in range(3))
+
+
 class TestR31NumericalKernels(unittest.TestCase):
     def assertVecAlmostEqual(self, actual, expected, places=9):
         self.assertEqual(len(actual), len(expected))
@@ -199,6 +359,79 @@ class TestR31NumericalKernels(unittest.TestCase):
     def test_dual_quaternion_rejects_zero_real_part(self):
         with self.assertRaises(ValueError):
             dual_quaternion_normalize((0, 0, 0, 0), (1, 0, 0, 0))
+
+
+    def test_stop_motion_jitter_is_deterministic_bounded_and_channel_specific(self):
+        a=deterministic_jitter(12,77,0,0.1)
+        self.assertEqual(a,deterministic_jitter(12,77,0,0.1))
+        self.assertGreaterEqual(a,-0.1)
+        self.assertLess(a,0.1)
+        self.assertNotEqual(a,deterministic_jitter(12,77,1,0.1))
+
+    def test_hair_ggx_normal_distribution_reference(self):
+        alpha=0.5
+        self.assertAlmostEqual(ggx_ndf(1.0,alpha),1.0/(math.pi*alpha*alpha))
+        self.assertGreater(ggx_ndf(1.0,alpha),ggx_ndf(0.0,alpha))
+
+    def test_kuwahara_weighted_sector_mean_prefers_low_variance(self):
+        self.assertAlmostEqual(weighted_sector_mean([0.0,10.0],[0.0,9.0]),0.1)
+
+    def test_impasto_height_gradient_matches_plane_coefficients(self):
+        gx,gy=linear_height_gradient(2.5,-0.75,3.0,4.0)
+        self.assertAlmostEqual(gx,2.5,places=8)
+        self.assertAlmostEqual(gy,-0.75,places=8)
+
+    def test_flow_oriented_noise_is_periodic_along_flow(self):
+        a=oriented_periodic_noise((0.2,0.3),(1,0),2.0)
+        b=oriented_periodic_noise((0.2+math.pi,0.3),(1,0),2.0)
+        self.assertAlmostEqual(a,b,places=12)
+
+    def test_camera_parallel_transport_keeps_normal_orthogonal(self):
+        n=transport_normal((0,1,0),(1,0,0))
+        self.assertAlmostEqual(math.sqrt(sum(v*v for v in n)),1.0)
+        self.assertAlmostEqual(sum(a*b for a,b in zip(n,(1,0,0))),0.0)
+
+    def test_depth_normal_edge_zero_for_identical_samples(self):
+        n=(0.0,0.0,1.0)
+        self.assertAlmostEqual(depth_normal_edge(4.0,4.0,n,n,2.0),0.0)
+        self.assertGreater(depth_normal_edge(4.0,4.2,n,(0,0,-1),2.0),0.2)
+
+    def test_halftone_pattern_has_expected_spatial_period(self):
+        f=0.25
+        self.assertAlmostEqual(halftone_pattern(0.3,0.7,f),halftone_pattern(0.3+2/f,0.7,f))
+
+    def test_hatching_phase_repeats_after_one_spacing(self):
+        phase=hatch_phase((0.2,0.4),(1,0),0.5)
+        shifted=hatch_phase((0.7,0.4),(1,0),0.5)
+        self.assertAlmostEqual(phase,shifted)
+
+    def test_semi_lagrangian_advection_preserves_constant_field(self):
+        out=semi_lagrangian_advect_1d([3.0]*8,0.75,0.2)
+        self.assertVecAlmostEqual(out,[3.0]*8)
+
+    def test_boids_components_point_toward_expected_behaviors(self):
+        separation,alignment,cohesion=boid_steering((0,0),(1,0),[(1,0)],[(0,2)])
+        self.assertEqual(separation,(-1.0,0.0))
+        self.assertEqual(alignment,(-1.0,2.0))
+        self.assertEqual(cohesion,(1.0,0.0))
+
+    def test_greedy_voxel_meshing_merges_equal_face_rectangle(self):
+        rects=greedy_rectangles([[1,1],[1,1]])
+        self.assertEqual(len(rects),1)
+        self.assertEqual(rects[0],(0,0,2,2,1))
+        split=greedy_rectangles([[1,2],[1,2]])
+        self.assertEqual(len(split),2)
+
+    def test_volume_compositing_matches_constant_medium_transmittance(self):
+        segments=[(2.0,0.5,0.25,1.0)]*4
+        radiance,trans=volume_composite(segments)
+        self.assertAlmostEqual(trans,math.exp(-1.0))
+        self.assertAlmostEqual(radiance,1.0-trans)
+
+    def test_dual_contouring_qef_minimizes_consistent_plane_constraints(self):
+        constraints=[((0.25,0.1,0.1),(1,0,0)),((0.25,0.8,0.2),(1,0,0)),((0.25,0.3,0.9),(1,0,0))]
+        x=regularized_plane_qef(constraints,(0.5,0.5,0.5),1e-6)
+        self.assertAlmostEqual(x[0],0.25,places=5)
 
 
 if __name__ == "__main__":
