@@ -1,0 +1,996 @@
+{
+  "title": "Matriz de validación R31",
+  "version": "1.0.0",
+  "generated_from": {
+    "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "audit_commit": "c4d688835a51e51c263cfac64cd66bdc5d494fc3",
+    "structural_audit": "PASS"
+  },
+  "interpretation": {
+    "formulas_documented": "La ficha contiene una o más cadenas en equations; esto no certifica corrección.",
+    "numeric_tests": "NOT_EXECUTED; los casos se deben implementar y ejecutar contra valores de referencia.",
+    "visual_evidence": "NOT_PROVIDED_IN_R31_RECORDS; evidence_status no equivale a prueba visual.",
+    "compatibility": "Los valores de compatibility son declaraciones documentales, no ejecuciones de CPU/WebGL2/WebGPU.",
+    "assumptions_and_units": "No existen campos dedicados assumptions/hypotheses/units en los 23 registros. Algunos parameters incluyen unidades en texto, no normalizadas."
+  },
+  "totals": {
+    "records": 23,
+    "equations_present": 23,
+    "algorithm_steps_present": 23,
+    "pseudocode_present": 23,
+    "source_referenced": 9,
+    "source_missing": 14,
+    "explicit_assumptions": 0,
+    "explicit_units": 0,
+    "numeric_tests_executed": 0,
+    "visual_tests_confirmed": 0
+  },
+  "records": [
+    {
+      "research_id": "R31-STOP-MOTION-PROCEDURAL-CON-MICROJITTER-D",
+      "name": "Stop-motion procedural con microjitter determinista",
+      "domain_id": "D02",
+      "equations": [
+        "t_q=floor(t f_s)/f_s",
+        "ε_k=A(2h(k,seed)−1)"
+      ],
+      "algorithm_steps": [
+        "Cuantizar el tiempo.",
+        "Obtener índice entero de frame.",
+        "Generar hash determinista por canal.",
+        "Aplicar offsets acotados a posición/rotación.",
+        "Mantener semilla fija entre renders."
+      ],
+      "pseudocode": "frame=floor(t*fps); jitter=(hash(frame,seed)-0.5)*2*amplitude; pose=F(frame/fps)+jitter",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "fps": "8–18",
+        "position_jitter": "0–0.5% escala personaje",
+        "rotation_jitter": "0–1.5°"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "posible con buffers/pases",
+        "webgpu_wgsl": "posible; compute según algoritmo",
+        "threejs_webglrenderer": "sí, CPU + renderizado",
+        "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Aclarar unidades de amplitud y si jitter se suma en espacio local o mundo; definir hash y canales para reproducibilidad."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Aclarar unidades de amplitud y si jitter se suma en espacio local o mundo; definir hash y canales para reproducibilidad."
+    },
+    {
+      "research_id": "R31-FABRIK-PARA-CADENAS-ARTICULADAS",
+      "name": "FABRIK para cadenas articuladas",
+      "domain_id": "D03",
+      "equations": [
+        "|p_(i+1)−p_i|=l_i",
+        "backward/forward positional projection"
+      ],
+      "algorithm_steps": [
+        "Comprobar alcance total.",
+        "Fijar efector al objetivo.",
+        "Barrido backward preservando longitudes.",
+        "Fijar raíz.",
+        "Barrido forward preservando longitudes.",
+        "Repetir hasta tolerancia."
+      ],
+      "pseudocode": "repeat: backward(chain,target); forward(chain,root); until distance(end,target)<epsilon",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "iterations": "4–16",
+        "tolerance": "1e-3–1e-2 escala local",
+        "max_reach": "sum(lengths)"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "posible con buffers/pases",
+        "webgpu_wgsl": "posible; compute según algoritmo",
+        "threejs_webglrenderer": "sí, CPU + renderizado",
+        "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Falta ecuación explícita de las proyecciones backward/forward y caso de objetivo inalcanzable; el pseudocódigo no detalla el caso de alcance."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Falta ecuación explícita de las proyecciones backward/forward y caso de objetivo inalcanzable; el pseudocódigo no detalla el caso de alcance."
+    },
+    {
+      "research_id": "R31-SKINNING-POR-DUAL-QUATERNIONS",
+      "name": "Skinning por dual quaternions",
+      "domain_id": "D03",
+      "equations": [
+        "q_d = 0.5 t_quat ⊗ q_r",
+        "blend=normalize(Σ_i w_i q_i) con alineación de signo"
+      ],
+      "algorithm_steps": [
+        "Obtener dual quaternion por hueso.",
+        "Alinear signos respecto a referencia.",
+        "Mezclar con pesos normalizados.",
+        "Normalizar parte real y dual.",
+        "Transformar posición y normal."
+      ],
+      "pseudocode": "ref=q[0]; blend=0; for bone: q=signAlign(q,ref); blend+=weight*q; blend=normalizeDual(blend); p'=transform(blend,p)",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "influences": "4–8",
+        "weight_sum": "1",
+        "normalization": "por vértice"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "La normalización debe incluir ortogonalización de la parte dual respecto de la real; definir convención de multiplicación y transformación."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "La normalización debe incluir ortogonalización de la parte dual respecto de la real; definir convención de multiplicación y transformación."
+    },
+    {
+      "research_id": "R31-CUANTIZACI-N-TEMPORAL-DE-ANIMACI-N",
+      "name": "Cuantización temporal de animación",
+      "domain_id": "D04",
+      "equations": [
+        "t_q=floor(t·f_s)/f_s",
+        "pose(t)=F(t_q)"
+      ],
+      "algorithm_steps": [
+        "Definir frecuencia de render y frecuencia de pose.",
+        "Cuantizar tiempo por personaje o canal.",
+        "Evaluar pose determinista.",
+        "Interpolar selectivamente cámara/FX para evitar saltos no deseados."
+      ],
+      "pseudocode": "sampleTime=floor(time*poseFPS)/poseFPS; pose=evaluateRig(sampleTime);",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "pose_fps": "8–24",
+        "render_fps": "24–120",
+        "channel_mask": "por articulación/material"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "posible con buffers/pases",
+        "webgpu_wgsl": "posible; compute según algoritmo",
+        "threejs_webglrenderer": "sí, CPU + renderizado",
+        "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Definir origen temporal, comportamiento para t<0 y política de muestreo/interpolación entre canales."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Definir origen temporal, comportamiento para t<0 y política de muestreo/interpolación entre canales."
+    },
+    {
+      "research_id": "R31-XPBD-RESTRICCIONES-CON-COMPLIANCE",
+      "name": "XPBD: restricciones con compliance",
+      "domain_id": "D04",
+      "equations": [
+        "Δλ=−(C(x)+α_tilde λ)/(Σ_i w_i|∇_i C|²+α_tilde)",
+        "α_tilde=α/Δt²"
+      ],
+      "algorithm_steps": [
+        "Integrar posiciones predichas.",
+        "Evaluar constraints.",
+        "Calcular Δλ con compliance.",
+        "Corregir posiciones por gradientes.",
+        "Iterar y reconstruir velocidades."
+      ],
+      "pseudocode": "predict(); lambda=0; repeat iterations: for c: dl=solveConstraint(c,alpha/dt²,lambda); applyPositionCorrection(dl); velocity=(x-xPrev)/dt",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "iterations": "4–12 inicial",
+        "compliance": "0 rígido; mayor = más flexible",
+        "dt": "fixed timestep recomendado"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "posible con buffers/pases",
+        "webgpu_wgsl": "posible; compute según algoritmo",
+        "threejs_webglrenderer": "sí, CPU + renderizado",
+        "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Indicar unidades de compliance según tipo de constraint, gradientes, masas inversas y reinicio/acumulación de lambda por substep."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Indicar unidades de compliance según tipo de constraint, gradientes, masas inversas y reinicio/acumulación de lambda por substep."
+    },
+    {
+      "research_id": "R31-HASH-ESPACIAL-UNIFORME-PARA-VECINOS",
+      "name": "Hash espacial uniforme para vecinos",
+      "domain_id": "D04",
+      "equations": [
+        "cell(p)=floor((p−origin)/h)",
+        "key=hash(cell)"
+      ],
+      "algorithm_steps": [
+        "Calcular celda de cada agente.",
+        "Contar ocupación por celda.",
+        "Construir offsets compactos.",
+        "Consultar celda y vecinas inmediatas.",
+        "Filtrar por distancia real."
+      ],
+      "pseudocode": "cell=floor((p-origin)/h); insert(index,hash(cell)); for c in neighborCells(cell): test agents[c]",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "cell_size": "≈ neighbor_radius",
+        "grid_dims": "según bounds",
+        "max_occupancy": "dimensionar con margen"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "posible con buffers/pases",
+        "webgpu_wgsl": "posible; compute según algoritmo",
+        "threejs_webglrenderer": "sí, CPU + renderizado",
+        "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Concretar dimensión, tamaño de celda respecto al radio y número de celdas vecinas; la clave hash no sustituye verificar coordenadas de celda."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Concretar dimensión, tamaño de celda respecto al radio y número de celdas vecinas; la clave hash no sustituye verificar coordenadas de celda."
+    },
+    {
+      "research_id": "R31-MODELO-DE-DISPERSI-N-MICROFACET-PARA-CAB",
+      "name": "Modelo de dispersión microfacet para cabello",
+      "domain_id": "D06",
+      "equations": [
+        "f_r ∝ D(m)G F / geometryTerm (forma esquemática; consultar artículo para expresión completa)",
+        "GGX D(θ_m;α)"
+      ],
+      "algorithm_steps": [
+        "Generar fibras curvas como ribbons/cilindros.",
+        "Construir marco tangente-normal-binormal.",
+        "Definir rugosidad y orientación de cutícula.",
+        "Evaluar lóbulos de reflexión/transmisión.",
+        "Integrar con iluminación y muestreo."
+      ],
+      "pseudocode": "for strand: frame=curveFrame(s); evaluateFiberScattering(wi,wo,frame,roughness,cuticleTilt)",
+      "source_ids": [
+        "SRC-HUANG-2022",
+        "SRC-KIT-HAIR"
+      ],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "roughness": "calibrar según artículo",
+        "cuticle_tilt": "parámetro angular del modelo",
+        "fiber_radius": "escala de hebra"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "documentado; ecuación completa pendiente de lectura del artículo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "La ecuación está declarada esquemática; no es implementable fielmente sin la BCSDF completa, términos R/TT/TRT, geometría y PDF del artículo."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "La ecuación está declarada esquemática; no es implementable fielmente sin la BCSDF completa, términos R/TT/TRT, geometría y PDF del artículo."
+    },
+    {
+      "research_id": "R31-TENSOR-DE-ESTRUCTURA-PARA-ORIENTACI-N-DE",
+      "name": "Tensor de estructura para orientación de pincelada",
+      "domain_id": "D08",
+      "equations": [
+        "J=Gσ * [[Ix²,IxIy],[IxIy,Iy²]]",
+        "θ=0.5 atan2(2Jxy,Jxx−Jyy)",
+        "coherence=(λ1−λ2)/(λ1+λ2+ε)"
+      ],
+      "algorithm_steps": [
+        "Calcular gradiente de luminancia.",
+        "Formar productos exteriores.",
+        "Suavizar con Gaussiana.",
+        "Diagonalizar analíticamente 2×2.",
+        "Usar autovector dominante como dirección."
+      ],
+      "pseudocode": "grad=gradient(luma); J=blur(outer(grad,grad)); theta=0.5*atan2(2*J.xy,J.xx-J.yy);",
+      "source_ids": [
+        "SRC-KYPRIANIDIS-2009"
+      ],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "sigma": "1–8 px a resolución de trabajo",
+        "coherence": "0–1",
+        "radius": "3–12 px"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Aclarar si la orientación buscada es gradiente (autovector mayor) o dirección de pincelada/isófota (perpendicular); especificar convención de ejes."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Aclarar si la orientación buscada es gradiente (autovector mayor) o dirección de pincelada/isófota (perpendicular); especificar convención de ejes."
+    },
+    {
+      "research_id": "R31-KUWAHARA-ANISOTR-PICO-MULTIESCALA",
+      "name": "Kuwahara anisotrópico multiescala",
+      "domain_id": "D08",
+      "equations": [
+        "μ_k=mean(C in sector k)",
+        "σ²_k=mean(|C−μ_k|²)",
+        "C_out=Σ_k w_k μ_k / Σ_k w_k; w_k=f(σ²_k)"
+      ],
+      "algorithm_steps": [
+        "Obtener orientación y coherencia del tensor.",
+        "Construir sectores elípticos alineados.",
+        "Calcular media y varianza por sector.",
+        "Ponderar sectores de baja varianza.",
+        "Repetir a varias escalas y mezclar por saliencia."
+      ],
+      "pseudocode": "for scale in scales: sectors=orientedSectors(theta,scale); stats=meanVariance(sectors); out+=weightedMeans(stats);",
+      "source_ids": [
+        "SRC-KYPRIANIDIS-2009",
+        "SRC-GAO-2019"
+      ],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "kernel_radius": "2–12 px",
+        "sectors": "4–8",
+        "scales": "2–4"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Falta la función explícita de pesos f(σ²), definición de sectores, escala y mezcla multiescala; el pseudocódigo es esquemático."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Falta la función explícita de pesos f(σ²), definición de sectores, escala y mezcla multiescala; el pseudocódigo es esquemático."
+    },
+    {
+      "research_id": "R31-RELIEVE-DE-IMPASTO-DERIVADO-DE-PINCELADA",
+      "name": "Relieve de impasto derivado de pinceladas",
+      "domain_id": "D08",
+      "equations": [
+        "h(x)=Σ_i a_i φ_i(distance_to_stroke_i)",
+        "N'=normalize(N−s∇h)"
+      ],
+      "algorithm_steps": [
+        "Generar segmentos de pincelada.",
+        "Calcular distancia al eje y ancho variable.",
+        "Acumular altura por trazo.",
+        "Calcular gradiente de altura.",
+        "Usar normal perturbada y roughness asociada."
+      ],
+      "pseudocode": "height=0; for stroke in strokes: height+=stroke.height*profile(distanceToStroke(P,stroke)); normal2=normalize(normal-gradient(height));",
+      "source_ids": [
+        "SRC-GAO-2019"
+      ],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "stroke_width": "1–20 px equivalente",
+        "height_amplitude": "0–1 normalizado",
+        "roughness": "0.5–1"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "La normal requiere gradiente en espacio tangente y factor de escala/altura coherente con unidades de posición; no mezclar coordenadas UV y mundo sin conversión."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "La normal requiere gradiente en espacio tangente y factor de escala/altura coherente con unidades de posición; no mezclar coordenadas UV y mundo sin conversión."
+    },
+    {
+      "research_id": "R31-RUIDO-DE-EROSI-N-ORIENTADO-POR-FLUJO-Y-P",
+      "name": "Ruido de erosión orientado por flujo y pendiente",
+      "domain_id": "D09",
+      "equations": [
+        "h'(p)=h(p)+A·N_structured(p; slope,flow)",
+        "d=normalize(∇h)"
+      ],
+      "algorithm_steps": [
+        "Calcular pendiente y dirección de drenaje aproximada.",
+        "Evaluar ruido estructurado orientado.",
+        "Modular amplitud por pendiente/exposición.",
+        "Combinar escalas y conservar continuidad entre tiles."
+      ],
+      "pseudocode": "g=gradient(height); flow=estimateFlow(g); detail=orientedNoise(p,flow,g); h2=height+amplitude*detail",
+      "source_ids": [
+        "SRC-GRENIER-2023"
+      ],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "amplitude": "0–5% altura local inicial",
+        "octaves": "2–6",
+        "orientation_strength": "0–1"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "La dirección de drenaje suele apuntar cuesta abajo; distinguir -∇h de la dirección de gradiente y definir el campo de flujo/ruido N_structured."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "La dirección de drenaje suele apuntar cuesta abajo; distinguir -∇h de la dirección de gradiente y definir el campo de flujo/ruido N_structured."
+    },
+    {
+      "research_id": "R31-SDF-SMOOTH-UNION-Y-MODELADO-IMPL-CITO",
+      "name": "SDF smooth union y modelado implícito",
+      "domain_id": "D13",
+      "equations": [
+        "d_union=min(a,b)",
+        "smin(a,b,k)=min(a,b)−h²k/4; h=max(k−|a−b|,0)/k"
+      ],
+      "algorithm_steps": [
+        "Definir SDF primitivas.",
+        "Transformar coordenadas locales.",
+        "Combinar con unión/intersección/diferencia.",
+        "Evaluar gradiente para normal.",
+        "Raymarch o extraer malla."
+      ],
+      "pseudocode": "d=smin(sdfA(p),sdfB(p),k); n=normalize(gradient(d,p))",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "smoothness_k": "0–1 escala local",
+        "max_steps": "32–128",
+        "epsilon": "1e-3–1e-2 escala escena"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Exigir k>0 o rama k=0; k tiene unidades de distancia. El smooth-min deja de ser distancia exacta en la zona de unión."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Exigir k>0 o rama k=0; k tiene unidades de distancia. El smooth-min deja de ser distancia exacta en la zona de unión."
+    },
+    {
+      "research_id": "R31-CURVAS-DE-C-MARA-CON-MARCO-DE-ORIENTACI-",
+      "name": "Curvas de cámara con marco de orientación estable",
+      "domain_id": "D13",
+      "equations": [
+        "T=C'/|C'|",
+        "B_i=normalize(T_i×N_(i−1)); N_i=B_i×T_i",
+        "q(t)=lookRotation(T,N)"
+      ],
+      "algorithm_steps": [
+        "Definir spline de posición.",
+        "Evaluar posición y tangente.",
+        "Transportar marco local entre muestras.",
+        "Resolver objetivo/look-at con amortiguación.",
+        "Controlar velocidad por curva de arco."
+      ],
+      "pseudocode": "p=C(u); tangent=normalize(C'(u)); frame=parallelTransport(previousFrame,tangent); camera.quaternion=lookRotation(tangent,frame.normal)",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "samples": "64–512 por tramo",
+        "damping": "0.05–0.3 según dt",
+        "fov": "24–70° cine; no universal"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "posible con buffers/pases",
+        "webgpu_wgsl": "posible; compute según algoritmo",
+        "threejs_webglrenderer": "sí, CPU + renderizado",
+        "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Definir tratamiento de tangente nula, antiparalela y reinicio del marco; la fórmula de transporte requiere robustez numérica."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Definir tratamiento de tangente nula, antiparalela y reinicio del marco; la fórmula de transporte requiere robustez numérica."
+    },
+    {
+      "research_id": "R31-CONTORNO-POR-DISCONTINUIDAD-DE-PROFUNDID",
+      "name": "Contorno por discontinuidad de profundidad y normal",
+      "domain_id": "D14",
+      "equations": [
+        "E=|∇z|+λ(1−n(x)·n(x+δ))",
+        "outline=step(τ,E)"
+      ],
+      "algorithm_steps": [
+        "Renderizar depth y normal.",
+        "Linearizar profundidad.",
+        "Comparar vecinos en cuatro u ocho direcciones.",
+        "Aplicar umbral dependiente de profundidad.",
+        "Componer tinta y antialiasing."
+      ],
+      "pseudocode": "edge=max(abs(z-zN),lambda*(1-dot(n,nN))); ink=smoothstep(t0,t1,edge);",
+      "source_ids": [
+        "SRC-KYPRIANIDIS-2009"
+      ],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "depth_threshold": "escala dependiente de cámara",
+        "normal_threshold": "0.05–0.4",
+        "width": "1–3 px"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "λ debe reconciliar unidades entre profundidad y término normal; definir profundidad lineal, vecindad, umbral dependiente de cámara y convención step."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "λ debe reconciliar unidades entre profundidad y término normal; definir profundidad lineal, vecindad, umbral dependiente de cámara y convención step."
+    },
+    {
+      "research_id": "R31-HALFTONE-BEN-DAY-PROCEDURAL",
+      "name": "Halftone / Ben-Day procedural",
+      "domain_id": "D14",
+      "equations": [
+        "m(x,y)=0.5+0.5 sin(πfx)sin(πfy)",
+        "ink=step(m,L(x,y))"
+      ],
+      "algorithm_steps": [
+        "Transformar coordenadas a espacio de pantalla o UV.",
+        "Calcular luminancia.",
+        "Evaluar patrón periódico o matriz Bayer.",
+        "Umbralizar y mezclar con tinta/paleta.",
+        "Aplicar antialiasing según derivadas."
+      ],
+      "pseudocode": "q=screenUV*frequency; pattern=0.5+0.5*sin(PI*q.x)*sin(PI*q.y); ink=step(pattern,luma);",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "frequency": "4–32 celdas por 100 px",
+        "angle": "0–180°",
+        "threshold": "0–1"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Definir frecuencia en píxeles/celdas, rotación de coordenadas, antialiasing y umbral; documentar la convención GLSL step(edge,x)."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Definir frecuencia en píxeles/celdas, rotación de coordenadas, antialiasing y umbral; documentar la convención GLSL step(edge,x)."
+    },
+    {
+      "research_id": "R31-HACHURADO-ORIENTADO-POR-CAMPO-VECTORIAL",
+      "name": "Hachurado orientado por campo vectorial",
+      "domain_id": "D14",
+      "equations": [
+        "h(p)=fract(dot(p,d)/s)",
+        "line=1−smoothstep(w,w+aa,abs(h−0.5))"
+      ],
+      "algorithm_steps": [
+        "Definir dirección tangente.",
+        "Proyectar posición sobre la dirección.",
+        "Repetir fase con módulo.",
+        "Modular densidad por luminancia.",
+        "Combinar varias familias para cross-hatching."
+      ],
+      "pseudocode": "phase=fract(dot(p,dir)/spacing); line=1-smoothstep(width,width+aa,abs(phase-0.5));",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "spacing": "2–12 px",
+        "width": "0.05–0.25 de periodo",
+        "families": "1–3"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Definir espacio de p, normalización de d, unidades de spacing y antialiasing; fract introduce discontinuidad periódica que debe filtrarse."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Definir espacio de p, normalización de d, unidades de spacing y antialiasing; fract introduce discontinuidad periódica que debe filtrarse."
+    },
+    {
+      "research_id": "R31-ADVECCI-N-SEMI-LAGRANGIANA-DE-PIGMENTO",
+      "name": "Advección semi-Lagrangiana de pigmento",
+      "domain_id": "D21",
+      "equations": [
+        "∂c/∂t + u·∇c = D∇²c − k c",
+        "c^(n+1)(x)≈c^n(x−u(x)Δt)"
+      ],
+      "algorithm_steps": [
+        "Definir grid UV y campo de velocidad.",
+        "Retrotrazar cada celda.",
+        "Muestrear pigmento previo bilinealmente.",
+        "Aplicar difusión/decaimiento y condiciones de borde.",
+        "Depositar o secar pigmento."
+      ],
+      "pseudocode": "for x in grid: back=x-dt*velocity(x); cNext[x]=sample(c,back); cNext[x]=diffuseAndDry(cNext[x])",
+      "source_ids": [
+        "SRC-DIVERDI-2013",
+        "SRC-WATERCOLOR-THIN-FILM"
+      ],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "dt": "0.005–0.05 unidades de simulación; validar estabilidad visual",
+        "diffusion": "0–1 según escala",
+        "drying": "0–1 por segundo"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "posible con buffers/pases",
+        "webgpu_wgsl": "posible; compute según algoritmo",
+        "threejs_webglrenderer": "sí, CPU + renderizado",
+        "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "La ecuación de retrotrazado omite en la fórmula discreta difusión y secado; especificar interpolación, condiciones de borde y unidades de u, D y k."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "La ecuación de retrotrazado omite en la fórmula discreta difusión y secado; especificar interpolación, condiciones de borde y unidades de u, D y k."
+    },
+    {
+      "research_id": "R31-CAMPOS-VECTORIALES-PARA-TRAYECTORIAS-Y-P",
+      "name": "Campos vectoriales para trayectorias y partículas",
+      "domain_id": "D27",
+      "equations": [
+        "dx/dt=V(x,t)",
+        "Euler: x_(n+1)=x_n+Δt V(x_n,t_n)",
+        "RK4: x_(n+1)=x_n+Δt(k1+2k2+2k3+k4)/6"
+      ],
+      "algorithm_steps": [
+        "Definir V(x,t) analítica o por suma de campos.",
+        "Elegir integrador y timestep.",
+        "Integrar estado con semilla determinista.",
+        "Aplicar límites/colisiones si existen.",
+        "Mapear estado a geometría/material."
+      ],
+      "pseudocode": "state=initial; for n in steps: state=RK4(V,state,t,dt)",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "dt": "fixed step; convergencia por prueba",
+        "particles": "según presupuesto",
+        "integrator": "Euler/semi-implicit/RK4"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "posible con buffers/pases",
+        "webgpu_wgsl": "posible; compute según algoritmo",
+        "threejs_webglrenderer": "sí, CPU + renderizado",
+        "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "En RK4 definir k1..k4 como derivadas evaluadas en estados intermedios; distinguir unidades si se usan incrementos ya multiplicados por dt."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "En RK4 definir k1..k4 como derivadas evaluadas en estados intermedios; distinguir unidades si se usan incrementos ya multiplicados por dt."
+    },
+    {
+      "research_id": "R31-BOIDS-CON-SEPARACI-N-ALINEACI-N-Y-COHESI",
+      "name": "Boids con separación, alineación y cohesión",
+      "domain_id": "D27",
+      "equations": [
+        "a_i=w_s S_i+w_a(A_i−v_i)+w_c(C_i−p_i)",
+        "p_(i+1)=p_i+v_iΔt"
+      ],
+      "algorithm_steps": [
+        "Encontrar vecinos por radio.",
+        "Calcular separación ponderada inversa a distancia.",
+        "Calcular velocidad y centro medios.",
+        "Combinar fuerzas y limitar aceleración/velocidad.",
+        "Integrar y orientar agente hacia velocidad."
+      ],
+      "pseudocode": "neighbors=spatialQuery(p,r); accel=ws*separation(neighbors)+wa*alignment(neighbors)+wc*cohesion(neighbors); v=limit(v+accel*dt); p+=v*dt",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "neighbor_radius": "1–5 unidades de escala",
+        "weights": "0–3 iniciales",
+        "max_speed": "escala de escena"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "posible con buffers/pases",
+        "webgpu_wgsl": "posible; compute según algoritmo",
+        "threejs_webglrenderer": "sí, CPU + renderizado",
+        "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Definir S_i, A_i, C_i, radio/pesos y unidades; falta ecuación de actualización de velocidad y límites de aceleración/velocidad."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Definir S_i, A_i, C_i, radio/pesos y unidades; falta ecuación de actualización de velocidad y límites de aceleración/velocidad."
+    },
+    {
+      "research_id": "R31-VOXEL-GREEDY-MESHING",
+      "name": "Voxel greedy meshing",
+      "domain_id": "D31",
+      "equations": [
+        "face visible iff occupancy(cell+normal)=0",
+        "merge maximal rectangles of equal face key"
+      ],
+      "algorithm_steps": [
+        "Marcar caras expuestas.",
+        "Crear máscara 2D por plano y orientación.",
+        "Buscar rectángulos máximos de celdas equivalentes.",
+        "Emitir cuatro vértices y dos triángulos por rectángulo.",
+        "Repetir seis orientaciones."
+      ],
+      "pseudocode": "for axis in axes: mask=exposedFaces(axis); while findRectangle(mask): emitQuad(rect); clear(rect)",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "voxel_size": "según escala",
+        "chunk_size": "16³–64³ celdas como punto de partida",
+        "material_keys": "1–16"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí para deformación/visualización; extracción compleja limitada",
+        "webgpu_wgsl": "sí con compute o vertex processing",
+        "threejs_webglrenderer": "BufferGeometry/InstancedMesh",
+        "threejs_webgpurenderer_tsl": "geometría y nodos; compute según pipeline"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "Definir igualdad de face key (material, normal, UV/atributos), winding, vecinos entre chunks y prueba de equivalencia de superficie/área."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "Definir igualdad de face key (material, normal, UV/atributos), winding, vecinos entre chunks y prueba de equivalencia de superficie/área."
+    },
+    {
+      "research_id": "R31-INTEGRACI-N-VOLUM-TRICA-BEER-LAMBERT",
+      "name": "Integración volumétrica Beer–Lambert",
+      "domain_id": "D35",
+      "equations": [
+        "T(s)=exp(−∫_0^s σ_t(x)dx)",
+        "L≈Σ_i T_i σ_s ρ_i p(θ_i)L_i Δs"
+      ],
+      "algorithm_steps": [
+        "Construir densidad procedural.",
+        "Raymarch desde cámara hasta profundidad/limite.",
+        "Evaluar extinción y dispersión por paso.",
+        "Acumular radiancia premultiplicada.",
+        "Componer con escena opaca."
+      ],
+      "pseudocode": "T=1; L=0; for i in steps: rho=density(ray(t)); a=1-exp(-sigmaT*rho*ds); L+=T*a*sourceLight; T*=1-a",
+      "source_ids": [
+        "SRC-THREE-WGPU"
+      ],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "steps": "16–128",
+        "sigma_t": "0–10 unidades inversas",
+        "density": "0–1"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "La suma debe aclarar si σ_sρ/σ_tρ se incluye en sourceLight; definir unidades de σ_t, densidad, paso, fase y composición premultiplicada."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "La suma debe aclarar si σ_sρ/σ_tρ se incluye en sourceLight; definir unidades de σ_t, densidad, paso, fase y composición premultiplicada."
+    },
+    {
+      "research_id": "R31-FRESNEL-SCHLICK-Y-REFLECTANCIA-ANGULAR",
+      "name": "Fresnel Schlick y reflectancia angular",
+      "domain_id": "D39",
+      "equations": [
+        "F(θ)=F0+(1−F0)(1−cosθ)^5"
+      ],
+      "algorithm_steps": [
+        "Normalizar normal y dirección de vista.",
+        "Calcular cosθ.",
+        "Evaluar potencia quinta.",
+        "Mezclar reflectancia con componente base según modelo BRDF."
+      ],
+      "pseudocode": "c=clamp(dot(N,V),0,1); F=F0+(1-F0)*pow(1-c,5)",
+      "source_ids": [
+        "SRC-THREE-WGPU"
+      ],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "F0_dielectric": "≈0.02–0.08",
+        "F0_conductor": "color RGB medido/parametrizado",
+        "cos_theta": "0–1"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí, shader propio",
+        "webgpu_wgsl": "requiere portar shader",
+        "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+        "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "F0 debe estar en espacio lineal; definir conductor RGB/dieléctrico y cara frontal; fórmula no reemplaza el BRDF completo."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "F0 debe estar en espacio lineal; definir conductor RGB/dieléctrico y cara frontal; fórmula no reemplaza el BRDF completo."
+    },
+    {
+      "research_id": "R31-DUAL-CONTOURING",
+      "name": "Dual Contouring",
+      "domain_id": "D40",
+      "equations": [
+        "QEF(x)=Σ_i(n_i·(x−p_i))²",
+        "x*=argmin_x QEF(x)"
+      ],
+      "algorithm_steps": [
+        "Detectar celdas con cambio de signo.",
+        "Interpolar intersecciones de arista.",
+        "Estimar normales del campo.",
+        "Resolver QEF por celda.",
+        "Conectar vértices vecinos según cambios de signo."
+      ],
+      "pseudocode": "for cell in activeCells: H=hermiteIntersections(cell); vertex=solveQEF(H); connectAdjacentCells()",
+      "source_ids": [],
+      "assumptions_explicit": false,
+      "units_explicit": false,
+      "parameters": {
+        "iso_level": "campo",
+        "qef_regularization": "0–1",
+        "cell_resolution": "según detalle"
+      },
+      "compatibility_claims": {
+        "javascript_cpu": "sí",
+        "webgl2_glsl_es_300": "sí para deformación/visualización; extracción compleja limitada",
+        "webgpu_wgsl": "sí con compute o vertex processing",
+        "threejs_webglrenderer": "BufferGeometry/InstancedMesh",
+        "threejs_webgpurenderer_tsl": "geometría y nodos; compute según pipeline"
+      },
+      "declared_evidence_status": "derivado/pendiente de prototipo",
+      "numeric_test": {
+        "status": "NOT_EXECUTED",
+        "required_case": "QEF necesita regularización, solución estable y regla de conectividad/topología; especificar interpolación de intersecciones y tratamiento de celdas degeneradas."
+      },
+      "visual_test": {
+        "status": "NOT_CONFIRMED"
+      },
+      "review_notes": "QEF necesita regularización, solución estable y regla de conectividad/topología; especificar interpolación de intersecciones y tratamiento de celdas degeneradas."
+    }
+  ]
+}
