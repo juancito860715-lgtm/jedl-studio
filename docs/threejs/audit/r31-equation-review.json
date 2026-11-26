@@ -1,0 +1,461 @@
+{
+  "title": "Revisión de ecuaciones y convenciones R31 — capa aditiva",
+  "version": "1.0.0",
+  "date": "2026-11-26",
+  "based_on": {
+    "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d"
+  },
+  "preservation_rule": "No se modifica ni elimina ninguna ecuación, paso o pseudocódigo del manifiesto. Este archivo añade interpretación, convenciones y cuestiones pendientes; las formulaciones propuestas no se incorporan al manifiesto hasta revisión explícita.",
+  "entries": [
+    {
+      "id": "R31-STOP-MOTION-PROCEDURAL-CON-MICROJITTER-D",
+      "original": [
+        "t_q=floor(t f_s)/f_s",
+        "ε_k=A(2h(k,seed)−1)"
+      ],
+      "clarification": [
+        "k=floor(t·f_s), t_q=k/f_s; h(k,seed,channel)∈[0,1) debe ser un hash pseudoaleatorio determinista y sin estado.",
+        "ε_k=A(2h−1) produce jitter uniforme en [−A,A); usar amplitudes distintas y unidades explícitas para posición y ángulo."
+      ],
+      "assumptions": [
+        "La misma semilla, índice y canal producen el mismo offset; no usar Math.random() por frame.",
+        "Definir si el jitter se mantiene constante durante todo el frame o se interpola."
+      ],
+      "units": [
+        "f_s en muestras/s; t en s; A_pos en unidades de escena; A_rot en radianes."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source_note": "Regla procedural/artística; no se encontró una fuente primaria que prescriba exactamente esta combinación de cuantización y hash. No atribuirla a una publicación."
+    },
+    {
+      "id": "R31-FABRIK-PARA-CADENAS-ARTICULADAS",
+      "original": [
+        "|p_(i+1)−p_i|=l_i",
+        "backward/forward positional projection"
+      ],
+      "clarification": [
+        "Cada proyección debe reubicar un extremo sobre una esfera de radio l_i centrada en el extremo fijado.",
+        "Si ||target−root||≥Σl_i, extender la cadena en la dirección root→target; si es alcanzable, alternar backward y forward hasta tolerancia o máximo de iteraciones."
+      ],
+      "assumptions": [
+        "Cadena abierta, longitudes positivas, sin límites articulares en el núcleo mínimo.",
+        "Definir tratamiento de vectores coincidentes y objetivo exactamente en raíz."
+      ],
+      "units": [
+        "p, l y tolerancia en la misma unidad local."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-FABRIK-2011"
+    },
+    {
+      "id": "R31-SKINNING-POR-DUAL-QUATERNIONS",
+      "original": [
+        "q_d = 0.5 t_quat ⊗ q_r",
+        "blend=normalize(Σ_i w_i q_i) con alineación de signo"
+      ],
+      "clarification": [
+        "q=q_r+εq_d, ε²=0; para traslación t representada como quaternion puro, q_d=0.5·(0,t)⊗q_r (mantener el orden de producto declarado).",
+        "Alinear signo de cada par dual respecto a un quaternion de referencia; mezclar pesos y normalizar: q_r'=q_r/||q_r||; q_d'=(q_d−q_r'·dot(q_r',q_d))/||q_r|| antes de la transformación."
+      ],
+      "assumptions": [
+        "Normalización de pesos; convención Hamilton; orden de composición; antipodal sign alignment y transformación de normales deben fijarse."
+      ],
+      "units": [
+        "t en unidades de escena; cuaterniones unitarios adimensionales."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-DQ-2008"
+    },
+    {
+      "id": "R31-CUANTIZACI-N-TEMPORAL-DE-ANIMACI-N",
+      "original": [
+        "t_q=floor(t·f_s)/f_s",
+        "pose(t)=F(t_q)"
+      ],
+      "clarification": [
+        "k=floor(t·f_s); t_q=k/f_s; pose(t)=F(t_q). Para t<0, floor (no truncamiento) conserva la semántica de intervalos."
+      ],
+      "assumptions": [
+        "Separar frecuencia de pose de frecuencia de render; interpolación solo en canales explícitamente permitidos."
+      ],
+      "units": [
+        "f_s en Hz; t en segundos."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source_note": "Convención de muestreo temporal; documentar como regla de implementación, no como ley física."
+    },
+    {
+      "id": "R31-XPBD-RESTRICCIONES-CON-COMPLIANCE",
+      "original": [
+        "Δλ=−(C(x)+α_tilde λ)/(Σ_i w_i|∇_i C|²+α_tilde)",
+        "α_tilde=α/Δt²"
+      ],
+      "clarification": [
+        "La fórmula es la actualización incremental por restricción en un subpaso; Δλ se acumula en λ y Δx_i=w_i∇_iC·Δλ.",
+        "Reiniciar λ al comienzo de cada subpaso salvo que el solver documente otra estrategia; usar la misma convención de signo para C y gradientes."
+      ],
+      "assumptions": [
+        "w_i son masas inversas; α es compliance según unidades de C; gradients y λ deben compartir formulación.",
+        "Definir subpasos, iteraciones, dt fijo y tratamiento de constraints degeneradas."
+      ],
+      "units": [
+        "α_tilde=α/dt²; sus unidades dependen de C y de la escala de masa elegida."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-XPBD-2016"
+    },
+    {
+      "id": "R31-HASH-ESPACIAL-UNIFORME-PARA-VECINOS",
+      "original": [
+        "cell(p)=floor((p−origin)/h)",
+        "key=hash(cell)"
+      ],
+      "clarification": [
+        "La celda es una tupla entera; la clave hash no identifica necesariamente una celda única. Al consultar, conservar/comprobar la tupla de celda para separar colisiones de hash.",
+        "Si h≥radio de consulta, revisar la celda propia y vecinas adyacentes; para otros cocientes calcular alcance ceil(r/h) por eje."
+      ],
+      "assumptions": [
+        "Coordenadas y origen en el mismo espacio; floor también para coordenadas negativas.",
+        "Filtrar siempre candidatos por distancia geométrica exacta."
+      ],
+      "units": [
+        "h y radio en unidades de mundo/local consistentes."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-SPATIAL-HASH-2003"
+    },
+    {
+      "id": "R31-MODELO-DE-DISPERSI-N-MICROFACET-PARA-CAB",
+      "original": [
+        "f_r ∝ D(m)G F / geometryTerm (forma esquemática; consultar artículo para expresión completa)",
+        "GGX D(θ_m;α)"
+      ],
+      "clarification": [
+        "Mantener f_r como esquema conceptual, no como BCSDF implementable. El cabello requiere BCSDF con lóbulos de reflexión/transmisión, geometría cilíndrica, cutícula inclinada y convenciones de dirección.",
+        "No completar geometryTerm ni inventar lobos/normalizaciones sin transcribir el artículo completo."
+      ],
+      "assumptions": [
+        "La expresión actual no define una función normalizada ni un modelo de dispersión completo."
+      ],
+      "units": [
+        "α y tilt angulares/adimensionales según convención del artículo; radio de fibra en unidades de escena."
+      ],
+      "status": "SCHEMATIC_ONLY_SOURCE_REVIEW_REQUIRED",
+      "source": "REF-HAIR-2022"
+    },
+    {
+      "id": "R31-TENSOR-DE-ESTRUCTURA-PARA-ORIENTACI-N-DE",
+      "original": [
+        "J=Gσ * [[Ix²,IxIy],[IxIy,Iy²]]",
+        "θ=0.5 atan2(2Jxy,Jxx−Jyy)",
+        "coherence=(λ1−λ2)/(λ1+λ2+ε)"
+      ],
+      "clarification": [
+        "θ expresa la dirección del autovector de mayor autovalor (dirección del gradiente/normal de borde) bajo la convención indicada; una orientación de pincelada tangente suele ser θ+π/2.",
+        "Ordenar λ1≥λ2≥0; coherence∈[0,1] con ε>0 y tensor simétrico."
+      ],
+      "assumptions": [
+        "Definir ejes de imagen, origen y sentido del ángulo; usar tensor suavizado."
+      ],
+      "units": [
+        "Ix,Iy dependen de escala/normalización de luminancia y píxel; σ en píxeles."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-KYPRIANIDIS-2009"
+    },
+    {
+      "id": "R31-KUWAHARA-ANISOTR-PICO-MULTIESCALA",
+      "original": [
+        "μ_k=mean(C in sector k)",
+        "σ²_k=mean(|C−μ_k|²)",
+        "C_out=Σ_k w_k μ_k / Σ_k w_k; w_k=f(σ²_k)"
+      ],
+      "clarification": [
+        "Definir explícitamente sectores/ventanas, color-space, métrica de varianza y función de peso f; no existe una única f inferible de la ficha.",
+        "La versión anisotrópica usa orientación/anisotropía del tensor para deformar/alinear soporte; la multiescala requiere regla de combinación y pesos entre escalas."
+      ],
+      "assumptions": [
+        "La ficha es una familia de filtro, no una especificación reproducible completa."
+      ],
+      "units": [
+        "Radio en píxeles de la resolución efectiva; varianza en unidades cuadráticas del espacio de color."
+      ],
+      "status": "UNDER_SPECIFIED",
+      "source": "REF-KYPRIANIDIS-2009"
+    },
+    {
+      "id": "R31-RELIEVE-DE-IMPASTO-DERIVADO-DE-PINCELADA",
+      "original": [
+        "h(x)=Σ_i a_i φ_i(distance_to_stroke_i)",
+        "N'=normalize(N−s∇h)"
+      ],
+      "clarification": [
+        "Para altura h en unidades de longitud y coordenadas x en unidades de longitud, ∇h es adimensional; s debe absorber la escala de perturbación/convención de normal mapping.",
+        "Definir perfil φ, ancho, extremos, acumulación, saturación y filtrado; la fórmula de normal perturbada es una aproximación y requiere base tangente/escala."
+      ],
+      "assumptions": [
+        "No equivale por sí sola a un modelo físico de pintura ni a un relieve PBR completo."
+      ],
+      "units": [
+        "a_i y h en unidades de altura; distance y stroke_width en espacio coherente."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-OIL-BRUSH-HEIGHTFIELD"
+    },
+    {
+      "id": "R31-RUIDO-DE-EROSI-N-ORIENTADO-POR-FLUJO-Y-P",
+      "original": [
+        "h'(p)=h(p)+A·N_structured(p; slope,flow)",
+        "d=normalize(∇h)"
+      ],
+      "clarification": [
+        "Separar gradiente de altura, dirección de máxima pendiente y dirección de flujo descendente: d=normalize(∇h) apunta cuesta arriba si h es elevación; el flujo descendente suele usar −∇h proyectado/tangente.",
+        "La publicación consultada propone ruido estructurado Phasor adaptado a pendiente/flujo; no asumir que N_structured es ruido genérico."
+      ],
+      "assumptions": [
+        "Definir cálculo de flow, proyección sobre superficie, cascada de frecuencias y continuidad de tiles."
+      ],
+      "units": [
+        "A en unidades de altura; p y escala/frecuencia en unidades de terreno."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-GRENIER-2023"
+    },
+    {
+      "id": "R31-SDF-SMOOTH-UNION-Y-MODELADO-IMPL-CITO",
+      "original": [
+        "d_union=min(a,b)",
+        "smin(a,b,k)=min(a,b)−h²k/4; h=max(k−|a−b|,0)/k"
+      ],
+      "clarification": [
+        "La expresión polinómica habitual requiere k>0; definir smin=min(a,b) cuando k≤0 (o rechazar k<0 y tratar k=0 como unión dura).",
+        "El suavizado modifica el campo dentro de la banda |a−b|<k; en esa región el resultado no es necesariamente distancia euclídea exacta."
+      ],
+      "assumptions": [
+        "a,b deben usar la misma convención de signo y unidad; verificar límites y gradientes antes de sphere tracing."
+      ],
+      "units": [
+        "k y a,b en unidades de distancia del mismo espacio."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-SDF-SMOOTH-UNION"
+    },
+    {
+      "id": "R31-CURVAS-DE-C-MARA-CON-MARCO-DE-ORIENTACI-",
+      "original": [
+        "T=C'/|C'|",
+        "B_i=normalize(T_i×N_(i−1)); N_i=B_i×T_i",
+        "q(t)=lookRotation(T,N)"
+      ],
+      "clarification": [
+        "El paso por producto cruzado necesita fallback si ||T_i×N_(i−1)||≈0; para tangentes paralelas mantener/reproyectar N previo y para antiparalelas elegir eje estable de giro.",
+        "Reproyectar y normalizar N_i en el plano ortogonal a T_i; definir convención de handedness y up local."
+      ],
+      "assumptions": [
+        "C' no nulo; muestreo suficientemente denso; evitar saltos de signo de quaternion."
+      ],
+      "units": [
+        "C y derivadas según parámetro u; normal/tangente unitarias."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-PARALLEL-TRANSPORT-1995"
+    },
+    {
+      "id": "R31-CONTORNO-POR-DISCONTINUIDAD-DE-PROFUNDID",
+      "original": [
+        "E=|∇z|+λ(1−n(x)·n(x+δ))",
+        "outline=step(τ,E)"
+      ],
+      "clarification": [
+        "No sumar directamente gradiente de profundidad y cambio angular sin normalización: usar diferencias de profundidad linealizadas/normalizadas por distancia y una escala λ con unidades compatibles.",
+        "La comparación de normales requiere normalizar ambas y tratar muestras fuera de pantalla; umbral dependiente de cámara/profundidad."
+      ],
+      "assumptions": [
+        "Definir depth en view-space lineal o eye-space; no mezclar depth buffer no lineal con unidades de mundo."
+      ],
+      "units": [
+        "E y τ adimensionales tras normalización; δ en píxeles."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-DEPTHCUT-2018"
+    },
+    {
+      "id": "R31-HALFTONE-BEN-DAY-PROCEDURAL",
+      "original": [
+        "m(x,y)=0.5+0.5 sin(πfx)sin(πfy)",
+        "ink=step(m,L(x,y))"
+      ],
+      "clarification": [
+        "La fórmula es una pantalla periódica sinusoidal, no reproduce por sí sola todos los patrones Ben-Day/halftone. Definir si f se expresa en ciclos/píxel, celdas/pantalla o coordenadas UV.",
+        "Rotación debe aplicarse a coordenadas antes del patrón; filtrar con derivadas/footprint para evitar aliasing."
+      ],
+      "assumptions": [
+        "L y m en [0,1]; decidir convención de step(edge,x) del shader y orientación del eje Y."
+      ],
+      "units": [
+        "f inverso a unidad de coordenada elegida."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-HALFTONE-1988"
+    },
+    {
+      "id": "R31-HACHURADO-ORIENTADO-POR-CAMPO-VECTORIAL",
+      "original": [
+        "h(p)=fract(dot(p,d)/s)",
+        "line=1−smoothstep(w,w+aa,abs(h−0.5))"
+      ],
+      "clarification": [
+        "d debe normalizarse y s ser periodo en el mismo espacio que p; fract crea discontinuidad de fase que necesita filtrado/antialiasing.",
+        "La dirección de trazos puede provenir de campo tangente de superficie o dirección de imagen; son implementaciones distintas."
+      ],
+      "assumptions": [
+        "Definir coordenadas UV/world/screen, handedness, seam treatment y estabilidad temporal."
+      ],
+      "units": [
+        "s y w en unidades del espacio de p; aa en la misma unidad/derivada."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-PRAUN-2001"
+    },
+    {
+      "id": "R31-ADVECCI-N-SEMI-LAGRANGIANA-DE-PIGMENTO",
+      "original": [
+        "∂c/∂t + u·∇c = D∇²c − k c",
+        "c^(n+1)(x)≈c^n(x−u(x)Δt)"
+      ],
+      "clarification": [
+        "El retrotrazado básico usa x_back=x−Δt·u(x) como aproximación de primer orden; para campos variables, integrar trayectoria backward mejora el muestreo.",
+        "La actualización completa debe separar advección, difusión y secado, y definir condiciones de borde/interpolación; no confundir el algoritmo procedural de pigmento con solver físico de Navier–Stokes."
+      ],
+      "assumptions": [
+        "Velocidad en unidades de espacio/segundo; concentración y difusión definidas por escala."
+      ],
+      "units": [
+        "u: unidades/s; Δt:s; D: unidades²/s; k:s⁻¹."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-DIVERDI-2013"
+    },
+    {
+      "id": "R31-CAMPOS-VECTORIALES-PARA-TRAYECTORIAS-Y-P",
+      "original": [
+        "dx/dt=V(x,t)",
+        "Euler: x_(n+1)=x_n+Δt V(x_n,t_n)",
+        "RK4: x_(n+1)=x_n+Δt(k1+2k2+2k3+k4)/6"
+      ],
+      "clarification": [
+        "k1=V(x_n,t_n); k2=V(x_n+dt·k1/2,t_n+dt/2); k3=V(x_n+dt·k2/2,t_n+dt/2); k4=V(x_n+dt·k3,t_n+dt). Los k son derivadas, no incrementos ya multiplicados por dt.",
+        "Si se define k como incremento, la fórmula final no debe volver a multiplicar por dt; escoger una convención única."
+      ],
+      "assumptions": [
+        "Definir integración de estado vectorial, dt y orden/convergencia."
+      ],
+      "units": [
+        "k tiene unidades de x/tiempo; dt·k tiene unidades de x."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-BUTCHER-RK"
+    },
+    {
+      "id": "R31-BOIDS-CON-SEPARACI-N-ALINEACI-N-Y-COHESI",
+      "original": [
+        "a_i=w_s S_i+w_a(A_i−v_i)+w_c(C_i−p_i)",
+        "p_(i+1)=p_i+v_iΔt"
+      ],
+      "clarification": [
+        "Definir S_i como steering de separación, A_i como velocidad media de vecinos y C_i como posición media; término cohesión debe ser dirección/steering (p.ej. C_i−p_i limitado), no sumar posición sin escala a aceleración.",
+        "Integración consistente: v_{n+1}=limit(v_n+a_n·dt); p_{n+1}=p_n+v_{n+1}·dt o explícitamente Euler semi-implícito."
+      ],
+      "assumptions": [
+        "Definir radios, exclusión de sí mismo, pesos, límite de fuerza y velocidad; las fórmulas son una variante de steering, no única formulación de Reynolds."
+      ],
+      "units": [
+        "a en unidades/s²; v en unidades/s; p en unidades; los pesos deben reconciliar dimensiones."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-BOIDS-1987"
+    },
+    {
+      "id": "R31-VOXEL-GREEDY-MESHING",
+      "original": [
+        "face visible iff occupancy(cell+normal)=0",
+        "merge maximal rectangles of equal face key"
+      ],
+      "clarification": [
+        "La prueba de visibilidad debe considerar fuera de chunk: leer halo/vecino o política de borde explícita; asumir vacío en frontera produce caras internas duplicadas entre chunks.",
+        "La face key debe incluir al menos orientación, material y atributos que impidan fusión (p.ej. AO/normal/UV); definir winding y diagonalización."
+      ],
+      "assumptions": [
+        "Máscara 2D por plano; rectángulo maximal según orden determinista; comparación de mallas contra mesher ingenuo."
+      ],
+      "units": [
+        "Voxel size y coordenadas de chunk en unidades de mundo; índices enteros."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-GREEDY-MESHING-2013"
+    },
+    {
+      "id": "R31-INTEGRACI-N-VOLUM-TRICA-BEER-LAMBERT",
+      "original": [
+        "T(s)=exp(−∫_0^s σ_t(x)dx)",
+        "L≈Σ_i T_i σ_s ρ_i p(θ_i)L_i Δs"
+      ],
+      "clarification": [
+        "Definir μ_t=ρ·σ_t si σ_t es sección/extinción por masa/partícula; si σ_t ya es coeficiente volumétrico, no multiplicar densidad otra vez.",
+        "Composición por paso: α_i=1−exp(−μ_t,i·Δs); L_acc+=T_i·α_i·source_i (con source_i definido como radiancia fuente por evento/extinción); T_{i+1}=T_i(1−α_i). Evitar contar σ_sρ dos veces."
+      ],
+      "assumptions": [
+        "Single scattering simplificado; phase function normalizada; fondo opaco compuesto como L_acc+T_final·L_scene."
+      ],
+      "units": [
+        "μ_t:1/longitud; Δs:longitud; μ_tΔs adimensional; radiancia consistente."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-RTE-BEER-LAMBERT"
+    },
+    {
+      "id": "R31-FRESNEL-SCHLICK-Y-REFLECTANCIA-ANGULAR",
+      "original": [
+        "F(θ)=F0+(1−F0)(1−cosθ)^5"
+      ],
+      "clarification": [
+        "c=max(0,N·V) para superficie de una cara con N,V unitarios; F=F0+(1−F0)(1−c)^5. Para interfaces y backfaces definir el tratamiento de coseno explícitamente.",
+        "F0 es reflectancia a incidencia normal en espacio lineal; para dieléctrico no conductor F0=((η_i−η_t)/(η_i+η_t))²; para conductor se requiere F0 RGB apropiado."
+      ],
+      "assumptions": [
+        "Schlick aproxima Fresnel; no sustituye la BRDF ni garantiza modelo completo de energía al combinarse incorrectamente con diffuse/specular."
+      ],
+      "units": [
+        "F y F0 adimensionales; IOR adimensional."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-SCHLICK-1994"
+    },
+    {
+      "id": "R31-DUAL-CONTOURING",
+      "original": [
+        "QEF(x)=Σ_i(n_i·(x−p_i))²",
+        "x*=argmin_x QEF(x)"
+      ],
+      "clarification": [
+        "Especificar minimización restringida a celda o solución libre seguida de clamp; la regularización debe definirse (centroide/centro de celda y parámetro con unidades compatibles).",
+        "La conectividad/topología se determina por aristas con cambios de signo y política de celdas degeneradas; no queda resuelta por la ecuación QEF."
+      ],
+      "assumptions": [
+        "Normales unitarias consistentes; puntos Hermite interpolados sobre aristas; QEF puede ser mal condicionado."
+      ],
+      "units": [
+        "p,x en unidades de mundo; normales adimensionales; QEF en unidades²."
+      ],
+      "status": "CLARIFICATION_PROPOSED",
+      "source": "REF-DUAL-CONTOURING-2002"
+    }
+  ],
+  "global_findings": [
+    "Las ecuaciones originales se preservan textualmente; esta capa propone aclaraciones, no sustituciones silenciosas.",
+    "Hay fichas que describen familias o esquemas y no algoritmos completos: cabello BCSDF, Kuwahara, impasto y ruido procedural de erosión.",
+    "Unidades y convenciones deben fijarse antes de convertir estas expresiones en tests numéricos.",
+    "Las fuentes primarias respaldan métodos o familias; no todas respaldan cada parámetro artístico o la variante concreta escrita."
+  ]
+}
