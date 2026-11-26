@@ -84,6 +84,51 @@ def dual_quaternion_normalize(qr, qd):
     return r, d
 
 
+def fabrik(points, lengths, target, root, iterations=64, tolerance=1e-9):
+    """Minimal positional FABRIK solver for an unconstrained open chain."""
+    pts = [list(p) for p in points]
+    if len(pts) != len(lengths) + 1:
+        raise ValueError("points must contain one more joint than lengths")
+    if any(length <= 0 for length in lengths):
+        raise ValueError("segment lengths must be positive")
+
+    def distance(a, b):
+        return math.sqrt(sum((x-y)**2 for x, y in zip(a, b)))
+
+    total = sum(lengths)
+    if distance(root, target) >= total:
+        direction_length = distance(root, target)
+        direction = [(target[i]-root[i])/direction_length for i in range(len(root))]
+        pts[0] = list(root)
+        for i, length in enumerate(lengths):
+            pts[i+1] = [pts[i][j] + direction[j]*length for j in range(len(root))]
+        return pts
+
+    base = list(root)
+    for _ in range(iterations):
+        pts[-1] = list(target)
+        for i in range(len(lengths)-1, -1, -1):
+            d = distance(pts[i], pts[i+1])
+            if d == 0:
+                raise ValueError("degenerate backward projection")
+            pts[i] = [
+                pts[i+1][j] + (pts[i][j]-pts[i+1][j]) * lengths[i] / d
+                for j in range(len(root))
+            ]
+        pts[0] = base
+        for i, length in enumerate(lengths):
+            d = distance(pts[i], pts[i+1])
+            if d == 0:
+                raise ValueError("degenerate forward projection")
+            pts[i+1] = [
+                pts[i][j] + (pts[i+1][j]-pts[i][j]) * length / d
+                for j in range(len(root))
+            ]
+        if distance(pts[-1], target) <= tolerance:
+            break
+    return pts
+
+
 class TestR31NumericalKernels(unittest.TestCase):
     def assertVecAlmostEqual(self, actual, expected, places=9):
         self.assertEqual(len(actual), len(expected))
@@ -139,6 +184,17 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertVecAlmostEqual(qr, (1, 0, 0, 0))
         self.assertVecAlmostEqual(qd, (0, 1.5, 0, 0))
         self.assertAlmostEqual(sum(a*b for a,b in zip(qr, qd)), 0.0)
+
+
+    def test_fabrik_reaches_reachable_target_and_preserves_lengths(self):
+        result = fabrik([(0, 0), (1, 0), (2, 0)], [1.0, 1.0], (1, 1), (0, 0))
+        self.assertAlmostEqual(math.dist(result[-1], (1, 1)), 0.0, places=7)
+        self.assertAlmostEqual(math.dist(result[0], result[1]), 1.0, places=9)
+        self.assertAlmostEqual(math.dist(result[1], result[2]), 1.0, places=9)
+
+    def test_fabrik_unreachable_target_extends_chain_to_max_reach(self):
+        result = fabrik([(0, 0), (1, 0), (2, 0)], [1.0, 1.0], (3, 0), (0, 0))
+        self.assertVecAlmostEqual(result[-1], (2.0, 0.0))
 
     def test_dual_quaternion_rejects_zero_real_part(self):
         with self.assertRaises(ValueError):
