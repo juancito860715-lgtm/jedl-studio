@@ -1,6 +1,6 @@
 {
   "title": "Matriz de compatibilidad de ejecución Three.js",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "based_on": {
     "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
     "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
@@ -52,11 +52,12 @@
       "scope": "CI software-rendered WebGL2 smoke/integration validation. This proves shader compilation and deterministic pixel probes in Chromium/SwiftShader, not hardware performance or mobile-device compatibility."
     },
     "webgpu_tsl": {
-      "status": "IN_PROGRESS",
+      "status": "BLOCKED_DIAGNOSTIC_REQUIRED",
       "test_commit": "98560557df3a60dd673d27abb2888ea51a3063cc",
       "ci_run": "45911419907",
       "ci_url": "https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45911419907",
-      "scope": "A separate test requires a native WebGPU backend (fallback to WebGL2 is explicitly rejected), Three.js TSL node compilation, render submission and screenshot pixel readback."
+      "failure": "Chromium headless test timed out waiting for window.webgpuTslResult after 30s; native WebGPU adapter/device initialization vs Three.js init/TSL render was not isolated by the original test.",
+      "scope": "Not a WebGPU pass. Next diagnostic run records navigator.gpu, adapter acquisition, renderer initialization, TSL render and queue completion separately; WebGL2 fallback remains rejected."
     }
   },
   "compatibility_rules": [
