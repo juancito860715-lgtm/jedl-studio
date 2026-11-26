@@ -77,8 +77,8 @@ export function fabrik(points,lengths,target,root,iterations=64,tolerance=1e-9) 
 export function deterministicJitter(frame,seed,channel,amplitude) {
   if(amplitude<0) throw new RangeError("amplitude must be nonnegative");
   let x=(Math.imul(frame|0,0x9E3779B1)+Math.imul(seed|0,0x85EBCA77)+Math.imul(channel|0,0xC2B2AE3D))>>>0;
-  x^=x>>>16; x=Math.imul(x,0x7FEB352D)>>>0; x^=x>>>15;
-  x=Math.imul(x,0x846CA68B)>>>0; x^=x>>>16;
+  x=(x^(x>>>16))>>>0; x=Math.imul(x,0x7FEB352D)>>>0; x=(x^(x>>>15))>>>0;
+  x=Math.imul(x,0x846CA68B)>>>0; x=(x^(x>>>16))>>>0;
   return amplitude*(2*(x/4294967296)-1);
 }
 export function ggxNdf(cosTheta,alpha) {
