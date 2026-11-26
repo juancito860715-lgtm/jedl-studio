@@ -3,13 +3,13 @@ name: Validate Three.js Manifest
 on:
   push:
     paths:
-      - "docs/threejs/**"
+      - "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json"
       - "tools/threejs_manifest_audit.py"
       - ".github/workflows/validate-threejs-manifest.yml"
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   audit:
@@ -27,7 +27,19 @@ jobs:
           python tools/threejs_manifest_audit.py \
             --manifest docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json \
             --report threejs-manifest-audit.json
-      - name: Upload audit report
+      - name: Publish report into repository
+        if: always() && hashFiles('threejs-manifest-audit.json') != ''
+        run: |
+          mkdir -p docs/threejs/audit
+          cp threejs-manifest-audit.json docs/threejs/audit/latest.json
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/threejs/audit/latest.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish Three.js manifest audit report"
+            git push
+          fi
+      - name: Upload audit report artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
