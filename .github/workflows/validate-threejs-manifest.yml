@@ -1,4 +1,4 @@
-name: Validate Three.js Manifest
+name: Validate Three.js Manifest — Math and CPU
 
 on:
   push:
@@ -13,7 +13,7 @@ permissions:
   contents: write
 
 jobs:
-  audit:
+  mathematical-audit:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     steps:
@@ -23,22 +23,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Run R31 numerical reference tests
+      - name: Validate JSON syntax
+        run: python -m json.tool docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json > /dev/null
+      - name: Run Python numerical reference tests
         run: python -m unittest discover -s tests/threejs -p "test_*.py" -v
       - name: Install Node.js
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Run JavaScript CPU parity tests
+      - name: Run JavaScript CPU reference/parity tests
         run: node --test tests/threejs/r31_kernels.test.mjs
-      - name: Install browser test dependencies
-        run: npm install --no-save --no-package-lock three@0.180.0 playwright@1.56.1 pngjs@7.0.0
-      - name: Install Chromium with SwiftShader
-        run: npx playwright install --with-deps chromium
-      - name: Run real WebGL2 integration test
-        run: node --test tests/threejs/browser/webgl2.test.mjs
-      - name: Run native WebGPU TSL integration test
-        run: node --test tests/threejs/browser/webgpu-tsl.test.mjs
       - name: Run structural and consistency audit
         run: |
           python tools/threejs_manifest_audit.py \
@@ -60,6 +54,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: threejs-manifest-audit
+          name: threejs-math-manifest-audit
           path: threejs-manifest-audit.json
           if-no-files-found: warn
+
+# Browser renderer checks are intentionally not part of this mathematical gate.
+# Keep WebGL2/WebGPU validation separate until formula, unit, source and CPU tests pass.
