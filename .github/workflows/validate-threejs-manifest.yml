@@ -5,6 +5,7 @@ on:
     paths:
       - "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json"
       - "tools/threejs_manifest_audit.py"
+      - "tests/threejs/**"
       - ".github/workflows/validate-threejs-manifest.yml"
   workflow_dispatch:
 
@@ -22,6 +23,8 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - name: Run R31 numerical reference tests
+        run: python -m unittest discover -s tests/threejs -p "test_*.py" -v
       - name: Run structural and consistency audit
         run: |
           python tools/threejs_manifest_audit.py \
