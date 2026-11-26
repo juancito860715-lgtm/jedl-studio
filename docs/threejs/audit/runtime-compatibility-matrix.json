@@ -1,0 +1,80 @@
+{
+  "title": "Matriz de compatibilidad de ejecución Three.js",
+  "version": "1.0.0",
+  "based_on": {
+    "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "numerical_reference_ci": "https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45910057844"
+  },
+  "statuses": {
+    "python_reference_kernels": {
+      "status": "PASS",
+      "tests": 13,
+      "scope": "Pruebas numéricas aisladas en Python estándar; no son ejecución JavaScript ni Three.js."
+    },
+    "javascript_cpu": {
+      "status": "NOT_EXECUTED",
+      "reason": "Falta portar los kernels de referencia a módulos JavaScript y ejecutar pruebas con Node/Three.js."
+    },
+    "webgl2": {
+      "status": "NOT_EXECUTED",
+      "reason": "No se ha creado ni ejecutado un contexto WebGL2 real; no hay evidencia de compilación GLSL ES 3.00 ni render de prueba."
+    },
+    "webgpu_tsl": {
+      "status": "NOT_EXECUTED",
+      "reason": "No se ha creado ni ejecutado un dispositivo WebGPU real ni nodos TSL equivalentes; compatibilidad declarada no es evidencia."
+    }
+  },
+  "compatibility_rules": [
+    "JavaScript CPU: validar funciones, tipos, rangos, determinismo, precisión y resultados frente a los casos de referencia.",
+    "WebGL2: validar GLSL ES 3.00, compilación/enlace, formatos de textura, render targets, límites de precisión y resultado visual.",
+    "WebGPU/TSL: validar WebGPU disponible, compilación de nodos TSL/WGSL, bindings, formatos, compute/render pipelines y equivalencia numérica.",
+    "No se considera una técnica compatible con los tres entornos por el mero hecho de tener una fórmula o un shader GLSL.",
+    "ShaderMaterial/RawShaderMaterial y onBeforeCompile no se consideran automáticamente portables a WebGPURenderer; la ruta TSL debe ser explícita."
+  ],
+  "next_execution_batch": [
+    {
+      "stage": "JS CPU",
+      "tests": [
+        "temporal quantization",
+        "FABRIK",
+        "dual-quaternion normalization/blending",
+        "XPBD distance constraint",
+        "spatial hash cell indexing",
+        "structure tensor eigenvector/orientation",
+        "SDF smooth minimum",
+        "RK4 integration",
+        "Beer-Lambert transmittance",
+        "Schlick Fresnel"
+      ],
+      "exit_criteria": "All JavaScript tests match reference values within stated tolerances."
+    },
+    {
+      "stage": "WebGL2",
+      "tests": [
+        "compile representative GLSL ES 3.00 kernels",
+        "SDF smooth-min fragment render",
+        "halftone pattern render",
+        "depth/normal edge pass",
+        "volume transmittance pass"
+      ],
+      "exit_criteria": "No shader compile/link errors; numerical probes and rendered outputs match reference tolerances."
+    },
+    {
+      "stage": "WebGPU/TSL",
+      "tests": [
+        "port SDF smooth minimum to TSL",
+        "port Schlick Fresnel to TSL",
+        "port volume transmittance to TSL",
+        "validate storage/compute only where needed"
+      ],
+      "exit_criteria": "Device and pipeline creation succeed; shader validation and numeric probes pass."
+    }
+  ],
+  "known_limits": [
+    "A successful Python numerical test does not establish JavaScript runtime correctness.",
+    "A successful WebGL2 shader does not establish WebGPU/TSL compatibility.",
+    "A successful WebGPU pipeline does not establish acceptable performance on the user's target device.",
+    "Visual evidence requires a captured browser/render execution; none is currently claimed."
+  ]
+}
