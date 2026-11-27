@@ -49,18 +49,29 @@
         },
         {
           "step": 4,
-          "equation": "d_smooth=min_k(d_1,d_2), k>0",
-          "justification": "La variante smooth-min sustituye la arista dura por una transición redondeada; k controla la anchura de la unión."
+          "equation": "h=max(k−|d1−d2|,0)/k; d_smooth=min(d1,d2)−(k h²)/4,  k>0",
+          "justification": "La diferencia de distancias se normaliza por k para obtener h adimensional; el término de corrección redondea la unión dentro de la banda |d1−d2|<k y desaparece fuera de ella."
+        },
+        {
+          "step": 5,
+          "equation": "S={p:d_smooth(p)=0}",
+          "justification": "La frontera implícita de la unión suavizada es el conjunto de nivel cero del campo resultante."
         }
       ],
       "assumptions": [
         "SDF primitivos en el mismo marco y unidad.",
         "Convención: negativo dentro, cero en la frontera y positivo fuera.",
-        "Smooth-min es aproximación y no unión exacta; k tiene unidad de longitud."
+        "Smooth-min es aproximación y no unión exacta; k tiene unidad de longitud.",
+        "Para la unión suave polinómica, k>0 tiene unidad de longitud y h es adimensional."
       ],
-      "result": "La silueta se extrae como isosuperficie cero del campo combinado.",
+      "result": "La silueta se obtiene como isosuperficie cero de la unión dura min(d_i) o, si se elige suavizado, de la unión polinómica con k>0.",
       "limits": [
-        "Smooth-min modifica la forma y el volumen cerca de las intersecciones."
+        "Smooth-min modifica la forma y el volumen cerca de las intersecciones.",
+        "La fórmula smooth-min cambia la geometría cerca de la intersección; no es una distancia firmada exacta en toda la región suavizada."
+      ],
+      "dimensional_verification": [
+        "Cada SDF d_i y el suavizado k tienen L; el factor h=max(k−|a−b|,0)/k es adimensional.",
+        "d_smooth=min(a,b)−h²k/4 conserva L; la isosuperficie d=0 es geométrica."
       ]
     },
     {
@@ -100,6 +111,10 @@
       "result": "Las regiones se fusionan cuando la suma de influencias supera el umbral.",
       "limits": [
         "El campo diverge en el centro; la resolución de muestreo controla el detalle."
+      ],
+      "dimensional_verification": [
+        "R_i y r_i tienen L; R_i²/r_i² es adimensional; F e iso son adimensionales.",
+        "En r_i=0 la expresión diverge; el límite no es finito y requiere exclusión o regularización explícita."
       ]
     },
     {
@@ -139,6 +154,10 @@
       "result": "Una spline por claves controla el grosor a lo largo del eje anatómico.",
       "limits": [
         "La interpolación cúbica puede exceder los radios de control; usar variante monótona si se exige."
+      ],
+      "dimensional_verification": [
+        "s_i y radios r_i tienen L; u=(s−s_i)/Δs es adimensional.",
+        "m_i=dr/ds es adimensional cuando s es longitud; Δs·m_i y todos los términos Hermite tienen L."
       ]
     },
     {
@@ -178,6 +197,10 @@
       "result": "Cada vértice se deforma mediante una combinación ponderada de transformaciones óseas.",
       "limits": [
         "La mezcla lineal puede colapsar volumen durante torsiones pronunciadas."
+      ],
+      "dimensional_verification": [
+        "M_skin tiene bloque lineal adimensional y traslación L; p en bind space tiene L.",
+        "w_j son adimensionales y suman 1; la combinación ponderada p' conserva L."
       ]
     },
     {
@@ -222,6 +245,10 @@
       "result": "La mezcla dual quaternion interpola rotación y traslación con mejor comportamiento volumétrico que LBS en torsiones.",
       "limits": [
         "No representa escala no uniforme general; normalización y signos deben manejarse explícitamente."
+      ],
+      "dimensional_verification": [
+        "q_r es adimensional; q_d codifica traslación y tiene L bajo convención de dual quaternion.",
+        "La normalización de la parte real es adimensional; la parte dual normalizada conserva L; p' resulta en L."
       ]
     },
     {
@@ -261,6 +288,10 @@
       "result": "La pupila se posiciona mediante proyección geométrica de la dirección objetivo.",
       "limits": [
         "No modela por sí sola párpados, oclusión ni deformación del iris."
+      ],
+      "dimensional_verification": [
+        "target−eye tiene L; normalizar produce dirección adimensional g.",
+        "Proyección g−(g·n)n y u son adimensionales; r_p·u tiene L y se suma a eye con L."
       ]
     },
     {
@@ -305,6 +336,10 @@
       "result": "Dos barridos de proyección preservan longitudes y reducen el error del efector final.",
       "limits": [
         "No impone automáticamente límites articulares, pole vectors ni colisiones."
+      ],
+      "dimensional_verification": [
+        "Todas las posiciones p_i, objetivo y longitudes l_i tienen L.",
+        "normalize(p_i−p_j) es adimensional; multiplicar por l_i produce desplazamiento L; ε también tiene L."
       ]
     },
     {
@@ -349,18 +384,23 @@
       "result": "La variante concreta R31 define el orden de mezcla, alineación de signo y normalización para una implementación reproducible.",
       "limits": [
         "Es una especificación de la variante de skinning dual quaternion, no un método geométrico distinto de D03:14."
+      ],
+      "dimensional_verification": [
+        "La parte real q_r es adimensional y la parte dual q_d tiene L por codificar traslación.",
+        "Los pesos y signos son adimensionales; la normalización conserva L en la parte dual; la transformación final devuelve p' con L."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "8/8 claves no protegidas cubiertas exactamente.",
-      "Cada registro contiene al menos tres pasos matemáticos justificados.",
-      "Supuestos y límites declarados.",
-      "Ninguna clave protegida incluida."
+      "8/8 claves no protegidas cubiertas exactamente",
+      "Cada derivación contiene pasos matemáticos justificados, resultado, supuestos y límites",
+      "Todas las derivaciones incluyen comprobaciones dimensionales específicas",
+      "Smooth-min de SDF usa expresión polinómica explícita con parámetro k de longitud",
+      "Las 11 claves protegidas permanecen excluidas"
     ],
     "limitations": [
-      "La matemática define el modelo; calibración anatómica, parámetros y pruebas de implementación corresponden a fases posteriores."
+      "Los modelos matemáticos están especificados; algoritmos completos, pseudocódigo y pruebas independientes corresponden a los puntos posteriores."
     ]
   },
   "integrity": {
