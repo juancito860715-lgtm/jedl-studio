@@ -45,6 +45,10 @@
       "result": "Cook–Torrance deriva de teoría microfacet combinando NDF, Fresnel y geometría.",
       "limits": [
         "El BRDF local no incluye transporte subsuperficial."
+      ],
+      "dimensional_verification": [
+        "D has sr⁻¹; F and G are dimensionless; cosines dimensionless; f_r has sr⁻¹.",
+        "Roughness and F0 are dimensionless material parameters."
       ]
     },
     {
@@ -81,6 +85,10 @@
       "result": "Beer–Lambert deriva de integrar ecuación diferencial de atenuación.",
       "limits": [
         "Absorción espectral requiere σ por canal/longitud de onda."
+      ],
+      "dimensional_verification": [
+        "σ_a has L⁻¹; d has L; σ_a d is dimensionless; T is dimensionless.",
+        "Absorbed/transmitted color retains signal unit."
       ]
     },
     {
@@ -122,6 +130,10 @@
       "result": "El dipolo aproxima difusión subsuperficial mediante fuentes real y virtual.",
       "limits": [
         "Supone régimen difusivo; no sirve en medios poco dispersivos ni a distancias cortas."
+      ],
+      "dimensional_verification": [
+        "σ_tr has L⁻¹; d_r,d_v,z_r,z_v have L; exponent dimensionless.",
+        "R(r) has L⁻² as a surface diffusion profile; its area integral is dimensionless reflectance."
       ]
     },
     {
@@ -158,6 +170,10 @@
       "result": "Oren–Nayar extiende Lambert con distribución de microfacetas rugosas.",
       "limits": [
         "Modelo empírico; no representa todos los materiales rugosos."
+      ],
+      "dimensional_verification": [
+        "ρ, A and B are dimensionless; all trigonometric factors are dimensionless.",
+        "f_r retains sr⁻¹."
       ]
     },
     {
@@ -194,6 +210,10 @@
       "result": "Sheen aproxima reflejo suave de microfibras textiles.",
       "limits": [
         "La distribución exacta depende de variante; calibración visual requerida."
+      ],
+      "dimensional_verification": [
+        "D_Charlie has sr⁻¹; F_sheen dimensionless; sheen BRDF has sr⁻¹.",
+        "Roughness and sheenColor are dimensionless/color signal."
       ]
     },
     {
@@ -230,6 +250,10 @@
       "result": "GGX anisotrópico sustituye rugosidad escalar por dos ejes tangenciales.",
       "limits": [
         "Convención de α y TBN afecta forma; anisotropía no se captura con roughness escalar."
+      ],
+      "dimensional_verification": [
+        "α_x,α_y and h components are dimensionless; D has sr⁻¹.",
+        "Anisotropic roughness ratios are dimensionless."
       ]
     },
     {
@@ -266,6 +290,10 @@
       "result": "La interferencia de película fina deriva de diferencia de fase entre reflexiones.",
       "limits": [
         "Películas gruesas/absorbentes requieren múltiples reflexiones y espectro."
+      ],
+      "dimensional_verification": [
+        "n and cosθ are dimensionless; d and λ have L; δ is dimensionless angular phase.",
+        "phase_shift is dimensionless."
       ]
     },
     {
@@ -302,6 +330,10 @@
       "result": "Fluorescencia integra absorción incidente y kernel espectral de reemisión.",
       "limits": [
         "El kernel debe respetar desplazamiento Stokes/eficiencia; la forma simplificada no incluye cinética temporal."
+      ],
+      "dimensional_verification": [
+        "λ_i and λ_o have L; E(λ_i) is spectral irradiance per wavelength; K has L⁻¹ for normalized wavelength conversion.",
+        "The integral over dλ_i yields output spectral signal with declared units; quantum yield is dimensionless."
       ]
     },
     {
@@ -338,6 +370,10 @@
       "result": "Material en capas compone reflexión superior y respuesta base transmitida.",
       "limits": [
         "Capas múltiples pueden requerir integración espectral y reflexión interna."
+      ],
+      "dimensional_verification": [
+        "f_base and f_layer have sr⁻¹; T_in and T_out are dimensionless.",
+        "f_total preserves BRDF unit sr⁻¹."
       ]
     },
     {
@@ -354,8 +390,8 @@
         },
         {
           "step": 2,
-          "equation": "∇h=(h_u,h_v)",
-          "justification": "Calcular gradiente."
+          "equation": "N'=normalize(N−s∇_S h)",
+          "justification": "Usar el gradiente superficial de altura respecto a coordenadas físicas para obtener una pendiente adimensional compatible con la normal."
         },
         {
           "step": 3,
@@ -369,11 +405,16 @@
         }
       ],
       "assumptions": [
-        "Altura y coordenadas UV compatibles; base TBN válida."
+        "Altura y coordenadas UV compatibles; base TBN válida.",
+        "h tiene L; ∇_S h es adimensional; s es una ganancia adimensional. Si se deriva en UV, convertir mediante el Jacobiano de superficie."
       ],
       "result": "Bump/normal field perturba normal mediante gradiente de altura.",
       "limits": [
         "No cambia silueta ni paralaje."
+      ],
+      "dimensional_verification": [
+        "h has L; surface gradient ∇_S h is dimensionless; N,T,B are unit vectors.",
+        "N' remains a dimensionless unit normal after normalization."
       ]
     },
     {
@@ -385,8 +426,8 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "C_x=T(P_yz); C_y=T(P_xz); C_z=T(P_xy)",
-          "justification": "Muestrear textura en tres proyecciones ortogonales."
+          "equation": "u_x=f_tex·P_yz; u_y=f_tex·P_xz; u_z=f_tex·P_xy, [f_tex]=L⁻¹",
+          "justification": "Convertir posiciones físicas en coordenadas de textura adimensionales mediante frecuencia espacial."
         },
         {
           "step": 2,
@@ -405,11 +446,16 @@
         }
       ],
       "assumptions": [
-        "Normal unitaria; escala de proyección común; k≥0."
+        "Normal unitaria; escala de proyección común; k≥0.",
+        "f_tex tiene unidad L⁻¹ y P se expresa en el marco/unidad de escena declarados."
       ],
       "result": "Triplanar mezcla tres proyecciones según normal.",
       "limits": [
         "Proyecciones pueden mostrar transiciones visibles o estiramiento."
+      ],
+      "dimensional_verification": [
+        "P has L; texture frequency f_tex has L⁻¹; projected UV coordinates are dimensionless.",
+        "Weights |N_i|^k and normalized weights are dimensionless; texture samples share color space."
       ]
     },
     {
@@ -441,22 +487,29 @@
         }
       ],
       "assumptions": [
-        "PRNG estable; celdas y pesos de mezcla continuos."
+        "PRNG estable; celdas y pesos de mezcla continuos.",
+        "Las coordenadas de textura usan frecuencia espacial L⁻¹; los offsets o_i permanecen en longitud antes de la conversión a UV."
       ],
       "result": "Stochastic tiling rompe repetición mediante transformaciones de celda y mezcla ponderada.",
       "limits": [
         "Mezcla puede producir ghosting/desenfoque; evitar costuras en pesos."
+      ],
+      "dimensional_verification": [
+        "x has L; texture frequency has L⁻¹; transformed UV coordinates are dimensionless.",
+        "R_i is dimensionless rotation; o_i has L; w_i dimensionless and sum to 1; C preserves texture signal."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "12/12 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen reflexión microfacet, absorción, difusión subsuperficial, interferencia, emisión y texturizado."
+      "12/12 técnicas D38 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "BRDF, absorción, SSS, sheen y GGX conservan unidades ópticas",
+      "Thin-film y fluorescencia distinguen longitud de onda, fase y kernel espectral",
+      "Bump, triplanar y stochastic tiling convierten coordenadas/gradientes a magnitudes adimensionales"
     ],
     "limitations": [
-      "Los modelos ópticos son aproximaciones con dominios de validez; parámetros espectrales y energéticos deben validarse en el punto 5."
+      "Las fórmulas ópticas son modelos aproximados; perfiles SSS, espectros de fluorescencia y materiales multicapa requieren calibración y validación visual posterior."
     ]
   },
   "integrity": {
