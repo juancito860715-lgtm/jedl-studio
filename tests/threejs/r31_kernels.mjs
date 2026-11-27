@@ -86,6 +86,29 @@ export function ggxNdf(cosTheta,alpha) {
   const c=Math.min(1,Math.max(0,cosTheta)),a2=alpha*alpha,denom=c*c*(a2-1)+1;
   return a2/(Math.PI*denom*denom);
 }
+export function hairGgxNdf(dotHM,beta) {
+  if(!(beta>0&&beta<=1)||!Number.isFinite(dotHM)) throw new RangeError("beta must be in (0,1] and dot finite");
+  const d=Math.max(-1,Math.min(1,dotHM)),b2=beta*beta;
+  return b2/(Math.PI*(1+(b2-1)*d*d)**2);
+}
+export function hairTiltedHalfDot(thetaH,phiH,phiM,alpha) {
+  return Math.cos(thetaH)*Math.cos(alpha)*Math.cos(phiH-phiM)+Math.sin(thetaH)*Math.sin(alpha);
+}
+export function prioritizedAccelerationAllocation(requests,maxAcceleration) {
+  if(!(maxAcceleration>=0)||!Number.isFinite(maxAcceleration)) throw new RangeError("maxAcceleration must be finite and nonnegative");
+  const out=[0,0,0];let used=0;
+  for(const [acceleration,strength] of requests) {
+    if(acceleration.length!==3||acceleration.some(v=>!Number.isFinite(v))) throw new RangeError("request must be a finite 3-vector");
+    if(!(strength>=0&&strength<=1)||!Number.isFinite(strength)) throw new RangeError("strength must be in [0,1]");
+    const norm=Math.hypot(...acceleration);if(norm===0||strength===0)continue;
+    const scale=Math.min(1,1/norm)*strength,req=acceleration.map(v=>v*scale),reqNorm=Math.hypot(...req);
+    const remaining=maxAcceleration-used;if(remaining<=0)break;
+    const trim=reqNorm>remaining?remaining/reqNorm:1;
+    for(let i=0;i<3;i++)out[i]+=req[i]*trim;
+    used+=Math.min(reqNorm,remaining);if(used>=maxAcceleration)break;
+  }
+  return out;
+}
 export function anisotropicKuwaharaMean(means,stddevNorms,q=8) {
   if(!means.length||means.length!==stddevNorms.length||!(q>0)||stddevNorms.some(v=>v<0)) throw new RangeError("invalid Kuwahara sector data");
   const weights=stddevNorms.map(v=>1/(1+v**q)),total=weights.reduce((a,b)=>a+b,0);
