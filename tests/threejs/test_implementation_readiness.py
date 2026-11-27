@@ -1,5 +1,5 @@
 import unittest
-from implementation_readiness_gate import specification_gaps
+from implementation_readiness_gate import specification_gaps, validate_dimensional_audit
 
 class TestImplementationReadinessGate(unittest.TestCase):
     def test_incomplete_spec_is_never_ready(self):
@@ -26,6 +26,14 @@ class TestImplementationReadinessGate(unittest.TestCase):
           "independent_tests":{"python":["analytic x(2)=6"],"javascript":["same analytic oracle"],"edge_cases":["dt=0"]}
         }
         self.assertEqual(specification_gaps(spec),[])
+
+    def test_dimensional_audit_requires_complete_SI_dimension_vectors(self):
+        payload={"records":[{"research_id":"R31-X","variables":[{"symbol":"x","meaning":"position","unit":"m","domain":"finite","dimension":{"L":1,"M":0,"T":0,"I":0,"Theta":0,"N":0,"J":0}}]}]}
+        result=validate_dimensional_audit(payload,["R31-X"])
+        self.assertEqual(result["status"],"PASS")
+        payload["records"][0]["variables"][0]["dimension"].pop("T")
+        result=validate_dimensional_audit(payload,["R31-X"])
+        self.assertEqual(result["status"],"FAIL")
 
     def test_authored_rule_must_be_explicitly_labelled(self):
         spec={"source_claims":[{"url":"https://example.org","supported_claim":"claim","formula_locator":"none","formula_level_status":"not_verified"}]}
