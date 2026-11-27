@@ -8,7 +8,7 @@ import {
 } from "../../src/threejs/d07-architecture.mjs";
 
 test("shape grammar expands rules with parameters and enforces symbol budget",()=>{
- const out=expandShapeGrammar([{symbol:"B",params:{floors:2}}],{B:t=>[{symbol:"F",params:{floors:t.params.floors}},{symbol:"R"}],F:[{symbol:"W"}]},2);
+ const out=expandShapeGrammar([{symbol:"B",params:{floors:2}}],{B:t=>[{symbol:"F",params:{floors:t.params.floors}},{symbol:"F",params:{floors:t.params.floors}},{symbol:"R"}],F:[{symbol:"W"}]},2);
  assert.deepEqual(out.map(x=>x.symbol),["W","W","R"]);
  assert.throws(()=>expandShapeGrammar([{symbol:"A"}],{A:[{symbol:"A"},{symbol:"A"}]},8,{maxSymbols:20}),RangeError);
 });
