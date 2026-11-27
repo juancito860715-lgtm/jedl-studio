@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D12 Fuego, humo, rayos y efectos de partículas",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -25,23 +25,23 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "n=noise(scale·p,t)",
-          "justification": "Evaluar un campo procedural espacial-temporal."
+          "equation": "q(p,t)=noise(scale·p,f_t t)",
+          "justification": "Convert spatial and temporal coordinates to dimensionless noise arguments using scale [L⁻¹] and frequency f_t [T⁻¹]."
         },
         {
           "step": 2,
           "equation": "e(y)=clamp((y−y_base)/height,0,1)",
-          "justification": "Definir envolvente vertical normalizada."
+          "justification": "Normalize the vertical envelope by a positive height scale; the ratio is dimensionless."
         },
         {
           "step": 3,
-          "equation": "T(p,t)=base+amplitude·e(y)·n",
-          "justification": "Modular el campo por envolvente y amplitud artística."
+          "equation": "T(p,t)=base+amplitude·e(y)·q(p,t)",
+          "justification": "Combine base temperature and bounded normalized variation; base/amplitude are kelvin."
         },
         {
           "step": 4,
           "equation": "color=palette(T)",
-          "justification": "Convertir escalar procedural en color de llama."
+          "justification": "Map the scalar temperature control to an artistic linear-RGB palette; this is not a spectral blackbody solution."
         }
       ],
       "assumptions": [
@@ -49,13 +49,13 @@
         "La escala y las coordenadas usan la misma unidad.",
         "La temperatura aquí es un control artístico, no temperatura física."
       ],
-      "result": "El aspecto de llama se obtiene de ruido animado, envolvente y paleta de color.",
+      "result": "El campo visual de llama combina ruido espacial-temporal adimensional, una envolvente vertical y una temperatura escalar en kelvin que alimenta una paleta artística.",
       "limits": [
         "No representa combustión ni transferencia térmica real."
       ],
       "dimensional_verification": [
-        "p tiene L; scale espacial tiene L⁻¹ y su producto es argumento de ruido adimensional.",
-        "La escala temporal tiene T⁻¹; amplitude hereda la unidad del campo visual de salida."
+        "scale·p y f_t·t son adimensionales; (y−y_base)/height es adimensional.",
+        "base y amplitude tienen K; T conserva K; palette(T) devuelve RGB normalizado adimensional."
       ]
     },
     {
@@ -68,23 +68,23 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "v(p,t)=v_up+v_noise(p,t)",
-          "justification": "Definir campo de desplazamiento artístico."
+          "equation": "d_noise(p,t)=∫₀ᵗu_noise(p(τ),τ)dτ",
+          "justification": "Integrar el campo de velocidad de distorsión para obtener un desplazamiento acumulado."
         },
         {
           "step": 2,
-          "equation": "p'(t)=p_0−v_up t−∫₀ᵗu_noise(p(τ),τ)dτ",
-          "justification": "Obtener la coordenada advectada restando el desplazamiento acumulado por velocidad ascendente y campo de distorsión; para velocidad constante, la integral se reduce a u_noise·t."
+          "equation": "p_back(t)=p_0−v_up t−d_noise(p_0,t)",
+          "justification": "Restar el desplazamiento ascendente y el desplazamiento de turbulencia para obtener la coordenada de muestreo hacia atrás."
         },
         {
           "step": 3,
           "equation": "T_{n+1}(p)=T_n(p_back)",
-          "justification": "Transportar la textura/temperatura procedural a lo largo del campo."
+          "justification": "La actualización semilagrangiana transporta el campo anterior siguiendo la trayectoria inversa."
         },
         {
           "step": 4,
-          "equation": "addNoise/decay",
-          "justification": "Añadir detalle y atenuación visual en cada paso."
+          "equation": "p_back y d_noise se mantienen en el mismo marco de mundo",
+          "justification": "La suma/resta de coordenadas solo es válida si todos los desplazamientos usan el mismo espacio."
         }
       ],
       "assumptions": [
@@ -93,13 +93,13 @@
         "La simulación se mantiene como VFX estilizado.",
         "v_up y u_noise son velocidades con unidad L/T; si el ruido es adimensional, se escala mediante ganancia L/T."
       ],
-      "result": "La advección semilagrangiana actualiza un campo muestreando hacia atrás a lo largo del flujo.",
+      "result": "La advección de llama se deriva integrando un campo de velocidad para formar un desplazamiento y muestreando el campo anterior en la coordenada retrocedida.",
       "limits": [
         "No describe dinámica física de combustión ni parámetros reales de propagación."
       ],
       "dimensional_verification": [
-        "p y desplazamientos tienen L; v_up y u_noise tienen L/T; multiplicados por t (T) producen L.",
-        "El campo de ruido debe ser adimensional antes de convertirse en velocidad mediante una ganancia con L/T."
+        "u_noise y v_up tienen L/T; su integral temporal y v_up·t tienen L.",
+        "p, p_back y d_noise tienen L; T_{n+1} conserva la unidad del campo transportado."
       ]
     },
     {
@@ -156,22 +156,22 @@
         {
           "step": 1,
           "equation": "p_back=p−vΔt",
-          "justification": "Retroceder coordenada con el campo de velocidad visual."
+          "justification": "Retroceder coordenada según la velocidad de advección durante el paso temporal."
         },
         {
           "step": 2,
-          "equation": "n=noise(p_back−v_wind t)",
-          "justification": "Evaluar ruido advectado."
+          "equation": "n=noise(scale·p_back)",
+          "justification": "Evaluar ruido normalizado con coordenada espacial adimensional."
         },
         {
           "step": 3,
           "equation": "e(t)=exp(−t/τ)",
-          "justification": "Aplicar envolvente temporal de desaparición."
+          "justification": "Aplicar envolvente temporal adimensional para representar disipación visual."
         },
         {
           "step": 4,
-          "equation": "ρ(p,t)=clamp(n·e(t),0,ρ_max)",
-          "justification": "Limitar densidad a rango de representación."
+          "equation": "ρ(p,t)=ρ0·clamp(n·e(t),0,1)",
+          "justification": "Escalar el campo normalizado por una densidad base física para obtener densidad de masa."
         }
       ],
       "assumptions": [
@@ -180,18 +180,18 @@
         "La semilla/tiempo se fijan para reproducibilidad.",
         "La coordenada de ruido se normaliza con frecuencia espacial f0 de unidad L⁻¹ antes de evaluar noise."
       ],
-      "result": "El humo procedural es un campo de ruido advectado y atenuado temporalmente.",
+      "result": "El humo procedural se modela como densidad de masa base multiplicada por ruido advectado normalizado y una envolvente temporal.",
       "limits": [
         "No modela composición, temperatura, toxicidad ni dinámica real del humo."
       ],
       "dimensional_verification": [
-        "p y v t tienen L; la frecuencia espacial aplicada al argumento tiene L⁻¹.",
-        "noise y envelope son adimensionales; density normalizada conserva dimensión 1."
+        "p−vΔt tiene L; scale·p_back es adimensional; n y e(t) son adimensionales.",
+        "ρ0 tiene kg/m³; ρ conserva kg/m³ al multiplicarse por factores adimensionales."
       ]
     },
     {
       "record_key": "D12:4",
-      "name": "Explosion envelope — VFX estilizado",
+      "name": "Explosion envelope",
       "starting_principles": [
         "τ,τ_d>0; R_max y width son parámetros de escena.",
         "La ecuación solo define animación visual; no representa presión, energía, temperatura ni propagación física."
@@ -200,41 +200,41 @@
         {
           "step": 1,
           "equation": "u=clamp(t/τ,0,1)",
-          "justification": "Normalizar tiempo del efecto."
+          "justification": "Normalizar tiempo transcurrido desde el inicio del efecto."
         },
         {
           "step": 2,
-          "equation": "R(t)=R_max·smoothstep(0,1,u)",
-          "justification": "Animar el radio visual mediante una curva suave."
+          "equation": "R(t)=R_max[1−exp(−t/τ)]",
+          "justification": "La envolvente exponencial crece desde cero y se aproxima asintóticamente al radio visual máximo."
         },
         {
           "step": 3,
-          "equation": "D(t)=D_0·exp(−t/τ_d)",
-          "justification": "Reducir densidad/opacity del efecto como envolvente artística."
+          "equation": "density(t)=density0·exp(−t/τ2)",
+          "justification": "Atenuar la densidad/opacity del elemento visual mediante una segunda constante temporal."
         },
         {
           "step": 4,
           "equation": "mask(p,t)=ringOrVolume(||p−c||,R(t),width)",
-          "justification": "Construir máscara visual a partir del radio de presentación."
+          "justification": "Construir una máscara gráfica alrededor del radio animado; no representa presión, energía ni dinámica física."
         }
       ],
       "assumptions": [
-        "τ,τ_d>0; R_max y width son parámetros de escena.",
-        "La ecuación solo define animación visual; no representa presión, energía, temperatura ni propagación física.",
-        "La amplitud y el tiempo se eligen por estilo y duración de plano."
+        "Se trata exclusivamente de una animación gráfica estilizada.",
+        "t≥0; R_max≥0; τ,τ2>0; density0 no negativa."
       ],
-      "result": "La expansión visual se anima con una curva temporal y una máscara de volumen/radio, sin modelar dinámica de explosión real.",
+      "result": "El efecto de expansión visual combina un radio temporal acotado y una envolvente de densidad decreciente; es un control de VFX estilizado.",
       "limits": [
         "Se excluyen parámetros y ecuaciones de presión, energía, fragmentación o daño físico."
       ],
       "dimensional_verification": [
-        "Rmax tiene L; t y τ tienen T; t/τ es adimensional; R(t) conserva L.",
-        "density y decaimiento visual son adimensionales; no representan presión, energía ni daño."
+        "R_max y R(t) tienen L; t,τ,τ2 tienen T; los exponentes y t/τ son adimensionales.",
+        "density y density0 comparten unidad declarada; la exponencial es adimensional.",
+        "La máscara visual es adimensional y no modela magnitudes físicas de explosión."
       ]
     },
     {
       "record_key": "D12:5",
-      "name": "Shock front — anillo gráfico no físico",
+      "name": "Shock front",
       "starting_principles": [
         "σ>0 y v_visual es parámetro de animación, no velocidad física de onda.",
         "El campo solo controla una máscara gráfica 2D/3D."
@@ -291,8 +291,8 @@
         },
         {
           "step": 2,
-          "equation": "N(s)=Σ_k a_k noise_k(s)",
-          "justification": "Generar desplazamiento lateral con varios niveles de ruido."
+          "equation": "N(s)=Σ_k A_k·noise_k(s)",
+          "justification": "Sumar desplazamientos laterales con amplitudes A_k en metros y ruido normalizado adimensional."
         },
         {
           "step": 3,
@@ -315,8 +315,8 @@
         "No modela trayectoria eléctrica ni condiciones físicas de descarga."
       ],
       "dimensional_verification": [
-        "linearPath(s) y A_k tienen L; s es adimensional; noise_k(s) adimensional.",
-        "La suma produce trayectoria P(s) con L."
+        "linearPath(s), A_k y P(s) tienen L; noise_k y s son adimensionales.",
+        "La suma produce trayectoria P(s) con L; los extremos se preservan si la envolvente w(s) se anula en ellos."
       ]
     },
     {
@@ -329,23 +329,23 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "s_0∈(0,1)",
-          "justification": "Seleccionar punto de bifurcación sobre el trazado principal."
+          "equation": "s_0∈(0,1); P_b(0)=P_main(s_0)",
+          "justification": "Seleccionar punto de ramificación sobre la trayectoria principal y compartir exactamente el punto de unión."
         },
         {
           "step": 2,
           "equation": "d_b=normalize(d_main+δ)",
-          "justification": "Perturbar dirección principal con vector aleatorio acotado."
+          "justification": "Perturbar la dirección principal con una desviación angular/direccional adimensional acotada."
         },
         {
           "step": 3,
-          "equation": "P_b(u)=P_main(s_0)+u·length_b·d_b+noise(u)",
-          "justification": "Construir segmento ramificado con longitud y jitter artísticos."
+          "equation": "P_b(u)=P_main(s_0)+u·length_b·d_b+noise_b(u)",
+          "justification": "Construir el segmento ramificado con longitud y jitter expresados en unidades de escena."
         },
         {
           "step": 4,
           "equation": "opacity_b=fade(u,t)",
-          "justification": "Atenuar ramificación según parámetro de estilo/tiempo."
+          "justification": "Aplicar una envolvente adimensional de visibilidad al trazado."
         }
       ],
       "assumptions": [
@@ -353,13 +353,13 @@
         "Semilla reproducible.",
         "Se trata de ramas gráficas, no de modelo de descarga."
       ],
-      "result": "La ramificación es una construcción geométrica aleatoria controlada sobre una línea visual.",
+      "result": "La rama visual comparte el punto de unión con el rayo principal y usa dirección normalizada, longitud explícita y jitter acotado.",
       "limits": [
         "No representa física de arcos eléctricos ni riesgo eléctrico."
       ],
       "dimensional_verification": [
-        "branchPoint y P(s0) tienen L; mainDir y randomCone son direcciones adimensionales.",
-        "La normalización de dirección no cambia su dimensión; el ángulo de apertura es radianes."
+        "P_main y P_b tienen L; length_b y noise_b tienen L; u y direcciones son adimensionales.",
+        "La suma de punto inicial, desplazamiento y jitter conserva L; opacity_b es adimensional."
       ]
     },
     {
@@ -377,8 +377,8 @@
         },
         {
           "step": 2,
-          "equation": "P(s,θ)=C(s)+r(s)(N cosθ+B sinθ)",
-          "justification": "Construir sección circular alrededor del eje del haz."
+          "equation": "P(s,θ)=C(s)+r(s)(N(s)cosθ+B(s)sinθ)",
+          "justification": "Construir sección circular alrededor de la línea central C(s), usando una base normal/bitangente ortonormal."
         },
         {
           "step": 3,
@@ -389,6 +389,11 @@
           "step": 4,
           "equation": "normal=normalize(P_s×P_θ)",
           "justification": "Obtener normal para sombreado."
+        },
+        {
+          "step": 5,
+          "equation": "N·B=0; ||N||=||B||=1",
+          "justification": "La base ortonormal garantiza una sección circular de radio r(s) y evita escalas espurias."
         }
       ],
       "assumptions": [
@@ -401,8 +406,8 @@
         "La geometría define forma visual; no modela presión ni flujo de energía real."
       ],
       "dimensional_verification": [
-        "r0 y r1 tienen L; s es adimensional; radius(s) conserva L.",
-        "La sección transversal y el eje del cono deben compartir marco espacial."
+        "r0, r1, r(s), C(s) y P(s,θ) tienen L; s y θ son adimensionales angulares.",
+        "N y B son unitarios; r(s)(Ncosθ+Bsinθ) tiene L y se suma a C(s)."
       ]
     },
     {
@@ -425,13 +430,13 @@
         },
         {
           "step": 3,
-          "equation": "α'=α·u",
-          "justification": "Reducir opacidad cerca de intersección con geometría."
+          "equation": "α′=α_particle·u",
+          "justification": "Multiplicar opacidad original por máscara de separación, ambas adimensionales."
         },
         {
           "step": 4,
-          "equation": "colorOut=α'·colorParticle+(1−α')·colorBackground",
-          "justification": "Componer en espacio lineal con alpha adecuada."
+          "equation": "C_out=α′C_particle+(1−α′)C_background",
+          "justification": "Componer en espacio lineal con colores compatibles y una opacidad adimensional."
         }
       ],
       "assumptions": [
@@ -444,8 +449,8 @@
         "Si depth está no lineal, comparar después de conversión a espacio comparable o usar diferencia normalizada."
       ],
       "dimensional_verification": [
-        "sceneDepth, particleDepth y softRange usan la misma unidad/codificación; su cociente es adimensional.",
-        "alpha y clamp output son adimensionales en [0,1]."
+        "sceneDepth, particleDepth y softRange comparten codificación; su cociente es adimensional.",
+        "α_particle, u y α′ son adimensionales; colores de entrada/salida comparten espacio lineal."
       ]
     },
     {
@@ -459,7 +464,7 @@
         {
           "step": 1,
           "equation": "z_i=−(V·p_i)_z",
-          "justification": "Calcular profundidad de cada objeto en espacio de vista."
+          "justification": "Transformar posición a espacio de vista y extraer profundidad lineal con convención de signo declarada."
         },
         {
           "step": 2,
@@ -468,8 +473,8 @@
         },
         {
           "step": 3,
-          "equation": "C_{k+1}=α_k C_k+(1−α_k)C_{background}",
-          "justification": "Componer cada capa según su orden y convención de alpha."
+          "equation": "C_new=α_i C_i+(1−α_i)C_accumulatedBehind",
+          "justification": "Componer cada capa transparente actual sobre las capas ya acumuladas detrás, recorriendo en orden back-to-front."
         },
         {
           "step": 4,
@@ -487,8 +492,8 @@
         "Para geometría interpenetrada o ciclos de profundidad, usar OIT u otra partición; ordenar solo centros no es exacto."
       ],
       "dimensional_verification": [
-        "cameraDepth y la convención de orden usan la misma proyección/codificación.",
-        "La clave de orden es un valor escalar/índice; el ordenamiento no crea una magnitud física."
+        "p_i y profundidad lineal tienen L; el orden es índice discreto y no tiene unidad física.",
+        "α_i es adimensional; C_i y C_accumulatedBehind comparten RGB lineal y la composición conserva su escala."
       ]
     }
   ],
@@ -498,7 +503,11 @@
       "Cada derivación contiene pasos, resultado, supuestos, límites y verificación dimensional",
       "Fuego/humo/relámpagos y anillos se mantienen como VFX estilizados no físicos",
       "Se corrige la advección de llama para integrar un campo de velocidad con unidad L/T",
-      "No se incluyen modelos físicos de presión, daño, descarga o propagación real"
+      "No se incluyen modelos físicos de presión, daño, descarga o propagación real",
+      "Flame noise fija argumentos temporales adimensionales y temperatura en K",
+      "Smoke density mantiene kg/m³ mediante densidad base",
+      "Lightning path/branching y beam cone explicitan desplazamientos y marcos",
+      "Soft particles y depth sorting tipan opacidad y composición alfa"
     ],
     "limitations": [
       "Este documento deriva únicamente controles visuales. No describe fenómenos peligrosos reales ni constituye una simulación física de explosiones, descargas o daño."
