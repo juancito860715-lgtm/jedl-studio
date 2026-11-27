@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D30 Señales, audio espacial y acústica",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -311,11 +311,26 @@
             "J": 0
           },
           "domain": ">0"
+        },
+        {
+          "symbol": "K_S",
+          "meaning": "Constante de Sabine bajo unidades SI",
+          "unit": "s/m",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≈0.161 s/m para condiciones de referencia"
         }
       ],
       "constraints": [
-        "La constante 0.161 corresponde a unidades SI y aproximación estadística de campo difuso; A es área de absorción equivalente.",
-        "No aplicar sin cautela en recintos pequeños, no difusos o con absorción muy irregular."
+        "RT60=K_S·V/A; V/A tiene m y K_S aporta s/m, resultado segundos.",
+        "El valor numérico 0.161 incorpora unidades y condiciones acústicas; no tratarlo como constante adimensional ni reutilizarlo con otras unidades."
       ],
       "valid_domain": [
         "V>0; A>0."
@@ -324,8 +339,8 @@
         "A→0 implica RT60→∞; V→0 sale del dominio."
       ],
       "dimensional_checks": [
-        "V/A tiene m; el coeficiente empírico 0.161 incorpora conversión para dar segundos bajo convención SI.",
-        "RT60 tiene T."
+        "V/A tiene L; K_S tiene T/L; producto tiene T.",
+        "RT60 se expresa en segundos; la aproximación Sabine exige campo suficientemente difuso."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -571,11 +586,26 @@
             "J": 0
           },
           "domain": ">0"
+        },
+        {
+          "symbol": "f_c",
+          "meaning": "Frecuencia de corte",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<f_c<f_s/2"
         }
       ],
       "constraints": [
-        "α depende de frecuencia de corte y Δt; debe recalcularse si cambia sample rate.",
-        "Entrada/salida comparten unidad y formato; el estado previo y[n−1] se inicializa."
+        "α es adimensional; una parametrización típica α=1−exp(−2πf_c/f_s) usa cociente adimensional.",
+        "Entrada/salida comparten unidad y formato; estado previo y[n−1] se inicializa."
       ],
       "valid_domain": [
         "0≤α≤1; f_s>0; muestras finitas."
@@ -585,7 +615,7 @@
       ],
       "dimensional_checks": [
         "α es adimensional; la combinación lineal conserva unidad de señal.",
-        "f_s tiene T⁻¹; frecuencia de corte debe estar bajo Nyquist."
+        "f_c y f_s tienen T⁻¹; f_c/f_s es adimensional y f_c debe quedar bajo Nyquist."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -673,11 +703,11 @@
   "validation": {
     "structural_checks": [
       "10/10 técnicas incluidas; ninguna protegida",
-      "Variables, dimensiones, unidades, restricciones, dominio, límites y verificaciones específicas por técnica",
-      "Separadas presión, potencia, intensidad, señal digital, frecuencia y tiempo"
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Explicita la unidad s/m de la constante de Sabine y añade frecuencia de corte al filtro paso bajo"
     ],
     "limitations": [
-      "Auditoría dimensional; no valida mezcla perceptual, respuesta acústica de una sala concreta ni calibración de altavoces/auriculares."
+      "La auditoría no sustituye la medición de respuesta de sala ni la calibración acústica de HRTF y filtros."
     ]
   },
   "integrity": {
