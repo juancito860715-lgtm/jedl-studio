@@ -353,18 +353,18 @@
         },
         {
           "symbol": "capacity",
-          "meaning": "capacidad transporte",
-          "unit": "m (espesor equivalente por área)",
+          "meaning": "capacidad de transporte de sedimento por unidad de ancho y tiempo",
+          "unit": "m²/s",
           "dimension": {
-            "L": 1,
+            "L": 2,
             "M": 0,
-            "T": 0,
+            "T": -1,
             "I": 0,
             "Theta": 0,
             "N": 0,
             "J": 0
           },
-          "domain": "no negativo; interpretar como profundidad equivalente, no flujo"
+          "domain": "≥0; caudal de sedimento por unidad de ancho"
         },
         {
           "symbol": "Δt",
@@ -380,23 +380,42 @@
             "J": 0
           },
           "domain": ">0"
+        },
+        {
+          "symbol": "q_w,q_s",
+          "meaning": "caudal de agua y flujo de sedimento por unidad de ancho",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; flujo orientado entre celdas"
         }
       ],
       "constraints": [
-        "Definir si agua/sedimento son espesores o masas por área; la ecuación simplificada debe mantener unidad consistente.",
-        "Conservación de masa/sedimento exige flujo entre celdas y balance explícito."
+        "water es profundidad (m), sediment es espesor equivalente de sedimento (m), slope es adimensional y Δt está en segundos.",
+        "q_w y q_s son caudales/transportes por unidad de ancho (m²/s); capacity=K_c·|q_w|·slope solo es homogénea si K_c es adimensional bajo esta parametrización.",
+        "El balance local de sedimento usa ∂sediment/∂t=−∇·q_s+depositionRate; ambos términos tienen m/s. La variación por paso es Δsediment=Δt(−∇·q_s+depositionRate).",
+        "La conservación exige que el flujo que sale de una celda entre en la vecina o se registre como salida por frontera; no basta con actualizar cada celda independientemente."
       ],
       "valid_domain": [
-        "Alturas finitas, agua/sedimento no negativos, paso positivo."
+        "Alturas, agua y sedimento finitos; agua/sedimento no negativos; paso temporal positivo.",
+        "q_w y q_s finitos en m²/s; pendiente adimensional; celdas con dimensiones y áreas declaradas."
       ],
       "boundary_conditions": [
-        "Fronteras cerradas conservan material; fronteras abiertas registran flujo saliente.",
-        "Evitar espesor negativo tras actualización mediante clamp conservativo."
+        "Fronteras cerradas tienen flujo normal nulo; fronteras abiertas registran explícitamente flujo saliente/entrante.",
+        "El balance limita erosión para no producir espesor negativo; la masa/volumen perdido se deposita o sale por frontera según el flujo.",
+        "Δt=0 no cambia el estado."
       ],
       "dimensional_checks": [
-        "h, water depth, sediment depth and capacity-as-equivalent-depth have L; slope is dimensionless; Δt has T.",
-        "A water/sediment flux per unit width would have different units (L²/T); it must not be mixed with depth variables without area/time conversion.",
-        "Conservation is evaluated as depth×cell area (L³ equivalent volume) or mass per cell, with explicit boundary flux."
+        "q_w y q_s tienen L²/T; su divergencia espacial tiene L/T, igual que la tasa de cambio de espesor.",
+        "Δt·∇·q_s tiene L; se suma/resta a sediment, que tiene L.",
+        "K_c y slope son adimensionales; capacity hereda L²/T de q_w."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -878,11 +897,12 @@
   "validation": {
     "structural_checks": [
       "8/12 técnicas no protegidas incluidas",
-      "Todos los registros tienen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
-      "D06:11 cerrada dimensionalmente usando ecuaciones publicadas del BCSDF; no se sustituyó por una BRDF plana"
+      "Todos los registros tienen variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
+      "D06:5 corregida: capacidad de transporte y flujos de sedimento tipados como m²/s; balance local conserva espesor/volumen",
+      "Cuatro registros protegidos excluidos"
     ],
     "limitations": [
-      "El punto 1 dimensional queda resuelto para D06:11; fidelidad numérica, muestreo y adaptación de shader corresponden a los puntos posteriores."
+      "La formulación hidráulica es una aproximación discreta; coeficientes de transporte y deposición requieren calibración, pero sus unidades y balance local quedan definidos."
     ]
   },
   "integrity": {
