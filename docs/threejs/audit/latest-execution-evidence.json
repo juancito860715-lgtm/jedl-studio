@@ -1,0 +1,64 @@
+{
+  "title": "R31 and historical Three.js audit execution evidence",
+  "version": "1.0.0",
+  "execution_date": "2026-11-27",
+  "source_commit": "f10b922b0d11abc630a81068cf04defde67118a7",
+  "workflow": {
+    "name": "Validate Three.js Manifest — Math and CPU",
+    "run_id": 45922490166,
+    "url": "https://github.com/juancito860715-lgtm/jedl-studio/actions/runs/45922490166",
+    "conclusion": "success",
+    "steps": {
+      "json_syntax": "PASS",
+      "python_reference_and_audit_tests": {
+        "status": "PASS",
+        "tests_run": 79
+      },
+      "javascript_cpu_reference_and_parity": "PASS",
+      "threejs_reproducible_scene_geometry_tests": "PASS",
+      "structural_manifest_audit": "PASS",
+      "fail_closed_readiness_gate": "PASS",
+      "report_artifact_upload": "PASS"
+    }
+  },
+  "r31": {
+    "specification_records": 23,
+    "oracle_coverage_map_records": 23,
+    "four_core_scenes": [
+      "stop-motion procedural microjitter",
+      "FABRIK articulated chain",
+      "dual-quaternion skinning transform",
+      "temporal quantization"
+    ],
+    "additional_scenes": [
+      "impasto brush relief",
+      "flow-oriented erosion prototype",
+      "RK4 vector-field trajectory",
+      "voxel greedy meshing"
+    ],
+    "mathematical_and_cpu_ci": "PASS",
+    "browser_visual_rendering": "NOT_YET_VALIDATED",
+    "remaining_readiness": "All 23 R31 specifications remain marked INCOMPLETE until their individual documented derivation, source-level review, full boundary cases, renderer binding and visual/runtime evidence are closed."
+  },
+  "historical_records": {
+    "reviewed": 472,
+    "enriched_with_original_equation_use_and_threejs_mapping": 472,
+    "unmatched_manifest_records": 0,
+    "domains_covered": 40,
+    "document": "docs/threejs/audit/historical-472-record-review.json",
+    "interpretation": "This is a complete inventory and documentation pass against the preserved manifest/register. It is not a claim that all 472 techniques have been independently researched, implemented or certified."
+  },
+  "manifest_readiness": {
+    "total_technique_records": 541,
+    "preserved_crimson_loong": 46,
+    "incomplete_records": 495,
+    "implementation_ready": 0,
+    "gate_meaning": "PASS means the audit ran successfully and no incomplete item was falsely promoted to IMPLEMENTATION_READY. It does not mean the 495 incomplete records are certified."
+  },
+  "certification": "NOT_ISSUED",
+  "blockers": [
+    "No browser-rendered pixel evidence has yet been collected for all 23 R31 algorithms.",
+    "R31 formula/source and technique-specific completion gaps remain in the readiness register.",
+    "The 472 historical records have been enriched and catalogued, but require staged primary-source and implementation audits before certification."
+  ]
+}
