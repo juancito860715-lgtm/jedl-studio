@@ -117,7 +117,7 @@ def audit(manifest_path, r31_path, preservation_path, dimensions_path, report_pa
             "false_ready_records":false_ready,"dimensional_audit":dimension_audit,"records":records,
             "status":"PASS" if len(records)==541 and not false_ready and dimension_audit["status"]=="PASS" else "FAIL",
             "meaning":"PASS means no incomplete technique was falsely promoted to ready; it does not mean all techniques are ready."}
-    Path(register_path).write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
+    Path(report_path).write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     return report
 
 def main():
