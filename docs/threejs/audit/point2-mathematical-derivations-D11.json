@@ -50,8 +50,8 @@
         },
         {
           "step": 5,
-          "equation": "v_phase=ω/k",
-          "justification": "Derivar velocidad de fase de la condición kr−ωt=constante."
+          "equation": "k r−ωt=const ⇒ k dr/dt−ω=0 ⇒ v_phase=ω/k",
+          "justification": "Derivar implícitamente la fase constante respecto al tiempo para obtener velocidad radial de fase."
         }
       ],
       "assumptions": [
@@ -62,6 +62,11 @@
       "result": "Una onda radial combina fase propagante con amplitud atenuada por distancia.",
       "limits": [
         "No modela conservación exacta de energía en una superficie 3D ni dispersión no lineal."
+      ],
+      "dimensional_verification": [
+        "r and σ have L; α has L⁻¹; αr is dimensionless.",
+        "k has L⁻¹; ω has T⁻¹; kr−ωt is dimensionless; ω/k has L/T.",
+        "A and h are both height quantities with L."
       ]
     },
     {
@@ -100,6 +105,10 @@
       "result": "El ripple es un paquete de onda localizado cuya envolvente se desplaza hacia fuera.",
       "limits": [
         "La forma gaussiana es un efecto procedural, no solución completa de una ecuación de ondas con dispersión."
+      ],
+      "dimensional_verification": [
+        "ξ=r−vt has L; σ has L; ξ/σ is dimensionless.",
+        "k has L⁻¹; kξ is dimensionless; A and h have L; v has L/T."
       ]
     },
     {
@@ -117,8 +126,8 @@
         },
         {
           "step": 2,
-          "equation": "UV_{n+1}=UV_n+F(UV_n,t_n)Δt",
-          "justification": "Aplicar Euler explícito para advectar coordenadas."
+          "equation": "UV_{n+1}=UV_n+F(UV_n,t_n)Δt,  [F]=s⁻¹",
+          "justification": "El producto de velocidad de coordenadas por paso temporal es un desplazamiento UV adimensional que puede sumarse a UV_n."
         },
         {
           "step": 3,
@@ -134,11 +143,16 @@
       "assumptions": [
         "F comparte unidad UV por segundo; UV normalizadas adimensionales.",
         "Δt en segundos; integración estable.",
-        "Wrap/clamp de coordenadas declarado."
+        "Wrap/clamp de coordenadas declarado.",
+        "F(UV,t) tiene unidad UV/s; como UV son adimensionales, F tiene s⁻¹. Si el mapa entrega valores normalizados, aplicar una velocidad de desplazamiento con unidad s⁻¹."
       ],
       "result": "La distorsión de textura se deriva de la ecuación de advección de coordenadas en un campo de flujo.",
       "limits": [
         "Euler explícito puede introducir deriva; integrar con RK o conservar estado UV si el campo cambia rápidamente."
+      ],
+      "dimensional_verification": [
+        "UV is dimensionless; F=dUV/dt has T⁻¹; FΔt is dimensionless.",
+        "Δt has T; flow-map wrapping/clamping does not change units."
       ]
     },
     {
@@ -178,6 +192,10 @@
       "result": "La reflectancia del agua aumenta al mirar rasante por las condiciones de Fresnel; Schlick ofrece aproximación de bajo coste.",
       "limits": [
         "La mezcla simplificada omite absorción, dispersión y múltiples interfaces."
+      ],
+      "dimensional_verification": [
+        "n1,n2, F0 and F are dimensionless; N,V unit vectors.",
+        "C_reflection and C_transmission must share color space/scale; Fresnel weights are dimensionless."
       ]
     },
     {
@@ -217,6 +235,10 @@
       "result": "El color por profundidad se deriva de atenuación exponencial y mezcla con el color del medio.",
       "limits": [
         "El modelo no resuelve absorción espectral ni dispersión volumétrica por longitud de onda."
+      ],
+      "dimensional_verification": [
+        "σ has L⁻¹ and depth d has L; σd is dimensionless.",
+        "T is dimensionless; both color terms share unit/linear space, so C(d) preserves that scale."
       ]
     },
     {
@@ -256,17 +278,23 @@
       "result": "La transición agua-tierra se obtiene normalizando profundidad y aplicando una curva C¹.",
       "limits": [
         "Una máscara de orilla no modela dinámica de oleaje ni transporte de sedimento."
+      ],
+      "dimensional_verification": [
+        "waterLevel, bedHeight, d and width have L; d/width is dimensionless.",
+        "u and smoothstep mask are dimensionless; derivative endpoints of s(u) are zero."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "6/6 técnicas no protegidas cubiertas.",
-      "Cada derivación contiene pasos justificados, supuestos y límites.",
-      "Las siete claves protegidas se excluyen sin modificación."
+      "6/6 técnicas no protegidas cubiertas; siete técnicas protegidas excluidas",
+      "Cada derivación tiene pasos matemáticos justificados, supuestos, límites y verificación dimensional",
+      "Onda radial y ripple tipan fase, atenuación, amplitud y velocidad",
+      "Flow map usa campo de velocidad UV por segundo, no desplazamiento adimensional multiplicado por tiempo sin escala",
+      "Fresnel, Beer–Lambert y shoreline conservan magnitudes adimensionales y longitudes compatibles"
     ],
     "limitations": [
-      "Las fórmulas describen aproximaciones visuales de agua; la simulación hidrodinámica completa no está implícita."
+      "Los modelos son aproximaciones visuales; no constituyen una simulación hidrodinámica completa ni validación experimental."
     ]
   },
   "integrity": {
