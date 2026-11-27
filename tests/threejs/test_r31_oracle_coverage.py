@@ -12,6 +12,8 @@ JS_FILES=[ROOT/"tests/threejs/r31_kernels.test.mjs",ROOT/"tests/threejs/r31_comp
 class TestR31OracleCoverage(unittest.TestCase):
     def test_all_23_records_have_existing_python_and_javascript_oracles(self):
         payload=json.loads(MAP.read_text(encoding="utf-8"))
+        specs=json.loads((ROOT/"docs/threejs/audit/r31-technical-specifications.json").read_text(encoding="utf-8"))
+        self.assertEqual({r["research_id"] for r in payload["records"]},{r["research_id"] for r in specs["records"]})
         self.assertEqual(payload["count"],23)
         self.assertEqual(len(payload["records"]),23)
         ids=[r["research_id"] for r in payload["records"]]
