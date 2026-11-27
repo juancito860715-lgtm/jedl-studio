@@ -160,33 +160,34 @@
         },
         {
           "step": 2,
-          "equation": "n=noise(scale·p_back)",
-          "justification": "Evaluar ruido normalizado con coordenada espacial adimensional."
+          "equation": "ρ(x,t)=ρ_0 N(f_0x−v t)E(t), [ρ_0]=kg/m³",
+          "justification": "Escalar el campo procedural normalizado por una densidad de referencia; el ruido, la frecuencia espacial aplicada a x y la envolvente son adimensionales."
         },
         {
           "step": 3,
-          "equation": "e(t)=exp(−t/τ)",
-          "justification": "Aplicar envolvente temporal adimensional para representar disipación visual."
+          "equation": "σ_t(x,t)=κ_ext ρ(x,t), [κ_ext]=m²/kg",
+          "justification": "Convertir densidad másica en coeficiente de extinción lineal, con unidad m⁻¹."
         },
         {
           "step": 4,
-          "equation": "ρ(p,t)=ρ0·clamp(n·e(t),0,1)",
-          "justification": "Escalar el campo normalizado por una densidad base física para obtener densidad de masa."
+          "equation": "T=exp(−∫σ_t ds)",
+          "justification": "Integrar la extinción a lo largo del rayo; σ_t ds es adimensional y produce transmitancia."
         }
       ],
       "assumptions": [
         "τ>0; velocidad y tiempo usan unidades compatibles.",
         "ρ es densidad normalizada de shader.",
         "La semilla/tiempo se fijan para reproducibilidad.",
-        "La coordenada de ruido se normaliza con frecuencia espacial f0 de unidad L⁻¹ antes de evaluar noise."
+        "La coordenada de ruido se normaliza con frecuencia espacial f0 de unidad L⁻¹ antes de evaluar noise.",
+        "ρ_0 y ρ tienen kg/m³; κ_ext tiene m²/kg; σ_t tiene m⁻¹. El campo es una densidad artística calibrada, no un modelo de combustión."
       ],
       "result": "El humo procedural se modela como densidad de masa base multiplicada por ruido advectado normalizado y una envolvente temporal.",
       "limits": [
         "No modela composición, temperatura, toxicidad ni dinámica real del humo."
       ],
       "dimensional_verification": [
-        "p−vΔt tiene L; scale·p_back es adimensional; n y e(t) son adimensionales.",
-        "ρ0 tiene kg/m³; ρ conserva kg/m³ al multiplicarse por factores adimensionales."
+        "ρ_0 and ρ have kg/m³; N and E are dimensionless; spatial frequency f_0 has m⁻¹.",
+        "κ_ext has m²/kg; κ_ext·ρ has m⁻¹; multiplying by ray length ds (m) gives dimensionless optical depth."
       ]
     },
     {
@@ -507,7 +508,8 @@
       "Flame noise fija argumentos temporales adimensionales y temperatura en K",
       "Smoke density mantiene kg/m³ mediante densidad base",
       "Lightning path/branching y beam cone explicitan desplazamientos y marcos",
-      "Soft particles y depth sorting tipan opacidad y composición alfa"
+      "Soft particles y depth sorting tipan opacidad y composición alfa",
+      "D12:3 armonizado con punto 1: densidad de humo kg/m³, coeficiente de extinción másica m²/kg y extinción lineal m⁻¹."
     ],
     "limitations": [
       "Este documento deriva únicamente controles visuales. No describe fenómenos peligrosos reales ni constituye una simulación física de explosiones, descargas o daño."
