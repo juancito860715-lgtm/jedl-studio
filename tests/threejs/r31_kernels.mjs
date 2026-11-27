@@ -315,3 +315,27 @@ export function hatchCoverage(phase,halfWidth,aaWidth) {
   const x=Math.max(0,Math.min(1,(distance-halfWidth)/aaWidth));
   return 1-x*x*(3-2*x);
 }
+
+
+export function sampleBilinear2d(field,x,y) {
+  if(!Array.isArray(field)||!field.length||!field[0].length||field.some(row=>row.length!==field[0].length))
+    throw new RangeError("field must be a nonempty rectangular grid");
+  if(!Number.isFinite(x)||!Number.isFinite(y))throw new RangeError("sample coordinates must be finite");
+  const h=field.length,w=field[0].length;
+  x=Math.max(0,Math.min(w-1,x));y=Math.max(0,Math.min(h-1,y));
+  const x0=Math.floor(x),y0=Math.floor(y),x1=Math.min(x0+1,w-1),y1=Math.min(y0+1,h-1);
+  const tx=x-x0,ty=y-y0;
+  const a=field[y0][x0]*(1-tx)+field[y0][x1]*tx;
+  const b=field[y1][x0]*(1-tx)+field[y1][x1]*tx;
+  return a*(1-ty)+b*ty;
+}
+export function semiLagrangianAdvect2d(field,velocityX,velocityY,dt) {
+  if(!Number.isFinite(dt)||dt<0)throw new RangeError("dt must be finite and nonnegative");
+  if(!Array.isArray(field)||!field.length||!field[0].length)throw new RangeError("field must be nonempty");
+  const h=field.length,w=field[0].length;
+  for(const grid of [field,velocityX,velocityY]){
+    if(!Array.isArray(grid)||grid.length!==h||grid.some(row=>!Array.isArray(row)||row.length!==w||row.some(v=>!Number.isFinite(v))))
+      throw new RangeError("field and velocity grids must have identical finite rectangular shapes");
+  }
+  return field.map((row,y)=>row.map((_,x)=>sampleBilinear2d(field,x-dt*velocityX[y][x],y-dt*velocityY[y][x])));
+}
