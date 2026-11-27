@@ -1,0 +1,735 @@
+{
+  "title": "Auditoría dimensional punto 1 — D32 Volúmenes, datos 3D y visualización científica",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D32",
+    "domain": "Volúmenes, datos 3D y visualización científica",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D32 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "volume": "Posiciones en m; voxelSize en m; índices discretos.",
+    "fields": "Cada campo escalar/vectorial conserva unidad y calibración declarada.",
+    "rendering": "Coeficiente de extinción m⁻¹; recorrido m; transmitancia adimensional."
+  },
+  "records": [
+    {
+      "record_key": "D32:0",
+      "name": "Voxel grid",
+      "variables": [
+        {
+          "symbol": "p,origin",
+          "meaning": "posición y origen",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "voxelSize",
+          "meaning": "tamaño voxel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "index",
+          "meaning": "índice de celda",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "en grid"
+        }
+      ],
+      "constraints": [
+        "p y origin comparten marco y unidad; división por voxelSize produce coordenada de celda.",
+        "floor se aplica a coordenadas adimensionales y el índice se limita a bounds."
+      ],
+      "valid_domain": [
+        "voxelSize>0; grid finito; posiciones finitas."
+      ],
+      "boundary_conditions": [
+        "En origen, index=0; fuera de bounds se marca exterior."
+      ],
+      "dimensional_checks": [
+        "(p−origin)/voxelSize es adimensional; index es discreto.",
+        "Posición reconstruida origin+index·voxelSize tiene L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D32:1",
+      "name": "Trilinear interpolation",
+      "variables": [
+        {
+          "symbol": "x,y,z",
+          "meaning": "coordenadas fraccionarias de celda",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "cada una en [0,1]"
+        },
+        {
+          "symbol": "f_ijk",
+          "meaning": "valores de vértice",
+          "unit": "unidad del campo",
+          "dimension": "tipado por dato",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "w_ijk",
+          "meaning": "pesos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos y suman 1"
+        },
+        {
+          "symbol": "f",
+          "meaning": "valor interpolado",
+          "unit": "misma unidad que f_ijk",
+          "dimension": "igual a campo",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Las ocho muestras deben compartir unidad y canal; coordenadas locales normalizadas.",
+        "En borde de volumen, definir clamp, border value o extrapolación."
+      ],
+      "valid_domain": [
+        "Muestras finitas; coordenadas dentro de celda."
+      ],
+      "boundary_conditions": [
+        "En vértice, un peso es 1; interpolación reproduce valor exacto."
+      ],
+      "dimensional_checks": [
+        "Σw f conserva unidad de f; w es adimensional.",
+        "No mezclar campos con unidades distintas en la misma interpolación."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D32:2",
+      "name": "Volume rendering",
+      "variables": [
+        {
+          "symbol": "σ(s)",
+          "meaning": "coeficiente de extinción",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "ds",
+          "meaning": "elemento de recorrido",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "T(s)",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "c(s)",
+          "meaning": "color/radiancia fuente",
+          "unit": "unidad de señal declarada",
+          "dimension": "señal o radiancia",
+          "domain": "finita"
+        },
+        {
+          "symbol": "C",
+          "meaning": "salida integrada",
+          "unit": "misma unidad de c",
+          "dimension": "igual a c bajo integral normalizada",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "σ·ds debe ser adimensional; distancia de rayo y coeficiente usan misma unidad.",
+        "Definir si c es radiancia/emisión volumétrica o color normalizado; la ecuación debe incorporar coeficientes fuente compatibles."
+      ],
+      "valid_domain": [
+        "σ≥0; recorrido finito; muestras y c finitas."
+      ],
+      "boundary_conditions": [
+        "σ=0 da T=1 y no aporta absorción/emisión volumétrica en esa forma; recorrido nulo da C=0."
+      ],
+      "dimensional_checks": [
+        "σ[m⁻¹]·ds[m] es adimensional; T es adimensional.",
+        "La integral Tσc ds conserva unidad de c; si c es emisión por longitud, se tipa distinto."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D32:3",
+      "name": "Maximum intensity projection",
+      "variables": [
+        {
+          "symbol": "V(p)",
+          "meaning": "campo escalar volumétrico",
+          "unit": "unidad del dato",
+          "dimension": "tipado por volumen",
+          "domain": "finito"
+        },
+        {
+          "symbol": "s",
+          "meaning": "parámetro de rayo",
+          "unit": "m si rayo unitario",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "intervalo de volumen"
+        },
+        {
+          "symbol": "I(pixel)",
+          "meaning": "máximo proyectado",
+          "unit": "misma unidad que V",
+          "dimension": "igual a V",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Todas las muestras a lo largo del rayo usan mismo campo, escala y calibración.",
+        "MIP muestra máximo, no integral; no aplicar opacidad acumulativa como si fuera volume rendering."
+      ],
+      "valid_domain": [
+        "Volumen válido; rayo intersecta bounds; datos finitos."
+      ],
+      "boundary_conditions": [
+        "Rayo sin muestras devuelve background/invalid; volumen constante devuelve ese valor."
+      ],
+      "dimensional_checks": [
+        "max preserva unidad de V; s tiene L si dirección unitaria.",
+        "I no adquiere unidad de radiancia salvo que V esté calibrado así."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D32:4",
+      "name": "Isosurface extraction",
+      "variables": [
+        {
+          "symbol": "V(p)",
+          "meaning": "campo volumétrico",
+          "unit": "unidad del dato",
+          "dimension": "tipado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "iso",
+          "meaning": "umbral isosuperficie",
+          "unit": "misma unidad que V",
+          "dimension": "igual a V",
+          "domain": "finito"
+        },
+        {
+          "symbol": "p",
+          "meaning": "posición de muestra",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dentro del volumen"
+        },
+        {
+          "symbol": "t",
+          "meaning": "interpolación de arista",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "V e iso comparten unidad; interpolación de cruce usa valores de mismo campo.",
+        "Posiciones de vértices de malla conservan unidad espacial del volumen."
+      ],
+      "valid_domain": [
+        "Campo finito; grid definido; iso dentro o fuera de rango según política."
+      ],
+      "boundary_conditions": [
+        "Sin cruces no se emiten triángulos; valor exactamente iso en vértice requiere regla de empate."
+      ],
+      "dimensional_checks": [
+        "V−iso tiene unidad de V; t=(iso−V_a)/(V_b−V_a) es adimensional.",
+        "La geometría extraída tiene L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D32:5",
+      "name": "Octree volume",
+      "variables": [
+        {
+          "symbol": "cell",
+          "meaning": "caja/celda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dimensiones positivas"
+        },
+        {
+          "symbol": "error(cell)",
+          "meaning": "error de aproximación",
+          "unit": "unidad de métrica declarada",
+          "dimension": "tipada por error",
+          "domain": "finito"
+        },
+        {
+          "symbol": "threshold",
+          "meaning": "umbral",
+          "unit": "misma unidad que error",
+          "dimension": "igual a error",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "depth",
+          "meaning": "nivel",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Error y threshold deben compartir métrica/unidad; si el error mezcla atributos, normalizar explícitamente.",
+        "Cada subdivisión reduce dimensión espacial; depth limita memoria."
+      ],
+      "valid_domain": [
+        "Bounds finitos; threshold≥0; profundidad máxima definida."
+      ],
+      "boundary_conditions": [
+        "Error≤threshold deja hoja; profundidad máxima impide subdivisión adicional."
+      ],
+      "dimensional_checks": [
+        "cell tiene L; error y threshold son homogéneos; depth discreto.",
+        "La subdivisión no cambia unidad del volumen."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D32:6",
+      "name": "Sparse voxel octree",
+      "variables": [
+        {
+          "symbol": "node",
+          "meaning": "nodo",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "referencia válida"
+        },
+        {
+          "symbol": "occupancy",
+          "meaning": "ocupación",
+          "unit": "booleano",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "true/false"
+        },
+        {
+          "symbol": "bounds",
+          "meaning": "bounds de nodo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válidos"
+        },
+        {
+          "symbol": "level",
+          "meaning": "nivel",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Solo almacenar nodos ocupados/no uniformes según criterio definido; referencias padre-hijo válidas.",
+        "Bounds hijos deben quedar dentro del padre."
+      ],
+      "valid_domain": [
+        "Árbol finito; bounds no degenerados; referencias consistentes."
+      ],
+      "boundary_conditions": [
+        "Nodo vacío se omite; nodo hoja no se subdivide."
+      ],
+      "dimensional_checks": [
+        "Bounds tienen L; occupancy es booleano; level y node son discretos.",
+        "La compresión espacial no altera escala geométrica."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D32:7",
+      "name": "Gaussian splatting",
+      "variables": [
+        {
+          "symbol": "x,μ_i",
+          "meaning": "punto y centro gaussiano",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "Σ_i",
+          "meaning": "covarianza espacial",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "simétrica definida positiva"
+        },
+        {
+          "symbol": "α_i",
+          "meaning": "opacidad/amplitud",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "G_i(x)",
+          "meaning": "peso gaussiano",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o rango definido"
+        }
+      ],
+      "constraints": [
+        "Exponente (x−μ)^TΣ⁻¹(x−μ) debe ser adimensional; Σ se expresa en el marco de x.",
+        "Covarianza singular requiere regularización con escala de longitud al cuadrado, no epsilon sin unidad."
+      ],
+      "valid_domain": [
+        "Σ definida positiva; centros y puntos finitos; α∈[0,1]."
+      ],
+      "boundary_conditions": [
+        "α=0 elimina splat; x=μ da exponente cero y peso máximo."
+      ],
+      "dimensional_checks": [
+        "x−μ tiene L; Σ⁻¹ tiene L⁻²; el exponente es adimensional.",
+        "G y α son adimensionales; color conserva unidad de señal."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D32:8",
+      "name": "Point cloud surfel",
+      "variables": [
+        {
+          "symbol": "position",
+          "meaning": "centro surfel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "normal",
+          "meaning": "normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "radius",
+          "meaning": "radio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "color",
+          "meaning": "color",
+          "unit": "RGB relativo",
+          "dimension": "adimensional si normalizado",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Radio y posición usan misma unidad; normal define orientación del disco local.",
+        "Color y normal son atributos independientes con interpolación propia."
+      ],
+      "valid_domain": [
+        "Radio positivo; normal no nula; color finito."
+      ],
+      "boundary_conditions": [
+        "Radio cero degenera a punto; normal inválida requiere descarte/fallback."
+      ],
+      "dimensional_checks": [
+        "position/radius tienen L; normal y color normalizado son adimensionales.",
+        "Área del surfel escala con radius²."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D32:9",
+      "name": "Marching tetrahedra",
+      "variables": [
+        {
+          "symbol": "V_i",
+          "meaning": "valores en vértices",
+          "unit": "unidad del campo",
+          "dimension": "tipado por volumen",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "iso",
+          "meaning": "isovalor",
+          "unit": "misma unidad que V",
+          "dimension": "igual a V",
+          "domain": "finito"
+        },
+        {
+          "symbol": "p_i",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "t",
+          "meaning": "interpolación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Cada tetraedro usa topología y orden de vértices definidos; iso y V comparten unidad.",
+        "Interpolación lineal solo válida en aristas con valores distintos; igualdad exacta requiere política."
+      ],
+      "valid_domain": [
+        "Tetraedros no degenerados; campo finito; grid consistente."
+      ],
+      "boundary_conditions": [
+        "Sin cruce del iso no hay triángulo; cruce exacto por vértice usa desempate consistente."
+      ],
+      "dimensional_checks": [
+        "t=(iso−V_a)/(V_b−V_a) es adimensional; p resultante conserva L.",
+        "La isosuperficie representa V=iso y no altera unidad del campo."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "10/10 técnicas incluidas; ninguna protegida",
+      "Variables, unidades, restricciones, dominios, límites y comprobaciones específicas por técnica",
+      "Separados campos de datos, posiciones, covarianzas, unidades raster y coeficientes volumétricos"
+    ],
+    "limitations": [
+      "Auditoría dimensional; no valida calidad visual, exactitud clínica/científica ni rendimiento de un volumen de datos concreto."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
