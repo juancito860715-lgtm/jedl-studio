@@ -1,0 +1,59 @@
+name: Integrate Three.js engineering audits into v3.5 manifest
+
+on:
+  push:
+    branches:
+      - audit/implementation-ready-manifest
+    paths:
+      - "tools/integrate_threejs_engineering_audits.py"
+      - ".github/workflows/integrate-threejs-engineering-audits.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: integrate-threejs-audits-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  integrate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Integrate engineering audit records into the single manifest
+        run: python tools/integrate_threejs_engineering_audits.py
+      - name: Validate JSON, inventory and whitespace
+        run: |
+          python -m json.tool docs/threejs/Manifiesto_ThreeJS_v3_5_jedl-studio.json > /dev/null
+          python - <<'PY'
+          import json
+          p='docs/threejs/Manifiesto_ThreeJS_v3_5_jedl-studio.json'
+          d=json.load(open(p,encoding='utf-8'))
+          assert d['manifest']['version']=='3.6.0-jedl-studio-engineering-audits-integrated'
+          assert len(d['domains'])==42
+          assert sum(len(x.get('techniques',[])) for x in d['domains'])==616
+          for did in ('D35','D36'):
+              dom=next(x for x in d['domains'] if x['id']==did)
+              assert len(dom['techniques'])==15
+              assert all('engineering_audit' in t for t in dom['techniques'])
+          print('Manifest JSON and integrated-domain gates: PASS')
+          PY
+          git diff --check
+      - name: Publish integrated single-file manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/threejs/Manifiesto_ThreeJS_v3_5_jedl-studio.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Integrate D13 D35 D36 engineering audits into manifest v3.6"
+            git push origin "HEAD:${{ github.ref_name }}"
+          fi
