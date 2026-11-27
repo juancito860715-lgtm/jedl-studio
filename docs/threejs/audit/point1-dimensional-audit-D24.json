@@ -1,0 +1,1307 @@
+{
+  "title": "Auditoría dimensional punto 1 — D24 Óptica, lentes, cámaras físicas y transporte de luz",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D24",
+    "domain": "Óptica, lentes, cámaras físicas y transporte de luz",
+    "record_count": 17,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D24 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "radiometry": "Radiancia W·m⁻²·sr⁻¹; irradiancia W·m⁻²; flujo radiante W.",
+    "angles": "Radianes; ángulo sólido medido en sr, adimensional en SI base.",
+    "probability": "PDF inversa a la medida de muestreo; no combinar PDFs de medidas distintas sin jacobiano."
+  },
+  "records": [
+    {
+      "record_key": "D24:0",
+      "name": "Rendering equation",
+      "variables": [
+        {
+          "symbol": "L_o,L_i",
+          "meaning": "radiancia saliente/incidente",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": -2,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "f_r",
+          "meaning": "BRDF",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "dω",
+          "meaning": "ángulo sólido diferencial",
+          "unit": "sr",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Ω hemisferio"
+        },
+        {
+          "symbol": "n,ω_i",
+          "meaning": "direcciones unitarias",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        }
+      ],
+      "constraints": [
+        "f_r·L_i·cosθ·dω integra a radiancia W·m⁻²·sr⁻¹.",
+        "La medida de ángulo sólido y la convención BRDF deben mantenerse coherentes."
+      ],
+      "valid_domain": [
+        "Radiancias finitas; hemisferio válido; BRDF integrable."
+      ],
+      "boundary_conditions": [
+        "n·ω_i≤0 no aporta iluminación incidente en convención unilateral.",
+        "La emisión L_e puede ser cero en material no emisivo."
+      ],
+      "dimensional_checks": [
+        "BRDF tiene sr⁻¹; L_i tiene W·m⁻²·sr⁻¹; integral conserva radiancia.",
+        "cosθ y dω (sr en medida) se integran según convención angular."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:1",
+      "name": "Monte Carlo integration",
+      "variables": [
+        {
+          "symbol": "x_i",
+          "meaning": "muestra",
+          "unit": "unidad de dominio",
+          "dimension": "según dominio",
+          "domain": "dentro del dominio"
+        },
+        {
+          "symbol": "p(x)",
+          "meaning": "densidad de probabilidad",
+          "unit": "unidad inversa del dominio",
+          "dimension": "dimensión inversa a medida de x",
+          "domain": "p>0"
+        },
+        {
+          "symbol": "f(x)",
+          "meaning": "integrando",
+          "unit": "unidad de salida por unidad de medida",
+          "dimension": "tipado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "N",
+          "meaning": "muestras",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero >0"
+        }
+      ],
+      "constraints": [
+        "f(x)/p(x) debe tener unidad de integral objetivo.",
+        "p debe normalizarse respecto de la misma medida dx usada por la integral."
+      ],
+      "valid_domain": [
+        "N>0; pdf positiva donde f no sea cero; muestras válidas."
+      ],
+      "boundary_conditions": [
+        "Si p=0 donde f≠0, estimador inválido.",
+        "N→∞ converge bajo hipótesis de integrabilidad y muestreo."
+      ],
+      "dimensional_checks": [
+        "1/N es adimensional; f/p integra unidad de f·dx.",
+        "El estimador conserva unidad de integral."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:2",
+      "name": "Path tracing",
+      "variables": [
+        {
+          "symbol": "β",
+          "meaning": "throughput",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "L_b",
+          "meaning": "radiancia de contribución",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": -2,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "N_b",
+          "meaning": "número de rebotes",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "p_i",
+          "meaning": "pdf de trayectoria",
+          "unit": "unidad inversa de medida",
+          "dimension": "normalizada",
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "β incluye factores BSDF, cosenos y PDFs con unidades/medidas consistentes.",
+        "Cada contribución sumada debe ser radiancia en el mismo espacio espectral/colorimétrico."
+      ],
+      "valid_domain": [
+        "Throughput y radiancia finitos; PDFs válidas; rebotes acotados por política."
+      ],
+      "boundary_conditions": [
+        "Con cero rebotes, solo contribuciones directas/emisión según integrador.",
+        "PDF nula en trayectoria con contribución invalida estimador."
+      ],
+      "dimensional_checks": [
+        "L_b tiene radiancia; β debe dejar la contribución en misma unidad.",
+        "Conteo de rebotes es adimensional discreto."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:3",
+      "name": "Next event estimation",
+      "variables": [
+        {
+          "symbol": "f_r",
+          "meaning": "BRDF",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "L_light",
+          "meaning": "radiancia de luz",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": -2,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "cosθ",
+          "meaning": "factor angular",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "pdf_light",
+          "meaning": "densidad de muestreo",
+          "unit": "unidad inversa de medida angular",
+          "dimension": "según parametrización",
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Estimador directo requiere dividir por PDF y aplicar geometría/visibilidad según medida de muestreo.",
+        "Si se muestrea área, pdf_area tiene m⁻² y debe incluir conversión área↔ángulo sólido."
+      ],
+      "valid_domain": [
+        "Luz muestreable; pdf positiva; visibilidad definida."
+      ],
+      "boundary_conditions": [
+        "Luz oculta aporta cero.",
+        "PDF cero en muestra válida invalida contribución."
+      ],
+      "dimensional_checks": [
+        "f_r sr⁻¹ y L_light radiancia; coseno adimensional.",
+        "PDF y jacobiano deben convertir la integral a radiancia; ficha esquemática no especifica todos los factores."
+      ],
+      "status": "CONDITIONAL_POINT1_MEASURE_CONVERSION_REQUIRED"
+    },
+    {
+      "record_key": "D24:4",
+      "name": "Multiple importance sampling",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "PDF de estrategia i",
+          "unit": "unidad inversa de misma medida",
+          "dimension": "tipado por medida",
+          "domain": "p_i≥0"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "peso MIS",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "N",
+          "meaning": "número de estrategias",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        }
+      ],
+      "constraints": [
+        "Las PDFs combinadas deben expresarse respecto de la misma medida antes de aplicar pesos.",
+        "La regla power heuristic requiere que todas las pdf tengan misma unidad; los pesos suman 1 según conjunto de estrategias."
+      ],
+      "valid_domain": [
+        "PDFs finitas y no negativas; al menos una positiva."
+      ],
+      "boundary_conditions": [
+        "Si solo una estrategia tiene pdf positiva, su peso debe ser 1.",
+        "Si todas las pdf son cero, la muestra es inválida."
+      ],
+      "dimensional_checks": [
+        "p_i² y Σp_j² tienen mismas unidades; cociente es adimensional.",
+        "w_i es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:5",
+      "name": "Lambertian BRDF",
+      "variables": [
+        {
+          "symbol": "ρ",
+          "meaning": "reflectancia difusa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤ρ≤1"
+        },
+        {
+          "symbol": "π",
+          "meaning": "constante angular",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "constante"
+        },
+        {
+          "symbol": "f_r",
+          "meaning": "BRDF",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ/π"
+        }
+      ],
+      "constraints": [
+        "ρ/π se interpreta como BRDF por unidad de ángulo sólido.",
+        "La integral hemisférica de f_r cosθ dω debe devolver reflectancia ρ."
+      ],
+      "valid_domain": [
+        "ρ dentro de [0,1]."
+      ],
+      "boundary_conditions": [
+        "ρ=0 produce BRDF cero.",
+        "ρ=1 es difusor ideal sin absorción bajo convención."
+      ],
+      "dimensional_checks": [
+        "BRDF tiene sr⁻¹ por convención de medida angular; ρ es adimensional.",
+        "La integral energética devuelve valor adimensional ρ."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:6",
+      "name": "GGX normal distribution",
+      "variables": [
+        {
+          "symbol": "α",
+          "meaning": "rugosidad GGX",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "α>0"
+        },
+        {
+          "symbol": "N·H",
+          "meaning": "coseno microfacet",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "D",
+          "meaning": "distribución de normales",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa e integrable"
+        }
+      ],
+      "constraints": [
+        "Denominador y numerador son adimensionales; D se normaliza respecto de ángulo sólido.",
+        "No evaluar α=0 directamente sin límite analítico/regularización declarada."
+      ],
+      "valid_domain": [
+        "α>0; normal y half-vector unitarios."
+      ],
+      "boundary_conditions": [
+        "En α→0, la distribución tiende a delta especular en sentido límite.",
+        "N·H fuera de hemisferio válido se descarta."
+      ],
+      "dimensional_checks": [
+        "D tiene unidad inversa a ángulo sólido bajo normalización GGX.",
+        "α y productos escalares son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:7",
+      "name": "Smith masking-shadowing",
+      "variables": [
+        {
+          "symbol": "G1",
+          "meaning": "factor de enmascaramiento",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "N·V,N·L",
+          "meaning": "cosenos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "hemisferio válido"
+        },
+        {
+          "symbol": "α",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango modelo"
+        }
+      ],
+      "constraints": [
+        "G=G1(V)G1(L) multiplica BRDF y es adimensional.",
+        "Ambos factores deben usar la misma convención de distribución y rugosidad."
+      ],
+      "valid_domain": [
+        "Direcciones unitarias; α válido."
+      ],
+      "boundary_conditions": [
+        "Si dirección queda bajo superficie, la contribución se anula según convención.",
+        "G1 no definido en singularidad requiere límite/fallback."
+      ],
+      "dimensional_checks": [
+        "G y productos coseno son adimensionales.",
+        "G no altera unidad de BRDF base."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:8",
+      "name": "Thin lens",
+      "variables": [
+        {
+          "symbol": "f",
+          "meaning": "distancia focal",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "f>0"
+        },
+        {
+          "symbol": "s",
+          "meaning": "distancia objeto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "s>f para imagen real"
+        },
+        {
+          "symbol": "s'",
+          "meaning": "distancia imagen",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "según ecuación"
+        },
+        {
+          "symbol": "D",
+          "meaning": "diámetro de apertura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "D>0"
+        }
+      ],
+      "constraints": [
+        "1/f=1/s+1/s' suma magnitudes L⁻¹.",
+        "Convención de signos ópticos debe declararse para objetos/imagenes virtuales."
+      ],
+      "valid_domain": [
+        "Distancias no nulas; focal positiva en lente convergente."
+      ],
+      "boundary_conditions": [
+        "s=f implica imagen en infinito; no dividir por cero.",
+        "Apertura D=0 no representa lente física."
+      ],
+      "dimensional_checks": [
+        "f,s,s' tienen L; recíprocos L⁻¹.",
+        "La ecuación de lente es dimensionalmente homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:9",
+      "name": "Circle of confusion",
+      "variables": [
+        {
+          "symbol": "A",
+          "meaning": "diámetro de apertura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "A>0"
+        },
+        {
+          "symbol": "s,s_focus,s'",
+          "meaning": "distancias objeto/foco/imagen",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "denominadores no nulos"
+        },
+        {
+          "symbol": "c",
+          "meaning": "círculo de confusión",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "c≥0"
+        },
+        {
+          "symbol": "f",
+          "meaning": "focal",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "f>0"
+        }
+      ],
+      "constraints": [
+        "c≈A|s'−v|/s' es longitud si A y distancias usan misma unidad.",
+        "La expresión exacta depende de geometría de lente, sensor y convención de conjugados."
+      ],
+      "valid_domain": [
+        "s' no nulo; parámetros ópticos consistentes."
+      ],
+      "boundary_conditions": [
+        "En foco, c=0.",
+        "Denominadores nulos requieren límite o caso óptico separado."
+      ],
+      "dimensional_checks": [
+        "A y cociente de distancias: A·adimensional produce L.",
+        "c conserva longitud."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:10",
+      "name": "Snell law",
+      "variables": [
+        {
+          "symbol": "n1,n2",
+          "meaning": "índices refracción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos"
+        },
+        {
+          "symbol": "θ1,θ2",
+          "meaning": "ángulos",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango físico"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda opcional",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "n1 sinθ1=n2 sinθ2 es adimensional.",
+        "Índices deben corresponder a misma longitud de onda si el medio es dispersivo."
+      ],
+      "valid_domain": [
+        "n1,n2>0; ángulos dentro de dominio."
+      ],
+      "boundary_conditions": [
+        "Si n1>n2 y θ1 supera crítico, no hay rayo transmitido real.",
+        "Incidencia normal da θ2=0."
+      ],
+      "dimensional_checks": [
+        "Índices y senos son adimensionales.",
+        "Longitud de onda L solo entra en dispersión material."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:11",
+      "name": "Fresnel dielectric",
+      "variables": [
+        {
+          "symbol": "n1,n2",
+          "meaning": "índices refracción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos"
+        },
+        {
+          "symbol": "F0",
+          "meaning": "reflectancia normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "ángulo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "F0=((n1−n2)/(n1+n2))² es adimensional.",
+        "Usar índices reales/efectivos compatibles; metales requieren índice complejo."
+      ],
+      "valid_domain": [
+        "n1+n2>0; índices finitos."
+      ],
+      "boundary_conditions": [
+        "n1=n2 produce F0=0.",
+        "Incidencia rasante tiende a reflectancia alta en dieléctrico ideal."
+      ],
+      "dimensional_checks": [
+        "F0 y n son adimensionales.",
+        "La reflectancia no tiene unidad física."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:12",
+      "name": "Total internal reflection",
+      "variables": [
+        {
+          "symbol": "n1,n2",
+          "meaning": "índices",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n1>n2>0"
+        },
+        {
+          "symbol": "θc",
+          "meaning": "ángulo crítico",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<θc<π/2"
+        },
+        {
+          "symbol": "sinθc",
+          "meaning": "seno crítico",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n2/n1"
+        }
+      ],
+      "constraints": [
+        "sinθc=n2/n1 es adimensional.",
+        "La reflexión interna total requiere propagación desde índice mayor a menor."
+      ],
+      "valid_domain": [
+        "n1>n2>0."
+      ],
+      "boundary_conditions": [
+        "Al θ=θc, rayo transmitido es rasante.",
+        "Para θ>θc, no existe ángulo transmitido real."
+      ],
+      "dimensional_checks": [
+        "n2/n1 adimensional; ángulos radianes.",
+        "No hay longitud ni tiempo en criterio."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:13",
+      "name": "Thin film interference",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "índice de película",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "d",
+          "meaning": "espesor película",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ>0"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "ángulo interno",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "φ",
+          "meaning": "fase",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "adimensional angular"
+        }
+      ],
+      "constraints": [
+        "4πnd cosθ/λ debe ser adimensional.",
+        "Fase adicional por reflexión y dispersión de interfaces debe añadirse según materiales."
+      ],
+      "valid_domain": [
+        "λ>0; n>0; d finito."
+      ],
+      "boundary_conditions": [
+        "d=0 anula fase de propagación.",
+        "λ→0 fuera de rango espectral debe limitarse por modelo."
+      ],
+      "dimensional_checks": [
+        "nd/λ es adimensional; φ es fase adimensional.",
+        "El espesor y longitud de onda comparten unidad L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:14",
+      "name": "Dispersion",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "índice refracción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ>0"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "coeficientes Cauchy opcionales",
+          "unit": "unidades según potencias de λ",
+          "dimension": "dimensión compensatoria",
+          "domain": "calibrados"
+        }
+      ],
+      "constraints": [
+        "n(λ) es adimensional; coeficientes de expansión deben compensar unidades de λ.",
+        "Modelo de dispersión elegido (Cauchy/Sellmeier) y rango espectral deben declararse."
+      ],
+      "valid_domain": [
+        "λ en intervalo calibrado; n finito y positivo."
+      ],
+      "boundary_conditions": [
+        "Fuera del rango medido, extrapolación se marca no validada.",
+        "Si dn/dλ no se define, no inferir separación cromática cuantitativa."
+      ],
+      "dimensional_checks": [
+        "n es adimensional; λ tiene L.",
+        "Los coeficientes deben dar términos adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:15",
+      "name": "Atmospheric extinction",
+      "variables": [
+        {
+          "symbol": "L0",
+          "meaning": "radiancia inicial",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": -2,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "β",
+          "meaning": "coeficiente extinción",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "β≥0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "T",
+          "meaning": "transmisión",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "Latm",
+          "meaning": "radiancia atmosférica",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": -2,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "βd es adimensional; ambos términos de mezcla son radiancia.",
+        "β representa extinción por longitud; separar scattering atmosférico si se requiere modelo completo."
+      ],
+      "valid_domain": [
+        "β≥0; d≥0; radiancias finitas."
+      ],
+      "boundary_conditions": [
+        "d=0 produce L=L0.",
+        "β=0 elimina atenuación del término directo."
+      ],
+      "dimensional_checks": [
+        "β tiene L⁻¹ y d L; exponencial adimensional.",
+        "L(d) conserva radiancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D24:16",
+      "name": "Photon mapping",
+      "variables": [
+        {
+          "symbol": "Φ_i",
+          "meaning": "flujo radiante de fotón",
+          "unit": "W",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        },
+        {
+          "symbol": "x,x_i",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "r",
+          "meaning": "radio kernel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r>0"
+        },
+        {
+          "symbol": "K",
+          "meaning": "kernel superficial",
+          "unit": "m⁻²",
+          "dimension": {
+            "L": -2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizado"
+        },
+        {
+          "symbol": "E",
+          "meaning": "irradiancia estimada",
+          "unit": "W/m²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Para irradiancia superficial, Φ·K tiene W/m²; kernel debe tener m⁻² y normalización integral en área.",
+        "Si se estima radiancia, incorporar BRDF y geometría con unidades correspondientes."
+      ],
+      "valid_domain": [
+        "Radio de búsqueda positivo; fotones y posiciones finitos; kernel normalizado."
+      ],
+      "boundary_conditions": [
+        "Sin fotones dentro del radio, contribución estimada cero.",
+        "r→0 es singular; usar radio positivo y número suficiente de muestras."
+      ],
+      "dimensional_checks": [
+        "Φ tiene W; K m⁻²; producto W/m².",
+        "La unidad de salida depende de si se estima irradiancia o radiancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "17/17 técnicas incluidas; ninguna protegida",
+      "Cada técnica tiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "D24:3 queda condicional si no se declara conversión de PDF área/ángulo sólido"
+    ],
+    "limitations": [
+      "Las ecuaciones esquemáticas de NEE y algunos estimadores requieren medidas/jacobianos completos para certificación de implementación; la auditoría no inventa factores omitidos."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
