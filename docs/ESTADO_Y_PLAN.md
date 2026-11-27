@@ -143,3 +143,14 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - Cabello microfacet: se fijaron los localizadores §3.1 Ecs. (2), (4)-(12), Ecs. (13)-(25) y Appendix A Ecs. (41)-(44). Las fórmulas están como ecuaciones-imagen en la fuente web; se requiere transcripción y verificación de los términos antes de implementar.
 - La primera ejecución de gobernanza falló porque el candado del repositorio exige actualizar este archivo cuando cambian pruebas/código. La ejecución matemática debe revisarse por separado; no se declara CI global verde por ese fallo.
 - Próximo bloque: terminar pruebas independientes y contrato dimensional de XPBD/Kuwahara; extraer las ecuaciones completas de cabello; derivar Boids con magnitudes dimensionalmente homogéneas; después continuar las otras 19 R31 y procesar las 472 fichas históricas por dominio.
+
+
+## 8. Segundo bloque de especificaciones R31 (2026-11-26)
+
+- Se completó la revisión de localizadores primarios para cuatro fichas, sin promover ninguna a `IMPLEMENTATION_READY`.
+- XPBD: ecuaciones (5)-(9), (12), (15)-(18) y Algoritmo 1 de Macklin et al. (2016) contrastados. Para restricción de distancia: compliance `s²/kg`, compliance escalada `kg^-1`, multiplicador `kg·m`. Añadidos fixtures cerrados para dos pasos temporales. Pendiente solver multiconstraint y restricciones no métricas.
+- Kuwahara: corregido el localizador: PG 2009 contiene Ecs. (1)-(4); pesos y salida aparecen después de Ec. (4), §3.2, p. 1960. RGB entero 0..255; q=8 depende de esa escala. La fuente citada valida una escala por aplicación, no mezcla simultánea multiescala/saliencia.
+- Boids: Reynolds (1987), §3, pp. 28-29, confirma comportamientos por prioridad, solicitudes de aceleración acotadas, strength [0,1] y reparto prioritario con recorte al máximo. Añadido kernel Python/JS. La suma ponderada del manifiesto no es ecuación textual de Reynolds y sigue sin validez dimensional demostrada.
+- Cabello microfacet: transcritos BCSDF R de Ec. (12), NDF GGX de Appendix A Ec. (41) y producto escalar de Ec. (42). Añadido NDF de fibra con fixtures Python/JS. TT/TRT (13)-(24) localizados pero pendientes de implementación numérica independiente; el NDF aislado no certifica el modelo.
+- Pruebas añadidas: XPBD sensibilidad a dt, asignación prioritaria de Reynolds y NDF GGX de fibra. Pendiente consultar CI del head actualizado.
+- Estado: cuatro fichas mejor documentadas; ninguna certificada. Próximo bloque: verificar CI, corregir fallos y continuar las 19 R31 restantes; la paridad entre lenguajes no sustituye referencias matemáticas independientes.
