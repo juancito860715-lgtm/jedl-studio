@@ -1,0 +1,781 @@
+{
+  "title": "Auditoría dimensional punto 1 — D10 Atmósfera, cielo, nubes y niebla",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D10",
+    "domain": "Cielo, nubes, atmósfera y clima",
+    "record_count": 9,
+    "excluded_protected_records": 7,
+    "excluded_reason": "D10:4 y D10:6–10 están protegidos por el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud global de escena; SI si se declara.",
+    "radiometry": "Densidad/extinción en m⁻¹ y transmitancia adimensional.",
+    "angles": "Radianes."
+  },
+  "records": [
+    {
+      "record_key": "D10:0",
+      "name": "Sky gradient",
+      "variables": [
+        {
+          "symbol": "θ",
+          "meaning": "ángulo cenital",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,π]"
+        },
+        {
+          "symbol": "horizon,zenith",
+          "meaning": "colores",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "γ",
+          "meaning": "exponente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "γ>0"
+        },
+        {
+          "symbol": "C(θ)",
+          "meaning": "color",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "lerp según cosθ"
+        }
+      ],
+      "constraints": [
+        "cosθ y γ son adimensionales; color interpolation en espacio lineal."
+      ],
+      "valid_domain": [
+        "θ∈[0,π], γ>0."
+      ],
+      "boundary_conditions": [
+        "Definir continuidad en horizonte y zenit; clamp del coseno a rango válido."
+      ],
+      "dimensional_checks": [
+        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
+        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
+        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:1",
+      "name": "Rayleigh scattering",
+      "variables": [
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ>0"
+        },
+        {
+          "symbol": "β_R",
+          "meaning": "coeficiente Rayleigh",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "proporcional a λ⁻⁴ con factor material dimensional"
+        },
+        {
+          "symbol": "n",
+          "meaning": "índice refracción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        }
+      ],
+      "constraints": [
+        "La proporcionalidad λ⁻⁴ requiere constante con unidades para producir β_R en m⁻¹.",
+        "No usar λ numérica sin unidad consistente."
+      ],
+      "valid_domain": [
+        "λ>0; medio y longitud de onda declarados."
+      ],
+      "boundary_conditions": [
+        "λ→0 no es dominio físico del modelo clásico; evitar singularidad.",
+        "Coeficiente no negativo."
+      ],
+      "dimensional_checks": [
+        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
+        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
+        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:2",
+      "name": "Mie scattering",
+      "variables": [
+        {
+          "symbol": "g",
+          "meaning": "parámetro de asimetría",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "−1<g<1"
+        },
+        {
+          "symbol": "μ=cosθ",
+          "meaning": "coseno de dispersión",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[−1,1]"
+        },
+        {
+          "symbol": "phase",
+          "meaning": "función de fase",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada sobre esfera"
+        }
+      ],
+      "constraints": [
+        "Denominador debe ser positivo; phase no negativa y normalizada según convención.",
+        "g controla anisotropía y es adimensional."
+      ],
+      "valid_domain": [
+        "g∈(−1,1), μ∈[−1,1]."
+      ],
+      "boundary_conditions": [
+        "g=0 isotrópico en forma de Henyey–Greenstein.",
+        "Límites g→±1 requieren tratamiento numérico."
+      ],
+      "dimensional_checks": [
+        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
+        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
+        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:3",
+      "name": "Beer-Lambert",
+      "variables": [
+        {
+          "symbol": "σ_t",
+          "meaning": "coeficiente de extinción",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia recorrida",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "T",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "exp(−σ_t d)"
+        }
+      ],
+      "constraints": [
+        "σ_t·d es adimensional; σ_t no negativa."
+      ],
+      "valid_domain": [
+        "d≥0; σ_t≥0."
+      ],
+      "boundary_conditions": [
+        "d=0 o σ_t=0 da T=1; d→∞ con σ_t>0 da T→0."
+      ],
+      "dimensional_checks": [
+        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
+        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
+        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:5",
+      "name": "Sphere tracing SDF",
+      "variables": [
+        {
+          "symbol": "ro",
+          "meaning": "origen del rayo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "rd",
+          "meaning": "dirección del rayo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "t",
+          "meaning": "parámetro de distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        },
+        {
+          "symbol": "d(p)",
+          "meaning": "SDF",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "distancia no negativa fuera de superficie"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "tolerancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Sphere tracing requiere cota conservadora de distancia; no cualquier campo implícito sirve como SDF.",
+        "rd unitario para que t represente distancia."
+      ],
+      "valid_domain": [
+        "SDF evaluable; rayo y bounds definidos."
+      ],
+      "boundary_conditions": [
+        "Parar cuando d<ε; límite de pasos y distancia máxima.",
+        "Si d≤0 detectar cruce/penetración y resolver sin paso negativo."
+      ],
+      "dimensional_checks": [
+        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
+        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
+        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:11",
+      "name": "Rain streaks",
+      "variables": [
+        {
+          "symbol": "p0",
+          "meaning": "posición inicial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "v_rain",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "speed",
+          "meaning": "rapidez",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "exposure",
+          "meaning": "tiempo exposición",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "streak",
+          "meaning": "longitud proyectada",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "proporcional a speed·exposure con escala de proyección"
+        }
+      ],
+      "constraints": [
+        "p0+v·t conserva longitud; speed·exposure da longitud que requiere conversión proyectiva a píxeles.",
+        "Dirección de lluvia y cámara deben compartir marco definido."
+      ],
+      "valid_domain": [
+        "t finito; exposición no negativa."
+      ],
+      "boundary_conditions": [
+        "t=0 devuelve p0; speed=0 no genera streak.",
+        "Partículas fuera del volumen se reciclan con semilla determinista."
+      ],
+      "dimensional_checks": [
+        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
+        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
+        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:12",
+      "name": "Lightning envelope",
+      "variables": [
+        {
+          "symbol": "t,t_i",
+          "meaning": "tiempo y eventos",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "amplitud de flash",
+          "unit": "1 o radiancia",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "τ_i",
+          "meaning": "constante temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "noiseBurst",
+          "meaning": "modulación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "flash",
+          "meaning": "intensidad",
+          "unit": "misma unidad A",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "(t−t_i)/τ_i adimensional; A_i y flash comparten unidad.",
+        "Evitar ruido no acotado y eventos fuera de la línea temporal."
+      ],
+      "valid_domain": [
+        "τ_i>0; eventos ordenados; amplitudes finitas."
+      ],
+      "boundary_conditions": [
+        "Antes de t_i, evento inactivo según causalidad temporal.",
+        "Lejos del evento la envolvente decae a cero."
+      ],
+      "dimensional_checks": [
+        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
+        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
+        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:13",
+      "name": "Height fog",
+      "variables": [
+        {
+          "symbol": "y,y0",
+          "meaning": "altitud y referencia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "k",
+          "meaning": "coeficiente de decaimiento",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "ρ0",
+          "meaning": "densidad base",
+          "unit": "unidad de densidad volumétrica",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "ρ(y)",
+          "meaning": "densidad",
+          "unit": "misma unidad ρ0",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ0 exp(−k(y−y0))"
+        }
+      ],
+      "constraints": [
+        "k(y−y0) adimensional; densidad no negativa.",
+        "La extensión a alturas inferiores puede crecer exponencialmente; limitar dominio o modelo."
+      ],
+      "valid_domain": [
+        "k≥0; alturas finitas; ρ0≥0."
+      ],
+      "boundary_conditions": [
+        "y=y0 produce ρ0; k=0 produce densidad constante."
+      ],
+      "dimensional_checks": [
+        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
+        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
+        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:14",
+      "name": "Exponential fog",
+      "variables": [
+        {
+          "symbol": "ρ",
+          "meaning": "densidad de niebla",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ≥0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "T",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "exp(−ρd)"
+        }
+      ],
+      "constraints": [
+        "ρd adimensional; densidad homogénea en tramo según fórmula."
+      ],
+      "valid_domain": [
+        "ρ≥0; d≥0."
+      ],
+      "boundary_conditions": [
+        "ρ=0 o d=0 produce T=1; d→∞ con ρ>0 produce T→0."
+      ],
+      "dimensional_checks": [
+        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
+        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
+        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "9/15 registros no protegidos incluidos",
+      "Todos los registros tienen variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
+      "7 registros protegidos excluidos"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
