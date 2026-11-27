@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D14 Shaders, GPU y renderizado avanzado",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -857,22 +857,38 @@
             "J": 0
           },
           "domain": "≥0"
+        },
+        {
+          "symbol": "T_target,T_measured",
+          "meaning": "tiempos objetivo y medido del frame",
+          "unit": "ms o s, misma unidad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos"
         }
       ],
       "constraints": [
-        "targetFrameTime/measuredFrameTime es adimensional; resolutionScale_next se limita a rango permitido.",
-        "La actualización debe incluir amortiguación/histéresis para evitar oscilación de resolución."
+        "Si el coste dominante escala con el número de píxeles y pixelCount∝resolutionScale², entonces T∝scale².",
+        "La actualización proporcional derivada es scale_next=clamp(scale·sqrt(T_target/T_measured),min,max); el cociente y la raíz son adimensionales.",
+        "La ecuación resumida del catálogo omite el factor scale actual y la raíz; la corrección se registra para integración posterior."
       ],
       "valid_domain": [
-        "Tiempos positivos; minScale>0; maxScale≥minScale; medición filtrada."
+        "T_target>0; T_measured>0; 0<min≤max≤1; scale actual dentro de límites."
       ],
       "boundary_conditions": [
-        "Sin medición válida, conservar escala anterior.",
-        "En target=measured, razón 1; escala no debe saltar."
+        "Si T_measured=T_target, scale_next=scale.",
+        "Si el frame excede objetivo, la escala disminuye; si queda por debajo, aumenta, siempre acotada."
       ],
       "dimensional_checks": [
-        "Los dos tiempos tienen T y su cociente es adimensional.",
-        "resolutionScale y sus límites son adimensionales; pixel count escala aproximadamente con scale²."
+        "T_target/T_measured es adimensional; resolutionScale y scale_next son adimensionales.",
+        "El modelo cuadrático de coste produce la raíz cuadrada del cociente temporal, no el cociente directo."
       ]
     },
     {
@@ -1060,12 +1076,18 @@
             "J": 0
           },
           "domain": "finita"
+        },
+        {
+          "symbol": "g_ref",
+          "meaning": "escala de referencia de gradiente de profundidad",
+          "unit": "m/px",
+          "dimension": "length per raster step",
+          "domain": "g_ref>0"
         }
       ],
       "constraints": [
-        "Normalizar diferencia de profundidad por una escala de profundidad L_ref antes de sumarla al término angular dimensionless.",
-        "n·n_neighbor es adimensional; 1−dot produce medida angular adimensional.",
-        "Profundidad debe estar linearizada; comparar depth-buffer no lineal requiere umbral dependiente de proyección."
+        "E_z=|∇_px z|/g_ref normaliza la discontinuidad de profundidad a adimensional.",
+        "E_n=1−n·n′ es adimensional; E=E_z+λE_n exige λ adimensional; τ y E comparten unidad 1."
       ],
       "valid_domain": [
         "Profundidades lineales finitas; normales unitarias; L_ref>0; vecinos válidos."
@@ -1075,8 +1097,8 @@
         "Si normal no está disponible, desactivar término normal o usar fallback; no sustituir con cero silenciosamente."
       ],
       "dimensional_checks": [
-        "(z−z_neighbor)/L_ref y 1−n·n_neighbor son adimensionales; E y τ son adimensionales.",
-        "λ es adimensional después de normalizar términos; outline=step(τ,E) es adimensional."
+        "∇_px z tiene m/px; g_ref tiene m/px; E_z es adimensional.",
+        "E_n, λ, E y τ son adimensionales; outline es una máscara adimensional."
       ]
     },
     {
@@ -1195,9 +1217,17 @@
         {
           "symbol": "width",
           "meaning": "Ancho de línea",
-          "unit": "misma unidad que p",
-          "dimension": "tipo espacial",
-          "domain": "0<width<spacing/2"
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<width<0.5 en fase fract"
         },
         {
           "symbol": "phase",
@@ -1213,11 +1243,26 @@
             "J": 0
           },
           "domain": "fract en [0,1)"
+        },
+        {
+          "symbol": "aa",
+          "meaning": "ancho de antialias en fase",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "aa>0"
         }
       ],
       "constraints": [
-        "dot(p,dir)/spacing debe ser adimensional; p y spacing deben usar la misma unidad espacial.",
-        "aa (ancho antialias) debe tener la misma unidad que width; smoothstep compara magnitudes homogéneas."
+        "phase=fract(dot(p,dir)/spacing) es adimensional; abs(phase−0.5) también.",
+        "width y aa son anchuras adimensionales de fase, no longitudes físicas; si se desea ancho en píxeles, convertir por spacing."
       ],
       "valid_domain": [
         "dir unitario; spacing>0; width>0; coordenadas y campo vectorial finitos."
@@ -1227,15 +1272,18 @@
         "En costuras UV, cambiar a espacio triplanar/pantalla o corregir distorsión."
       ],
       "dimensional_checks": [
-        "p y spacing tienen la misma unidad; su cociente proyectado es adimensional.",
-        "dir y phase son adimensionales; width y aa comparten la unidad espacial."
+        "p y spacing comparten unidad; phase es adimensional.",
+        "width, aa, d_line y máscara line son adimensionales."
       ]
     }
   ],
   "validation": {
     "structural_checks": [
       "18/18 técnicas incluidas",
-      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas"
+      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "D14:12 deriva actualización adaptativa con raíz cuadrada del cociente de tiempos",
+      "D14:15 normaliza gradiente de profundidad por g_ref antes de mezclarlo con cambio de normal",
+      "D14:17 tipa ancho y antialias como anchuras de fase adimensionales"
     ],
     "limitations": [
       "Revisión dimensional y estructural; la validación de compilación/backend, algoritmos GPU y pruebas numéricas corresponden a puntos posteriores."
