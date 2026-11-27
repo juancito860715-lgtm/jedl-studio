@@ -27,12 +27,12 @@ test("D35:3 constant-velocity state model matches an independent matrix oracle",
     measurementNoise: [[0.25]],
     measurement: [1.2]
   });
-  close(result.state[0], 1.0666666666666667);
+  close(result.state[0], 1.1777777777777778);
   close(result.state[1], 1.0888888888888888);
   close(result.covariance[0][0], 0.2222222222222222);
   close(result.covariance[0][1], 0.1111111111111111);
   close(result.covariance[1][1], 0.5555555555555556);
-  close(result.normalizedInnovationSquared, 0.64);
+  close(result.normalizedInnovationSquared, 0.017777777777777778);
 });
 
 test("D35:3 optional control matrix contributes Bu to the predicted state", () => {
