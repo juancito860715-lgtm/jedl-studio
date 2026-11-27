@@ -68,6 +68,13 @@ test("FABRIK converges to reachable target while preserving segment lengths",()=
  assert.ok(result.error<=1e-5);
  for(let i=0;i<2;i++)assert.ok(Math.abs(new THREE.Vector3(...result.positions[i]).distanceTo(new THREE.Vector3(...result.positions[i+1]))-1)<1e-8);
 });
+test("FABRIK reaches the exact fully extended boundary without misclassifying it",()=>{
+ const result=solveFabrik({positions:[[0,0,0],[1,0,0],[2,0,0]],lengths:[1,1],target:[2,0,0],tolerance:1e-8});
+ assert.equal(result.reachable,true);
+ assert.equal(result.converged,true);
+ assert.ok(result.error<=1e-8);
+});
+
 test("FABRIK extends unreachable chain to maximum reach",()=>{
  const result=solveFabrik({positions:[[0,0,0],[1,0,0],[2,0,0]],lengths:[1,1],target:[5,0,0]});
  assert.equal(result.reachable,false);
