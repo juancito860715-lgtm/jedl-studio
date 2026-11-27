@@ -45,6 +45,10 @@
       "result": "Shape grammar deriva de reescritura de reglas sobre una forma inicial.",
       "limits": [
         "Una gramática no garantiza validez topológica sin reglas de borde."
+      ],
+      "dimensional_verification": [
+        "Symbols/rules/indices are discrete; geometric parameters keep their own declared units.",
+        "Affine transforms have dimensionless linear blocks and L translations; generated positions retain L."
       ]
     },
     {
@@ -81,6 +85,10 @@
       "result": "L-system estocástico deriva de muestreo de reglas con probabilidades normalizadas.",
       "limits": [
         "El número de símbolos puede crecer exponencialmente."
+      ],
+      "dimensional_verification": [
+        "Rule probabilities p_j are dimensionless and sum to 1; seed/index are discrete.",
+        "Turtle segment length has L; turning angle is radians; generated coordinates retain L."
       ]
     },
     {
@@ -122,6 +130,10 @@
       "result": "Space colonization dirige ramas hacia atractores y los elimina al alcanzarlos.",
       "limits": [
         "El resultado depende de densidad de atractores y radios de influencia/kill."
+      ],
+      "dimensional_verification": [
+        "Attractor/node positions and influence/kill radii have L; normalized directions are dimensionless.",
+        "step has L; x_new=x_i+step·direction preserves L."
       ]
     },
     {
@@ -158,6 +170,10 @@
       "result": "Delaunay se define por circuncírculos vacíos y produce triangulación dual de Voronoi.",
       "limits": [
         "Predicados numéricos no robustos pueden fallar en puntos casi degenerados."
+      ],
+      "dimensional_verification": [
+        "Sample coordinates and circumradii have L; squared distances have L².",
+        "Predicates compare squared distances in same unit; indices are discrete."
       ]
     },
     {
@@ -194,6 +210,10 @@
       "result": "Voronoi particiona el dominio y su grafo dual es Delaunay.",
       "limits": [
         "Degeneraciones de sitios cocirculares requieren desempate."
+      ],
+      "dimensional_verification": [
+        "p and sites s_i have L; distances have L; cell IDs are discrete.",
+        "Voronoi inequalities compare like lengths."
       ]
     },
     {
@@ -230,6 +250,10 @@
       "result": "Poisson disk acepta muestras solo si respetan separación mínima.",
       "limits": [
         "El algoritmo puede detenerse sin cubrir maximalmente todo el dominio."
+      ],
+      "dimensional_verification": [
+        "p_i and minimum radius r have L; pairwise distance has L.",
+        "Grid indices are dimensionless integers; acceptance inequality is homogeneous."
       ]
     },
     {
@@ -266,6 +290,10 @@
       "result": "Blue noise se caracteriza por supresión de energía de baja frecuencia y ausencia de periodicidad fuerte.",
       "limits": [
         "El espectro depende de tamaño finito y ventana; no es uniformidad perfecta."
+      ],
+      "dimensional_verification": [
+        "p has L; spatial frequency k has L⁻¹; k·p is dimensionless.",
+        "Normalized power spectrum S(k) is dimensionless after declared normalization; unnormalized PSD must retain its measure-dependent units."
       ]
     },
     {
@@ -302,6 +330,10 @@
       "result": "Hilbert se construye por subdivisión recursiva con transformaciones que preservan continuidad.",
       "limits": [
         "La implementación exacta de orientación/subdivisión es esencial para continuidad."
+      ],
+      "dimensional_verification": [
+        "Curve parameter/index and grid coordinates are discrete/dimensionless; cellSize has L.",
+        "World position=origin+cellSize·cellIndex has L."
       ]
     },
     {
@@ -338,6 +370,10 @@
       "result": "Morton code ordena celdas intercalando bits de coordenadas.",
       "limits": [
         "Morton locality es aproximada y depende de escala/chunking."
+      ],
+      "dimensional_verification": [
+        "x,y,z integer cell coordinates and Morton code are discrete.",
+        "cellSize has L; world coordinates reconstructed from code retain L."
       ]
     },
     {
@@ -374,6 +410,10 @@
       "result": "Smooth-min crea unión implícita redondeada de SDF.",
       "limits": [
         "El smooth-min altera volumen y no es SDF exacto en transición."
+      ],
+      "dimensional_verification": [
+        "a,b,k and smin have L; h=max(k−|a−b|,0)/k is dimensionless.",
+        "smin=min(a,b)−kh²/4 retains L; zero isosurface is geometric."
       ]
     },
     {
@@ -410,6 +450,10 @@
       "result": "El eje medial es locus de centros de bolas máximas inscritas.",
       "limits": [
         "El eje medial es sensible a pequeñas perturbaciones de frontera."
+      ],
+      "dimensional_verification": [
+        "p and boundary points have L; d(p) and localThickness=2d have L.",
+        "The medial axis is a locus; its membership condition compares equal distances."
       ]
     },
     {
@@ -446,6 +490,10 @@
       "result": "La curvatura mide variación de tangente por longitud de arco.",
       "limits": [
         "Curvatura numérica amplifica ruido de muestreo."
+      ],
+      "dimensional_verification": [
+        "For arc-length parameter s, r has L, r' is dimensionless, r'' has L⁻¹; κ has L⁻¹.",
+        "For general parameter, the full formula remains L⁻¹ after parameter factors cancel."
       ]
     },
     {
@@ -477,11 +525,16 @@
         }
       ],
       "assumptions": [
-        "Superficie C²; normal y métrica definidas."
+        "Superficie C²; normal y métrica definidas.",
+        "Para flujo de curvatura media con velocidad L/T, la movilidad debe compensar H[L⁻¹] con unidad L²/T."
       ],
       "result": "La curvatura media es promedio de curvaturas principales.",
       "limits": [
         "Convención de signo de H depende de orientación de normal."
+      ],
+      "dimensional_verification": [
+        "Principal curvatures κ_1,κ_2 and H have L⁻¹.",
+        "Mean-curvature-flow speed requires mobility with units L²/T if velocity is L/T."
       ]
     },
     {
@@ -518,6 +571,10 @@
       "result": "La curvatura gaussiana es producto de curvaturas principales.",
       "limits": [
         "K es intrínseca pero su estimación discreta depende de malla."
+      ],
+      "dimensional_verification": [
+        "κ_1 and κ_2 have L⁻¹; K=κ_1κ_2 has L⁻².",
+        "Sign classification is dimensionless and depends on orientation convention only for principal signs, not K."
       ]
     },
     {
@@ -554,6 +611,10 @@
       "result": "Laplacian smoothing relaja cada vértice hacia promedio vecinal.",
       "limits": [
         "El suavizado laplaciano encoge malla y puede perder volumen."
+      ],
+      "dimensional_verification": [
+        "p_i and neighbor averages have L; λ is dimensionless; p_i' retains L.",
+        "The combinatorial averaging operator is dimensionless."
       ]
     },
     {
@@ -565,13 +626,13 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "δ=L p",
-          "justification": "Calcular coordenadas diferenciales de malla original."
+          "equation": "L_c=D−A; δ=L_c p",
+          "justification": "Elegir el Laplaciano combinatorio adimensional; al aplicarlo a posiciones p con L, las coordenadas diferenciales δ conservan L."
         },
         {
           "step": 2,
-          "equation": "min_{p'}||L p'−δ||²",
-          "justification": "Buscar malla deformada que preserve detalles locales."
+          "equation": "min_{p'} ||L_c p'−δ||²",
+          "justification": "Buscar posiciones nuevas cuyas coordenadas diferenciales coincidan con las originales; el residual tiene L."
         },
         {
           "step": 3,
@@ -585,22 +646,29 @@
         }
       ],
       "assumptions": [
-        "Laplaciano y restricciones definidos; sistema resoluble."
+        "Laplaciano y restricciones definidos; sistema resoluble.",
+        "Esta derivación fija L_c como Laplaciano combinatorio D−A; un Laplaciano cotangente requiere normalización y unidades distintas."
       ],
       "result": "Laplacian deformation conserva coordenadas diferenciales bajo restricciones posicionales.",
       "limits": [
         "El sistema disperso puede estar mal condicionado y requiere restricciones suficientes."
+      ],
+      "dimensional_verification": [
+        "Use combinatorial Laplacian L_c=D−A, dimensionless; δ=L_c p has L.",
+        "The least-squares residual has L; constraints C are dimensionless weights and b has L."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "16/16 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen reglas discretas, geometría computacional, espectros y geometría diferencial."
+      "16/16 técnicas D28 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Curvatura de curva, media y gaussiana se distinguen como L⁻¹, L⁻¹ y L⁻²",
+      "Blue-noise y códigos espaciales declaran normalización y escala de coordenadas",
+      "Laplacian deformation fija el operador combinatorio D−A y elimina ambigüedad de normalización"
     ],
     "limitations": [
-      "Los algoritmos geométricos requieren predicados robustos y validación de degeneraciones; las aproximaciones diferenciales dependen de la calidad de malla."
+      "Las derivaciones definen propiedades matemáticas y convenciones; robustez de predicados, calidad de malla y estabilidad del solver requieren pruebas posteriores."
     ]
   },
   "integrity": {
