@@ -66,12 +66,32 @@ def specification_gaps(spec):
         gaps.append("complexity.time_and_space")
     return sorted(set(gaps))
 
-def audit(manifest_path, r31_path, preservation_path, register_path):
+def validate_dimensional_audit(payload, expected_ids):
+    records=payload.get("records",[])
+    by_id={x.get("research_id"):x for x in records}
+    missing=sorted(set(expected_ids)-set(by_id))
+    invalid=[]
+    required_dims={"L","M","T","I","Theta","N","J"}
+    for rid,record in by_id.items():
+        variables=record.get("variables",[])
+        if not variables:
+            invalid.append({"research_id":rid,"reason":"empty_symbol_table"})
+        for var in variables:
+            if not var.get("symbol") or not var.get("meaning") or not var.get("unit") or not var.get("domain"):
+                invalid.append({"research_id":rid,"reason":"incomplete_variable_definition","symbol":var.get("symbol")})
+            if set((var.get("dimension") or {}).keys()) != required_dims:
+                invalid.append({"research_id":rid,"reason":"dimension_vector_must_have_seven_SI_base_dimensions","symbol":var.get("symbol")})
+    return {"records":len(records),"expected_records":len(expected_ids),"missing_research_ids":missing,"invalid_entries":invalid,
+            "status":"PASS" if not missing and not invalid else "FAIL"}
+
+def audit(manifest_path, r31_path, preservation_path, dimensions_path, report_path):
     manifest=json.loads(Path(manifest_path).read_text(encoding="utf-8"))
     r31=json.loads(Path(r31_path).read_text(encoding="utf-8"))
     preservation=json.loads(Path(preservation_path).read_text(encoding="utf-8"))
+    dimensions=json.loads(Path(dimensions_path).read_text(encoding="utf-8"))
     preserved={x["record_key"] for x in preservation.get("records",[])}
     specs={x["record_key"]:x for x in r31.get("records",[])}
+    dimension_audit=validate_dimensional_audit(dimensions,[x["research_id"] for x in r31.get("records",[])])
     records=[]
     for d in manifest.get("domains",[]):
         for i,t in enumerate(d.get("techniques",[])):
@@ -94,8 +114,8 @@ def audit(manifest_path, r31_path, preservation_path, register_path):
     report={"title":"Fail-closed implementation readiness audit","version":"1.0.0",
             "manifest_technique_count":len(records),"counts":counts,
             "preserved_records_are_exempt_from_reaudit":True,
-            "false_ready_records":false_ready,"records":records,
-            "status":"PASS" if len(records)==541 and not false_ready else "FAIL",
+            "false_ready_records":false_ready,"dimensional_audit":dimension_audit,"records":records,
+            "status":"PASS" if len(records)==541 and not false_ready and dimension_audit["status"]=="PASS" else "FAIL",
             "meaning":"PASS means no incomplete technique was falsely promoted to ready; it does not mean all techniques are ready."}
     Path(register_path).write_text(json.dumps(report,ensure_ascii=False,indent=2)+"\n",encoding="utf-8")
     return report
@@ -105,9 +125,10 @@ def main():
     p.add_argument("--manifest",required=True)
     p.add_argument("--r31",required=True)
     p.add_argument("--preservation",required=True)
+    p.add_argument("--dimensions",required=True)
     p.add_argument("--report",required=True)
     a=p.parse_args()
-    report=audit(a.manifest,a.r31,a.preservation,a.report)
+    report=audit(a.manifest,a.r31,a.preservation,a.dimensions,a.report)
     print(json.dumps({k:v for k,v in report.items() if k!="records"},ensure_ascii=False,indent=2))
     return 0 if report["status"]=="PASS" else 1
 
