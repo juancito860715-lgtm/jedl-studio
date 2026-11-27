@@ -119,34 +119,57 @@
     {
       "record_key": "D01:5",
       "technique": "Spatial partitioning",
-      "mathematics": "Para grid uniforme, c=floor((p-origin)/h) por componente; la celda c agrupa objetos para consultas locales.",
+      "mathematics": "Para origen o y tamaño de celda h>0, la celda de p es c(p)=floor((p-o)/h) componente a componente. Para un AABB [b_min,b_max], se visitan todas las celdas entre floor((b_min-o)/h) y floor((b_max-o)/h). La consulta reúne candidatos por unión de buckets y filtra por intersección AABB exacta; la rejilla reduce candidatos, no reemplaza la prueba geométrica.",
       "algorithm": [
-        "Elegir tamaño de celda h y origen.",
-        "Calcular la celda de cada objeto a partir de su posición.",
-        "Insertar el objeto en la estructura de esa celda.",
-        "Consultar solo celdas solapadas con el volumen de consulta."
+        "Fijar h>0 y origen o del espacio de mundo.",
+        "Para cada objeto registrar su AABB y calcular c_min=floor((b_min-o)/h), c_max=floor((b_max-o)/h).",
+        "Insertar el identificador en todos los buckets (x,y,z) comprendidos entre c_min y c_max.",
+        "Para una consulta AABB repetir el cálculo de celdas, unir identificadores candidatos y eliminar duplicados.",
+        "Aplicar intersección AABB exacta a cada candidato; actualizar o retirar un objeto eliminando su pertenencia anterior."
       ],
-      "pseudocode": "cell = floor((position-origin)/cellSize); grid[cell].add(object); for cell in cellsOverlapping(queryBounds): test(grid[cell])",
-      "source_files": [],
+      "pseudocode": "cell(p)=floor((p-origin)/cellSize); insert(id,bounds): for c in cells(bounds): buckets[c].add(id); query(q): ids=union(buckets[c] for c in cells(q)); return [value(id) for id in ids if intersects(bounds[id],q)]",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/jsm/math/Octree.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/test/unit/addons/math/Octree.tests.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
       "research_note": "La técnica aparece como familia (grid, quadtree, octree, BVH); no se adjudica una referencia única sin fijar la variante. Próxima búsqueda debe seleccionar implementación con pruebas y licencia compatibles.",
-      "local_adaptation_status": "NOT_RESEARCHED",
-      "certification_status": "PENDING"
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "verified_source_behavior": "La referencia oficial implementa un Octree 3D que subdivide recursivamente el espacio, limita profundidad y triángulos por hoja; las pruebas QUnit verifican límites de subdivisión y que la consulta de rayo conserva la intersección/distancia esperadas. La adaptación local no copia el Octree: implementa una rejilla espacial uniforme AABB, más sencilla y verificable para consultas de objetos.",
+      "implementation_files": [
+        "src/threejs/spatial-grid.mjs",
+        "tests/threejs/d01-spatial-grid.test.mjs"
+      ],
+      "implementation_note": "Implementación local de hash espacial uniforme 3D con inserción AABB multi-celda, consulta con deduplicación y filtro exacto, actualización, eliminación y validación de entradas. Pruebas añadidas; ejecución CI aún pendiente."
     },
     {
       "record_key": "D01:6",
       "technique": "Render on demand",
-      "mathematics": "render(t) si dirty=true o hay una fuente temporal activa; tras render, dirty=false. Las invalidaciones vuelven a activar el render.",
+      "mathematics": "Sea dirty∈{0,1} y active(t) la existencia de animación temporal. Se renderiza si dirty=1 o active(t)=1. La invalidación asigna dirty←1 y solicita como máximo un callback pendiente. Antes del render se limpia dirty; una nueva invalidación durante update/render vuelve a activarlo. Si active(t)=1 se programa el siguiente frame.",
       "algorithm": [
-        "Mantener una bandera dirty.",
-        "Marcar dirty ante cambios de escena, cámara o viewport.",
-        "Si existe animación activa, programar el siguiente frame; si no, renderizar solo cuando dirty.",
-        "Limpiar dirty después de renderizar."
+        "Inicializar dirty=true y solicitar el primer frame.",
+        "Ante cambios de escena, cámara, controles, carga de recursos o tamaño del viewport, marcar dirty=true.",
+        "Coalescer invalidaciones: si ya existe un requestAnimationFrame pendiente, no crear otro.",
+        "Al ejecutar el frame, limpiar el identificador pendiente; si dirty o hay animación activa, actualizar y renderizar.",
+        "Si durante el frame aparece otra invalidación o continúa la animación, programar el siguiente; de lo contrario permanecer inactivo.",
+        "Al destruir el visor, cancelar el frame pendiente e ignorar invalidaciones futuras."
       ],
-      "pseudocode": "function invalidate(){dirty=true; requestFrame()} function frame(){if(dirty||animationActive){renderer.render(scene,camera); dirty=false} if(animationActive) requestFrame()}",
-      "source_files": [],
+      "pseudocode": "invalidate(): dirty=true; scheduleOnce(); frame(t): pending=null; shouldRender=dirty||animationActive(); dirty=false; if shouldRender: update(t); render(t); if dirty||animationActive(): scheduleOnce(); dispose(): cancel(pending)",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/manual/pages/rendering-on-demand.html",
+        "https://threejs.org/manual/pages/rendering-on-demand.html",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
       "research_note": "No es una clase de Three.js; es un patrón de integración de aplicación. Se requiere proyecto GitHub concreto con modo demand y pruebas o demostración reproducible.",
-      "local_adaptation_status": "NOT_RESEARCHED",
-      "certification_status": "PENDING"
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "verified_source_behavior": "El manual oficial Three.js muestra render inicial único, invalidación por cambios de OrbitControls y resize, y el uso de requestAnimationFrame solo cuando se necesita. También advierte que el damping requiere seguir actualizando controles y evitar bucles de eventos. La página es una guía reproducible, no una suite automatizada upstream; por eso se añaden pruebas locales del planificador.",
+      "implementation_files": [
+        "src/threejs/demand-render-scheduler.mjs",
+        "tests/threejs/d01-demand-render-scheduler.test.mjs"
+      ],
+      "implementation_note": "Planificador desacoplado del navegador con requestFrame/cancelFrame inyectables, coalescencia, modo idle, animación continua, invalidación durante render y dispose. Pruebas añadidas; ejecución CI aún pendiente."
     },
     {
       "record_key": "D01:7",
@@ -168,18 +191,21 @@
       "certification_status": "REFERENCE_IMPLEMENTATION_AND_UPSTREAM_TEST_EVIDENCE"
     }
   ],
-  "overall_status": "PARTIAL_DOMAIN_RESEARCH",
+  "overall_status": "D01_REFERENCE_RESEARCH_COMPLETE_LOCAL_ADAPTATIONS_AWAITING_CI",
   "summary": {
     "records": 8,
-    "records_with_source_code_and_tests": 4,
+    "records_with_source_code_and_tests": 6,
     "records_with_source_code_but_test_evidence_incomplete": 2,
-    "not_yet_researched": 2,
+    "not_yet_researched": 0,
+    "local_adaptations_implemented": 2,
     "local_adaptations_tested": 0,
+    "pending_local_ci": 2,
     "certified_as_locally_operational": 0
   },
   "limitations": [
     "La ejecución upstream consultada terminó en success para el commit citado, pero no se ha demostrado aquí que ese workflow ejecute cada suite unitaria individual.",
     "Las pruebas y el código upstream demuestran la implementación de referencia, no la adaptación dentro de jedl-studio.",
-    "No se declara certificación de producción local hasta integrar y ejecutar las pruebas de adaptación."
+    "No se declara certificación de producción local hasta integrar y ejecutar las pruebas de adaptación.",
+    "D01:5 y D01:6 tienen implementaciones locales y pruebas escritas; no se declaran probadas ni certificadas hasta que el workflow global las ejecute con éxito."
   ]
 }
