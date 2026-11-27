@@ -186,10 +186,41 @@
           },
           "unit": "integer",
           "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "r_i",
+          "meaning": "distancia de proyección entre articulaciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "strictly positive for normalized projection; finite"
+        },
+        {
+          "symbol": "k_i",
+          "meaning": "razón de proyección d_i/r_i",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite dimensionless ratio"
         }
       ],
       "dimensional_findings": [
-        "Las restricciones ||p_(i+1)-p_i||=l_i son dimensionalmente consistentes; normalizar vectores requiere epsilon con unidad de longitud."
+        "Las restricciones ||p_(i+1)-p_i||=l_i son dimensionalmente consistentes; normalizar vectores requiere epsilon con unidad de longitud.",
+        "r_i y d_i son longitudes; k_i=d_i/r_i es adimensional y la combinación afín conserva longitud."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
@@ -260,8 +291,24 @@
           "domain": "finite values in stated coordinate space"
         },
         {
-          "symbol": "q_i",
-          "meaning": "dual quaternion de transformación",
+          "symbol": "b_0",
+          "meaning": "suma ponderada de partes reales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite; nonzero norm required"
+        },
+        {
+          "symbol": "b_epsilon",
+          "meaning": "suma ponderada de partes duales",
+          "unit": "m",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -271,12 +318,27 @@
             "N": 0,
             "J": 0
           },
-          "unit": "real part dimensionless; dual part length",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite; translation scale"
+        },
+        {
+          "symbol": "v",
+          "meaning": "posición de vértice",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite in declared transform frame"
         }
       ],
       "dimensional_findings": [
-        "La parte dual tiene escala de longitud cuando codifica traslación. La normalización y el orden del producto quaternion deben seguir la convención declarada."
+        "La parte dual tiene escala de longitud cuando codifica traslación. La normalización y el orden del producto quaternion deben seguir la convención declarada.",
+        "La parte real y sus productos internos son adimensionales; la parte dual y la traslación tienen dimensión de longitud. El par dual debe documentarse componente a componente."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
@@ -551,10 +613,71 @@
           },
           "unit": "integer vector",
           "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "i,j,k",
+          "meaning": "coordenadas enteras de celda",
+          "unit": "integer",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "signed integer coordinates; floor quantization"
+        },
+        {
+          "symbol": "p1,p2,p3",
+          "meaning": "multiplicadores enteros del hash",
+          "unit": "integer constants",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fixed positive integer constants"
+        },
+        {
+          "symbol": "n",
+          "meaning": "tamaño de tabla hash",
+          "unit": "count",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positive integer"
+        },
+        {
+          "symbol": "H",
+          "meaning": "índice de bucket",
+          "unit": "integer index",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0 <= H < n"
         }
       ],
       "dimensional_findings": [
-        "(p-origin)/h es adimensional antes de floor; el resultado es un índice entero."
+        "(p-origin)/h es adimensional antes de floor; el resultado es un índice entero.",
+        "Los índices de celda, multiplicadores y bucket son enteros adimensionales; la tabla hash no convierte colisiones de bucket en identidad de celda."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
