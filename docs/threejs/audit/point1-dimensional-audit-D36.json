@@ -2,7 +2,7 @@
   "title": "Auditoría dimensional punto 1 — D36 Matemáticas profundas de simulación y métodos numéricos",
   "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
-  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "source_manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
   "scope": {
     "domain_id": "D36",
@@ -33,15 +33,32 @@
         {
           "symbol": "φ",
           "meaning": "campo",
-          "unit": "unidad φ",
-          "dimension": "tipado",
-          "domain": "diferenciable"
+          "unit": "unidad abstracta Φ; dimensión parametrizada",
+          "dimension": {
+            "L": "D_phi.L",
+            "M": "D_phi.M",
+            "T": "D_phi.T",
+            "I": "D_phi.I",
+            "Theta": "D_phi.Theta",
+            "N": "D_phi.N",
+            "J": "D_phi.J"
+          },
+          "domain": "diferenciable",
+          "dimension_note": "El campo escalar/vectorial conserva su unidad Φ."
         },
         {
           "symbol": "∂φ/∂t",
           "meaning": "derivada temporal",
-          "unit": "φ/s",
-          "dimension": "φ·T⁻¹",
+          "unit": "Φ/s",
+          "dimension": {
+            "L": "D_phi.L - D_time.L",
+            "M": "D_phi.M - D_time.M",
+            "T": "D_phi.T - D_time.T",
+            "I": "D_phi.I - D_time.I",
+            "Theta": "D_phi.Theta - D_time.Theta",
+            "N": "D_phi.N - D_time.N",
+            "J": "D_phi.J - D_time.J"
+          },
           "domain": "finita"
         },
         {
@@ -62,8 +79,16 @@
         {
           "symbol": "∇φ",
           "meaning": "gradiente",
-          "unit": "φ/m",
-          "dimension": "φ·L⁻¹",
+          "unit": "Φ/m",
+          "dimension": {
+            "L": "D_phi.L - D_length.L",
+            "M": "D_phi.M - D_length.M",
+            "T": "D_phi.T - D_length.T",
+            "I": "D_phi.I - D_length.I",
+            "Theta": "D_phi.Theta - D_length.Theta",
+            "N": "D_phi.N - D_length.N",
+            "J": "D_phi.J - D_length.J"
+          },
           "domain": "finito"
         }
       ],
@@ -90,15 +115,31 @@
         {
           "symbol": "y",
           "meaning": "estado",
-          "unit": "unidad y",
-          "dimension": "tipado",
+          "unit": "unidad abstracta Y; dimensión parametrizada",
+          "dimension": {
+            "L": "D_y.L",
+            "M": "D_y.M",
+            "T": "D_y.T",
+            "I": "D_y.I",
+            "Theta": "D_y.Theta",
+            "N": "D_y.N",
+            "J": "D_y.J"
+          },
           "domain": "finito"
         },
         {
           "symbol": "f",
           "meaning": "derivada",
-          "unit": "unidad y/s",
-          "dimension": "y·T⁻¹",
+          "unit": "Y/s",
+          "dimension": {
+            "L": "D_y.L - D_time.L",
+            "M": "D_y.M - D_time.M",
+            "T": "D_y.T - D_time.T",
+            "I": "D_y.I - D_time.I",
+            "Theta": "D_y.Theta - D_time.Theta",
+            "N": "D_y.N - D_time.N",
+            "J": "D_y.J - D_time.J"
+          },
           "domain": "finita"
         },
         {
@@ -119,8 +160,16 @@
         {
           "symbol": "y_next",
           "meaning": "estado siguiente",
-          "unit": "unidad y",
-          "dimension": "igual a y",
+          "unit": "misma unidad Y que y",
+          "dimension": {
+            "L": "D_y.L",
+            "M": "D_y.M",
+            "T": "D_y.T",
+            "I": "D_y.I",
+            "Theta": "D_y.Theta",
+            "N": "D_y.N",
+            "J": "D_y.J"
+          },
           "domain": "finito"
         }
       ],
@@ -147,15 +196,31 @@
         {
           "symbol": "y",
           "meaning": "estado",
-          "unit": "unidad y",
-          "dimension": "tipado",
+          "unit": "unidad abstracta Y; dimensión parametrizada",
+          "dimension": {
+            "L": "D_y.L",
+            "M": "D_y.M",
+            "T": "D_y.T",
+            "I": "D_y.I",
+            "Theta": "D_y.Theta",
+            "N": "D_y.N",
+            "J": "D_y.J"
+          },
           "domain": "finito"
         },
         {
           "symbol": "k1..k4",
           "meaning": "pendientes",
-          "unit": "unidad y/s",
-          "dimension": "y·T⁻¹",
+          "unit": "cada k_i tiene Y/s",
+          "dimension": {
+            "L": "D_y.L - D_time.L",
+            "M": "D_y.M - D_time.M",
+            "T": "D_y.T - D_time.T",
+            "I": "D_y.I - D_time.I",
+            "Theta": "D_y.Theta - D_time.Theta",
+            "N": "D_y.N - D_time.N",
+            "J": "D_y.J - D_time.J"
+          },
           "domain": "finitas"
         },
         {
@@ -176,8 +241,16 @@
         {
           "symbol": "y_next",
           "meaning": "estado actualizado",
-          "unit": "unidad y",
-          "dimension": "igual a y",
+          "unit": "misma unidad Y que y",
+          "dimension": {
+            "L": "D_y.L",
+            "M": "D_y.M",
+            "T": "D_y.T",
+            "I": "D_y.I",
+            "Theta": "D_y.Theta",
+            "N": "D_y.N",
+            "J": "D_y.J"
+          },
           "domain": "finito"
         }
       ],
@@ -366,30 +439,75 @@
         {
           "symbol": "φ",
           "meaning": "campo solución",
-          "unit": "unidad φ",
-          "dimension": "tipado",
+          "unit": "unidad abstracta Φ; dimensión parametrizada",
+          "dimension": {
+            "L": "D_phi.L",
+            "M": "D_phi.M",
+            "T": "D_phi.T",
+            "I": "D_phi.I",
+            "Theta": "D_phi.Theta",
+            "N": "D_phi.N",
+            "J": "D_phi.J"
+          },
           "domain": "finito"
         },
         {
           "symbol": "∇²φ",
           "meaning": "Laplaciano",
-          "unit": "φ/m²",
-          "dimension": "φ·L⁻²",
+          "unit": "Φ/m²",
+          "dimension": {
+            "L": "D_phi.L - D_length.L",
+            "M": "D_phi.M - D_length.M",
+            "T": "D_phi.T - D_length.T - 2",
+            "I": "D_phi.I - D_length.I",
+            "Theta": "D_phi.Theta - D_length.Theta",
+            "N": "D_phi.N - D_length.N",
+            "J": "D_phi.J - D_length.J"
+          },
           "domain": "finito"
         },
         {
           "symbol": "f",
           "meaning": "fuente",
-          "unit": "φ/m²",
-          "dimension": "igual a ∇²φ",
+          "unit": "Φ/m²; igual a ∇²φ",
+          "dimension": {
+            "L": "D_phi.L - D_length.L",
+            "M": "D_phi.M - D_length.M",
+            "T": "D_phi.T - D_length.T - 2",
+            "I": "D_phi.I - D_length.I",
+            "Theta": "D_phi.Theta - D_length.Theta",
+            "N": "D_phi.N - D_length.N",
+            "J": "D_phi.J - D_length.J"
+          },
           "domain": "finita"
         },
         {
           "symbol": "boundary",
           "meaning": "condición",
-          "unit": "φ o φ/m",
-          "dimension": "según tipo",
-          "domain": "definida"
+          "unit": "Dirichlet: Φ; Neumann: Φ/m",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "definida",
+          "dimension_by_symbol": {
+            "Dirichlet": {
+              "L": "D_phi.L",
+              "M": "D_phi.M",
+              "T": "D_phi.T",
+              "I": "D_phi.I",
+              "Theta": "D_phi.Theta",
+              "N": "D_phi.N",
+              "J": "D_phi.J"
+            },
+            "Neumann": {
+              "L": "D_phi.L - D_length.L",
+              "M": "D_phi.M - D_length.M",
+              "T": "D_phi.T - D_length.T",
+              "I": "D_phi.I - D_length.I",
+              "Theta": "D_phi.Theta - D_length.Theta",
+              "N": "D_phi.N - D_length.N",
+              "J": "D_phi.J - D_length.J"
+            }
+          },
+          "dimension_note": "La unidad depende del tipo de condición de frontera; no puede representarse con un único vector."
         }
       ],
       "constraints": [
@@ -415,30 +533,78 @@
         {
           "symbol": "A",
           "meaning": "matriz",
-          "unit": "unidad b/unidad x",
-          "dimension": "tipada",
-          "domain": "SPD"
+          "unit": "A_ij: unidad b_i/unidad x_j",
+          "dimension": {
+            "L": "D_b_i.L - D_x_j.L",
+            "M": "D_b_i.M - D_x_j.M",
+            "T": "D_b_i.T - D_x_j.T",
+            "I": "D_b_i.I - D_x_j.I",
+            "Theta": "D_b_i.Theta - D_x_j.Theta",
+            "N": "D_b_i.N - D_x_j.N",
+            "J": "D_b_i.J - D_x_j.J"
+          },
+          "domain": "SPD",
+          "dimension_note": "Matriz tipada por fila y columna; no asumir escalar homogéneo."
         },
         {
           "symbol": "x",
           "meaning": "solución",
-          "unit": "unidad x",
-          "dimension": "vector",
-          "domain": "finita"
+          "unit": "unidad por componente x_j",
+          "dimension": {
+            "L": "D_x_j.L",
+            "M": "D_x_j.M",
+            "T": "D_x_j.T",
+            "I": "D_x_j.I",
+            "Theta": "D_x_j.Theta",
+            "N": "D_x_j.N",
+            "J": "D_x_j.J"
+          },
+          "domain": "finita",
+          "dimension_note": "Solución vectorial potencialmente heterogénea."
         },
         {
           "symbol": "b,r",
           "meaning": "lado derecho/residuo",
-          "unit": "unidad b",
-          "dimension": "vector",
-          "domain": "finitos"
+          "unit": "b_i,r_i: unidad por componente",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "finitos",
+          "dimension_by_symbol": {
+            "b_i": {
+              "L": "D_b_i.L",
+              "M": "D_b_i.M",
+              "T": "D_b_i.T",
+              "I": "D_b_i.I",
+              "Theta": "D_b_i.Theta",
+              "N": "D_b_i.N",
+              "J": "D_b_i.J"
+            },
+            "r_i": {
+              "L": "D_b_i.L",
+              "M": "D_b_i.M",
+              "T": "D_b_i.T",
+              "I": "D_b_i.I",
+              "Theta": "D_b_i.Theta",
+              "N": "D_b_i.N",
+              "J": "D_b_i.J"
+            }
+          },
+          "dimension_note": "Lado derecho y residuo comparten dimensión por componente."
         },
         {
           "symbol": "tol",
           "meaning": "tolerancia residual",
-          "unit": "unidad b",
-          "dimension": "igual a b",
-          "domain": "≥0"
+          "unit": "tolerancia residual por componente, con la unidad correspondiente a b_i",
+          "dimension": {
+            "L": "D_b_i.L",
+            "M": "D_b_i.M",
+            "T": "D_b_i.T",
+            "I": "D_b_i.I",
+            "Theta": "D_b_i.Theta",
+            "N": "D_b_i.N",
+            "J": "D_b_i.J"
+          },
+          "domain": "≥0",
+          "dimension_note": "Un único escalar de norma solo es válido tras normalización de residuo."
         }
       ],
       "constraints": [
@@ -464,23 +630,61 @@
         {
           "symbol": "u_h",
           "meaning": "solución nivel",
-          "unit": "unidad u",
-          "dimension": "tipado",
+          "unit": "unidad de solución U; dimensión parametrizada",
+          "dimension": {
+            "L": "D_u.L",
+            "M": "D_u.M",
+            "T": "D_u.T",
+            "I": "D_u.I",
+            "Theta": "D_u.Theta",
+            "N": "D_u.N",
+            "J": "D_u.J"
+          },
           "domain": "finita"
         },
         {
           "symbol": "r_h",
           "meaning": "residuo",
-          "unit": "unidad operador·u",
-          "dimension": "tipado",
-          "domain": "finito"
+          "unit": "unidad de operador aplicado a U; para Laplaciano: U/m²",
+          "dimension": {
+            "L": "D_u.L - D_x.L",
+            "M": "D_u.M - D_x.M",
+            "T": "D_u.T - D_x.T - 2",
+            "I": "D_u.I - D_x.I",
+            "Theta": "D_u.Theta - D_x.Theta",
+            "N": "D_u.N - D_x.N",
+            "J": "D_u.J - D_x.J"
+          },
+          "domain": "finito",
+          "dimension_note": "El operador A_h determina la unidad; aquí se declara el caso laplaciano como referencia."
         },
         {
           "symbol": "R,P",
           "meaning": "transferencias",
-          "unit": "matrices tipadas",
-          "dimension": "adimensionales en mallas uniformes",
-          "domain": "compatibles"
+          "unit": "R/P: cociente de unidades coarse/fine por componente",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "compatibles",
+          "dimension_by_symbol": {
+            "R_ij": {
+              "L": "D_u_coarse_i.L - D_u_fine_j.L",
+              "M": "D_u_coarse_i.M - D_u_fine_j.M",
+              "T": "D_u_coarse_i.T - D_u_fine_j.T",
+              "I": "D_u_coarse_i.I - D_u_fine_j.I",
+              "Theta": "D_u_coarse_i.Theta - D_u_fine_j.Theta",
+              "N": "D_u_coarse_i.N - D_u_fine_j.N",
+              "J": "D_u_coarse_i.J - D_u_fine_j.J"
+            },
+            "P_ij": {
+              "L": "D_u_fine_i.L - D_u_coarse_j.L",
+              "M": "D_u_fine_i.M - D_u_coarse_j.M",
+              "T": "D_u_fine_i.T - D_u_coarse_j.T",
+              "I": "D_u_fine_i.I - D_u_coarse_j.I",
+              "Theta": "D_u_fine_i.Theta - D_u_coarse_j.Theta",
+              "N": "D_u_fine_i.N - D_u_coarse_j.N",
+              "J": "D_u_fine_i.J - D_u_coarse_j.J"
+            }
+          },
+          "dimension_note": "Adimensional solo si la representación de campo en ambas mallas usa la misma unidad y normalización."
         },
         {
           "symbol": "h",
@@ -521,22 +725,47 @@
         {
           "symbol": "U",
           "meaning": "variable conservada",
-          "unit": "unidad U",
-          "dimension": "tipado",
-          "domain": "finita"
+          "unit": "cantidad conservada por volumen: Q/m³",
+          "dimension": {
+            "L": -3,
+            "M": "D_Q.M",
+            "T": "D_Q.T",
+            "I": "D_Q.I",
+            "Theta": "D_Q.Theta",
+            "N": "D_Q.N",
+            "J": "D_Q.J"
+          },
+          "domain": "finita",
+          "dimension_note": "Q representa la unidad física conservada; exponente L incluye volumen."
         },
         {
           "symbol": "F",
           "meaning": "flujo",
-          "unit": "U·m/s",
-          "dimension": "U·L/T",
+          "unit": "Q/(m²·s)",
+          "dimension": {
+            "L": "D_Q.L - 2",
+            "M": "D_Q.M",
+            "T": "D_Q.T - 1",
+            "I": "D_Q.I",
+            "Theta": "D_Q.Theta",
+            "N": "D_Q.N",
+            "J": "D_Q.J"
+          },
           "domain": "finito"
         },
         {
           "symbol": "S",
           "meaning": "fuente",
-          "unit": "U/s",
-          "dimension": "U·T⁻¹",
+          "unit": "Q/(m³·s)",
+          "dimension": {
+            "L": "D_Q.L - 3",
+            "M": "D_Q.M",
+            "T": "D_Q.T - 1",
+            "I": "D_Q.I",
+            "Theta": "D_Q.Theta",
+            "N": "D_Q.N",
+            "J": "D_Q.J"
+          },
           "domain": "finita"
         },
         {
@@ -593,8 +822,16 @@
         {
           "symbol": "u",
           "meaning": "grados de libertad",
-          "unit": "unidad desplazamiento/campo",
-          "dimension": "tipado",
+          "unit": "m; desplazamiento en la formulación de elasticidad lineal declarada",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "finito"
         },
         {
@@ -615,22 +852,46 @@
         {
           "symbol": "D",
           "meaning": "constitutiva",
-          "unit": "unidad tensión/deformación",
-          "dimension": "tipada",
+          "unit": "Pa; tensor constitutivo de elasticidad lineal",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "válida"
         },
         {
           "symbol": "K",
           "meaning": "rigidez global",
-          "unit": "unidad f/unidad u",
-          "dimension": "tipada",
+          "unit": "N/m; rigidez global en elasticidad 3D",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "compatible"
         },
         {
           "symbol": "f",
           "meaning": "carga",
-          "unit": "unidad de fuerza",
-          "dimension": "tipada",
+          "unit": "N; vector de cargas",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "finita"
         }
       ],
@@ -718,8 +979,16 @@
         {
           "symbol": "A",
           "meaning": "campo interpolado",
-          "unit": "unidad A",
-          "dimension": "tipado",
+          "unit": "unidad abstracta A; interpolación conserva unidad del campo",
+          "dimension": {
+            "L": "D_A.L",
+            "M": "D_A.M",
+            "T": "D_A.T",
+            "I": "D_A.I",
+            "Theta": "D_A.Theta",
+            "N": "D_A.N",
+            "J": "D_A.J"
+          },
           "domain": "finito"
         }
       ],
@@ -777,7 +1046,15 @@
           "symbol": "σ",
           "meaning": "tensión",
           "unit": "Pa",
-          "dimension": "M·L⁻¹·T⁻²",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "finita"
         },
         {
@@ -820,14 +1097,30 @@
           "symbol": "σ",
           "meaning": "tensión",
           "unit": "Pa",
-          "dimension": "M·L⁻¹·T⁻²",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "finita"
         },
         {
           "symbol": "E",
           "meaning": "módulo",
           "unit": "Pa",
-          "dimension": "M·L⁻¹·T⁻²",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "≥0"
         },
         {
@@ -849,7 +1142,15 @@
           "symbol": "η",
           "meaning": "viscosidad",
           "unit": "Pa·s",
-          "dimension": "M·L⁻¹·T⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "≥0"
         },
         {
@@ -892,21 +1193,45 @@
           "symbol": "s",
           "meaning": "tensor desviador",
           "unit": "Pa",
-          "dimension": "M·L⁻¹·T⁻²",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "finito"
         },
         {
           "symbol": "σ_eq",
           "meaning": "tensión equivalente",
           "unit": "Pa",
-          "dimension": "M·L⁻¹·T⁻²",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "≥0"
         },
         {
           "symbol": "σ_y",
           "meaning": "fluencia",
           "unit": "Pa",
-          "dimension": "M·L⁻¹·T⁻²",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": ">0"
         },
         {
@@ -948,8 +1273,16 @@
         {
           "symbol": "u",
           "meaning": "campo difundido",
-          "unit": "unidad u",
-          "dimension": "tipado",
+          "unit": "unidad abstracta U; dimensión parametrizada",
+          "dimension": {
+            "L": "D_u.L",
+            "M": "D_u.M",
+            "T": "D_u.T",
+            "I": "D_u.I",
+            "Theta": "D_u.Theta",
+            "N": "D_u.N",
+            "J": "D_u.J"
+          },
           "domain": "finito"
         },
         {
@@ -970,8 +1303,16 @@
         {
           "symbol": "∇u",
           "meaning": "gradiente",
-          "unit": "u/m",
-          "dimension": "u·L⁻¹",
+          "unit": "U/m",
+          "dimension": {
+            "L": "D_u.L - D_length.L",
+            "M": "D_u.M - D_length.M",
+            "T": "D_u.T - D_length.T",
+            "I": "D_u.I - D_length.I",
+            "Theta": "D_u.Theta - D_length.Theta",
+            "N": "D_u.N - D_length.N",
+            "J": "D_u.J - D_length.J"
+          },
           "domain": "finito"
         },
         {
@@ -1011,14 +1352,20 @@
     "structural_checks": [
       "15/15 técnicas incluidas; ninguna protegida",
       "Variables, unidades, restricciones, dominios, límites y comprobaciones dimensionales por técnica",
-      "Corregida la dimensión del gradiente de funciones de forma FEM: B tiene L⁻¹"
+      "Corregida la dimensión del gradiente de funciones de forma FEM: B tiene L⁻¹",
+      "Las variables genéricas D36 se sustituyeron por vectores SI o expresiones simbólicas de siete componentes por variable."
     ],
     "limitations": [
-      "La auditoría dimensional no certifica convergencia, estabilidad ni exactitud de los solvers."
+      "La auditoría dimensional no certifica convergencia, estabilidad ni exactitud de los solvers.",
+      "Las unidades abstractas Φ, Y, U, A, b_i y x_j requieren instanciación física; se conservan simbólicas para no inventar magnitudes.",
+      "D36:5 la frontera admite condición Dirichlet (Φ) o Neumann (Φ/m); ambas ramas están separadas.",
+      "D36:6 tolerancia residual escalar solo tras normalización; si el vector b es heterogéneo se requieren tolerancias por componente.",
+      "D36:7 restricción/prolongación solo son adimensionales si coarse/fine representan la misma unidad de campo; se registra el cociente por componente.",
+      "D36:9 las unidades de D, K y f se han instanciado para la formulación de elasticidad lineal 3D descrita en el dominio; otros PDE/FEM requieren una ficha separada."
     ]
   },
   "integrity": {
-    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
     "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
   }
 }
