@@ -42,6 +42,10 @@
       "result": "La continuidad deriva de conservación local de masa.",
       "limits": [
         "No describe por sí sola la relación constitutiva ni la dinámica de presión."
+      ],
+      "dimensional_verification": [
+        "ρ tiene kg/m³; u tiene m/s; ρu tiene kg/(m²·s); su divergencia y ∂ρ/∂t tienen kg/(m³·s).",
+        "Masa integral ρdV tiene kg; flujo ρu·n dA tiene kg/s."
       ]
     },
     {
@@ -80,6 +84,10 @@
       "result": "Navier–Stokes resulta de conservación de momento con tensión newtoniana y restricción de incomprensibilidad.",
       "limits": [
         "La ecuación requiere discretización y condiciones de contorno; no hay solución cerrada general."
+      ],
+      "dimensional_verification": [
+        "u tiene L/T; ∂u/∂t y (u·∇)u tienen L/T².",
+        "∇p/ρ, ν∇²u y f tienen L/T²; p Pa, ρ kg/m³ y ν L²/T."
       ]
     },
     {
@@ -113,6 +121,10 @@
       "result": "Euler se obtiene de Navier–Stokes al despreciar viscosidad.",
       "limits": [
         "No es apropiado cerca de capas límite donde la viscosidad domina."
+      ],
+      "dimensional_verification": [
+        "Cada término de Euler tiene aceleración L/T².",
+        "La presión específica p/ρ tiene L²/T²; su gradiente tiene L/T²."
       ]
     },
     {
@@ -152,6 +164,10 @@
       "result": "La ecuación deriva del primer principio aplicado a un elemento fluido con conducción y fuente.",
       "limits": [
         "La forma simplificada omite compresibilidad, disipación viscosa y cambios de fase."
+      ],
+      "dimensional_verification": [
+        "ρc_p DT/Dt tiene W/m³; c_p J/(kg·K), ρ kg/m³ y DT/Dt K/s.",
+        "k∇²T tiene W/m³ si k W/(m·K); Q también W/m³."
       ]
     },
     {
@@ -190,6 +206,10 @@
       "result": "Semi-Lagrangiano deriva de evaluar el campo en la característica que llega al punto actual.",
       "limits": [
         "Es estable para pasos grandes en muchos casos, pero introduce difusión numérica."
+      ],
+      "dimensional_verification": [
+        "uΔt tiene L y se resta de x con L.",
+        "q^{n+1} conserva unidad de q; backtrace requiere trayectoria y condiciones de borde declaradas."
       ]
     },
     {
@@ -228,6 +248,10 @@
       "result": "La proyección se deriva de separar velocidad tentativa y componente gradiente para proyectar sobre campos solenoidales.",
       "limits": [
         "Una discretización inconsistente puede dejar divergencia residual o checkerboarding."
+      ],
+      "dimensional_verification": [
+        "u* y u tienen L/T; Δt/ρ∇p tiene L/T.",
+        "∇²p y (ρ/Δt)∇·u* tienen kg/(m³·s²) bajo ρ kg/m³ y p Pa."
       ]
     },
     {
@@ -267,11 +291,16 @@
       "assumptions": [
         "ε>0; campo u diferenciable.",
         "La fuerza se calibra con escala y Δt.",
-        "Término es corrección numérica, no término físico original."
+        "Término es corrección numérica, no término físico original.",
+        "Con f_conf interpretada como aceleración, ε_c tiene unidad L/T; si se usa como incremento directo de velocidad, debe reformularse sin el paso Δt."
       ],
       "result": "Vorticity confinement deriva de un vector perpendicular que refuerza regiones de rotación concentrada.",
       "limits": [
         "Puede inyectar energía artificial; el coeficiente debe limitarse."
+      ],
+      "dimensional_verification": [
+        "ω=∇×u tiene T⁻¹; η=∇|ω| tiene L⁻¹T⁻¹; N es adimensional.",
+        "f_conf debe tener L/T²; por ello ε_c en f_conf=ε_c(N×ω) tiene L/T."
       ]
     },
     {
@@ -310,6 +339,10 @@
       "result": "La densidad SPH deriva de aproximar una integral de masa por suma ponderada de partículas.",
       "limits": [
         "Distribución irregular de partículas puede sesgar densidad; kernel/boundaries requieren corrección."
+      ],
+      "dimensional_verification": [
+        "W(r,h) tiene L⁻³ en 3D; h y r tienen L.",
+        "m_j W tiene kg/m³; la suma produce densidad ρ_i kg/m³."
       ]
     },
     {
@@ -348,6 +381,10 @@
       "result": "La fuerza de presión SPH se deriva de discretizar gradiente de presión y simetrizar contribuciones de pares.",
       "limits": [
         "La estabilidad depende de kernel, ecuación de estado, timestep y distribución de partículas."
+      ],
+      "dimensional_verification": [
+        "p_i/ρ_i² tiene m⁵/(kg·s²); ∇W tiene m⁻⁴; multiplicar por m_j kg produce aceleración m/s².",
+        "F_i=m_i a_i tiene N."
       ]
     },
     {
@@ -360,38 +397,64 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "ρ_i=Σ_jm_jW_ij",
-          "justification": "Calcular densidad SPH actual."
+          "equation": "ρ_i=Σ_j m_j W(p_i−p_j,h); C_i=ρ_i/ρ_0−1",
+          "justification": "Construir densidad SPH y restricción relativa adimensional."
         },
         {
           "step": 2,
-          "equation": "C_i=ρ_i/ρ_0−1",
-          "justification": "Definir error relativo respecto a densidad objetivo."
+          "equation": "∇_{p_k}C_i=(1/ρ_0)Σ_j m_j ∇_{p_k}W(p_i−p_j,h)",
+          "justification": "Derivar la restricción respecto a las posiciones de todas las partículas; la derivada del kernel cambia de signo según k=i o k=j."
         },
         {
           "step": 3,
-          "equation": "Δλ_i=−C_i/(Σ_jw_j||∇_jC_i||²+ε)",
-          "justification": "Resolver corrección tipo multiplicador de Lagrange regularizado."
+          "equation": "λ_i=−C_i/(Σ_k||∇_{p_k}C_i||²+ε_reg)",
+          "justification": "Linealizar C_i(p+Δp)≈C_i+∇C_i·Δp y resolver el multiplicador de Lagrange regularizado."
         },
         {
           "step": 4,
-          "equation": "Δx_i=Σ_j(λ_i+λ_j)∇W_ij",
-          "justification": "Corregir posiciones para reducir compresión/expansión."
+          "equation": "Δp_k=Σ_i λ_i∇_{p_k}C_i",
+          "justification": "Obtener la corrección de posición como suma de gradientes de las restricciones ponderados por sus multiplicadores."
         },
         {
           "step": 5,
-          "equation": "repeat density projection",
-          "justification": "Iterar hasta tolerancia o número máximo."
+          "equation": "Equal normalized masses: Δp_i=(1/ρ_0)Σ_j(λ_i+λ_j)∇W_ij",
+          "justification": "Aplicar simetría del gradiente del kernel y la convención de masas unitarias normalizadas del método publicado."
+        },
+        {
+          "step": 6,
+          "equation": "p_i←p_i+Δp_i; repeat",
+          "justification": "Iterar proyección de densidad hasta tolerancia o máximo de iteraciones."
         }
       ],
       "assumptions": [
-        "ρ_0>0; masas positivas; gradientes y kernels compatibles.",
-        "ε>0; paso temporal y unidades de masa/longitud declarados."
+        "ρ0>0; kernel W normalizado y diferenciable; h>0.",
+        "La forma abreviada se usa con masas iguales normalizadas a 1 y densidad numérica compatible; para masas físicas se conserva m_j/ρ0 en los gradientes.",
+        "ε_reg tiene la misma unidad que la suma de gradientes al cuadrado.",
+        "Iteraciones y condiciones de borde definidas."
       ],
-      "result": "PBF deriva de imponer densidad como restricción posicional y resolver multiplicadores iterativamente.",
+      "result": "PBF deriva de imponer una restricción de densidad por partícula, linealizarla y resolver multiplicadores; la forma abreviada de corrección requiere la convención de masas unitarias normalizadas.",
       "limits": [
-        "La fórmula abreviada omite factores/normalizaciones específicos de kernel; implementar forma completa del método."
-      ]
+        "La forma abreviada no debe mezclarse con masas físicas arbitrarias sin reintroducir los factores de masa.",
+        "La proyección posicional no garantiza por sí sola conservación exacta de energía; requiere validación del solver."
+      ],
+      "dimensional_verification": [
+        "En PBF con masas unitarias normalizadas: W tiene L⁻³; ∇W y ∇C tienen L⁻⁴ y L⁻¹; λ tiene L²; ε_reg tiene L⁻².",
+        "(1/ρ0)Σ(λ_i+λ_j)∇W tiene L si ρ0 es densidad numérica L⁻³ y las masas se normalizan a 1.",
+        "Con masas físicas, usar Δp_k=Σ_i λ_i∇_{p_k}C_i y conservar los factores m_j/ρ0; no aplicar sin más la forma simplificada de masas unitarias."
+      ],
+      "source_reference": {
+        "authors": "Miles Macklin and Matthias Müller",
+        "year": 2013,
+        "title": "Position Based Fluids",
+        "source": "ACM Transactions on Graphics / SIGGRAPH 2013",
+        "url": "https://matthias-research.github.io/pages/publications/pbf_sig_preprint.pdf",
+        "equations": [
+          "density constraint",
+          "constraint gradients",
+          "Lagrange multiplier",
+          "pairwise position correction"
+        ]
+      }
     },
     {
       "record_key": "D21:10",
@@ -429,6 +492,10 @@
       "result": "Las ecuaciones shallow-water derivan de integrar Navier–Stokes verticalmente bajo hipótesis de profundidad pequeña.",
       "limits": [
         "No representa ondas cortas ni estructura vertical detallada."
+      ],
+      "dimensional_verification": [
+        "h tiene L; u L/T; hu L²/T; ∂h/∂t y ∇·(hu) L/T.",
+        "Momentum hu tiene L²/T; los términos de flujo y gh² tienen L³/T² antes de divergencia; g h S tiene L²/T²."
       ]
     },
     {
@@ -472,6 +539,10 @@
       "result": "Lattice Boltzmann deriva de discretizar una ecuación cinética de relajación y recuperar variables macroscópicas por momentos.",
       "limits": [
         "La estabilidad depende de τ, lattice, Mach y condiciones de borde."
+      ],
+      "dimensional_verification": [
+        "f_i y f_i^eq tienen unidad de densidad/distribución declarada; Δt/τ es adimensional.",
+        "c_iΔt tiene L; Σf_i tiene unidad de ρ y Σc_i f_i la unidad de ρu."
       ]
     },
     {
@@ -510,6 +581,10 @@
       "result": "Level set representa interfaz implícita y deriva de transporte de un campo escalar.",
       "limits": [
         "La advección numérica puede distorsionar distancia; reinicialización y conservación de volumen pueden ser necesarias."
+      ],
+      "dimensional_verification": [
+        "Si φ es signed distance, φ tiene L; ∂φ/∂t y u·∇φ tienen L/T.",
+        "El conjunto φ=0 define interfaz sin unidad adicional."
       ]
     },
     {
@@ -549,6 +624,10 @@
       "result": "VOF deriva de transportar fracción de volumen de una fase en una malla fija.",
       "limits": [
         "La reconstrucción de interfaz afecta precisión y curvatura; mantener boundedness es esencial."
+      ],
+      "dimensional_verification": [
+        "α es fracción volumétrica adimensional; ∂α/∂t y ∇·(αu) tienen T⁻¹.",
+        "0≤α≤1 es restricción adimensional."
       ]
     },
     {
@@ -592,6 +671,10 @@
       "result": "FLIP deriva de actualizar partículas con el cambio de velocidad de malla en vez de reemplazar por velocidad interpolada total.",
       "limits": [
         "Puede conservar movimiento con menor disipación pero amplificar ruido si transferencia no se filtra."
+      ],
+      "dimensional_verification": [
+        "v_grid y v_p tienen L/T; Δv tiene L/T; P2G/G2P conservan velocidad.",
+        "Δt v_p tiene L y se suma a posición."
       ]
     },
     {
@@ -630,6 +713,10 @@
       "result": "PIC deriva de transferir el estado de partículas a malla, resolver y recuperar velocidad.",
       "limits": [
         "La interpolación amortigua ruido pero introduce disipación numérica."
+      ],
+      "dimensional_verification": [
+        "Velocidades de grid/partícula tienen L/T; integración Δt v produce posición L.",
+        "La interpolación PIC conserva unidad de velocidad."
       ]
     },
     {
@@ -668,6 +755,10 @@
       "result": "MacCormack deriva de corregir la difusión del predictor usando discrepancia de ida y vuelta.",
       "limits": [
         "Sin limitador puede generar oscilaciones cerca de discontinuidades."
+      ],
+      "dimensional_verification": [
+        "q_old, q_fwd, q_back y q_corr comparten unidad de q; 1/2 es adimensional.",
+        "El limitador compara valores de la misma unidad."
       ]
     },
     {
@@ -706,6 +797,10 @@
       "result": "La flotabilidad deriva de aproximar densidad variable solo en el término gravitatorio.",
       "limits": [
         "No usar Boussinesq para grandes cambios de densidad o compresibilidad fuerte."
+      ],
+      "dimensional_verification": [
+        "β tiene K⁻¹; ΔT tiene K; g tiene L/T²; f_b tiene L/T².",
+        "Δt f_b tiene L/T y se suma a velocidad."
       ]
     },
     {
@@ -744,6 +839,10 @@
       "result": "El rotacional de un potencial vectorial produce campo solenoidal en continuo.",
       "limits": [
         "En discretización, divergencia puede no ser exactamente cero si operadores no son compatibles."
+      ],
+      "dimensional_verification": [
+        "Si u es velocidad L/T, el potencial vectorial A debe tener L²/T para que ∇×A tenga L/T.",
+        "∇·(∇×A)=0 es identidad; los operadores discretos deben ser compatibles."
       ]
     },
     {
@@ -782,6 +881,10 @@
       "result": "La inestabilidad se caracteriza por crecimiento de perturbaciones en una interfaz con cizalla.",
       "limits": [
         "La tasa simplificada no cubre estabilización viscosa ni tensión superficial; no es un modelo completo."
+      ],
+      "dimensional_verification": [
+        "k tiene L⁻¹; ΔU L/T; γ≈kΔU es T⁻¹.",
+        "γt y kx son adimensionales; densidades solo aparecen en una razón adimensional."
       ]
     },
     {
@@ -820,6 +923,10 @@
       "result": "La inestabilidad deriva del balance de flotabilidad para una interfaz acelerada entre densidades distintas.",
       "limits": [
         "No predice etapa no lineal ni mezcla turbulenta completa."
+      ],
+      "dimensional_verification": [
+        "Atwood A es adimensional; g tiene L/T²; k tiene L⁻¹; γ² tiene T⁻².",
+        "γt es adimensional."
       ]
     },
     {
@@ -864,17 +971,24 @@
       "result": "La advección de pigmento se deriva de transporte por características más difusión y decaimiento.",
       "limits": [
         "La interpolación bilineal añade difusión numérica; no equivale a mezcla espectral real."
+      ],
+      "dimensional_verification": [
+        "c conserva unidad por campo; u L/T; ∇c c/L; D L²/T; k T⁻¹.",
+        "Cada término de ∂c/∂t+u·∇c=D∇²c−kc tiene unidad c/T."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "22/22 técnicas cubiertas.",
-      "Cada derivación incluye pasos justificados, supuestos y límites de validez.",
-      "Se distinguen modelos físicos, discretizaciones numéricas y aproximaciones pictóricas."
+      "22/22 técnicas D21 cubiertas; ninguna protegida",
+      "Cada derivación tiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Navier–Stokes, energía, presión y continuidad conservan unidades SI",
+      "Vorticity confinement tipa ε_c para producir aceleración",
+      "PBF distingue masas unitarias normalizadas de masas físicas y deriva corrección desde gradientes de restricciones",
+      "Kelvin–Helmholtz y Rayleigh–Taylor expresan tasas de crecimiento con unidad T⁻¹"
     ],
     "limitations": [
-      "Las ecuaciones de inestabilidad son linealizadas e idealizadas; no se extrapolan a fenómenos no lineales o condiciones fuera de sus hipótesis."
+      "Los modelos físicos requieren condiciones iniciales/frontera, parámetros constitutivos y validación numérica; las fórmulas simplificadas de inestabilidad son lineales e idealizadas."
     ]
   },
   "integrity": {
