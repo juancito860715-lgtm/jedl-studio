@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D06 Terrenos, montañas, rocas y erosión",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -360,7 +360,7 @@
         },
         {
           "step": 2,
-          "equation": "da_m=R_f dφ_m ds; ∫H²(ω_m)D(ω_h,ω_m)|ω_h·ω_m|dω_h=1",
+          "equation": "da_m=r_f dφ_m ds; ∫H²(ω_m)D(ω_h,ω_m)|ω_h·ω_m|dω_h=1",
           "justification": "Parametrizar el cilindro por azimut y longitud y normalizar la NDF; el artículo fija R_f=1 y aquí se restaura la escala física."
         },
         {
@@ -375,7 +375,7 @@
         },
         {
           "step": 5,
-          "equation": "L_o(ω_o)=∫dΦ_o/(dω_o a_o^⊥); a_o^⊥=2R_f cosθ_o ds",
+          "equation": "L_o(ω_o)=∫dΦ_o/(dω_o a_o^⊥); a_o^⊥=2r_f cosθ_o ds",
           "justification": "Dividir el flujo por ángulo sólido y área proyectada de la franja cilíndrica da radiancia saliente."
         },
         {
@@ -395,7 +395,7 @@
         },
         {
           "step": 9,
-          "equation": "σ_a=ρ_eσ_{a,e}+ρ_pσ_{a,p}; A_t=exp(−σ_aℓ_t); ℓ_t=2R_f cosγ_t/|cosθ_t|",
+          "equation": "σ_a=ρ_eσ_{a,e}+ρ_pσ_{a,p}; A_t=exp(−σ_aℓ_t); ℓ_t=2r_f cosγ_t/|cosθ_t|",
           "justification": "Combinar absorciones por pigmento y aplicar Beer–Lambert al recorrido interno; γ_t es el ángulo transversal relativo a la normal de entrada."
         },
         {
@@ -405,8 +405,8 @@
         },
         {
           "step": 11,
-          "equation": "S_TRT ∝ T_1R_2T_3 A_tA_tr D_1D_2D_3G_1G_2G_3 × (proyecciones y Jacobianos de tres interfaces)",
-          "justification": "El camino TRT añade reflexión interna R_2 y transmisión de salida T_3 tras la primera transmisión; la integral incluye tres NDF, tres factores geométricos y dos atenuaciones."
+          "equation": "S_TRT=[T_1/(8cosθ_o cosθ_i)]·[|ω_i·ω_h1|/||ω_h1||²]·∭K_TRT dφ_m1 dω_tr dω_t; K_TRT=[R_2T_3|ω_tr·ω_h3||ω_o·ω_h3|/||ω_tr·ω_h3||²]·[D_1D_2D_3G_1G_2G_3A_tA_tr/(|ω_t·ω_m1||ω_tr·ω_m2|)]",
+          "justification": "El camino TRT transmite en la primera interfaz, refleja internamente en la segunda y transmite en la tercera. La integral acumula los tres campos microfacet, los tres factores geométricos, Fresnel R_2/T_3 y las dos atenuaciones; los cocientes angulares son los Jacobianos de proyección y refracción de la derivación de la fuente."
         },
         {
           "step": 12,
@@ -415,13 +415,13 @@
         },
         {
           "step": 13,
-          "equation": "da_m=R_f√(1−e²sin²γ_m)dγ_m ds; a_o^⊥=2R_f√(1−e²sin²φ_o)cosθ_o ds",
+          "equation": "da_m=r_f√(1−e²sin²γ_m)dγ_m ds; a_o^⊥=2r_f√(1−e²sin²φ_o)cosθ_o ds",
           "justification": "Para sección elíptica, sustituir el elemento de arco y el área proyectada circular por los factores métricos de la elipse; e es excentricidad."
         }
       ],
       "assumptions": [
         "Modelo de Huang, Hullin y Hanika (2022): macrogeometría cilíndrica, mesogeometría de cutículas inclinadas y microfacetas Smith.",
-        "El artículo normaliza el radio circular a 1; esta derivación restaura el radio físico R_f.",
+        "El artículo normaliza el radio circular a 1; esta derivación restaura el radio físico r_f.",
         "Se consideran los lóbulos dominantes R, TT y TRT; se omiten órdenes superiores.",
         "TRT se expresa como estructura de factores; para implementación fiel deben transcribirse todos los factores angulares/Jacobianos de la ecuación 24."
       ],
@@ -430,7 +430,7 @@
         "El modelo far-field y la primitiva ray-facing no resuelven intersecciones geométricas subpíxel individuales.",
         "El lóbulo R tiene solución analítica cerrada para GGX bajo G≈1; con G completo requiere integración numérica.",
         "TT/TRT requieren Snell, visibilidad y Jacobianos por interfaz; no reducirlos a un BRDF superficial isotrópico.",
-        "La expresión resumida de TRT no es una transcripción algebraica completa; esa transcripción queda como obligación del punto 3."
+        "La implementación debe respetar las convenciones de signos, marcos locales y Jacobianos de las ecuaciones 21–25 de la fuente; la fórmula compacta K_TRT agrupa esos factores sin sustituir la derivación completa de refracción."
       ],
       "sources": [
         "SRC-HUANG-2022",
@@ -462,9 +462,9 @@
         "dΦ tiene W; dividir por dω_o·a_o^⊥ (sr·m²) produce radiancia W·m⁻²·sr⁻¹.",
         "S_R, S_TT y S_TRT tienen sr⁻¹; Fresnel, G, cosenos, índices relativos y direcciones son adimensionales.",
         "σ_a tiene m⁻¹; ℓ_t y ℓ_tr tienen m; los exponentes σ_aℓ son adimensionales.",
-        "e, α y γ son ángulos/parámetros adimensionales; R_f aporta longitud."
+        "e, α y γ son ángulos/parámetros adimensionales; r_f aporta longitud."
       ],
-      "proof_obligation": "Contrastar R, TT y TRT con la referencia Monte Carlo del artículo; verificar energía, normalización de D, invariancia de escala R_f y convergencia de integrales."
+      "proof_obligation": "Contrastar R, TT y TRT con la referencia Monte Carlo del artículo; verificar energía, normalización de D, invariancia de escala r_f y convergencia de integrales."
     }
   ],
   "validation": {
@@ -475,11 +475,12 @@
       "Erosión térmica compara Δh con Δx·tan(θ_r) y conserva volumen aun con áreas distintas",
       "Domain warping y ridged multifractal usan argumentos de ruido adimensionales y amplitudes físicas tipadas",
       "Modelo BCSDF de cabello incluye dimensiones de radiancia, distribución angular y absorción interna",
-      "D06:11 ampliado con balance de flujo R/TT/TRT, cutículas inclinadas y extensión elíptica; fuente primaria registrada."
+      "D06:11 ampliado con balance de flujo R/TT/TRT, cutículas inclinadas y extensión elíptica; fuente primaria registrada.",
+      "La expresión TRT se amplió a un kernel integral compacto con R2, T3, D1–D3, G1–G3 y atenuaciones At/Atr; la notación r_f coincide con el punto 1."
     ],
     "limitations": [
       "Las leyes constitutivas hidráulicas y térmicas requieren calibración; la derivación fija balances y unidades, no parámetros experimentales. La adaptación shader y validación visual pertenecen a puntos posteriores.",
-      "TRT conserva estructura de factores y remite a ecuación 24 para factores angulares completos; no se declara transcripción íntegra."
+      "La reproducción numérica exacta exige respetar las convenciones de signos y marcos de las ecuaciones 21–25 de la fuente primaria."
     ]
   },
   "integrity": {
