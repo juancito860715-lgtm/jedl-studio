@@ -70,22 +70,75 @@ def specification_gaps(spec):
     return sorted(set(gaps))
 
 def validate_dimensional_audit(payload, expected_ids):
+    """Validate SI vectors and cross-check units where their dimensions are unambiguous.
+
+    Unknown/custom render-space units remain explicitly unresolved; they are not
+    silently treated as proof of dimensional correctness.
+    """
     records=payload.get("records",[])
+    ids=[x.get("research_id") for x in records]
     by_id={x.get("research_id"):x for x in records}
-    missing=sorted(set(expected_ids)-set(by_id))
+    expected=set(expected_ids)
+    missing=sorted(expected-set(by_id))
+    unexpected=sorted(set(by_id)-expected)
+    duplicates=sorted({rid for rid in ids if ids.count(rid)>1})
     invalid=[]
+    unresolved_units=[]
+    unit_dims={
+        "s":{"T":1}, "Hz":{"T":-1}, "m":{"L":1}, "rad":{},
+        "kg^-1":{"M":-1}, "s^2/kg":{"M":-1,"T":2}, "kg*m":{"M":1,"L":1},
+        "m/s":{"L":1,"T":-1}, "m/s^2":{"L":1,"T":-2},
+        "m^2/s":{"L":2,"T":-1}, "s^-1":{"T":-1}, "m^-1":{"L":-1},
+        "m^2":{"L":2}, "W m^-2 sr^-1":{"M":1,"T":-3},
+        "dimensionless":{}, "1":{}, "integer":{}, "count":{}, "boolean":{},
+        "categorical key":{}, "integer index":{}, "integer vector":{},
+        "integer constants":{}, "unit vector":{}, "unit vectors":{},
+        "dimensionless unit vector":{}, "dimensionless, nonnegative":{},
+        "dimensionless linear reflectance":{}, "dimensionless vectors":{},
+        "normalized UV":{}, "fraction of period":{}, "pixels":{}, "pixel":{},
+        "RGB code values":{}, "8-bit code values 0..255":{},
+        "1 (unit vectors)":{}, "sr^-1 under solid-angle convention":{},
+        "dimensionless; radians for alpha":{},
+        "m o unidad local":{"L":1}, "m o unidad de escena":{"L":1},
+        "m, strictly positive":{"L":1}, "m, nonnegative":{"L":1},
+        "m (same as z)":{"L":1}, "m (or one consistent scene-length unit)":{"L":1},
+        "m, k>0 for polynomial smooth union":{"L":1},
+    }
     required_dims={"L","M","T","I","Theta","N","J"}
+    checked_units=0
     for rid,record in by_id.items():
         variables=record.get("variables",[])
         if not variables:
             invalid.append({"research_id":rid,"reason":"empty_symbol_table"})
         for var in variables:
+            symbol=var.get("symbol")
             if not var.get("symbol") or not var.get("meaning") or not var.get("unit") or not var.get("domain"):
-                invalid.append({"research_id":rid,"reason":"incomplete_variable_definition","symbol":var.get("symbol")})
-            if set((var.get("dimension") or {}).keys()) != required_dims:
-                invalid.append({"research_id":rid,"reason":"dimension_vector_must_have_seven_SI_base_dimensions","symbol":var.get("symbol")})
-    return {"records":len(records),"expected_records":len(expected_ids),"missing_research_ids":missing,"invalid_entries":invalid,
-            "status":"PASS" if not missing and not invalid else "FAIL"}
+                invalid.append({"research_id":rid,"reason":"incomplete_variable_definition","symbol":symbol})
+            dim=var.get("dimension") or {}
+            if set(dim.keys()) != required_dims:
+                invalid.append({"research_id":rid,"reason":"dimension_vector_must_have_seven_SI_base_dimensions","symbol":symbol})
+                continue
+            if any(isinstance(v,bool) or not isinstance(v,(int,float)) or not math.isfinite(v) for v in dim.values()):
+                invalid.append({"research_id":rid,"reason":"dimension_exponents_must_be_finite_numbers","symbol":symbol})
+                continue
+            unit=var.get("unit")
+            expected_dim=unit_dims.get(unit)
+            if expected_dim is None:
+                unresolved_units.append({"research_id":rid,"symbol":symbol,"unit":unit})
+                continue
+            checked_units+=1
+            actual={k:dim[k] for k in required_dims if dim[k] != 0}
+            if actual != expected_dim:
+                invalid.append({"research_id":rid,"reason":"unit_dimension_mismatch","symbol":symbol,
+                                "unit":unit,"declared_dimension":actual,"expected_dimension":expected_dim})
+    unit_status="CONDITIONAL" if unresolved_units else "PASS"
+    return {"records":len(records),"expected_records":len(expected_ids),
+            "missing_research_ids":missing,"unexpected_research_ids":unexpected,
+            "duplicate_research_ids":duplicates,"invalid_entries":invalid,
+            "unit_audit":{"status":unit_status,"checked_known_units":checked_units,
+                          "unresolved_units":unresolved_units,
+                          "meaning":"CONDITIONAL means custom/render-space unit strings still need explicit dimensional normalization."},
+            "status":"PASS" if not missing and not unexpected and not duplicates and not invalid else "FAIL"}
 
 def audit(manifest_path, r31_path, preservation_path, dimensions_path, report_path):
     manifest=json.loads(Path(manifest_path).read_text(encoding="utf-8"))
