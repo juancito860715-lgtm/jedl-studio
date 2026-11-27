@@ -154,3 +154,15 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - Cabello microfacet: transcritos BCSDF R de Ec. (12), NDF GGX de Appendix A Ec. (41) y producto escalar de Ec. (42). Añadido NDF de fibra con fixtures Python/JS. TT/TRT (13)-(24) localizados pero pendientes de implementación numérica independiente; el NDF aislado no certifica el modelo.
 - Pruebas añadidas: XPBD sensibilidad a dt, asignación prioritaria de Reynolds y NDF GGX de fibra. Pendiente consultar CI del head actualizado.
 - Estado: cuatro fichas mejor documentadas; ninguna certificada. Próximo bloque: verificar CI, corregir fallos y continuar las 19 R31 restantes; la paridad entre lenguajes no sustituye referencias matemáticas independientes.
+
+
+## 9. Especificación normalizada de cuatro R31 (2026-11-26)
+
+- Los cuatro registros ahora contienen campos normalizados para variables, ecuaciones con localizador, derivación, entradas/salidas con unidades, secuencia de algoritmo, pseudocódigo, complejidad, mapeo Three.js, fuente y pruebas independientes.
+- XPBD: el bloque escalar de distancia queda derivado y con unidades consistentes; se mantiene `derivation=partial` porque falta validar el solver general de múltiples restricciones y otras clases de C.
+- Kuwahara: se separa explícitamente la ecuación de una escala, validada contra PG 2009, de la extensión multiescala/saliencia que no está cubierta por esa publicación. La escala RGB 0..255 se documenta como parte del contrato numérico.
+- Boids: se implementa y prueba el asignador de aceleraciones por prioridad descrito por Reynolds. Las funciones que generan requests de separación, alineación y evasión predictiva aún no están cerradas; la suma S/A/C del manifiesto no se presenta como fórmula original.
+- Cabello: se transcriben la BCSDF de reflexión (Eq. 12), el GGX NDF (Eq. 41) y el producto escalar de normal inclinada (Eq. 42). El kernel de prueba valida Eq. 41-42; no valida todavía los integrales completos R/TT/TRT.
+- Auditoría local del JSON dimensional: 23 registros presentes; cero variables sin dominio/unidad/vector SI de siete dimensiones.
+- Pruebas numéricas Python y JavaScript pasaron en GitHub Actions run #45915670549, SHA `0d40dd90d68018b9852953afd2a5382085a909e2`. El candado documental pasó en run #45915829789, SHA `c88b1fcbde0553b1be561ec2b140cd4e393076a2`. Las últimas actualizaciones de documentación/dimensiones posteriores a esos runs aún no tienen una nueva ejecución completa del workflow matemático; no se afirma CI verde en el último head.
+- No se ejecutó Godot ni se cambió el motor de producción. La PR #43 continúa en borrador, sin merge.
