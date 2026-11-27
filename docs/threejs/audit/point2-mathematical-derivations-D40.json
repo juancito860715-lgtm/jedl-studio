@@ -45,6 +45,10 @@
       "result": "Catmull–Clark suaviza mallas mediante puntos de cara/arista/vértice y refinamiento de quads.",
       "limits": [
         "Topología irregular y reglas de borde alteran superficie límite."
+      ],
+      "dimensional_verification": [
+        "v_i, F, E tienen L; n es conteo; todos los promedios usan pesos adimensionales.",
+        "Las nuevas posiciones conservan L."
       ]
     },
     {
@@ -81,6 +85,10 @@
       "result": "Loop subdivision suaviza mallas triangulares con pesos dependientes de valence.",
       "limits": [
         "Pesos y reglas de borde afectan suavidad; triángulos degenerados son problemáticos."
+      ],
+      "dimensional_verification": [
+        "v y vecinos tienen L; β y valence n son adimensionales.",
+        "La combinación ponderada conserva L."
       ]
     },
     {
@@ -117,6 +125,10 @@
       "result": "NURBS combina bases B-spline racionales y puntos de control.",
       "limits": [
         "Evaluación exacta depende de bases y knots; trims requieren manejo adicional."
+      ],
+      "dimensional_verification": [
+        "P_ij tienen L; N_i,p y pesos racionales w_ij son adimensionales.",
+        "S(u,v) conserva L; denominador debe ser distinto de cero."
       ]
     },
     {
@@ -153,6 +165,10 @@
       "result": "Cox–de Boor construye recursivamente bases spline de grado creciente.",
       "limits": [
         "Nudos repetidos y extremos requieren convención half-open."
+      ],
+      "dimensional_verification": [
+        "u and knots u_i are dimensionless normalized parameters; basis N_i,p is dimensionless.",
+        "Control point units pass unchanged through the basis sum."
       ]
     },
     {
@@ -189,6 +205,10 @@
       "result": "Bezier evalúa curva como combinación Bernstein de puntos de control.",
       "limits": [
         "Curva queda dentro de envolvente convexa pero no pasa por controles interiores."
+      ],
+      "dimensional_verification": [
+        "t is dimensionless in [0,1]; Bernstein coefficients are dimensionless; P_i have L.",
+        "B(t) retains L and lies in control-point convex hull."
       ]
     },
     {
@@ -225,6 +245,10 @@
       "result": "De Casteljau evalúa y subdivide Bezier mediante interpolación lineal repetida.",
       "limits": [
         "Error de punto flotante puede afectar subdivisión cerca de extremos."
+      ],
+      "dimensional_verification": [
+        "t is dimensionless; every interpolation coefficient is dimensionless; P_i have L.",
+        "The final point retains L."
       ]
     },
     {
@@ -261,6 +285,10 @@
       "result": "El Laplaciano cotangente aproxima Laplace–Beltrami en malla triangular.",
       "limits": [
         "Ángulos obtusos pueden producir pesos negativos y comportamiento no deseado."
+      ],
+      "dimensional_verification": [
+        "cotα and cotβ are dimensionless; Lx has L when x has L.",
+        "If applying M⁻¹L with mass matrix M of area L², result has L⁻¹ and represents curvature scale."
       ]
     },
     {
@@ -277,8 +305,8 @@
         },
         {
           "step": 2,
-          "equation": "gradientArea=−2Hn",
-          "justification": "La variación primera de área es proporcional a curvatura media y normal."
+          "equation": "∂x/∂t=−κ H n, [κ]=L²/T",
+          "justification": "La curvatura media tiene L⁻¹; multiplicar por movilidad κ de unidad L²/T produce velocidad normal L/T."
         },
         {
           "step": 3,
@@ -292,11 +320,16 @@
         }
       ],
       "assumptions": [
-        "Superficie diferenciable; normal y signo de curvatura consistentes."
+        "Superficie diferenciable; normal y signo de curvatura consistentes.",
+        "κ es movilidad geométrica con unidad L²/T; sin ella, la ecuación solo es dimensionalmente válida con tiempo adimensional."
       ],
       "result": "Mean curvature flow deriva de descenso de área por curvatura media.",
       "limits": [
         "Flujo encoge superficie y puede cambiar topología."
+      ],
+      "dimensional_verification": [
+        "H has L⁻¹; n is unitless; x has L; time has T.",
+        "Mobility κ must have L²/T so κHn has L/T, matching ∂x/∂t."
       ]
     },
     {
@@ -338,6 +371,10 @@
       "result": "Marching Cubes extrae triángulos donde campo escalar cruza isovalor.",
       "limits": [
         "Tablas ambiguas pueden generar agujeros; MC33 resuelve algunos casos."
+      ],
+      "dimensional_verification": [
+        "v_a,v_b,iso share field units; interpolation parameter t is dimensionless.",
+        "p_a,p_b and p_iso have L; extracted surface vertices retain L."
       ]
     },
     {
@@ -369,11 +406,16 @@
         }
       ],
       "assumptions": [
-        "Intersecciones y normales coherentes; QEF regularizable."
+        "Intersecciones y normales coherentes; QEF regularizable.",
+        "El término de regularización λ||x−x0||² usa λ adimensional para mantener QEF en L²."
       ],
       "result": "Dual Contouring ubica vértice por celda minimizando QEF.",
       "limits": [
         "QEF mal condicionado requiere regularización y constraints."
+      ],
+      "dimensional_verification": [
+        "n_i are unit vectors; x,p_i have L; each plane residual has L.",
+        "QEF has L²; regularization λ||x−x0||² has L² if λ is dimensionless."
       ]
     },
     {
@@ -410,6 +452,10 @@
       "result": "Eikonal caracteriza campos de distancia con gradiente unitario.",
       "limits": [
         "En eje medial la distancia no es diferenciable; gradiente no único."
+      ],
+      "dimensional_verification": [
+        "φ has L; ∇φ is dimensionless for exact signed distance.",
+        "|∇φ|=1 is dimensionless; zero level set is geometric."
       ]
     },
     {
@@ -446,6 +492,10 @@
       "result": "Boolean SDF expresa operaciones CSG con min/max.",
       "limits": [
         "Smooth operations alteran volumen y distancia exacta."
+      ],
+      "dimensional_verification": [
+        "a,b,k and smooth SDF outputs have L; h is dimensionless.",
+        "min/max and smooth correction preserve L."
       ]
     },
     {
@@ -482,6 +532,10 @@
       "result": "Winding number clasifica interior/exterior sumando ángulos sólidos orientados.",
       "limits": [
         "Orientación inconsistente invierte winding; mallas abiertas complican clasificación."
+      ],
+      "dimensional_verification": [
+        "Solid angle Ω is dimensionless in SI; 1/(4π) and winding number are dimensionless.",
+        "The classification threshold is dimensionless."
       ]
     },
     {
@@ -513,22 +567,30 @@
         }
       ],
       "assumptions": [
-        "QEF y conectividad por celda definidos; λ≥0."
+        "QEF y conectividad por celda definidos; λ≥0.",
+        "El término de regularización λ||x−x0||² usa λ adimensional para mantener QEF en L²."
       ],
       "result": "La variante R31 regulariza QEF para estabilizar la posición de vértice por celda.",
       "limits": [
         "Regularización excesiva desplaza vértices hacia centro y suaviza rasgos."
+      ],
+      "dimensional_verification": [
+        "n_i are unit vectors; x,p_i have L; QEF residual has L².",
+        "Regularization λ dimensionless; x* retains L."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "14/14 técnicas cubiertas, incluida investigación R31 de Dual Contouring.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen subdivisión, splines, geometría diferencial, isosuperficies y clasificación topológica."
+      "14/14 técnicas D40 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Subdivision, NURBS, Bezier y Cox–de Boor conservan coordenadas L con bases adimensionales",
+      "Cotangent Laplacian distingue operador de rigidez y normalización por matriz de masa",
+      "Mean curvature flow incorpora movilidad κ con unidad L²/T",
+      "Marching Cubes, Eikonal, SDF booleans, winding number y QEF mantienen escalas compatibles"
     ],
     "limitations": [
-      "La precisión depende de malla, tolerancias y tratamiento de degeneraciones; validación numérica se realizará en punto 5."
+      "La auditoría no certifica topología de malla, estabilidad de flujo, calidad de QEF ni precisión de extracción; requieren pruebas geométricas y numéricas posteriores."
     ]
   },
   "integrity": {
