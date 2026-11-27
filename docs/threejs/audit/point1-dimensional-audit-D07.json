@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D07 Arquitectura, edificios, puentes y ciudades",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -103,9 +103,9 @@
         "Símbolo sin regla aplica identidad o descarte definido."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "Grammar symbols, production rules, seed and iteration depth are discrete/adimensional; geometry is generated with separately typed parameters.",
+        "Every rule parameter must declare its own units (length, angle, scale, count); rule composition cannot add unlike quantities.",
+        "A finite recursion depth and output-geometry budget bound combinatorial growth."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -171,9 +171,9 @@
         "Costuras entre módulos deben coincidir dentro de tolerancia geométrica."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "Module vertex coordinates and translations have L; affine linear blocks and scale factors are dimensionless.",
+        "The building composition is a collection/union of transformed geometries, not an arithmetic sum of raw coordinate values.",
+        "Module attachment frames must share a declared local coordinate convention and units."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -254,9 +254,9 @@
         "En aleros x=±W/2, altura finita y simétrica."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "x and |x| have L; pitch is dimensionless; pitch·|x| has L and can be added to roofBase.",
+        "W has L and constrains x to [−W/2,W/2]; y is a height with L.",
+        "If pitch is defined as an angle instead of rise/run, use tan(angle), which is dimensionless."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -336,9 +336,9 @@
         "En x=0, z=z0; en bordes fijar continuidad con fascia/aleros."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "x² has L²; coefficient a must have L^-1 so a x² has L.",
+        "z0 and z(x) have L; x and z must use the same scene-length unit.",
+        "Spline alternative must return a length-valued height for each length-valued or normalized parameter."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -417,9 +417,9 @@
         "θ inicial/final define apertura; arco completo requiere costura 0/2π."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "r, cx, cy, x and y have L; sinθ and cosθ are dimensionless.",
+        "θ is in radians and its interval determines arc span; r>0 for a non-degenerate arc.",
+        "The parametric circle equation preserves length in both coordinates."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -514,9 +514,9 @@
         "r(0)=r(2π); continuidad periódica de derivadas."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "r0 and A have L; cos(nθ) is dimensionless, so r(θ) has L.",
+        "n is an integer count and nθ is a valid angular argument; |A|≤r0 prevents negative radius.",
+        "θ is in radians; periodicity is 2π/n for positive integer n."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -596,9 +596,9 @@
         "n=0 coincide con origen; último peldaño usa n=N−1 o N según convención declarada."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "rise and run have L; n is an integer count; n·rise and n·run have L.",
+        "y0,z0 and resulting y_n,z_n have L; all stair dimensions use the same length unit.",
+        "N is a count; define whether n indexes risers or treads to avoid off-by-one geometry."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -692,9 +692,9 @@
         "s=0 y s=1 conectan con estribos; barandas terminan con regla de cierre declarada."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "C(s), offset, height, deck and railing positions have L; s is dimensionless in [0,1].",
+        "offset must be a vector in a declared local frame; scalar lateral offset requires a unit lateral direction.",
+        "The bridge frame must remain regular; near-zero tangent needs a stable frame fallback."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -790,9 +790,9 @@
         "En límites de celda mantener continuidad o juntas intencionales declaradas."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "δ, bevel and vertex positions have L; cell indices and seed are discrete/adimensional.",
+        "Seeded offsets must be bounded relative to cell dimensions; bevel cannot exceed local feature size without self-intersection.",
+        "Partition cell coordinates are geometric lengths; indices only identify cells and do not represent lengths."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -873,9 +873,9 @@
         "Patrón vacío produce fachada maciza."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "bays and floors are integer counts; W,H and opening dimensions have L.",
+        "Opening widths/heights must fit within each bay/floor module; grid spacing derived from W/bays and H/floors has L.",
+        "Pattern masks are dimensionless/discrete; facade coordinates remain length-valued."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -971,9 +971,9 @@
         "Esquinas con restricciones múltiples deben ser compatibles."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "u,v are dimensionless; p0 and windDisplacement have L, so p(u,v,t) has L.",
+        "Wind displacement must be a position offset; wind velocity or force must first be integrated/converted to displacement.",
+        "Fixed-edge constraints prescribe position (L) or displacement zero; time-dependent wind functions must have declared time units."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1069,17 +1069,20 @@
         "En amplitud cero queda en equilibrio."
       ],
       "dimensional_checks": [
-        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
-        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
-        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+        "g/ℓ has T^-2; its square root has T^-1; multiplying by t yields a dimensionless angular argument.",
+        "θ, A and φ are angles in radians; g has L/T² and ℓ has L.",
+        "Small-angle approximation requires |A|≪1 rad; large swings require solving the nonlinear pendulum equation."
       ],
       "status": "REVIEWED_POINT1"
     }
   ],
   "validation": {
     "structural_checks": [
-      "12/12 registros incluidos",
-      "Todos los registros incluyen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales"
+      "12/12 técnicas incluidas; ninguna está protegida",
+      "Cada registro contiene variables, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas"
+    ],
+    "limitations": [
+      "Revisión dimensional y estructural; derivaciones formales, algoritmos y pruebas numéricas corresponden a puntos posteriores."
     ]
   },
   "integrity": {
