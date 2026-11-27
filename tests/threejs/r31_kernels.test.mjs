@@ -5,6 +5,7 @@ const near=(a,b,tol=1e-9)=>assert.ok(Math.abs(a-b)<=tol, `${a} != ${b}`);
 const vec=(a,b,tol=1e-9)=>{assert.equal(a.length,b.length);a.forEach((v,i)=>near(v,b[i],tol));};
 
 test("temporal quantization matches Python references",()=>{near(k.quantizedTime(1.13,12),13/12);near(k.quantizedTime(-.01,12),-1/12);});
+test("temporal channel hold and linear policies match independent reference",()=>{const keys=[[0,0],[1,10],[2,20]];near(k.evaluateQuantizedChannel(keys,1.09,10,"hold"),10);near(k.evaluateQuantizedChannel(keys,1.19,10,"linear"),11);near(k.evaluateQuantizedChannel(keys,-1,10,"linear"),0);near(k.evaluateQuantizedChannel(keys,3,10,"hold"),20);assert.throws(()=>k.evaluateQuantizedChannel(keys,1,10,"cubic"),RangeError);assert.throws(()=>k.evaluateQuantizedChannel([[0,1],[0,2]],1,10),RangeError);});
 test("smooth minimum matches Python reference",()=>{near(k.smoothMin(0,0,.5),-.125);near(k.smoothMin(0,2,.5),0);});
 test("XPBD rigid projection matches Python reference",()=>{vec(k.xpbdDistanceStep(0,2,1,1,1,0,1),[.5,1.5,-.5]);});
 test("RK4 exponential decay matches Python reference",()=>{let y=1;for(let i=0;i<10;i++)y=k.rk4Scalar(v=>-v,y,i*.1,.1);near(y,.3678797744124984,1e-12);});
@@ -15,6 +16,7 @@ test("structure tensor orientation matches reference",()=>{near(k.structureTenso
 test("dual quaternion normalization matches Python reference",()=>{const [r,d]=k.dualQuaternionNormalize([2,0,0,0],[1,3,0,0]);vec(r,[1,0,0,0]);vec(d,[0,1.5,0,0]);});
 test("FABRIK preserves lengths and reaches target",()=>{const p=k.fabrik([[0,0],[1,0],[2,0]],[1,1],[1,1],[0,0]);near(Math.hypot(p[2][0]-1,p[2][1]-1),0,1e-7);near(Math.hypot(p[1][0]-p[0][0],p[1][1]-p[0][1]),1);});
 test("stop-motion jitter deterministic and bounded",()=>{const v=k.deterministicJitter(12,77,0,.1);near(v,.03660585642792285,1e-15);assert.ok(v>=-.1&&v<.1);});
+test("stop-motion jitter long-sequence mean and variance stay within statistical envelope",()=>{const a=.2,values=Array.from({length:12000},(_,i)=>k.deterministicJitter(i,913,0,a));const mean=values.reduce((s,v)=>s+v,0)/values.length;const variance=values.reduce((s,v)=>s+(v-mean)**2,0)/values.length;assert.ok(Math.abs(mean)<.004);near(variance,a*a/3,.0015);assert.deepEqual(values,Array.from({length:12000},(_,i)=>k.deterministicJitter(i,913,0,a)));});
 test("GGX NDF reference values",()=>{near(k.ggxNdf(1,.5),1.2732395447351628);near(k.ggxNdf(0,.5),.07957747154594767);});
 test("hair GGX NDF and tilted half-vector match Huang et al. Appendix A",()=>{near(k.hairGgxNdf(0,.5),.25/Math.PI);near(k.hairGgxNdf(1,.5),4/Math.PI);near(k.hairTiltedHalfDot(0,.3,.3,0),1);assert.throws(()=>k.hairGgxNdf(1,0),RangeError);});
 test("Reynolds prioritized acceleration allocation trims the final request",()=>{vec(k.prioritizedAccelerationAllocation([[[.8,0,0],1],[[0,.8,0],1]],1),[.8,.2,0]);vec(k.prioritizedAccelerationAllocation([[[.6,0,0],1],[[0,.2,0],1]],1),[.6,.2,0]);vec(k.prioritizedAccelerationAllocation([[[1,0,0],0]],2),[0,0,0]);assert.throws(()=>k.prioritizedAccelerationAllocation([[[1,0],1]],1),RangeError);});
