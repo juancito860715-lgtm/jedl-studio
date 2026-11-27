@@ -44,7 +44,7 @@ class D06ReferenceValidationTests(unittest.TestCase):
         hair = next(r for r in self.data["records"] if r["record_key"] == "D06:11")
         self.assertEqual(hair["local_adaptation_status"], "APPROXIMATION_TESTS_PASSED_MODEL_INCOMPLETE")
         self.assertEqual(hair["certification_status"], "PENDING_FULL_MARSCHNER_MODEL")
-        self.assertIn("not", hair["implementation_note"].lower())
+        self.assertIn("no está implementado", hair["implementation_note"].lower())
 
     def test_complete_algorithm_document_covers_all_open_records(self):
         point3 = json.loads(POINT3.read_text(encoding="utf-8"))
