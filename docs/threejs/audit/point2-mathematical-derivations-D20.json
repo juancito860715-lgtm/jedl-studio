@@ -47,6 +47,10 @@
       "result": "Instancing deriva de separar datos geométricos compartidos y transformaciones por objeto.",
       "limits": [
         "No todos los objetos se pueden agrupar si cambian materiales, transparencias o estados."
+      ],
+      "dimensional_verification": [
+        "N batches y draw calls son conteos enteros; memoria de geometría se mide en bytes.",
+        "Una llamada por batch requiere mismo material/estado compatible; instancing no convierte automáticamente todos los objetos en una llamada."
       ]
     },
     {
@@ -85,6 +89,10 @@
       "result": "La deformación GPU deriva de aplicar una misma función paralela a cada vértice.",
       "limits": [
         "Para restricciones entre vértices se necesita reducción, etapas múltiples o compute específico."
+      ],
+      "dimensional_verification": [
+        "vertex y desplazamiento tienen L; time tiene T; velocity uniform L/T si se integra.",
+        "F debe devolver posición L o desplazamiento L según el contrato del shader."
       ]
     },
     {
@@ -123,6 +131,10 @@
       "result": "Baking deriva de precomputar un campo y aproximarlo mediante almacenamiento muestreable.",
       "limits": [
         "Cambios de parámetros invalidan bake; dependencias dinámicas no incluidas no se actualizan."
+      ],
+      "dimensional_verification": [
+        "p tiene L; frecuencia de bake L⁻¹; coordenadas de textura son adimensionales.",
+        "La textura horneada conserva unidad/tipo del campo almacenado; resolución son píxeles."
       ]
     },
     {
@@ -156,11 +168,16 @@
       ],
       "assumptions": [
         "T_target,T_measured>0; medición estable.",
-        "El cuello de botella es mayormente proporcional a píxeles."
+        "El cuello de botella es mayormente proporcional a píxeles.",
+        "La actualización cuadrática de scale solo es válida cuando el coste variable dominante escala aproximadamente con el área de píxeles; recalibrar si CPU/geometry domina."
       ],
       "result": "La calidad adaptativa ajusta escala de render a partir de relación coste/área.",
       "limits": [
         "No corrige cuellos de botella CPU/geométricos ni variación transitoria."
+      ],
+      "dimensional_verification": [
+        "targetMs y measuredMs tienen T; su cociente y scale son adimensionales.",
+        "La ley scale_next=scale·sqrt(target/measured) supone coste dominado por píxeles y proporcional a scale²."
       ]
     },
     {
@@ -199,6 +216,10 @@
       "result": "La resolución dinámica deriva de escalar ancho y alto con el mismo factor.",
       "limits": [
         "La calidad espacial cae con resolución; sharpening no recupera detalle perdido."
+      ],
+      "dimensional_verification": [
+        "displayWidth y renderWidth tienen px; scale es adimensional; renderWidth=displayWidth·scale conserva px.",
+        "Redondeo a entero se aplica al final; límites de resolución son px."
       ]
     },
     {
@@ -211,33 +232,38 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "T_target=1000/FPS_target ms",
-          "justification": "Convertir frecuencia objetivo a presupuesto temporal."
+          "equation": "T_budget=1000/FPS_target  [ms]",
+          "justification": "Convertir la frecuencia objetivo en el tiempo disponible por frame."
         },
         {
           "step": 2,
-          "equation": "T_CPU,T_GPU,T_present",
-          "justification": "Medir etapas críticas."
+          "equation": "T_frame=T_CPU+T_GPU+T_sync  (trabajo secuencial)",
+          "justification": "Si las fases se ejecutan en serie, sumar sus duraciones y sincronizaciones."
         },
         {
           "step": 3,
-          "equation": "T_frame≈max(T_CPU,T_GPU,T_present)",
-          "justification": "En pipeline solapado, el throughput está limitado por la etapa más lenta."
+          "equation": "T_frame≤T_budget",
+          "justification": "La suma secuencial debe caber en el intervalo entre frames para sostener la frecuencia objetivo."
         },
         {
           "step": 4,
-          "equation": "T_CPU+T_GPU≤T_target",
-          "justification": "Usar suma como límite conservador si las etapas se ejecutan secuencialmente/no solapadas."
+          "equation": "T_throughput≈max(T_CPU,T_GPU) cuando CPU/GPU se solapan",
+          "justification": "En una tubería completamente solapada, el componente más lento limita el throughput; stalls, transferencias y sincronización añaden coste."
         }
       ],
       "assumptions": [
         "FPS_target>0; tiempos medidos en misma unidad.",
         "Distinguir latencia total de throughput pipelined.",
-        "Vsync/presentación incluida si afecta objetivo."
+        "Vsync/presentación incluida si afecta objetivo.",
+        "No usar T_CPU+T_GPU como throughput en pipeline solapado; medir frame time, latency y stalls por separado."
       ],
-      "result": "El presupuesto se deriva del periodo de frame y del camino crítico CPU/GPU.",
+      "result": "El presupuesto por frame se deriva del periodo de presentación; la condición correcta depende de si CPU y GPU trabajan en serie o solapadas.",
       "limits": [
         "Sumar CPU y GPU no siempre refleja frame time cuando hay solapamiento; declarar modelo de ejecución."
+      ],
+      "dimensional_verification": [
+        "CPU_ms, GPU_ms y frameBudget tienen T; FPS_target tiene T⁻¹; 1000/FPS_target queda en ms.",
+        "CPU+GPU es presupuesto de suma solo si los trabajos son secuenciales; en pipeline solapado el throughput queda limitado por max(CPU,GPU) más esperas/sincronización."
       ]
     },
     {
@@ -277,6 +303,10 @@
       "result": "Profiling deriva de mediciones temporales y contadores correlacionados con carga.",
       "limits": [
         "Una única muestra no representa rendimiento sostenido; medir warmup y p95/p99."
+      ],
+      "dimensional_verification": [
+        "frameTime tiene T; drawCalls y triangles son conteos; textureMemory tiene bytes.",
+        "Métricas heterogéneas se registran por separado; no sumarlas sin normalización."
       ]
     },
     {
@@ -315,6 +345,10 @@
       "result": "Las semillas indexadas permiten reproducir variación procedural independientemente del orden de render.",
       "limits": [
         "Cambiar PRNG/hash/version altera resultados; guardar versión junto a proyecto."
+      ],
+      "dimensional_verification": [
+        "seed e index son enteros discretos; PRNG devuelve número adimensional en [0,1).",
+        "Al mapear [0,1) a rango físico, amplitud y offset aportan la unidad del parámetro generado."
       ]
     },
     {
@@ -348,11 +382,16 @@
       ],
       "assumptions": [
         "Color space, exposure, viewport y antialiasing fijados.",
-        "Tolerancia τ calibrada; máscara de regiones variables declarada."
+        "Tolerancia τ calibrada; máscara de regiones variables declarada.",
+        "Comparación requiere misma cámara, resolución, exposición, color space, renderer y condiciones deterministas."
       ],
       "result": "Golden-frame testing deriva de métricas de diferencia entre render y referencia.",
       "limits": [
         "Un único MAE puede ocultar defectos localizados; combinar métricas y revisión visual."
+      ],
+      "dimensional_verification": [
+        "Imagen de referencia y render tienen misma resolución/espacio; pixel values comparten codificación.",
+        "ε_abs tiene unidad del canal de pixel o es adimensional para color normalizado; métricas agregadas conservan convención."
       ]
     },
     {
@@ -375,8 +414,8 @@
         },
         {
           "step": 3,
-          "equation": "pass iff e_abs≤atol+rtol·|y_ref|",
-          "justification": "Usar tolerancia mixta absoluta/relativa."
+          "equation": "|f(x)−expected|≤ε_abs+ε_rel·|expected|",
+          "justification": "Combinar tolerancia absoluta para valores cercanos a cero con tolerancia relativa para magnitudes grandes."
         },
         {
           "step": 4,
@@ -387,11 +426,16 @@
       "assumptions": [
         "Referencia independiente; tolerancias justificadas.",
         "Entradas y salidas con unidades declaradas.",
-        "ε>0 para referencia cercana a cero."
+        "ε>0 para referencia cercana a cero.",
+        "ε_abs comparte unidad con la salida; ε_rel es adimensional."
       ],
       "result": "La prueba numérica deriva de una norma de error con tolerancia absoluta y relativa.",
       "limits": [
         "Una tolerancia arbitraria puede ocultar errores o producir falsos fallos; justificar por escala y precisión."
+      ],
+      "dimensional_verification": [
+        "f(x) y expected comparten unidad; ε_abs tiene esa unidad y ε_rel es adimensional.",
+        "La comparación absoluta/relativa no mezcla escalas incompatibles."
       ]
     },
     {
@@ -431,6 +475,10 @@
       "result": "Los tiers derivan de clasificación por límites/funciones medidas y coste observado.",
       "limits": [
         "La clasificación debe adaptarse a temperatura, batería y carga variable si se busca rendimiento sostenido."
+      ],
+      "dimensional_verification": [
+        "FrameCost tiene T; límites GPU son conteos/bytes y extensiones son categorías discretas.",
+        "La clasificación devuelve tier discreto; no asigna unidad física al tier."
       ]
     },
     {
@@ -475,17 +523,24 @@
       "result": "El ciclo de vida se deriva de contabilidad de propiedad/referencias y liberación al quedar sin uso.",
       "limits": [
         "Liberar antes de tiempo rompe consumidores; no liberar genera fuga de GPU memory."
+      ],
+      "dimensional_verification": [
+        "resourceBytes tiene bytes; refCount es entero adimensional; tiempo de vida es estado discreto.",
+        "dispose ocurre cuando referencias activas llegan a cero y no altera unidades de otros recursos."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "12/12 técnicas cubiertas.",
-      "Cada derivación contiene pasos matemáticos justificados, supuestos y límites.",
-      "Se distingue frame time secuencial de throughput CPU/GPU solapado y se explicita el supuesto del modelo."
+      "12/12 técnicas D20 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos, justificación, supuestos, límites y verificación dimensional",
+      "Frame budget distingue ejecución secuencial de pipeline CPU/GPU solapado",
+      "Adaptive quality declara la hipótesis de coste proporcional a píxeles²",
+      "Golden frame fija cámara, resolución, exposición y espacio de color",
+      "Numerical tests combinan tolerancia absoluta y relativa con unidades correctas"
     ],
     "limitations": [
-      "Las derivaciones especifican criterios y métricas; los umbrales finales deben medirse en dispositivos objetivo en puntos posteriores."
+      "Los criterios matemáticos no fijan umbrales universales; el rendimiento debe medirse en los dispositivos objetivo."
     ]
   },
   "integrity": {
