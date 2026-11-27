@@ -642,61 +642,164 @@
         "formula_level_status": "NO_EXTERNAL_FORMULA_CLAIM"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
-        "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
-          "notes": [
-            "f_s en Hz; t en segundos."
-          ]
-        },
-        "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
-        },
-        "assumptions": [
-          "Separar frecuencia de pose de frecuencia de render; interpolación solo en canales explícitamente permitidos."
-        ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
-        "complexity": {
-          "time": null,
-          "space": null
-        },
-        "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
-        },
-        "source_claims": [
+        "formulation_type": "DETERMINISTIC_FLOOR_BASED_TEMPORAL_SAMPLE_QUANTIZATION",
+        "symbol_table": [
           {
-            "url": "Floor-based sample quantization is a deterministic sampling convention; no paper is claimed for this exact formula.",
-            "type": "AUTHORED_IMPLEMENTATION_CONVENTION",
-            "formula_level_status": "NO_EXTERNAL_FORMULA_CLAIM",
-            "exact_equation_locator": null
+            "symbol": "t",
+            "meaning": "tiempo solicitado",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "f_s",
+            "meaning": "frecuencia de muestras de pose",
+            "unit": "Hz",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "k",
+            "meaning": "índice de muestra",
+            "unit": "count",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "t_q",
+            "meaning": "tiempo cuantizado",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
           }
         ],
+        "dimensional_analysis": {
+          "status": "AUDITED_FOR_DECLARED_CORE",
+          "notes": [
+            "Auditoría limitada a las variables y ecuaciones declaradas; no certifica variantes no descritas."
+          ]
+        },
+        "equations": [
+          {
+            "expression": "k=floor(t*f_s)",
+            "meaning": "índice de muestra",
+            "dimensional_check": "pass",
+            "status": "authored_convention"
+          },
+          {
+            "expression": "t_q=k/f_s",
+            "meaning": "instante de muestra en el borde izquierdo",
+            "dimensional_check": "pass",
+            "status": "authored_convention"
+          },
+          {
+            "expression": "pose(t)=F(t_q)",
+            "meaning": "evaluación de pose cuantizada",
+            "dimensional_check": "pass",
+            "status": "authored_convention"
+          }
+        ],
+        "derivation": {
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "t*f_s es adimensional porque T*T^-1=1.",
+            "floor produce índice entero k; k/f_s vuelve a segundos.",
+            "Para t en [k/f_s,(k+1)/f_s), se conserva el tiempo de muestra k/f_s.",
+            "floor, a diferencia de truncamiento hacia cero, define intervalos coherentes para tiempos negativos."
+          ]
+        },
+        "assumptions": [
+          "f_s finita y estrictamente positiva; t finito.",
+          "Es una convención de muestreo del proyecto, no una ley física ni una fórmula atribuida a una publicación.",
+          "La frecuencia de pose es independiente de la frecuencia de render; la interpolación de cámara/FX es una política separada."
+        ],
+        "valid_domain": [
+          "t positivo y negativo admitidos si finitos.",
+          "En t=m/f_s se selecciona exactamente m/f_s.",
+          "f_s<=0 es inválido."
+        ],
+        "boundary_conditions": [
+          "Tiempo solicitado t",
+          "Frecuencia de pose f_s",
+          "Evaluador determinista F"
+        ],
+        "inputs": [
+          "Tiempo cuantizado y pose F(t_q)"
+        ],
+        "outputs": [
+          "Validar t y f_s finitos y f_s>0.",
+          "Calcular k=floor(t*f_s).",
+          "Calcular t_q=k/f_s.",
+          "Evaluar F(t_q)."
+        ],
+        "algorithm_completeness": "CORE_KERNEL_COMPLETE_FULL_METHOD_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_REFERENCE_KERNEL_TESTED",
+        "complexity": "Evaluar el rig desde un reloj absoluto y el timestamp cuantizado; no acumular deltas por frame. Esto permite búsqueda temporal y render de fotogramas fuera de orden. La interpolación visual debe ser una política separada.",
+        "threejs_binding": {
+          "status": "CORE_MAPPING_DEFINED_FULL_INTEGRATION_PENDING",
+          "details": {
+            "url": "No se reclama publicación externa; convención de muestreo creada para el proyecto.",
+            "type": "AUTHORED_IMPLEMENTATION_CONVENTION",
+            "supported_claim": "Solo la convención de cuantización temporal floor del manifiesto.",
+            "formula_level_status": "authored_convention",
+            "exact_equation_locator": "Convención del proyecto: k=floor(t*f_s), t_q=k/f_s; no se atribuye a fuente externa."
+          }
+        },
+        "source_claims": [
+          [
+            "1.13 s a 12 Hz -> 13/12 s.",
+            "-0.01 s a 12 Hz -> -1/12 s.",
+            "1 s a 12 Hz -> 1 s."
+          ]
+        ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "Mismos casos positivos, negativos y de frontera que Python.",
+              "oracle": "oráculo numérico independiente"
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Tiempos negativos; fronteras exactas; overflow de t*f_s; frecuencia cero o negativa.",
+              "oracle": "paridad cruzada con Python"
+            }
+          ]
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Definir interpolación/hold por canal",
+        "Validar determinismo del evaluador completo del rig",
+        "Pruebas de límites temporales y precisión de coma flotante"
       ]
     },
     {
@@ -2825,61 +2928,171 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "POLYNOMIAL_SMOOTH_MINIMUM_FOR_SIGNED_DISTANCE_FIELDS",
+        "symbol_table": [
+          {
+            "symbol": "a,b",
+            "meaning": "valores de distancia con signo",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "k",
+            "meaning": "radio de mezcla",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "h",
+            "meaning": "peso de mezcla",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "d_s",
+            "meaning": "distancia combinada",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "k y a,b en unidades de distancia del mismo espacio."
+            "Auditoría limitada a las variables y ecuaciones declaradas; no certifica variantes no descritas."
           ]
         },
+        "equations": [
+          {
+            "expression": "h=max(k-|a-b|,0)/k",
+            "meaning": "peso de mezcla para k>0",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "smin=min(a,b)-k*h^2/4",
+            "meaning": "mínimo polinómico cuadrático",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "k=0 => min(a,b)",
+            "meaning": "convención de límite duro",
+            "dimensional_check": "pass",
+            "status": "authored_convention"
+          }
+        ],
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "a,b,k son longitudes; h es adimensional.",
+            "Fuera de |a-b|<k, h=0 y el resultado coincide exactamente con min(a,b).",
+            "Dentro de la banda, la corrección k*h²/4 tiene unidad de longitud; en a=b alcanza k/4.",
+            "La operación es simétrica en sus dos operandos y smin<=min(a,b)."
+          ]
         },
         "assumptions": [
-          "a,b deben usar la misma convención de signo y unidad; verificar límites y gradientes antes de sphere tracing."
+          "Esta es la variante polinómica, distinta de las variantes exponencial, power y root.",
+          "La composición anidada depende del orden de evaluación.",
+          "Los campos de entrada deben usar una misma escala y convención de signo."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "valid_domain": [
+          "a,b finitos; k>=0; una misma unidad de distancia."
+        ],
+        "boundary_conditions": [
+          "k=0 retorna min(a,b).",
+          "|a-b|>=k retorna min(a,b).",
+          "a=b retorna min(a,b)-k/4 para k>0.",
+          "Las cadenas de más de dos operandos requieren orden explícito."
+        ],
+        "inputs": [
+          "Dos estimaciones de distancia con signo",
+          "Radio de mezcla k"
+        ],
+        "outputs": [
+          "Estimación de distancia combinada"
+        ],
+        "algorithm_completeness": "CORE_KERNEL_COMPLETE_FULL_METHOD_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_REFERENCE_KERNEL_TESTED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(1) por combinación",
+          "space": "O(1)"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_FULL_INTEGRATION_PENDING",
+          "details": "Operador SDF CPU o función GLSL/TSL para ray marching. k debe permanecer en las mismas unidades de distancia que los campos. El resultado no debe tratarse automáticamente como SDF euclídeo exacto."
         },
         "source_claims": [
           {
-            "url": "https://diglib.eg.org/server/api/core/bitstreams/fd2a57a6-f1fa-4c74-8b3e-9aea2aeb6047/content",
-            "type": "PRIMARY_DISSERTATION_FOR_SMOOTH_UNION_FAMILY",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "url": "https://iquilezles.org/articles/smin/",
+            "type": "AUTHOR_PRIMARY_TECHNICAL_ARTICLE",
+            "supported_claim": "Variantes smooth-min y fórmula polinómica cuadrática, parámetro de radio y derivación del término corrector.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Iñigo Quilez, Smooth Minimum (2013), secciones 'Several implementations' (polynomial smooth min 2) y 'Derivation'."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "(0,0,0.5) produce -0.125.",
+              "oracle": "oráculo numérico independiente"
+            },
+            {
+              "description": "Para |a-b|>=k, devuelve min(a,b).",
+              "oracle": "oráculo numérico independiente"
+            },
+            {
+              "description": "Simetría en a,b y resultado <= min(a,b).",
+              "oracle": "oráculo numérico independiente"
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Mismos casos de punto medio, banda disjunta y simetría que Python.",
+              "oracle": "paridad cruzada con Python"
+            }
+          ],
+          "edge_cases": [
+            "k=0; k negativo; campos iguales; límite |a-b|=k; sensibilidad al orden en mezclas anidadas."
+          ]
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Validar límites conservativos para familias de SDF",
+        "Pruebas de continuidad de gradiente/normal y pasos de ray marching",
+        "Definir orden y agrupación de composiciones de múltiples primitivas"
       ]
     },
     {
