@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D09 Iluminación, sombras y exposición",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -61,37 +61,41 @@
         {
           "step": 1,
           "equation": "R=2(N·L)N−L",
-          "justification": "Reflejar la dirección de luz L alrededor de la normal unitaria N."
+          "justification": "La reflexión especular de una dirección unitaria L alrededor de la normal unitaria N conserva magnitud y cambia el signo de la componente normal."
         },
         {
           "step": 2,
           "equation": "s=max(R·V,0)",
-          "justification": "Medir alineación entre rayo reflejado y dirección de vista."
+          "justification": "El producto escalar mide alineación con la vista; el clamp elimina contribuciones fuera del hemisferio especular."
         },
         {
           "step": 3,
-          "equation": "I_s=k_s s^n",
-          "justification": "Elevar alineación a exponente n para controlar concentración del brillo."
+          "equation": "S_Phong=k_s s^n",
+          "justification": "Construir un lóbulo normalizado adimensional; k_s y n son parámetros sin dimensión."
         },
         {
           "step": 4,
-          "equation": "I=I_d+I_s",
-          "justification": "Sumar componentes difusa y especular en la convención del modelo."
+          "equation": "L_s=L_i S_Phong",
+          "justification": "Multiplicar el lóbulo por radiancia incidente convierte el coeficiente adimensional en radiancia especular."
+        },
+        {
+          "step": 5,
+          "equation": "L_o=L_d+L_s",
+          "justification": "Sumar contribuciones solo después de expresarlas en la misma unidad y espacio radiométrico."
         }
       ],
       "assumptions": [
-        "N,L,V unitarios; k_s≥0; n>0.",
-        "Color y luz en mismo espacio de color.",
-        "Phong es modelo empírico."
+        "Direcciones L,V,N normalizadas; R se calcula en el mismo marco.",
+        "El modelo Phong es un lóbulo empírico, no una BRDF físicamente normalizada por sí solo."
       ],
-      "result": "El lóbulo especular se deriva de la potencia del coseno entre reflexión ideal y vista.",
+      "result": "Phong genera un coeficiente especular adimensional a partir de la reflexión ideal; la radiancia incidente lo escala para producir una contribución sumable a la radiancia difusa.",
       "limits": [
         "No conserva energía de forma estricta y depende de interpolación/normalización."
       ],
       "sources": [],
       "dimensional_verification": [
-        "R y V son unitarios; R·V y k_s son adimensionales.",
-        "I_s conserva la escala/unidad de la intensidad de iluminación."
+        "R,V,N y S_Phong son adimensionales; k_s y n son parámetros adimensionales.",
+        "L_i·S_Phong tiene W·m⁻²·sr⁻¹; L_d y L_s comparten radiancia antes de sumarse."
       ]
     },
     {
@@ -105,37 +109,41 @@
         {
           "step": 1,
           "equation": "H=normalize(L+V)",
-          "justification": "Construir vector half-way entre luz y vista."
+          "justification": "La suma de direcciones luz y vista define el half-vector cuando no son opuestas."
         },
         {
           "step": 2,
           "equation": "s=max(N·H,0)",
-          "justification": "Medir alineación entre normal y half-vector."
+          "justification": "Medir alineación entre la normal y el half-vector."
         },
         {
           "step": 3,
-          "equation": "I_s=k_s s^n",
-          "justification": "Controlar anchura/intensidad del lóbulo con exponente."
+          "equation": "S_Blinn=k_s s^n",
+          "justification": "Formar un lóbulo especular adimensional controlado por coeficiente y exponente."
         },
         {
           "step": 4,
-          "equation": "I=I_d+I_s",
-          "justification": "Combinar con iluminación difusa."
+          "equation": "L_s=L_i S_Blinn",
+          "justification": "Escalar el lóbulo con radiancia incidente para obtener radiancia especular."
+        },
+        {
+          "step": 5,
+          "equation": "L_o=L_d+L_s",
+          "justification": "Combinar difuso y especular en la misma unidad radiométrica."
         }
       ],
       "assumptions": [
-        "L,V,N unitarios; L+V no nulo.",
-        "k_s≥0 y n>0.",
-        "Convención de direcciones entrantes/salientes consistente."
+        "L y V no son vectores opuestos; H se normaliza solo si L+V≠0.",
+        "El lóbulo es empírico y requiere calibración/energía separada si se usa como modelo físico."
       ],
-      "result": "Blinn–Phong reemplaza el vector reflejado por el half-vector para un cálculo especular más simple.",
+      "result": "Blinn–Phong sustituye la dirección reflejada por el half-vector y produce un coeficiente especular adimensional que se escala por la radiancia incidente.",
       "limits": [
         "El exponente no se corresponde directamente con rugosidad física; requiere calibración."
       ],
       "sources": [],
       "dimensional_verification": [
-        "H,N son unitarios; N·H es adimensional.",
-        "El lóbulo especular conserva la escala de la iluminación; n es exponente adimensional."
+        "H,N son unitarios; N·H, k_s, n y S_Blinn son adimensionales.",
+        "L_i·S_Blinn tiene W·m⁻²·sr⁻¹; L_d y L_s se suman homogéneamente."
       ]
     },
     {
@@ -597,7 +605,8 @@
       "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
       "Volumetric light usa integral angular de fase para conservar radiancia y unidades",
       "BRDF, reflectancia, radiancia, irradiancia, profundidad y señal display se mantienen diferenciadas",
-      "Planck spectral radiance integra en longitud de onda para obtener radiancia"
+      "Planck spectral radiance integra en longitud de onda para obtener radiancia",
+      "Phong y Blinn–Phong distinguen el lóbulo adimensional de la radiancia incidente, evitando sumar coeficiente sin unidad a radiancia."
     ],
     "limitations": [
       "Las expresiones son modelos de iluminación y aproximaciones declaradas; la implementación GPU, calibración espectral y pruebas visuales corresponden a puntos posteriores."
