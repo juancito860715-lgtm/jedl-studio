@@ -53,6 +53,7 @@ jobs:
             --report threejs-readiness-report.json
       - name: Publish report into repository
         if: always() && hashFiles('threejs-manifest-audit.json') != ''
+        continue-on-error: true
         run: |
           mkdir -p docs/threejs/audit
           cp threejs-manifest-audit.json docs/threejs/audit/latest.json
@@ -63,8 +64,13 @@ jobs:
           if [ -f docs/threejs/audit/latest-implementation-readiness.json ]; then git add docs/threejs/audit/latest-implementation-readiness.json; fi
           if ! git diff --cached --quiet; then
             git commit -m "Publish Three.js manifest audit report"
-            git pull --rebase origin "$GITHUB_REF_NAME"
-            git push
+            for attempt in 1 2 3; do
+              git pull --rebase origin "$GITHUB_REF_NAME"
+              if git push; then exit 0; fi
+              git fetch origin "$GITHUB_REF_NAME"
+              sleep 1
+            done
+            echo "::warning::Audit report is available as a workflow artifact; repository report publication lost a concurrent update race."
           fi
       - name: Upload audit report artifact
         if: always()
