@@ -5951,8 +5951,9 @@
           "c^(n+1)(x)≈c^n(x−u(x)Δt)"
         ],
         "clarification": [
-          "El retrotrazado básico usa x_back=x−Δt·u(x) como aproximación de primer orden; para campos variables, integrar trayectoria backward mejora el muestreo.",
-          "La actualización completa debe separar advección, difusión y secado, y definir condiciones de borde/interpolación; no confundir el algoritmo procedural de pigmento con solver físico de Navier–Stokes."
+          "The characteristic solution c^(n+1)(x)=c^n(p(x,-dt)) is the source-backed relation; x-dt*u(x) is a first-order backtrace approximation, not the exact path for arbitrary spatially varying velocity.",
+          "The diffusion coefficient D and drying rate k belong to separate operator-split terms and are not part of the pure advection kernel.",
+          "The 2D reference uses cell-centered bilinear interpolation and clamp boundaries; a production watercolor simulation must define obstacle, periodic and drying/deposition policies separately."
         ],
         "assumptions": [
           "Velocidad en unidades de espacio/segundo; concentración y difusión definidas por escala."
@@ -5960,86 +5961,418 @@
         "units": [
           "u: unidades/s; Δt:s; D: unidades²/s; k:s⁻¹."
         ],
-        "status": "CLARIFICATION_PROPOSED",
+        "status": "CORRECTED_CHARACTERISTIC_AND_OPERATOR_SPLIT",
         "source": "REF-DIVERDI-2013"
       },
       "existing_source_coverage": {
         "research_id": "R31-ADVECCI-N-SEMI-LAGRANGIANA-DE-PIGMENTO",
         "source_type": "PRIMARY_ARTICLE_ABSTRACT",
-        "reference": "https://pubmed.ncbi.nlm.nih.gov/23492376/",
-        "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
+        "reference": "Stam (1999), Stable Fluids, §2.2 pp. 122-123; §2.4 p.124; Appendix A p.126. The pigment/watercolor interpretation is a project application, not a claim that Stam models watercolor chemistry.",
+        "formula_level_status": "PRIMARY_SOURCE_FORMULA_AND_CHARACTERISTIC_LOCATORS_VERIFIED"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "SEMI_LAGRANGIAN_SCALAR_PIGMENT_ADVECTION_WITH_BILINEAR_GRID_SAMPLING",
+        "symbol_table": [
+          {
+            "symbol": "x",
+            "meaning": "physical sample position",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite point in 2D/3D simulation domain"
+          },
+          {
+            "symbol": "t,dt",
+            "meaning": "time and positive simulation step",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite t; dt>=0"
+          },
+          {
+            "symbol": "u",
+            "meaning": "velocity field",
+            "unit": "m/s",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite velocity field; boundary behavior declared"
+          },
+          {
+            "symbol": "Delta x,Delta y",
+            "meaning": "physical grid cell spacing",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and strictly positive"
+          },
+          {
+            "symbol": "x_d",
+            "meaning": "backtraced departure point",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite point; boundary policy applied before interpolation"
+          },
+          {
+            "symbol": "c",
+            "meaning": "pigment concentration or a scalar pigment/color channel",
+            "unit": "kg/m^3 for mass concentration, or normalized 1 for visual channel",
+            "dimension": {
+              "L": -3,
+              "M": 1,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite scalar grid; visual channels use dimensionless [0,1] encoding"
+          },
+          {
+            "symbol": "D",
+            "meaning": "diffusion coefficient in the separate diffusion operator",
+            "unit": "m^2/s",
+            "dimension": {
+              "L": 2,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0; not applied by the advection kernel"
+          },
+          {
+            "symbol": "k",
+            "meaning": "first-order drying/dissipation rate in a separate reaction operator",
+            "unit": "s^-1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0; not applied by the advection kernel"
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "PASS_FOR_ADVECTION_AND_OPERATOR_SPLIT",
           "notes": [
-            "u: unidades/s; Δt:s; D: unidades²/s; k:s⁻¹."
+            "dt*u has units of length; dividing by grid spacing converts the physical backtrace displacement to grid-index units.",
+            "The characteristic relation transports c without changing its units.",
+            "D*Laplacian(c) and k*c both have units of concentration/time, matching the time derivative; these are separate operators and are not included in the advection kernel.",
+            "For a normalized visual pigment channel, c is dimensionless; physical concentration and display color must not be silently interchanged."
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "COMPLETE_FOR_FIRST_ORDER_BACKTRACE_AND_BILINEAR_2D_KERNEL",
+          "steps": [
+            "Start with the passive scalar transport equation partial_t c + u dot grad(c)=0; the material derivative of c is zero along a fluid characteristic.",
+            "For an arrival point x at time t+dt, integrate the characteristic backward to its departure point x_d=p(x,-dt). The exact characteristic solution is c^{n+1}(x)=c^n(x_d).",
+            "Approximate the backward trajectory with first-order Euler backtracing x_d approximately x-dt*u^n(x). For physical coordinates on a grid, convert each component displacement to cell units by dividing by the corresponding cell spacing.",
+            "Sample the previous scalar grid at the fractional departure coordinate. In 2D, floor the coordinates, compute tx and ty, and use the four bilinear weights.",
+            "The bilinear weights are nonnegative and sum to one, so the sampled scalar lies in the convex range of the four source samples.",
+            "Apply diffusion, drying/dissipation, pigment deposition and any color/chemical mixing as separate operator-split passes; they are not part of the pure advection update."
+          ]
         },
-        "assumptions": [
-          "Velocidad en unidades de espacio/segundo; concentración y difusión definidas por escala."
+        "equations": [
+          {
+            "expression": "partial_t c + u dot grad(c)=0",
+            "meaning": "passive scalar advection equation",
+            "dimensional_check": "pass",
+            "status": "source_verified",
+            "evidence_status": "source_verified"
+          },
+          {
+            "expression": "c^(n+1)(x)=c^n(p(x,-dt))",
+            "meaning": "characteristic backtrace solution",
+            "dimensional_check": "pass",
+            "status": "source_verified",
+            "evidence_status": "source_verified"
+          },
+          {
+            "expression": "x_d approximately x-dt*u^n(x)",
+            "meaning": "first-order straight-line backward departure approximation",
+            "dimensional_check": "pass",
+            "status": "first_order_discretization",
+            "evidence_status": "derived_from_characteristic"
+          },
+          {
+            "expression": "c(x_d,y_d)=sum_(i=0..1,j=0..1) w_ij*c_(i,j), with w_ij>=0 and sum w_ij=1",
+            "meaning": "bilinear interpolation at the fractional departure point",
+            "dimensional_check": "pass",
+            "status": "tensor_product_linear_interpolation",
+            "evidence_status": "standard_interpolation"
+          },
+          {
+            "expression": "partial_t c + u dot grad(c)=D*Laplacian(c)-k*c+S",
+            "meaning": "optional advection-diffusion-dissipation-source model; operators are split",
+            "dimensional_check": "pass",
+            "status": "model_extension",
+            "evidence_status": "source_context"
+          }
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "assumptions": [
+          "The velocity field is known during the step; the implemented 2D reference uses first-order Euler backtracing from each destination cell center.",
+          "Velocity components in the reference kernel are measured in grid cells per second; physical m/s data must be divided by cell spacing.",
+          "The reference kernel uses clamp-to-edge boundary sampling. This is a numerical policy, not a universal physical boundary condition.",
+          "Bilinear interpolation is used for a 2D cell-centered scalar field; 3D requires trilinear interpolation and is not implemented in this reference kernel.",
+          "The advection step alone does not conserve total scalar mass under arbitrary compressible velocity fields and interpolation.",
+          "Numerical diffusion is expected; unconditional stability does not imply high accuracy or preservation of sharp pigment boundaries."
+        ],
+        "valid_domain": [
+          "Rectangular nonempty scalar grid and equally sized finite velocity grids.",
+          "Finite dt>=0; finite velocity; positive physical cell spacing when converting from m/s.",
+          "Finite backtraced coordinate; boundary policy explicitly selected."
+        ],
+        "boundary_conditions": [
+          "dt=0 returns the original scalar field.",
+          "A constant scalar field is preserved by bilinear interpolation.",
+          "For constant velocity and a linear scalar ramp, the interior first-order backtrace reproduces the exact translated ramp.",
+          "Clamp boundaries hold departure coordinates to the nearest edge cell; periodic wrapping and obstacle-aware tracing require different sampling policies.",
+          "Bilinear output remains within the min/max of its four contributing source samples."
+        ],
+        "inputs": [
+          "Previous scalar pigment/concentration grid",
+          "Velocity field at destination sample locations",
+          "Time step dt",
+          "Physical cell spacing or already converted grid-cells-per-second velocity",
+          "Declared boundary policy"
+        ],
+        "outputs": [
+          "New scalar grid after advection only"
+        ],
+        "algorithm_completeness": "2D_CELL_CENTERED_FIRST_ORDER_ADVECTION_COMPLETE_DIFFUSION_DRYING_AND_3D_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_PYTHON_AND_JAVASCRIPT_2D_REFERENCE_KERNELS_ADDED_CI_PENDING",
+        "algorithm_steps": [
+          "Validate rectangular source and velocity grids and finite nonnegative dt.",
+          "For each destination cell center, read the velocity at that destination.",
+          "Compute the backward departure coordinate in grid-index units.",
+          "Apply the declared boundary policy to the departure coordinate.",
+          "Bilinearly sample the previous scalar grid at the departure coordinate.",
+          "Write the result into a separate destination buffer; never sample from the buffer being written.",
+          "Swap source/destination buffers after all cells are computed.",
+          "Run diffusion, drying, deposition and pigment mixing as separate documented passes if required."
+        ],
+        "pseudocode": "for each destination cell (i,j):\n  u=velocityAtDestination(i,j)\n  xd=i-dt*u.x_cells_per_second\n  yd=j-dt*u.y_cells_per_second\n  xd,yd=applyBoundaryPolicy(xd,yd)\n  i0=floor(xd); j0=floor(yd)\n  tx=xd-i0; ty=yd-j0\n  c00=source[j0][i0]; c10=source[j0][i0+1]\n  c01=source[j0+1][i0]; c11=source[j0+1][i0+1]\n  cNext[j][i]=(1-ty)*((1-tx)*c00+tx*c10)+ty*((1-tx)*c01+tx*c11)\nswap(source,cNext)",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(N) for N cells; four scalar source samples per 2D cell",
+          "space": "O(N) for a ping-pong source/destination pair; O(1) temporary work per cell"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "RENDER_TARGET_CONTRACT_DEFINED_GPU_VALIDATION_PENDING",
+          "details": "Use two non-aliasing render targets for previous and next pigment fields. A fullscreen ShaderMaterial samples the velocity texture at the destination UV, converts velocity*timeStep to UV displacement using resolution and physical cell spacing, backtraces UV, applies clamp/repeat/obstacle policy, then samples the previous pigment texture with linear filtering. Swap targets only after the pass. WebGL2 filtering precision, texture format, color-space/data-texture flags and WebGPU/TSL compute parity require runtime validation."
         },
         "source_claims": [
           {
-            "url": "https://pubmed.ncbi.nlm.nih.gov/23492376/",
-            "type": "PRIMARY_ARTICLE_ABSTRACT",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null,
-            "formula_locator": "Exact locator pending; claim must remain incomplete."
+            "url": "https://graphics.stanford.edu/courses/cs448-01-spring/papers/stam.pdf",
+            "type": "PRIMARY_SIGGRAPH_PAPER",
+            "supported_claim": "Characteristic backtracing for velocity and scalar quantities, linear interpolation, and scalar advection/diffusion/dissipation/source terms.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Stam 1999, §2.2 pp. 122-123 (backtrace and linear interpolator); §2.4 p. 124 (scalar substance transport equation); Appendix A p. 126 (method of characteristics).",
+            "formula_locator": "Stam 1999, §2.2 pp. 122-123; §2.4 p. 124; Appendix A p. 126."
+          },
+          {
+            "url": "Project adaptation: first-order cell-centered bilinear scalar-grid kernel.",
+            "type": "DERIVED_IMPLEMENTATION",
+            "supported_claim": "The reference kernel applies the characteristic departure-point idea using a first-order backtrace and tensor-product linear interpolation on a 2D grid.",
+            "formula_level_status": "derived_from_source",
+            "exact_equation_locator": "The departure approximation and four bilinear weights are derived in this record; they are not quoted as a separate equation from Stam.",
+            "formula_locator": "Project implementation derivation in this record."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "Constant-field invariance under arbitrary tested backtrace.",
+              "oracle": "Bilinear weights sum to one; a constant input remains exactly constant."
+            },
+            {
+              "description": "Linear ramp under constant velocity.",
+              "oracle": "For c(x)=x, u=1 cell/s and dt=0.5 s, interior output is x-0.5."
+            },
+            {
+              "description": "Bilinear convex-range property.",
+              "oracle": "Nonnegative weights sum to one; sample of [0,1] corners lies in [0,1]."
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Same analytic fixtures as Python with closed-form expected values.",
+              "oracle": "Constant field, translated linear ramp, and bilinear convex range."
+            }
+          ],
+          "edge_cases": [
+            "dt=0; negative dt; nonfinite grid entries; mismatched shapes; one-cell dimensions; clamp/periodic boundaries; departure beyond multiple cells; obstacles; high-frequency sharp pigment boundaries."
+          ]
         },
-        "variables": [],
-        "algorithm_steps": [
-          "Definir grid UV y campo de velocidad.",
-          "Retrotrazar cada celda.",
-          "Muestrear pigmento previo bilinealmente.",
-          "Aplicar difusión/decaimiento y condiciones de borde.",
-          "Depositar o secar pigmento."
-        ],
-        "pseudocode": "for x in grid: back=x-dt*velocity(x); cNext[x]=sample(c,back); cNext[x]=diffuseAndDry(cNext[x])",
-        "implementation_mapping": {
-          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
-          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
-          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
-        }
+        "variables": [
+          {
+            "symbol": "x",
+            "meaning": "physical sample position",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite point in 2D/3D simulation domain"
+          },
+          {
+            "symbol": "t,dt",
+            "meaning": "time and positive simulation step",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite t; dt>=0"
+          },
+          {
+            "symbol": "u",
+            "meaning": "velocity field",
+            "unit": "m/s",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite velocity field; boundary behavior declared"
+          },
+          {
+            "symbol": "Delta x,Delta y",
+            "meaning": "physical grid cell spacing",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and strictly positive"
+          },
+          {
+            "symbol": "x_d",
+            "meaning": "backtraced departure point",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite point; boundary policy applied before interpolation"
+          },
+          {
+            "symbol": "c",
+            "meaning": "pigment concentration or a scalar pigment/color channel",
+            "unit": "kg/m^3 for mass concentration, or normalized 1 for visual channel",
+            "dimension": {
+              "L": -3,
+              "M": 1,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite scalar grid; visual channels use dimensionless [0,1] encoding"
+          },
+          {
+            "symbol": "D",
+            "meaning": "diffusion coefficient in the separate diffusion operator",
+            "unit": "m^2/s",
+            "dimension": {
+              "L": 2,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0; not applied by the advection kernel"
+          },
+          {
+            "symbol": "k",
+            "meaning": "first-order drying/dissipation rate in a separate reaction operator",
+            "unit": "s^-1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0; not applied by the advection kernel"
+          }
+        ]
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Validate the render-target implementation and linear-filtering behavior on actual Three.js WebGL2 and WebGPU/TSL paths",
+        "Implement and test 3D trilinear backtracing and obstacle-aware boundary policies",
+        "Add separate diffusion/drying/deposition passes and compare pigment mass, color-space and numerical-diffusion behavior against reference scenes"
       ]
     },
     {
