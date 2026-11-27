@@ -201,3 +201,12 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - Se corrigió el publicador del informe para que las carreras de push no invaliden una ejecución matemática cuyos tests y gates sí pasaron; se añade concurrencia, rebase/reintentos y artefacto como respaldo. El workflow ahora también se dispara al cambiar docs/threejs/audit/.
 - Alcance pendiente: quedan 8 R31 sin especificación sustancial completa; después deben investigarse 472 registros históricos no preservados. Incluso las 15 R31 trabajadas siguen INCOMPLETE hasta completar los huecos de método, integración, validación y/o pruebas enumerados en cada ficha. No se declara el proyecto terminado.
 - PR #43 permanece abierta, en borrador y sin merge. No se modificó el manifiesto original ni se trabajó en Godot/Android.
+
+
+## 13. Sexto bloque R31: contorno por discontinuidad de profundidad y normal (2026-11-26)
+
+- D14:15 se ha separado del reclamo bibliográfico ambiguo. La publicación DepthCut de Guerrero et al. (2018), §4, no publica la suma local de profundidad y producto punto de normales que aparecía en el manifiesto; define probabilidades de contorno y pliegue a partir de derivadas de disparidad y normales, y las fusiona. La especificación ahora distingue esas ecuaciones de la heurística local propia.
+- Se derivó una puntuación adimensional propia: salto relativo de profundidad lineal positiva más un peso adimensional por discontinuidad angular de normales normalizadas; la cobertura final usa smoothstep con umbrales dimensionless. Se documentan dominio, unidades SI, casos límite, coste, pseudocódigo y contrato de render targets.
+- Se añadieron kernels de referencia Python y JavaScript y fixtures analíticos para invariancia de escala, discontinuidades ortogonales/opuestas, normalización de normales, cobertura y entradas degeneradas. La paridad matemática queda pendiente de la ejecución CI del head.
+- D14:15 permanece INCOMPLETE: faltan el pase real de depth/normal en Three.js, políticas de fondo/MSAA/proyección y comparación visual cuantitativa con escenas de referencia. No se afirma que el artículo DepthCut valide la heurística local.
+- No se alteró el manifiesto original ni los 46 registros preservados. PR #43 permanece abierta, en borrador y sin merge; no se ejecutó Godot/Android.
