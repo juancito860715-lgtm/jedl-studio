@@ -55,7 +55,7 @@
     {
       "record_key": "D35:0",
       "name": "PID controller",
-      "status": "SOURCE_RESEARCHED_ADAPTATION_IMPLEMENTED_PENDING_LOCAL_CI",
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
       "implementation": "src/threejs/numerics/control.mjs",
       "local_tests": "tests/threejs/d35-control-implementations.test.mjs",
       "source": {
@@ -72,12 +72,15 @@
         "latest_ci_run": "https://github.com/m-lundberg/simple-pid/actions/runs/44238924023",
         "latest_ci_conclusion": "action_required",
         "evidence": "Upstream MIT project includes tested proportional, integral, derivative-on-measurement, output limiting, sample-time and convergence behaviors. Upstream latest workflow is action_required, so no green upstream CI claim is made. Local JS adaptation is tested separately."
-      }
+      },
+      "execution_run": 46018031893,
+      "execution_sha": "3f9ea08d0553a59f15992d443f0107938573bf77",
+      "local_ci": "PASS"
     },
     {
       "record_key": "D35:1",
       "name": "Proportional tracking",
-      "status": "SOURCE_RESEARCHED_ADAPTATION_IMPLEMENTED_PENDING_LOCAL_CI",
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
       "implementation": "src/threejs/numerics/control.mjs",
       "local_tests": "tests/threejs/d35-control-implementations.test.mjs",
       "source": {
@@ -93,12 +96,15 @@
         "ci_run": "https://github.com/mrdoob/three.js/actions/runs/46015390100",
         "ci_conclusion": "success",
         "evidence": "MathUtils.damp uses the exact exponential solution of first-order proportional tracking and its unit test checks zero damping and a finite-time numeric fixture. Local D35:1 implementation retains the manifest's explicit-Euler law and stability boundary, with vector and speed-limit coverage."
-      }
+      },
+      "execution_run": 46018031893,
+      "execution_sha": "3f9ea08d0553a59f15992d443f0107938573bf77",
+      "local_ci": "PASS"
     },
     {
       "record_key": "D35:2",
       "name": "Critically damped spring",
-      "status": "SOURCE_RESEARCHED_ADAPTATION_IMPLEMENTED_PENDING_LOCAL_CI",
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
       "implementation": "src/threejs/numerics/control.mjs",
       "local_tests": "tests/threejs/d35-control-implementations.test.mjs",
       "source": {
@@ -116,7 +122,10 @@
         "ci_run": "https://github.com/pmndrs/react-spring/actions/runs/46000682696",
         "ci_conclusion": "success",
         "evidence": "Production spring implementation exposes mass, tension, friction and damping ratio; damping=1 is documented as non-bouncing/critical damping. Its source uses a small-step numerical integrator; local implementation uses the exact constant-target closed-form propagator and tests step composition."
-      }
+      },
+      "execution_run": 46018031893,
+      "execution_sha": "3f9ea08d0553a59f15992d443f0107938573bf77",
+      "local_ci": "PASS"
     },
     {
       "record_key": "D35:3",
