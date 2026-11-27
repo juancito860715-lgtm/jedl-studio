@@ -8,8 +8,8 @@
       "D36"
     ],
     "techniques": 30,
-    "implemented_and_local_ci_passed": 2,
-    "researched_external_sources_adaptation_pending": 4,
+    "implemented_and_local_ci_passed": 3,
+    "researched_external_sources_adaptation_pending": 3,
     "source_research_pending": 24
   },
   "policy": [
@@ -105,7 +105,7 @@
     {
       "record_key": "D35:10",
       "name": "FFT",
-      "status": "RESEARCHED_SOURCE_AND_TESTS_ADAPTATION_PENDING",
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
       "source": {
         "repository": "https://github.com/abho7/fluid-sim",
         "commit": "aabf3d1cee198ab3fce86909ad7c362a521b817c",
@@ -121,7 +121,15 @@
         "ci_test_log": "76 tests; 76 passed; 0 failed",
         "evidence": "Radix-2 1D complex FFT and 2D FFT; tests compare with naive DFT, inverse round-trip and Parseval. Restriction: power-of-two lengths; not a universal arbitrary-length FFT."
       },
-      "certification": "NOT_CERTIFIED"
+      "certification": "NOT_CERTIFIED",
+      "implementation": "src/threejs/numerics/fft.js",
+      "local_tests": "tests/threejs/d35-real-fft.test.mjs",
+      "local_ci": {
+        "run": 580,
+        "run_id": 46010492476,
+        "commit": "b11833997738bd05ed8f42a326b46cd67035fb25",
+        "status": "success"
+      }
     },
     {
       "record_key": "D35:11",
@@ -309,7 +317,7 @@
       "status": "SOURCE_RESEARCH_PENDING"
     }
   ],
-  "global_status": "D35_D36_PARTIAL; NO_CERTIFIED",
+  "global_status": "D35_D36_PARTIAL; 3_IMPLEMENTED; NO_CERTIFIED",
   "next_sequence": [
     "Completar adaptación y pruebas de D35:10",
     "Adaptar y ampliar D36:5 y D36:6 con límites de contorno explícitos",
