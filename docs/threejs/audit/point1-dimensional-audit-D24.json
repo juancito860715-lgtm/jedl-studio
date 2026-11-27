@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D24 Óptica, lentes, cámaras físicas y transporte de luz",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -292,9 +292,9 @@
         {
           "symbol": "pdf_light",
           "meaning": "densidad de muestreo",
-          "unit": "unidad inversa de medida angular",
-          "dimension": "según parametrización",
-          "domain": ">0"
+          "unit": "sr⁻¹ cuando se expresa por ángulo sólido",
+          "dimension": "inversa de ángulo sólido",
+          "domain": "positiva y normalizada respecto a dω; si viene por área, convertir con Jacobiano"
         },
         {
           "symbol": "p_A, p_ω, r, cosθ_l",
@@ -302,12 +302,57 @@
           "unit": "m⁻²; sr⁻¹; m; 1",
           "dimension": "p_A: L⁻²; p_ω: densidad angular inversa; r: L; cosθ_l: 1",
           "domain": "r>0; cosθ_l>0"
+        },
+        {
+          "symbol": "p_A",
+          "meaning": "PDF por área opcional",
+          "unit": "m⁻²",
+          "dimension": {
+            "L": -2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "solo cuando el muestreo de luz se parametriza por área"
+        },
+        {
+          "symbol": "r",
+          "meaning": "Distancia punto-luz",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r>0"
+        },
+        {
+          "symbol": "cosθ_light",
+          "meaning": "Coseno entre normal de luz y dirección",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo en cara emisora"
         }
       ],
       "constraints": [
-        "Estimador directo requiere dividir por PDF y aplicar geometría/visibilidad según medida de muestreo.",
-        "Si se muestrea área, pdf_area tiene m⁻² y debe incluir conversión área↔ángulo sólido.",
-        "Cuando la luz se muestrea sobre área, convertir a sólido angular con p_ω=p_A·r²/|n_l·(−ω)|; p_A tiene m⁻², r² m² y el coseno es adimensional, por lo que p_ω tiene sr⁻¹."
+        "Si se muestrea en ángulo sólido, pdf_light tiene sr⁻¹ y el estimador f_r·L_light·cosθ/pdf_light conserva radiancia.",
+        "Si se muestrea área, convertir p_ω=p_A·r²/|n_light·(−ω_i)|; p_A tiene m⁻², r² m² y el coseno es adimensional, resultando PDF por ángulo sólido.",
+        "La PDF debe corresponder a la medida de integración; no dividir por pdf de área sin el Jacobiano."
       ],
       "valid_domain": [
         "Luz muestreable; pdf positiva; visibilidad definida.",
@@ -319,9 +364,8 @@
         "Si cosθ_l→0, la PDF angular puede divergir; no evaluar división directa: descartar muestra no emisiva o usar parametrización estable."
       ],
       "dimensional_checks": [
-        "f_r sr⁻¹ y L_light radiancia; coseno adimensional.",
-        "PDF y jacobiano deben convertir la integral a radiancia; ficha esquemática no especifica todos los factores.",
-        "p_A[m⁻²]·r²[m²]/cosθ_l produce densidad por sr; después de la conversión puede combinarse con BRDF sr⁻¹."
+        "f_r sr⁻¹, L_light W·m⁻²·sr⁻¹ y pdf_ω sr⁻¹ producen radiancia tras división.",
+        "p_A m⁻²·r² m²/cosθ convierte a PDF angular; el Jacobiano corrige la medida sin alterar unidades finales."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1304,12 +1348,11 @@
   "validation": {
     "structural_checks": [
       "17/17 técnicas incluidas; ninguna protegida",
-      "Cada técnica tiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
-      "D24:3 queda condicional si no se declara conversión de PDF área/ángulo sólido",
-      "D24:3 cerrada al explicitar el jacobiano de conversión de PDF de área a ángulo sólido."
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "D24:3 especifica PDF angular y conversión desde PDF de área mediante Jacobiano"
     ],
     "limitations": [
-      "Las ecuaciones esquemáticas de NEE y algunos estimadores requieren medidas/jacobianos completos para certificación de implementación; la auditoría no inventa factores omitidos."
+      "Photon mapping se interpreta como estimador de irradiancia en la forma abreviada mostrada; para radiancia reflejada debe incluirse BRDF/coseno."
     ]
   },
   "integrity": {
