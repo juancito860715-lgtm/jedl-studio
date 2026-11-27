@@ -41,6 +41,13 @@ class TestImplementationReadinessGate(unittest.TestCase):
         self.assertEqual(result["status"],"FAIL")
         self.assertEqual(result["invalid_entries"][0]["reason"],"unit_dimension_mismatch")
 
+    def test_pixel_coordinate_unit_is_consistent_image_space_length(self):
+        payload={"records":[{"research_id":"R31-X","variables":[{"symbol":"sigma","meaning":"pixel radius","unit":"pixels","domain":"positive","dimension":{"L":1,"M":0,"T":0,"I":0,"Theta":0,"N":0,"J":0}}]}]}
+        result=validate_dimensional_audit(payload,["R31-X"])
+        self.assertEqual(result["status"],"PASS")
+        self.assertEqual(result["unit_audit"]["status"],"PASS")
+        self.assertEqual(result["unit_audit"]["checked_known_units"],1)
+
     def test_dimensional_audit_marks_custom_units_as_conditional(self):
         payload={"records":[{"research_id":"R31-X","variables":[{"symbol":"x","meaning":"pixel intensity","unit":"intensity/pixel","domain":"finite","dimension":{"L":0,"M":0,"T":0,"I":0,"Theta":0,"N":0,"J":0}}]}]}
         result=validate_dimensional_audit(payload,["R31-X"])
