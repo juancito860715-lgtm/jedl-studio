@@ -1,0 +1,463 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D12 Fuego, humo, rayos y efectos de partículas",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D12",
+    "record_count": 11,
+    "excluded_protected_records": 2,
+    "excluded_keys": [
+      "D12:9",
+      "D12:10"
+    ],
+    "excluded_reason": "Particle lifetime y GPU particle update preservados sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D12:0",
+      "name": "Flame noise field",
+      "starting_principles": [
+        "Noise y parámetros finitos; height>0.",
+        "La escala y las coordenadas usan la misma unidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n=noise(scale·p,t)",
+          "justification": "Evaluar un campo procedural espacial-temporal."
+        },
+        {
+          "step": 2,
+          "equation": "e(y)=clamp((y−y_base)/height,0,1)",
+          "justification": "Definir envolvente vertical normalizada."
+        },
+        {
+          "step": 3,
+          "equation": "T(p,t)=base+amplitude·e(y)·n",
+          "justification": "Modular el campo por envolvente y amplitud artística."
+        },
+        {
+          "step": 4,
+          "equation": "color=palette(T)",
+          "justification": "Convertir escalar procedural en color de llama."
+        }
+      ],
+      "assumptions": [
+        "Noise y parámetros finitos; height>0.",
+        "La escala y las coordenadas usan la misma unidad.",
+        "La temperatura aquí es un control artístico, no temperatura física."
+      ],
+      "result": "El aspecto de llama se obtiene de ruido animado, envolvente y paleta de color.",
+      "limits": [
+        "No representa combustión ni transferencia térmica real."
+      ]
+    },
+    {
+      "record_key": "D12:1",
+      "name": "Flame advection",
+      "starting_principles": [
+        "Δt>0; v tiene unidad de longitud/tiempo.",
+        "El campo se interpola espacialmente y usa bordes definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "v(p,t)=v_up+v_noise(p,t)",
+          "justification": "Definir campo de desplazamiento artístico."
+        },
+        {
+          "step": 2,
+          "equation": "p_back=p−v(p,t)Δt",
+          "justification": "Usar backtracing para consultar el campo en la posición de origen del movimiento."
+        },
+        {
+          "step": 3,
+          "equation": "T_{n+1}(p)=T_n(p_back)",
+          "justification": "Transportar la textura/temperatura procedural a lo largo del campo."
+        },
+        {
+          "step": 4,
+          "equation": "addNoise/decay",
+          "justification": "Añadir detalle y atenuación visual en cada paso."
+        }
+      ],
+      "assumptions": [
+        "Δt>0; v tiene unidad de longitud/tiempo.",
+        "El campo se interpola espacialmente y usa bordes definidos.",
+        "La simulación se mantiene como VFX estilizado."
+      ],
+      "result": "La advección semilagrangiana actualiza un campo muestreando hacia atrás a lo largo del flujo.",
+      "limits": [
+        "No describe dinámica física de combustión ni parámetros reales de propagación."
+      ]
+    },
+    {
+      "record_key": "D12:2",
+      "name": "Blackbody color approximation",
+      "starting_principles": [
+        "T_max>T_min; paleta declarada.",
+        "Si se usa temperatura física, la conversión espectral requiere calibración; esta ficha usa paleta artística."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T_norm=clamp((T−T_min)/(T_max−T_min),0,1)",
+          "justification": "Normalizar un control de intensidad/temperatura artística."
+        },
+        {
+          "step": 2,
+          "equation": "C=palette(T_norm)",
+          "justification": "Consultar gradiente cromático predefinido."
+        },
+        {
+          "step": 3,
+          "equation": "C_linear=decode(C)",
+          "justification": "Convertir a espacio lineal antes de iluminación/composición."
+        },
+        {
+          "step": 4,
+          "equation": "C_display=toneMap(C_linear)",
+          "justification": "Transformar a rango de pantalla."
+        }
+      ],
+      "assumptions": [
+        "T_max>T_min; paleta declarada.",
+        "Si se usa temperatura física, la conversión espectral requiere calibración; esta ficha usa paleta artística.",
+        "Color en espacio lineal para operaciones de luz."
+      ],
+      "result": "El color se aproxima con una rampa cromática controlada por un parámetro normalizado.",
+      "limits": [
+        "No es conversión física exacta de radiación de cuerpo negro."
+      ]
+    },
+    {
+      "record_key": "D12:3",
+      "name": "Smoke density",
+      "starting_principles": [
+        "τ>0; velocidad y tiempo usan unidades compatibles.",
+        "ρ es densidad normalizada de shader."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_back=p−vΔt",
+          "justification": "Retroceder coordenada con el campo de velocidad visual."
+        },
+        {
+          "step": 2,
+          "equation": "n=noise(p_back−v_wind t)",
+          "justification": "Evaluar ruido advectado."
+        },
+        {
+          "step": 3,
+          "equation": "e(t)=exp(−t/τ)",
+          "justification": "Aplicar envolvente temporal de desaparición."
+        },
+        {
+          "step": 4,
+          "equation": "ρ(p,t)=clamp(n·e(t),0,ρ_max)",
+          "justification": "Limitar densidad a rango de representación."
+        }
+      ],
+      "assumptions": [
+        "τ>0; velocidad y tiempo usan unidades compatibles.",
+        "ρ es densidad normalizada de shader.",
+        "La semilla/tiempo se fijan para reproducibilidad."
+      ],
+      "result": "El humo procedural es un campo de ruido advectado y atenuado temporalmente.",
+      "limits": [
+        "No modela composición, temperatura, toxicidad ni dinámica real del humo."
+      ]
+    },
+    {
+      "record_key": "D12:4",
+      "name": "Explosion envelope — VFX estilizado",
+      "starting_principles": [
+        "τ,τ_d>0; R_max y width son parámetros de escena.",
+        "La ecuación solo define animación visual; no representa presión, energía, temperatura ni propagación física."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=clamp(t/τ,0,1)",
+          "justification": "Normalizar tiempo del efecto."
+        },
+        {
+          "step": 2,
+          "equation": "R(t)=R_max·smoothstep(0,1,u)",
+          "justification": "Animar el radio visual mediante una curva suave."
+        },
+        {
+          "step": 3,
+          "equation": "D(t)=D_0·exp(−t/τ_d)",
+          "justification": "Reducir densidad/opacity del efecto como envolvente artística."
+        },
+        {
+          "step": 4,
+          "equation": "mask(p,t)=ringOrVolume(||p−c||,R(t),width)",
+          "justification": "Construir máscara visual a partir del radio de presentación."
+        }
+      ],
+      "assumptions": [
+        "τ,τ_d>0; R_max y width son parámetros de escena.",
+        "La ecuación solo define animación visual; no representa presión, energía, temperatura ni propagación física.",
+        "La amplitud y el tiempo se eligen por estilo y duración de plano."
+      ],
+      "result": "La expansión visual se anima con una curva temporal y una máscara de volumen/radio, sin modelar dinámica de explosión real.",
+      "limits": [
+        "Se excluyen parámetros y ecuaciones de presión, energía, fragmentación o daño físico."
+      ]
+    },
+    {
+      "record_key": "D12:5",
+      "name": "Shock front — anillo gráfico no físico",
+      "starting_principles": [
+        "σ>0 y v_visual es parámetro de animación, no velocidad física de onda.",
+        "El campo solo controla una máscara gráfica 2D/3D."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r=||p−c||",
+          "justification": "Calcular distancia radial a centro visual."
+        },
+        {
+          "step": 2,
+          "equation": "ξ=(r−v_visual t)/σ",
+          "justification": "Normalizar distancia respecto al radio animado y ancho gráfico."
+        },
+        {
+          "step": 3,
+          "equation": "front=exp(−ξ²)",
+          "justification": "Crear una banda gaussiana centrada en el radio visual."
+        },
+        {
+          "step": 4,
+          "equation": "opacity=front·fade(t)",
+          "justification": "Atenuar el anillo al terminar su tiempo en pantalla."
+        }
+      ],
+      "assumptions": [
+        "σ>0 y v_visual es parámetro de animación, no velocidad física de onda.",
+        "El campo solo controla una máscara gráfica 2D/3D.",
+        "No asociar a presión, choque, daño ni diseño de dispositivos."
+      ],
+      "result": "El efecto es una banda visual que se desplaza radialmente en pantalla/escena.",
+      "limits": [
+        "No se deriva ni representa una onda de choque física."
+      ]
+    },
+    {
+      "record_key": "D12:6",
+      "name": "Lightning path",
+      "starting_principles": [
+        "s adimensional; A,B y N en misma unidad espacial.",
+        "Ruido y semilla reproducibles; amplitud acotada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P_0(s)=A+s(B−A), s∈[0,1]",
+          "justification": "Definir línea base entre extremos."
+        },
+        {
+          "step": 2,
+          "equation": "N(s)=Σ_k a_k noise_k(s)",
+          "justification": "Generar desplazamiento lateral con varios niveles de ruido."
+        },
+        {
+          "step": 3,
+          "equation": "w(s)=sin(πs)",
+          "justification": "Forzar desplazamiento cero en los extremos."
+        },
+        {
+          "step": 4,
+          "equation": "P(s)=P_0(s)+w(s)N(s)",
+          "justification": "Sumar irregularidad al trazado base."
+        }
+      ],
+      "assumptions": [
+        "s adimensional; A,B y N en misma unidad espacial.",
+        "Ruido y semilla reproducibles; amplitud acotada.",
+        "El resultado es geometría gráfica de rayo."
+      ],
+      "result": "Un rayo estilizado se construye como línea base más perturbación lateral acotada.",
+      "limits": [
+        "No modela trayectoria eléctrica ni condiciones físicas de descarga."
+      ]
+    },
+    {
+      "record_key": "D12:7",
+      "name": "Lightning branching",
+      "starting_principles": [
+        "δ acotado; dirección normalizada; longitud positiva.",
+        "Semilla reproducible."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "s_0∈(0,1)",
+          "justification": "Seleccionar punto de bifurcación sobre el trazado principal."
+        },
+        {
+          "step": 2,
+          "equation": "d_b=normalize(d_main+δ)",
+          "justification": "Perturbar dirección principal con vector aleatorio acotado."
+        },
+        {
+          "step": 3,
+          "equation": "P_b(u)=P_main(s_0)+u·length_b·d_b+noise(u)",
+          "justification": "Construir segmento ramificado con longitud y jitter artísticos."
+        },
+        {
+          "step": 4,
+          "equation": "opacity_b=fade(u,t)",
+          "justification": "Atenuar ramificación según parámetro de estilo/tiempo."
+        }
+      ],
+      "assumptions": [
+        "δ acotado; dirección normalizada; longitud positiva.",
+        "Semilla reproducible.",
+        "Se trata de ramas gráficas, no de modelo de descarga."
+      ],
+      "result": "La ramificación es una construcción geométrica aleatoria controlada sobre una línea visual.",
+      "limits": [
+        "No representa física de arcos eléctricos ni riesgo eléctrico."
+      ]
+    },
+    {
+      "record_key": "D12:8",
+      "name": "Beam cone",
+      "starting_principles": [
+        "r_0,r_1≥0; marco N,B ortonormal.",
+        "C(s) y radios usan unidad L."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r(s)=r_0+s(r_1−r_0)",
+          "justification": "Interpolar radio desde base a extremo."
+        },
+        {
+          "step": 2,
+          "equation": "P(s,θ)=C(s)+r(s)(N cosθ+B sinθ)",
+          "justification": "Construir sección circular alrededor del eje del haz."
+        },
+        {
+          "step": 3,
+          "equation": "s∈[0,1], θ∈[0,2π)",
+          "justification": "Muestrear longitudinal y angularmente la superficie."
+        },
+        {
+          "step": 4,
+          "equation": "normal=normalize(P_s×P_θ)",
+          "justification": "Obtener normal para sombreado."
+        }
+      ],
+      "assumptions": [
+        "r_0,r_1≥0; marco N,B ortonormal.",
+        "C(s) y radios usan unidad L.",
+        "Sección puede colapsar en punta si r_1=0."
+      ],
+      "result": "El cono de haz es un sweep con radio linealmente variable.",
+      "limits": [
+        "La geometría define forma visual; no modela presión ni flujo de energía real."
+      ]
+    },
+    {
+      "record_key": "D12:11",
+      "name": "Soft particles",
+      "starting_principles": [
+        "softRange>0; profundidades comparables y misma cámara.",
+        "Alpha en [0,1]; composición premultiplicada o straight alpha declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Δz=sceneDepth−particleDepth",
+          "justification": "Calcular separación entre superficie opaca y partícula en la misma convención de profundidad."
+        },
+        {
+          "step": 2,
+          "equation": "u=clamp(Δz/softRange,0,1)",
+          "justification": "Normalizar separación por el ancho de transición."
+        },
+        {
+          "step": 3,
+          "equation": "α'=α·u",
+          "justification": "Reducir opacidad cerca de intersección con geometría."
+        },
+        {
+          "step": 4,
+          "equation": "colorOut=α'·colorParticle+(1−α')·colorBackground",
+          "justification": "Componer en espacio lineal con alpha adecuada."
+        }
+      ],
+      "assumptions": [
+        "softRange>0; profundidades comparables y misma cámara.",
+        "Alpha en [0,1]; composición premultiplicada o straight alpha declarada.",
+        "Partícula y depth buffer alineados."
+      ],
+      "result": "Soft particles derivan una máscara de opacidad de la diferencia de profundidad para suavizar intersecciones.",
+      "limits": [
+        "Si depth está no lineal, comparar después de conversión a espacio comparable o usar diferencia normalizada."
+      ]
+    },
+    {
+      "record_key": "D12:12",
+      "name": "Depth sorting transparency",
+      "starting_principles": [
+        "Todos los elementos usan misma cámara y convención de profundidad.",
+        "La ordenación es por objeto/centro y puede fallar con superficies que se interpenetran."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "z_i=−(V·p_i)_z",
+          "justification": "Calcular profundidad de cada objeto en espacio de vista."
+        },
+        {
+          "step": 2,
+          "equation": "order=sort(z_i descending)",
+          "justification": "Ordenar de atrás hacia delante para alpha blending convencional."
+        },
+        {
+          "step": 3,
+          "equation": "C_{k+1}=α_k C_k+(1−α_k)C_{background}",
+          "justification": "Componer cada capa según su orden y convención de alpha."
+        },
+        {
+          "step": 4,
+          "equation": "stable tie-break(id)",
+          "justification": "Resolver profundidades iguales de forma determinista."
+        }
+      ],
+      "assumptions": [
+        "Todos los elementos usan misma cámara y convención de profundidad.",
+        "La ordenación es por objeto/centro y puede fallar con superficies que se interpenetran.",
+        "Alpha y colores en espacio lineal."
+      ],
+      "result": "La transparencia convencional se compone mediante ordenación back-to-front y mezcla alfa.",
+      "limits": [
+        "Para geometría interpenetrada o ciclos de profundidad, usar OIT u otra partición; ordenar solo centros no es exacto."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "11/11 técnicas no protegidas cubiertas.",
+      "Derivaciones de fuego/humo/relámpagos y anillos se limitan a VFX estilizado.",
+      "No se incluyen modelos físicos de presión, daño, descarga o propagación real.",
+      "Dos claves protegidas excluidas."
+    ],
+    "limitations": [
+      "Las expresiones de efectos son controles gráficos y no simulaciones físicas de fenómenos peligrosos."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
