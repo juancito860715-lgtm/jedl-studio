@@ -1857,7 +1857,8 @@
       "variables": [
         {
           "symbol": "x",
-          "meaning": "posición espacial",
+          "meaning": "physical sample position",
+          "unit": "m",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -1867,12 +1868,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite point in 2D/3D simulation domain"
         },
         {
-          "symbol": "t",
-          "meaning": "tiempo",
+          "symbol": "t,dt",
+          "meaning": "time and positive simulation step",
+          "unit": "s",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1882,12 +1883,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "s",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite t; dt>=0"
         },
         {
           "symbol": "u",
-          "meaning": "campo de velocidad",
+          "meaning": "velocity field",
+          "unit": "m/s",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -1897,12 +1898,42 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m/s",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite velocity field; boundary behavior declared"
+        },
+        {
+          "symbol": "Delta x,Delta y",
+          "meaning": "physical grid cell spacing",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite and strictly positive"
+        },
+        {
+          "symbol": "x_d",
+          "meaning": "backtraced departure point",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite point; boundary policy applied before interpolation"
         },
         {
           "symbol": "c",
-          "meaning": "concentración de pigmento",
+          "meaning": "pigment concentration or a scalar pigment/color channel",
+          "unit": "kg/m^3 for mass concentration, or normalized 1 for visual channel",
           "dimension": {
             "L": -3,
             "M": 1,
@@ -1912,12 +1943,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "kg/m^3 (if mass concentration)",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite scalar grid; visual channels use dimensionless [0,1] encoding"
         },
         {
           "symbol": "D",
-          "meaning": "coeficiente de difusión",
+          "meaning": "diffusion coefficient in the separate diffusion operator",
+          "unit": "m^2/s",
           "dimension": {
             "L": 2,
             "M": 0,
@@ -1927,12 +1958,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m^2/s",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite and >=0; not applied by the advection kernel"
         },
         {
           "symbol": "k",
-          "meaning": "tasa de secado/decadencia",
+          "meaning": "first-order drying/dissipation rate in a separate reaction operator",
+          "unit": "s^-1",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1942,30 +1973,17 @@
             "N": 0,
             "J": 0
           },
-          "unit": "s^-1",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "dt",
-          "meaning": "paso temporal",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 1,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "s",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite and >=0; not applied by the advection kernel"
         }
       ],
       "dimensional_findings": [
-        "u·grad(c), D Laplacian(c) y k c deben compartir unidad de concentración/tiempo; la ecuación PDE es dimensionalmente consistente con D en longitud²/tiempo."
+        "dt*u has units of length; dividing by grid spacing converts the physical backtrace displacement to grid-index units.",
+        "The characteristic relation transports c without changing its units.",
+        "D*Laplacian(c) and k*c both have units of concentration/time, matching the time derivative; these are separate operators and are not included in the advection kernel.",
+        "For a normalized visual pigment channel, c is dimensionless; physical concentration and display color must not be silently interchanged."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
-      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+      "scope": "Dimensional audit of scalar advection and separate diffusion/dissipation terms; not a conservation or pigment chemistry certification."
     },
     {
       "record_key": "D27:11",
