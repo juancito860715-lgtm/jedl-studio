@@ -644,8 +644,8 @@
       "name": "Boids",
       "variables": [
         {
-          "symbol": "p_i",
-          "meaning": "posiciones",
+          "symbol": "p_i,p_j",
+          "meaning": "posiciones de agentes",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -659,8 +659,8 @@
           "domain": "finitas"
         },
         {
-          "symbol": "v_i",
-          "meaning": "velocidades",
+          "symbol": "v_i,v_neighbors",
+          "meaning": "velocidades de agentes",
           "unit": "m/s",
           "dimension": {
             "L": 1,
@@ -674,8 +674,38 @@
           "domain": "finitas"
         },
         {
-          "symbol": "r_n",
-          "meaning": "radio vecindad",
+          "symbol": "S_i",
+          "meaning": "separación −Σ(p_j−p_i)/|p_j−p_i|²",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "distancias regularizadas; vecindario definido"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "alineación media de velocidades",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "C_i",
+          "meaning": "cohesión centroide−posición propia",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -686,14 +716,36 @@
             "N": 0,
             "J": 0
           },
-          "domain": ">0"
+          "domain": "finita"
         },
         {
           "symbol": "w_s,w_a,w_c",
-          "meaning": "pesos",
-          "unit": "1",
+          "meaning": "ganancias para salida de velocidad",
+          "unit": "m²/s; 1; s⁻¹ respectivamente",
+          "dimension": "w_s:L²T⁻¹; w_a:1; w_c:T⁻¹",
+          "domain": "finitas y calibradas"
+        },
+        {
+          "symbol": "v′",
+          "meaning": "velocidad deseada resultante",
+          "unit": "m/s",
           "dimension": {
-            "L": 0,
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada por velocidad máxima"
+        },
+        {
+          "symbol": "r_n",
+          "meaning": "radio de vecindad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -701,28 +753,13 @@
             "N": 0,
             "J": 0
           },
-          "domain": "finitos"
-        },
-        {
-          "symbol": "a_i",
-          "meaning": "steering",
-          "unit": "m/s²",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": -2,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "acotada"
+          "domain": "r_n>0"
         }
       ],
       "constraints": [
-        "Separación, alineación y cohesión deben convertirse a magnitudes compatibles antes de sumarse; si se combinan como aceleraciones, cada término debe tener dimensión L·T^-2.",
-        "Los pesos w_s,w_a,w_c son adimensionales solo si los vectores base ya están normalizados/escalados a una unidad común; de lo contrario cada ganancia requiere dimensión compensatoria.",
-        "Definir radio de vecindad, velocidad máxima y aceleración máxima para limitar resultados."
+        "Para la ecuación de catálogo v′=w_sS_i+w_aA_i+w_cC_i, se define salida como velocidad deseada (m/s).",
+        "S_i tiene m⁻¹, A_i m/s y C_i m; por tanto w_s debe ser m²/s, w_a adimensional y w_c s⁻¹.",
+        "Si la salida se implementa como aceleración, debe cambiarse la ecuación y derivarse otro conjunto de unidades; no reutilizar estos pesos."
       ],
       "valid_domain": [
         "Posiciones L, velocidades L/T, radio L>0; vecinos seleccionados por distancia finita.",
@@ -733,8 +770,8 @@
         "Si dos agentes coinciden, la separación usa dirección de respaldo determinista para evitar división por cero."
       ],
       "dimensional_checks": [
-        "p_i y r_n tienen L; v_i tiene L/T; steering como aceleración tiene L/T².",
-        "La suma ponderada exige términos de igual dimensión; los pesos no corrigen por sí solos una incompatibilidad dimensional."
+        "w_sS_i: (m²/s)(m⁻¹)=m/s; w_aA_i: 1·m/s=m/s.",
+        "w_cC_i: s⁻¹·m=m/s; todos los términos suman homogéneamente como velocidad."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1434,10 +1471,10 @@
       "variables": [
         {
           "symbol": "C(x)",
-          "meaning": "residuo de restricción",
-          "unit": "unidad dependiente de C",
+          "meaning": "restricción de distancia",
+          "unit": "m",
           "dimension": {
-            "L": 0,
+            "L": 1,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -1445,56 +1482,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "C=0 ideal"
+          "domain": "C=0 ideal; variante de longitud"
         },
         {
-          "symbol": "λ",
-          "meaning": "multiplicador",
-          "unit": "unidad dependiente de C",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "inicialización variante"
-        },
-        {
-          "symbol": "α̃",
-          "meaning": "compliance escalada",
-          "unit": "α/Δt²",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "α≥0"
-        },
-        {
-          "symbol": "Δt",
-          "meaning": "paso fijo",
-          "unit": "s",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 1,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": ">0"
-        },
-        {
-          "symbol": "n_iter",
-          "meaning": "iteraciones",
+          "symbol": "∇_i C",
+          "meaning": "gradiente respecto a posición i",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -1505,13 +1497,104 @@
             "N": 0,
             "J": 0
           },
-          "domain": "entero 4–12 inicial"
+          "domain": "para C de longitud"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "peso inverso de masa",
+          "unit": "kg⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m_i>0; w_i=1/m_i"
+        },
+        {
+          "symbol": "α",
+          "meaning": "compliance física de restricción de longitud",
+          "unit": "s²/kg",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "α≥0"
+        },
+        {
+          "symbol": "α̃",
+          "meaning": "compliance escalada α/Δt²",
+          "unit": "kg⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "misma unidad que Σw_i|∇_iC|²"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "multiplicador de restricción",
+          "unit": "kg·m",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "según formulación XPBD de distancia"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        },
+        {
+          "symbol": "Δx_i",
+          "meaning": "corrección de posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
         }
       ],
       "constraints": [
-        "En XPBD, α̃=α/Δt² debe tener las mismas unidades que Σ w_i|∇C|²; α y λ dependen de las unidades de la restricción C y de la masa inversa.",
-        "Para restricción de longitud C [L], gradiente ∇C es adimensional, w_i=1/m_i [M^-1], por lo que α̃ [M^-1], λ [M·L] y α [M^-1·T²].",
-        "Δt>0; reiniciar/acumular λ según el esquema temporal definido; no mezclar unidades de constraints distintas sin escalar."
+        "Para una restricción de distancia C [m], ∇C es adimensional; w_i=1/m_i tiene kg⁻¹.",
+        "α̃=α/Δt² debe tener kg⁻¹; por ello α tiene s²/kg y λ tiene kg·m.",
+        "El numerador C+α̃λ tiene m; el denominador Σw_i|∇C|²+α̃ tiene kg⁻¹; Δλ tiene kg·m y w_i∇CΔλ produce corrección m.",
+        "Otras restricciones (ángulo, área, volumen) requieren volver a derivar unidades de C, gradiente, compliance y multiplicador."
       ],
       "valid_domain": [
         "C(x) diferenciable al menos localmente; masas positivas (o inversas no negativas), compliance α≥0 y paso fijo positivo.",
@@ -1522,8 +1605,8 @@
         "Si el denominador es cero o casi cero, no dividir: marcar constraint degenerada o aplicar regularización declarada."
       ],
       "dimensional_checks": [
-        "α̃=α/Δt²; su dimensión debe igualar la del denominador de Δλ.",
-        "Para C de longitud: ∇C adimensional, w_i [M^-1], α̃ [M^-1], λ [M·L]; numerador C+α̃λ tiene L."
+        "C y α̃λ tienen m; Σw_i|∇C|² y α̃ tienen kg⁻¹.",
+        "Δλ tiene kg·m; w_i∇CΔλ tiene m; Δx_i conserva longitud."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1629,13 +1712,12 @@
   ],
   "validation": {
     "structural_checks": [
-      "19/20 técnicas no protegidas incluidas",
-      "19 registros con variables, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
-      "1 registro protegido excluido según mapa Crimson Loong",
-      "Corregida dimensión de frecuencia en cuantización temporal y de aceleración en resorte amortiguado"
+      "19/19 técnicas no protegidas incluidas",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "D04:9 fija Boids como velocidad deseada con ganancias homogéneas; D04:18 fija XPBD para restricción de distancia con α, α̃ y λ tipados"
     ],
     "limitations": [
-      "Validación estructural y revisión dimensional razonada; las derivaciones formales, algoritmos y pruebas numéricas independientes pertenecen a puntos posteriores."
+      "Las unidades de Boids y XPBD corresponden a las variantes declaradas; otras salidas o restricciones requieren rederivación explícita."
     ]
   },
   "integrity": {
