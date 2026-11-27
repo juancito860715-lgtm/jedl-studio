@@ -86,6 +86,12 @@ export function ggxNdf(cosTheta,alpha) {
   const c=Math.min(1,Math.max(0,cosTheta)),a2=alpha*alpha,denom=c*c*(a2-1)+1;
   return a2/(Math.PI*denom*denom);
 }
+export function anisotropicKuwaharaMean(means,stddevNorms,q=8) {
+  if(!means.length||means.length!==stddevNorms.length||!(q>0)||stddevNorms.some(v=>v<0)) throw new RangeError("invalid Kuwahara sector data");
+  const weights=stddevNorms.map(v=>1/(1+v**q)),total=weights.reduce((a,b)=>a+b,0);
+  if(!(total>0)||!Number.isFinite(total)) throw new RangeError("invalid Kuwahara weight normalization");
+  return means.reduce((s,m,i)=>s+m*weights[i],0)/total;
+}
 export function weightedSectorMean(means,variances) {
   if(!means.length||means.length!==variances.length||variances.some(v=>v<0)) throw new RangeError("invalid sector data");
   const weights=variances.map(v=>1/(1+v));
