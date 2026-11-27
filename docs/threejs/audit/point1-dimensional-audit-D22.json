@@ -1,0 +1,1394 @@
+{
+  "title": "Auditoría dimensional punto 1 — D22 Telas, tejidos, cuerdas, cabello y materiales deformables",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D22",
+    "domain": "Telas, tejidos, cuerdas, cabello y materiales deformables",
+    "record_count": 15,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D22 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "stress": "Pa=kg·m⁻¹·s⁻².",
+    "energy": "J=kg·m²·s⁻².",
+    "angles": "Radianes; adimensionales en SI base.",
+    "solver": "Multiplicadores y compliance dependen de la dimensión de la restricción."
+  },
+  "records": [
+    {
+      "record_key": "D22:0",
+      "name": "Mass-spring cloth",
+      "variables": [
+        {
+          "symbol": "m_i",
+          "meaning": "masa de nodo",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m_i>0"
+        },
+        {
+          "symbol": "x_i",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "k_ij",
+          "meaning": "rigidez",
+          "unit": "N/m",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "l_ij",
+          "meaning": "longitud reposo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "l≥0"
+        },
+        {
+          "symbol": "c",
+          "meaning": "amortiguamiento",
+          "unit": "kg/s",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "c≥0"
+        },
+        {
+          "symbol": "f_i",
+          "meaning": "fuerza",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada término m x'', kΔl y cv tiene N.",
+        "La normal n es adimensional; Δl tiene L."
+      ],
+      "valid_domain": [
+        "Masas positivas; estados y fuerzas finitos; topología finita."
+      ],
+      "boundary_conditions": [
+        "Longitud actual cero requiere dirección de respaldo.",
+        "Nodos anclados imponen posición fija."
+      ],
+      "dimensional_checks": [
+        "m·x'' y kΔl y cv tienen M·L·T⁻².",
+        "La ecuación conserva fuerza en ambos lados."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:1",
+      "name": "Structural/shear/bend constraints",
+      "variables": [
+        {
+          "symbol": "x_i,x_j",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "d_ij",
+          "meaning": "distancia objetivo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "C",
+          "meaning": "restricción distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "|x_i−x_j|−d_ij"
+        },
+        {
+          "symbol": "∇C",
+          "meaning": "gradiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "C tiene L; su gradiente respecto a posición es adimensional.",
+        "Las restricciones estructurales, shear y bend pueden usar diferentes d_ij y topologías; no mezclar sin etiquetar."
+      ],
+      "valid_domain": [
+        "Nodos finitos; distancias objetivo no negativas."
+      ],
+      "boundary_conditions": [
+        "Si x_i=x_j, gradiente de distancia indefinido; usar dirección previa/fallback.",
+        "C=0 satisface longitud objetivo."
+      ],
+      "dimensional_checks": [
+        "C tiene L; ∇C tiene dimensión 1.",
+        "La corrección posicional debe tener L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:2",
+      "name": "PBD distance constraint",
+      "variables": [
+        {
+          "symbol": "C",
+          "meaning": "restricción",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "masa inversa",
+          "unit": "kg⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "w_i≥0"
+        },
+        {
+          "symbol": "∇C",
+          "meaning": "gradiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "multiplicador",
+          "unit": "kg·m",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "Δx",
+          "meaning": "corrección",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Δx=w_i λ ∇C requiere λ en kg·m para que el resultado tenga L.",
+        "Σw_i|∇C_i|² tiene kg⁻¹; numerador C tiene L; λ tiene kg·m."
+      ],
+      "valid_domain": [
+        "Masas positivas o peso inverso cero para anclaje; gradientes y restricciones finitos."
+      ],
+      "boundary_conditions": [
+        "Denominador cero: constraint degenerada, no dividir.",
+        "Constraint satisfecha C=0 produce corrección cero."
+      ],
+      "dimensional_checks": [
+        "w_i tiene M⁻¹; λ tiene M·L; ∇C es adimensional; Δx tiene L.",
+        "La fórmula de λ conserva kg·m."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:3",
+      "name": "XPBD compliance",
+      "variables": [
+        {
+          "symbol": "C",
+          "meaning": "restricción",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "según constraint"
+        },
+        {
+          "symbol": "α",
+          "meaning": "compliance",
+          "unit": "s²/kg",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "α≥0"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "masa inversa",
+          "unit": "kg⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "multiplicador",
+          "unit": "kg·m",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Para C de longitud, α/Δt² debe ser kg⁻¹; por tanto α tiene s²/kg.",
+        "Si C usa ángulo u otra unidad, compliance y λ cambian dimensionalmente; no reutilizar valores sin conversión."
+      ],
+      "valid_domain": [
+        "Δt>0; compliance no negativa; constraint diferenciable."
+      ],
+      "boundary_conditions": [
+        "α=0 representa límite rígido en solver.",
+        "Denominador nulo requiere constraint degenerada/fallback."
+      ],
+      "dimensional_checks": [
+        "C y αλ tienen L; denominador tiene kg⁻¹; Δλ tiene kg·m.",
+        "Δx=w∇CΔλ tiene L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:4",
+      "name": "Bending dihedral constraint",
+      "variables": [
+        {
+          "symbol": "θ",
+          "meaning": "ángulo diedro",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "θ0",
+          "meaning": "ángulo reposo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "C",
+          "meaning": "error angular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "masa inversa",
+          "unit": "kg⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "C=θ−θ0 es adimensional angular; gradientes respecto a posición tienen L⁻¹.",
+        "Multiplicadores y compliance deben tiparse para restricción angular, no reutilizar dimensión de distancia."
+      ],
+      "valid_domain": [
+        "Triángulos no degenerados; normales válidas; pesos definidos."
+      ],
+      "boundary_conditions": [
+        "Área triangular cero invalida normal/diedro.",
+        "Ángulo debe envolverse con convención continua para evitar salto ±π."
+      ],
+      "dimensional_checks": [
+        "θ y C son adimensionales angulares; ∇C tiene L⁻¹.",
+        "La dimensión del multiplicador depende de la formulación solver angular."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:5",
+      "name": "Continuum elasticity",
+      "variables": [
+        {
+          "symbol": "σ",
+          "meaning": "tensor de tensión",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "deformación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "pequeña"
+        },
+        {
+          "symbol": "λ,μ",
+          "meaning": "constantes Lamé",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "material estable"
+        },
+        {
+          "symbol": "I",
+          "meaning": "identidad tensorial",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dimensionada"
+        }
+      ],
+      "constraints": [
+        "σ=λ tr(ε)I+2με: cada término tiene Pa.",
+        "La elasticidad lineal isotrópica supone deformaciones pequeñas y material homogéneo/isótropo."
+      ],
+      "valid_domain": [
+        "Constantes Lamé que satisfacen estabilidad; deformación pequeña."
+      ],
+      "boundary_conditions": [
+        "ε=0 implica σ=0 sin tensión inicial.",
+        "Grandes deformaciones requieren modelo finito."
+      ],
+      "dimensional_checks": [
+        "ε y tr(ε) son adimensionales; λ y μ tienen Pa.",
+        "σ conserva Pa."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:6",
+      "name": "Strain tensor",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "campo de desplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "diferenciable"
+        },
+        {
+          "symbol": "∇u",
+          "meaning": "gradiente de desplazamiento",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "pequeño para teoría infinitesimal"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "tensor de deformación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "simétrico"
+        }
+      ],
+      "constraints": [
+        "ε=½(∇u+∇uᵀ); derivada espacial elimina L del desplazamiento.",
+        "La medida infinitesimal no es válida para rotaciones/deformaciones grandes."
+      ],
+      "valid_domain": [
+        "u diferenciable; gradiente pequeño."
+      ],
+      "boundary_conditions": [
+        "u constante produce ε=0.",
+        "En fronteras fijadas, u=0 o desplazamiento impuesto."
+      ],
+      "dimensional_checks": [
+        "u tiene L; ∇u y ε son adimensionales.",
+        "La simetrización conserva dimensión."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:7",
+      "name": "Neo-Hookean hyperelasticity",
+      "variables": [
+        {
+          "symbol": "F",
+          "meaning": "gradiente de deformación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "det F=J>0"
+        },
+        {
+          "symbol": "I1",
+          "meaning": "primer invariante",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "J",
+          "meaning": "determinante",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "λ,μ",
+          "meaning": "parámetros Lamé",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "material estable"
+        },
+        {
+          "symbol": "W",
+          "meaning": "energía por volumen",
+          "unit": "J/m³ = Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "W=μ/2(I1−3)−μ ln J+λ/2(ln J)² tiene Pa en todos los términos.",
+        "J>0; logaritmo requiere argumento positivo; modelo compresible isotrópico en convención declarada."
+      ],
+      "valid_domain": [
+        "F finito; J>0; λ,μ según estabilidad."
+      ],
+      "boundary_conditions": [
+        "J→0⁺ es singular; rechazar colapso de volumen.",
+        "F=I y J=1 producen energía cero en referencia."
+      ],
+      "dimensional_checks": [
+        "I1 y J son adimensionales; λ y μ son Pa; W es Pa.",
+        "ln(J) solo admite J>0."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:8",
+      "name": "Finite element method",
+      "variables": [
+        {
+          "symbol": "B",
+          "meaning": "matriz deformación-desplazamiento",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "definida por elemento"
+        },
+        {
+          "symbol": "D",
+          "meaning": "matriz constitutiva",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "material válido"
+        },
+        {
+          "symbol": "V",
+          "meaning": "volumen elemento",
+          "unit": "m³",
+          "dimension": {
+            "L": 3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "K",
+          "meaning": "rigidez global",
+          "unit": "N/m",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "sistema bien condicionado"
+        },
+        {
+          "symbol": "u",
+          "meaning": "desplazamiento nodal",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "f",
+          "meaning": "fuerza nodal",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "K=∫BᵀDB dV tiene N/m; Ku tiene N y coincide con f.",
+        "Malla, unidades, condiciones de contorno y formulación de elemento deben ser consistentes."
+      ],
+      "valid_domain": [
+        "Elementos no degenerados; material definido; restricciones suficientes para eliminar modos rígidos."
+      ],
+      "boundary_conditions": [
+        "Elemento de volumen cero se rechaza.",
+        "Sin restricciones suficientes, K puede ser singular."
+      ],
+      "dimensional_checks": [
+        "B tiene L⁻¹; D Pa; dV L³; K resulta N/m.",
+        "Ku tiene N."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:9",
+      "name": "Discrete elastic rods",
+      "variables": [
+        {
+          "symbol": "κ",
+          "meaning": "curvatura",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "τ",
+          "meaning": "torsión",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "a_i,b_i",
+          "meaning": "rigideces efectivas",
+          "unit": "unidades según energía discreta",
+          "dimension": "dependen de discretización",
+          "domain": "no negativas"
+        },
+        {
+          "symbol": "E",
+          "meaning": "energía",
+          "unit": "J",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "La suma a_iκ_i²+b_iτ_i² debe tener unidad de energía por segmento; a_i,b_i dependen de longitud de arista y rigidez material.",
+        "No asignar unidades a coeficientes sin saber si energía es por longitud, por vértice o total."
+      ],
+      "valid_domain": [
+        "Curva regular; marco material válido; discretización sin segmentos nulos."
+      ],
+      "boundary_conditions": [
+        "Segmento de longitud cero invalida curvatura/torsión.",
+        "Extremos libres/fijos requieren condición de borde."
+      ],
+      "dimensional_checks": [
+        "κ y τ tienen L⁻¹; energía final debe ser J.",
+        "Coeficientes a_i,b_i quedan tipados por la definición discreta elegida."
+      ],
+      "status": "CONDITIONAL_POINT1_DISCRETE_ENERGY_DEFINITION_REQUIRED"
+    },
+    {
+      "record_key": "D22:10",
+      "name": "Cosserat rod",
+      "variables": [
+        {
+          "symbol": "r",
+          "meaning": "línea central",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "regular"
+        },
+        {
+          "symbol": "s",
+          "meaning": "coordenada material",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "arco"
+        },
+        {
+          "symbol": "R",
+          "meaning": "marco de sección",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rotación ortonormal"
+        },
+        {
+          "symbol": "v",
+          "meaning": "deformación de traslación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "adimensional"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "deformación angular por longitud",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "r'=Rv: si s es longitud, r' y v son adimensionales.",
+        "R'=R[ω]× requiere ω con L⁻¹; marco R es adimensional."
+      ],
+      "valid_domain": [
+        "s longitud de arco; R ortonormal; campos diferenciables."
+      ],
+      "boundary_conditions": [
+        "Marco inicial R(0) y posición r(0) deben fijarse.",
+        "Curvatura/torsión no definidas en discontinuidades."
+      ],
+      "dimensional_checks": [
+        "dr/ds es adimensional; dR/ds tiene L⁻¹.",
+        "La ecuación es dimensionalmente homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:11",
+      "name": "Hair strand dynamics",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "masa nodal",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "x",
+          "meaning": "posición hebra",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "f",
+          "meaning": "fuerzas",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "c",
+          "meaning": "amortiguamiento",
+          "unit": "kg/s",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "m x'' y suma de fuerzas tienen N.",
+        "Flexión/torsión deben derivarse de energías o constraints con unidades coherentes."
+      ],
+      "valid_domain": [
+        "Masa positiva; longitud de segmento positiva; fuerzas finitas."
+      ],
+      "boundary_conditions": [
+        "Colisión requiere normal válida; segmentos degenerados se rechazan.",
+        "Extremos anclados fijan posición."
+      ],
+      "dimensional_checks": [
+        "m x'' tiene N; fuerzas de gravedad, flexión, torsión, drag y colisión deben convertirse a N.",
+        "c v tiene N."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:12",
+      "name": "Hair anisotropic BRDF",
+      "variables": [
+        {
+          "symbol": "ω_i,ω_o",
+          "meaning": "direcciones luz/vista",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango modelo"
+        },
+        {
+          "symbol": "β",
+          "meaning": "ángulo cuticular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "f_r",
+          "meaning": "BRDF",
+          "unit": "sr⁻¹",
+          "dimension": "inversa de ángulo sólido",
+          "domain": "no negativa"
+        }
+      ],
+      "constraints": [
+        "Lóbulos longitudinal/azimutal deben definirse con distribución y medida angular; no sumar lóbulo con unidades incompatibles.",
+        "La expresión multiplicativa esquemática no fija normalización ni jacobiano."
+      ],
+      "valid_domain": [
+        "Direcciones unitarias; fibra con marco tangente válido; parámetros calibrados."
+      ],
+      "boundary_conditions": [
+        "Dirección rasante y denominadores nulos requieren límite analítico.",
+        "Con reflectancia nula, salida reflejada cero."
+      ],
+      "dimensional_checks": [
+        "BRDF tiene sr⁻¹ bajo convención de ángulo sólido; factores angulares adimensionales salvo distribución normalizada.",
+        "La fórmula abreviada queda condicionada a la definición exacta de lóbulos."
+      ],
+      "status": "CONDITIONAL_POINT1_FULL_HAIR_BRDF_REQUIRED"
+    },
+    {
+      "record_key": "D22:13",
+      "name": "Catenary",
+      "variables": [
+        {
+          "symbol": "x,y,x0,c",
+          "meaning": "coordenadas y desplazamiento vertical",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "a",
+          "meaning": "parámetro catenario",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "a>0"
+        },
+        {
+          "symbol": "g",
+          "meaning": "gravedad",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "g>0"
+        },
+        {
+          "symbol": "H",
+          "meaning": "componente horizontal de tensión",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "H>0"
+        },
+        {
+          "symbol": "w",
+          "meaning": "peso por longitud",
+          "unit": "N/m",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "w>0"
+        }
+      ],
+      "constraints": [
+        "(x−x0)/a debe ser adimensional; y=a cosh((x−x0)/a)+c tiene L.",
+        "Para cable uniforme bajo gravedad, a=H/w tiene L."
+      ],
+      "valid_domain": [
+        "a>0; coordenadas finitas; cable flexible e inextensible idealizado."
+      ],
+      "boundary_conditions": [
+        "En x=x0, y=a+c.",
+        "Tensión y pendiente crecen al acercarse a extremos según anclajes."
+      ],
+      "dimensional_checks": [
+        "(x−x0)/a adimensional; cosh devuelve adimensional; a cosh tiene L.",
+        "H/w tiene L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D22:14",
+      "name": "Cloth self-collision",
+      "variables": [
+        {
+          "symbol": "d",
+          "meaning": "distancia entre primitivas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "margen de separación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ε≥0"
+        },
+        {
+          "symbol": "x",
+          "meaning": "posiciones geométricas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "N",
+          "meaning": "normal de contacto",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria si definida"
+        }
+      ],
+      "constraints": [
+        "La condición d>ε compara longitudes homogéneas.",
+        "La detección de contacto no define respuesta, fricción ni restitución."
+      ],
+      "valid_domain": [
+        "Malla finita; primitivas no degeneradas; ε definido."
+      ],
+      "boundary_conditions": [
+        "d=0 requiere normal de contacto de respaldo.",
+        "Triángulos degenerados se descartan o reparan."
+      ],
+      "dimensional_checks": [
+        "d y ε tienen L; N es adimensional.",
+        "La desigualdad es dimensionalmente consistente."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "15/15 técnicas incluidas",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
+      "D22:9, D22:12 quedan condicionales por definición discreta de energía y ecuación completa de BRDF ausentes"
+    ],
+    "limitations": [
+      "La dimensión de multiplicadores y energías discretas depende de la definición exacta de restricción/energía. Las fichas esquemáticas no se completan con constantes inventadas."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
