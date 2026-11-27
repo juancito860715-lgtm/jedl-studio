@@ -1484,8 +1484,8 @@
       "name": "Contorno por discontinuidad de profundidad y normal",
       "variables": [
         {
-          "symbol": "z",
-          "meaning": "profundidad lineal",
+          "symbol": "z0,z1",
+          "meaning": "positive linear view-space depth at center and neighbor",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -1495,12 +1495,27 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m",
-          "domain": "finite values in stated coordinate space"
+          "unit": "m (or one consistent scene-length unit)",
+          "domain": "finite positive linear eye-depth; never raw nonlinear depth-buffer samples"
         },
         {
-          "symbol": "delta",
-          "meaning": "offset de muestra",
+          "symbol": "z_floor",
+          "meaning": "positive lower bound for relative-depth denominator",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m (same as z)",
+          "domain": "finite and >0; normally tied to camera near plane or a documented scene epsilon"
+        },
+        {
+          "symbol": "n0,n1",
+          "meaning": "surface normals in the same coordinate frame",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1510,27 +1525,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "pixel",
-          "domain": "finite values in stated coordinate space"
+          "unit": "1 (unit vectors)",
+          "domain": "finite nonzero 3-vectors; normalized before dot product"
         },
         {
-          "symbol": "grad_z",
-          "meaning": "gradiente de profundidad",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "m/pixel",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "n",
-          "meaning": "normal de superficie",
+          "symbol": "lambda_n",
+          "meaning": "relative weight of normal discontinuity",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1540,14 +1540,14 @@
             "N": 0,
             "J": 0
           },
-          "unit": "unit vector",
-          "domain": "finite values in stated coordinate space"
+          "unit": "1",
+          "domain": "finite and >=0; artistic/calibration parameter"
         },
         {
-          "symbol": "lambda",
-          "meaning": "escala para diferencia de normales",
+          "symbol": "E",
+          "meaning": "combined local discontinuity score",
           "dimension": {
-            "L": 1,
+            "L": 0,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -1555,14 +1555,14 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m/pixel if E uses depth gradient",
-          "domain": "finite values in stated coordinate space"
+          "unit": "1",
+          "domain": "finite and >=0"
         },
         {
-          "symbol": "tau",
-          "meaning": "umbral de contorno",
+          "symbol": "tau_0,tau_1",
+          "meaning": "lower and upper antialiasing thresholds",
           "dimension": {
-            "L": 1,
+            "L": 0,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -1570,15 +1570,47 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m/pixel after normalization",
-          "domain": "finite values in stated coordinate space"
+          "unit": "1",
+          "domain": "finite; 0<=tau_0<tau_1"
+        },
+        {
+          "symbol": "a",
+          "meaning": "outline coverage/opacity",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1",
+          "domain": "clamped to [0,1]"
+        },
+        {
+          "symbol": "delta_uv",
+          "meaning": "neighbor sample offset in texture coordinates",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "normalized UV",
+          "domain": "finite offset derived from render-target resolution and selected neighbor stencil"
         }
       ],
       "dimensional_findings": [
-        "No sumar gradiente de profundidad (longitud/píxel) con diferencia de normales (adimensional) sin un factor lambda compatible. Profundidad debe ser linealizada."
+        "The relative depth jump |z0-z1|/max(min(z0,z1),z_floor) is dimensionless.",
+        "The normalized normal dot product and 1-dot are dimensionless; lambda_n is dimensionless, so both score terms may be added.",
+        "The smoothstep thresholds and resulting coverage are dimensionless. Pixel offsets are sampling coordinates, not lengths in world space."
       ],
-      "status": "INCOMPLETE_ORIGINAL_FORMULA_DIMENSION_MISMATCH_OR_UNDER_SPECIFIED",
-      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of the authored pairwise depth-normal score; not a source-equation claim or renderer certification."
     },
     {
       "record_key": "D14:16",
