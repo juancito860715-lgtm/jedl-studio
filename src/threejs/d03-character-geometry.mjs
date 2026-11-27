@@ -45,7 +45,10 @@ function createIsosurfaceMesh({bounds,resolution=24,field,iso=0,material=new THR
   const scale=new THREE.Vector3((bounds[3]-bounds[0])/2,(bounds[4]-bounds[1])/2,(bounds[5]-bounds[2])/2);
   mesh.geometry.scale(scale.x,scale.y,scale.z);
   mesh.geometry.translate(center.x,center.y,center.z);
-  mesh.geometry.computeBoundingBox(); mesh.geometry.computeBoundingSphere();
+  const active=mesh.geometry.getAttribute("position"),points=[];
+  for(let i=0;i<mesh.geometry.drawRange.count;i++) points.push(new THREE.Vector3().fromBufferAttribute(active,i));
+  mesh.geometry.boundingBox=new THREE.Box3().setFromPoints(points);
+  mesh.geometry.boundingSphere=new THREE.Sphere().setFromPoints(points);
   return mesh;
 }
 
@@ -228,7 +231,8 @@ export function solveFabrik({positions,lengths,target,root=null,tolerance=1e-4,m
   for(let iter=0;iter<maxIterations;iter++){
     p[p.length-1].copy(goal);
     for(let i=p.length-2;i>=0;i--){
-      let dir=p[i].clone().sub(p[i+1]);if(dir.lengthSq()<EPS)dir=p[i+1].clone().sub(p[i+2]||anchor);
+      let dir=p[i].clone().sub(p[i+1]);
+      if(dir.lengthSq()<EPS)dir.set(1,0,0);
       dir.normalize();p[i].copy(p[i+1]).addScaledVector(dir,lengths[i]);
     }
     p[0].copy(anchor);
