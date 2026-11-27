@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D37 Anatomía procedural, biomecánica y deformación de personajes",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -177,8 +177,8 @@
       "name": "Dual Quaternion Skinning",
       "variables": [
         {
-          "symbol": "q_i",
-          "meaning": "dual quaternion hueso",
+          "symbol": "q_r",
+          "meaning": "Parte real (rotación) del dual quaternion",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -189,11 +189,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "parte real unitaria"
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "q_d",
+          "meaning": "Parte dual que codifica traslación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita; derivada de t·q_r/2"
         },
         {
           "symbol": "w_i",
-          "meaning": "peso",
+          "meaning": "Peso de mezcla",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -204,11 +219,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "normalizado"
+          "domain": "no negativos y normalizados"
         },
         {
           "symbol": "p",
-          "meaning": "posición",
+          "meaning": "Posición de vértice",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -222,8 +237,8 @@
           "domain": "finita"
         },
         {
-          "symbol": "p'",
-          "meaning": "posición transformada",
+          "symbol": "p′",
+          "meaning": "Posición transformada",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -238,8 +253,9 @@
         }
       ],
       "constraints": [
-        "Cuaterniones duales codifican rotación y traslación; alineación de signos antes de mezclar.",
-        "Normalización de parte real y dual debe ser coherente."
+        "q_r es adimensional; q_d codifica traslación y tiene longitud porque q_d=½(0,t)q_r.",
+        "La mezcla ponderada de partes reales conserva dimensión 1; la mezcla de partes duales conserva L; normalizar el dual quaternion no debe borrar el tipado de traslación.",
+        "Alinear signos hemisféricos antes de mezclar para evitar cancelación."
       ],
       "valid_domain": [
         "Dual quaternions válidos; pesos finitos; parte real no nula."
@@ -248,8 +264,8 @@
         "Una influencia reproduce transformación; cuaternión dual degenerado se rechaza."
       ],
       "dimensional_checks": [
-        "Rotación es adimensional; traslación embebida conserva L; p' tiene L.",
-        "La mezcla ponderada no cambia dimensión espacial."
+        "q_r y w_i son adimensionales; q_d y traslación tienen L.",
+        "La transformación de p produce p′ con L; no asignar unidad única al par dual quaternion."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -459,9 +475,17 @@
         {
           "symbol": "λ",
           "meaning": "amortiguación",
-          "unit": "unidad compatible con JJᵀ",
-          "dimension": "tipada",
-          "domain": "≥0"
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ≥0; λ²I se suma a JJᵀ, por lo que λ tiene unidad m"
         },
         {
           "symbol": "Δθ",
@@ -480,8 +504,8 @@
         }
       ],
       "constraints": [
-        "J relaciona cambios angulares con desplazamiento cartesiano; la matriz amortiguada debe sumar términos de igual unidad.",
-        "La amortiguación se escala con métrica/normalización del Jacobiano."
+        "J=∂x/∂θ tiene m/rad (rad adimensional); JJᵀ tiene m².",
+        "Como la fórmula usa JJᵀ+λ²I, λ debe tener m; Δθ=Jᵀ(JJᵀ+λ²I)⁻¹e es adimensional angular."
       ],
       "valid_domain": [
         "Jacobiano finito; sistema resoluble; límites articulares definidos."
@@ -490,8 +514,8 @@
         "Error cero produce Δθ=0; λ alto reduce paso; singularidad requiere amortiguación."
       ],
       "dimensional_checks": [
-        "JΔθ tiene L; e tiene L; Δθ es angular.",
-        "La ecuación debe conservar unidades del espacio de tarea."
+        "J tiene L; JJᵀ y λ²I tienen L²; inversa tiene L⁻².",
+        "Jᵀ (L)·inversa (L⁻²)·e (L) produce ángulo adimensional Δθ."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1015,15 +1039,38 @@
       "name": "Respiración torácica procedural",
       "variables": [
         {
-          "symbol": "A",
-          "meaning": "amplitud",
-          "unit": "m o 1",
-          "dimension": "según sea desplazamiento o morph weight",
-          "domain": "finita"
+          "symbol": "A_disp",
+          "meaning": "Amplitud de desplazamiento torácico",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y acotada"
+        },
+        {
+          "symbol": "A_morph",
+          "meaning": "Amplitud de peso morph opcional",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango del morph"
         },
         {
           "symbol": "f",
-          "meaning": "frecuencia respiratoria",
+          "meaning": "Frecuencia respiratoria",
           "unit": "Hz",
           "dimension": {
             "L": 0,
@@ -1034,11 +1081,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": ">0"
+          "domain": "f>0"
         },
         {
           "symbol": "t",
-          "meaning": "tiempo",
+          "meaning": "Tiempo",
           "unit": "s",
           "dimension": {
             "L": 0,
@@ -1053,7 +1100,7 @@
         },
         {
           "symbol": "φ",
-          "meaning": "fase",
+          "meaning": "Fase",
           "unit": "rad",
           "dimension": {
             "L": 0,
@@ -1068,15 +1115,15 @@
         },
         {
           "symbol": "r(t)",
-          "meaning": "desplazamiento/control",
-          "unit": "misma unidad que A",
-          "dimension": "igual a A",
-          "domain": "finito"
+          "meaning": "Desplazamiento o control animado",
+          "unit": "m para desplazamiento; 1 para morph weight",
+          "dimension": "hereda de A_disp o A_morph según canal",
+          "domain": "canales separados"
         }
       ],
       "constraints": [
-        "Argumento 2πft+φ es adimensional; A debe tiparse como desplazamiento L o control normalizado.",
-        "Fases torácica/abdominal deben compartir frecuencia temporal y desfase angular declarado."
+        "r(t)=r0+A_disp sin(2πft+φ) tiene L si r0 y A_disp son desplazamientos.",
+        "Si se controla un morph weight, usar A_morph adimensional en un canal separado; no mezclar m y 1."
       ],
       "valid_domain": [
         "f>0; A finita; tiempo finito."
@@ -1085,8 +1132,8 @@
         "A=0 elimina movimiento; f=0 produce señal constante y no respiración periódica."
       ],
       "dimensional_checks": [
-        "ft es adimensional; r conserva unidad de A.",
-        "Si A es posición, tiene L; si morph weight, es adimensional."
+        "ft y φ son adimensionales; A_disp y r0 tienen L.",
+        "A_morph es adimensional y solo controla peso de morph. Separar canales evita ambigüedad."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -1094,11 +1141,11 @@
   "validation": {
     "structural_checks": [
       "13/13 técnicas incluidas; ninguna protegida",
-      "Variables, dimensiones, unidades, restricciones, dominios, límites y comprobaciones específicas por técnica",
-      "Separadas magnitudes geométricas, articulares, biomecánicas y controles artísticos"
+      "Cada registro contiene variables, restricciones, dominios, condiciones límite y comprobaciones dimensionales específicas",
+      "Corregida dimensión de parte dual de dual-quaternion, λ de DLS y separación entre amplitud física y morph en respiración"
     ],
     "limitations": [
-      "Auditoría dimensional; no certifica exactitud anatómica ni un modelo médico/biomecánico validado."
+      "Los rangos articulares y musculares requieren calibración anatómica/estilística; la auditoría dimensional no certifica biomecánica fisiológica."
     ]
   },
   "integrity": {
