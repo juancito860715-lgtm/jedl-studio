@@ -240,23 +240,38 @@
             "J": 0
           },
           "domain": "roofBase+pitch·|x|"
+        },
+        {
+          "symbol": "W",
+          "meaning": "ancho total del tejado entre aleros",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "W>0"
         }
       ],
       "constraints": [
-        "pitch es adimensional para que pitch·|x| sea longitud.",
-        "La sección es continua pero presenta cresta no diferenciable en x=0."
+        "x∈[−W/2,W/2]; x,W,roofBase,y tienen L.",
+        "La fórmula del catálogo y=roofBase+pitch·|x|, con pitch≥0, produce un perfil en V (valle), no un tejado a dos aguas con cumbrera elevada.",
+        "Para tejado a dos aguas con roofBase como altura de alero: y=roofBase+pitch·(W/2−|x|); pitch es rise/run adimensional."
       ],
       "valid_domain": [
-        "W>0; coordenadas dentro del ancho."
+        "W>0; −W/2≤x≤W/2; pitch≥0; parámetros en la misma unidad de longitud."
       ],
       "boundary_conditions": [
         "En x=0, y=roofBase.",
         "En aleros x=±W/2, altura finita y simétrica."
       ],
       "dimensional_checks": [
-        "x and |x| have L; pitch is dimensionless; pitch·|x| has L and can be added to roofBase.",
-        "W has L and constrains x to [−W/2,W/2]; y is a height with L.",
-        "If pitch is defined as an angle instead of rise/run, use tan(angle), which is dimensionless."
+        "pitch·|x| y pitch·(W/2−|x|) tienen L; W/2−|x| tiene L.",
+        "La forma del catálogo conserva unidades pero invierte la geometría esperada; la forma corregida tiene cumbrera máxima en x=0 y aleros en ±W/2."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -957,11 +972,72 @@
             "J": 0
           },
           "domain": "t≥0"
+        },
+        {
+          "symbol": "A(u,v)",
+          "meaning": "amplitud espacial de desplazamiento de tela",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada; A=0 en borde fijo"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "frecuencia angular de oscilación",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "k",
+          "meaning": "frecuencia espacial respecto del parámetro v normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita si v∈[0,1]"
+        },
+        {
+          "symbol": "φ",
+          "meaning": "fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
         }
       ],
       "constraints": [
-        "Puntos de borde anclado no reciben desplazamiento normal a restricciones; solver debe declarar modelo de tensión.",
-        "No permitir paso temporal o deformación que produzca inestabilidad numérica."
+        "A(u,v) tiene L; N es unitario adimensional; el desplazamiento conserva L.",
+        "ωt y kv deben ser adimensionales; con v normalizado, k es adimensional. Si v es longitud, k debe tener L⁻¹.",
+        "En borde fijo u=u_fixed, imponer A=0 o constraint posicional P=P0."
       ],
       "valid_domain": [
         "Malla regular y finita; viento y parámetros acotados."
@@ -971,9 +1047,8 @@
         "Esquinas con restricciones múltiples deben ser compatibles."
       ],
       "dimensional_checks": [
-        "u,v are dimensionless; p0 and windDisplacement have L, so p(u,v,t) has L.",
-        "Wind displacement must be a position offset; wind velocity or force must first be integrated/converted to displacement.",
-        "Fixed-edge constraints prescribe position (L) or displacement zero; time-dependent wind functions must have declared time units."
+        "A·sin(ωt−kv+φ) tiene L; sumarlo a p0 conserva L.",
+        "ω tiene T⁻¹; t tiene T; kv y φ son adimensionales."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1079,7 +1154,9 @@
   "validation": {
     "structural_checks": [
       "12/12 técnicas incluidas; ninguna está protegida",
-      "Cada registro contiene variables, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas"
+      "Cada registro contiene variables, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "D07:2 detecta inversión geométrica en la fórmula de tejado del catálogo y especifica forma correcta de cumbrera elevada",
+      "D07:10 incluye parámetros temporales/espaciales de onda y fase con unidades explícitas"
     ],
     "limitations": [
       "Revisión dimensional y estructural; derivaciones formales, algoritmos y pruebas numéricas corresponden a puntos posteriores."
