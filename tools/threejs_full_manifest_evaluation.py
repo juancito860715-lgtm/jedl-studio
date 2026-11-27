@@ -17,6 +17,10 @@ PRESERVATION=Path("docs/threejs/audit/crimson-loong-preserved-record-map.json")
 DIMENSIONS=Path("docs/threejs/audit/r31-symbol-dimension-audit.json")
 POINT4=Path("docs/threejs/audit/point4-executable-validation-D35-D36.json")
 RESEARCH=Path("docs/threejs/audit/external-implementation-research-D35-D36.json")
+D35_FILES=[Path(f"docs/threejs/audit/point{n}-{kind}-D35.json") for n,kind in
+           ((1,"dimensional-audit"),(2,"mathematical-derivations"),(3,"complete-algorithms"))]
+D36_FILES=[Path(f"docs/threejs/audit/point{n}-{kind}-D36.json") for n,kind in
+           ((1,"dimensional-audit"),(2,"mathematical-derivations"),(3,"complete-algorithms"))]
 
 def read(path):
     return json.loads(path.read_text(encoding="utf-8"))
@@ -28,7 +32,9 @@ def load_all():
     dimensions=read(DIMENSIONS)
     point4=read(POINT4) if POINT4.exists() else {"records":[]}
     research=read(RESEARCH) if RESEARCH.exists() else {"records":[]}
-    return manifest,specs,preservation,dimensions,point4,research
+    d35=[read(p) for p in D35_FILES if p.exists()]
+    d36=[read(p) for p in D36_FILES if p.exists()]
+    return manifest,specs,preservation,dimensions,point4,research,d35,d36
 
 def spec_gaps(spec):
     required=("formulation_type","variables","equations","derivation","assumptions",
@@ -73,11 +79,15 @@ def spec_gaps(spec):
     return sorted(set(gaps))
 
 def make_records(domain_id=None):
-    manifest,specs,preservation,dimensions,point4,research=load_all()
+    manifest,specs,preservation,dimensions,point4,research,d35,d36=load_all()
     spec_by={x["record_key"]:x for x in specs.get("records",[])}
     preserved={x["record_key"]:x for x in preservation.get("records",[])}
     point_by={x["record_key"]:x for x in point4.get("records",[])}
     research_by={x["record_key"]:x for x in research.get("records",[])}
+    d35_by={x["record_key"]:x for doc in d35 for x in doc.get("records",[])}
+    d36_by={x["record_key"]:x for doc in d36 for x in doc.get("records",[])}
+    d35_complete=set(d35_by)
+    d36_complete=set(d36_by)
     out=[]
     for d in manifest.get("domains",[]):
         if domain_id and d.get("id")!=domain_id: continue
@@ -85,14 +95,29 @@ def make_records(domain_id=None):
             key=f'{d.get("id")}:{index}'
             evidence=point_by.get(key,{})
             research_record=research_by.get(key,{})
+            has_d35=key in d35_complete
+            has_d36=key in d36_complete
+            has_math_algorithm_audit=has_d35 or has_d36
+            r31_gaps=[]
+            if key in spec_by:
+                r31_gaps=spec_gaps(spec_by[key].get("technical_completion") or {})
             if key in preserved:
                 status="PRESERVED_FAMILY_REVIEW_ONLY"
                 gaps=["family-level preservation is not equation-level verification",
                       "independent implementation tests and certification remain unproven"]
+            elif has_math_algorithm_audit:
+                gaps=[]
+                if key in spec_by and r31_gaps:
+                    gaps.append("additional_R31_technical_completion_gaps")
+                if evidence.get("status")=="PRODUCTION_IMPLEMENTATION_TEST_PASSED":
+                    status="IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING"
+                else:
+                    status="MATHEMATICS_AND_ALGORITHM_AUDITED_IMPLEMENTATION_PENDING"
+                    if evidence.get("status")!="REFERENCE_TEST_PASSED":
+                        gaps.append("implementation-backed_execution_not_demonstrated")
             elif key in spec_by:
-                spec=spec_by[key].get("technical_completion") or {}
-                gaps=spec_gaps(spec)
-                status="SPECIFICATION_GAPS" if gaps else "SPECIFICATION_PRESENT_IMPLEMENTATION_PENDING"
+                gaps=r31_gaps
+                status="SPECIFICATION_GAPS" if gaps else "SPECIFICATION_COMPLETE_IMPLEMENTATION_PENDING"
             else:
                 gaps=["technical_completion record not found",
                       "source-backed implementation and independent tests not demonstrated"]
@@ -110,8 +135,14 @@ def make_records(domain_id=None):
                 "technical_specification_status":status,"missing_or_unproven":gaps,
                 "preservation_status":preserved.get(key,{}).get("preservation_status"),
                 "r31_research_id":spec_by.get(key,{}).get("research_id"),
-                "dimension_record_present":bool(spec_by.get(key,{}).get("research_id") and
-                    any(x.get("research_id")==spec_by[key].get("research_id") for x in dimensions.get("records",[]))),
+                "dimension_record_present":bool(
+                    (spec_by.get(key,{}).get("research_id") and
+                     any(x.get("research_id")==spec_by[key].get("research_id") for x in dimensions.get("records",[])))
+                    or (key in d35_by or key in d36_by)),
+                "point1_dimensional_audit_present":has_math_algorithm_audit,
+                "point2_derivation_present":has_math_algorithm_audit,
+                "point3_complete_algorithm_present":has_math_algorithm_audit,
+                "r31_additional_gaps":r31_gaps,
                 "implementation_research_status":implementation_status,
                 "execution_evidence":validation_tier,
                 "implementation_file":evidence.get("implementation_file") or research_record.get("implementation"),
@@ -122,7 +153,10 @@ def make_records(domain_id=None):
 
 def summarize(records):
     keys=("PRESERVED_FAMILY_REVIEW_ONLY","SPECIFICATION_GAPS",
-          "SPECIFICATION_PRESENT_IMPLEMENTATION_PENDING","TECHNICAL_SPECIFICATION_PENDING")
+          "SPECIFICATION_COMPLETE_IMPLEMENTATION_PENDING",
+          "MATHEMATICS_AND_ALGORITHM_AUDITED_IMPLEMENTATION_PENDING",
+          "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+          "TECHNICAL_SPECIFICATION_PENDING")
     return {k:sum(x["technical_specification_status"]==k for x in records) for k in keys}
 
 def main():
