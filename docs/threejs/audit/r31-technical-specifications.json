@@ -48,62 +48,249 @@
         "formula_level_status": "NO_EXTERNAL_FORMULA_CLAIM"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "DETERMINISTIC_HASH_DRIVEN_STOP_MOTION_MICROJITTER",
+        "symbol_table": [
+          {
+            "symbol": "f_s",
+            "meaning": "pose sample rate",
+            "unit": "Hz",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "t",
+            "meaning": "absolute animation time",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "k=floor(t*f_s)",
+            "meaning": "integer pose frame",
+            "unit": "count",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "seed",
+            "meaning": "fixed deterministic seed",
+            "unit": "integer",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "channel",
+            "meaning": "independent jitter stream identifier",
+            "unit": "integer",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "u",
+            "meaning": "uint32 hash mapped to [0,1)",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "A_pos",
+            "meaning": "maximum position offset",
+            "unit": "m or scene length",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "A_rot",
+            "meaning": "maximum angular offset",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "epsilon",
+            "meaning": "signed jitter offset",
+            "unit": "same unit as selected amplitude",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_POSITION_AND_ANGLE_STREAMS",
           "notes": [
-            "f_s en muestras/s; t en s; A_pos en unidades de escena; A_rot en radianes."
+            "u and frame/seed/channel are dimensionless integers; epsilon inherits the selected amplitude unit. Position and rotation amplitudes must never be conflated."
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_project_authored_hash_kernel",
+          "steps": [
+            "Convert absolute time to an integer frame index k=floor(t*f_s), with f_s>0.",
+            "Mix frame, seed and channel through a fixed uint32 hash sequence; all arithmetic wraps modulo 2^32.",
+            "Map unsigned integer x to u=x/2^32, so u lies in [0,1).",
+            "Map u to a centered interval using epsilon=A*(2u-1), yielding [-A,A).",
+            "Use separate channel IDs and amplitudes for each position axis and each angular axis; hold the result constant for the entire sampled frame."
+          ]
         },
-        "assumptions": [
-          "La misma semilla, índice y canal producen el mismo offset; no usar Math.random() por frame.",
-          "Definir si el jitter se mantiene constante durante todo el frame o se interpola."
+        "equations": [
+          {
+            "expression": "k=floor(t*f_s)",
+            "meaning": "deterministic frame index",
+            "dimensional_check": "pass",
+            "status": "authored_convention"
+          },
+          {
+            "expression": "u=uint32Hash(k,seed,channel)/2^32",
+            "meaning": "uniform-grid hash mapped to [0,1)",
+            "dimensional_check": "pass",
+            "status": "authored_convention"
+          },
+          {
+            "expression": "epsilon=A*(2u-1)",
+            "meaning": "bounded centered jitter",
+            "dimensional_check": "pass",
+            "status": "authored_convention"
+          }
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "assumptions": [
+          "The hash algorithm and constants are frozen as part of the project API; changing them changes every generated sequence.",
+          "All render evaluations use absolute time and the same seed/channel mapping.",
+          "Position and angle channels use distinct amplitudes with explicit units.",
+          "The hash is deterministic, not a cryptographic random generator and no statistical quality claim is made."
+        ],
+        "valid_domain": [
+          "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+        ],
+        "boundary_conditions": [
+          "u=0 maps to -A; u approaches 1 but never equals 1, so the upper bound A is excluded.",
+          "A=0 produces zero jitter.",
+          "Negative time uses floor semantics for frame indexing.",
+          "Repeated (frame,seed,channel) must return exactly the same jitter."
+        ],
+        "inputs": [
+          "Absolute time t and pose sample frequency f_s",
+          "Fixed integer seed",
+          "Integer channel identifier",
+          "Amplitude in a declared physical/scene unit"
+        ],
+        "outputs": [
+          "Deterministic bounded scalar offset for the selected channel"
+        ],
+        "algorithm_completeness": "CORE_HASH_AND_MAPPING_COMPLETE_FULL_STOP_MOTION_STYLE_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_REFERENCE_KERNEL_TESTED",
+        "algorithm_steps": [
+          "Validate finite time/frequency/amplitude and f_s>0, A>=0.",
+          "Compute integer frame with floor(t*f_s).",
+          "Mix frame, seed and channel using fixed uint32 hash constants and shifts.",
+          "Normalize unsigned hash to u in [0,1).",
+          "Return A*(2u-1); cache or recompute deterministically per frame."
+        ],
+        "pseudocode": "function jitter(t, fs, seed, channel, A):\n  require finite(t,fs,A) and fs>0 and A>=0\n  frame = floor(t*fs)\n  x = uint32(frame*C1 + seed*C2 + channel*C3)\n  x = avalanche32(x)  // fixed shifts and multipliers, modulo 2^32\n  u = x / 4294967296\n  return A*(2*u-1)",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(1) per channel and frame",
+          "space": "O(1) per channel; optional O(number of sampled frames) cache"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_FULL_STYLE_INTEGRATION_PENDING",
+          "details": "Evaluate from absolute animation time in the CPU rig update or a deterministic shader function. Use independent channels for x/y/z translation and rotation; keep jitter stable during the frame. The precise hash constants and uint32 semantics must match the tested reference."
         },
         "source_claims": [
           {
-            "url": "No paper is claimed for the exact deterministic hash+jitter recipe; cite as project-authored convention only.",
+            "url": "No external publication is claimed; project-authored deterministic procedural convention.",
             "type": "AUTHORED_PROCEDURAL_RULE",
-            "formula_level_status": "NO_EXTERNAL_FORMULA_CLAIM",
-            "exact_equation_locator": null
+            "supported_claim": "The exact uint32 hash recipe and its application as frame-indexed microjitter are project-authored; no paper is attributed.",
+            "formula_level_status": "authored_convention",
+            "exact_equation_locator": "Project-authored rule: frame-indexed uint32 hash mapped to [0,1), then epsilon=A*(2u-1)."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "Same frame/seed/channel returns bitwise-identical output.",
+              "oracle": "Python reference test."
+            },
+            {
+              "description": "Output lies in [-A,A) for tested seeds/channels.",
+              "oracle": "Python reference test."
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Known fixture and channel variation match Python.",
+              "oracle": "JavaScript parity test."
+            }
+          ],
+          "edge_cases": [
+            "A=0; negative time; negative frame index; frame/seed/channel uint32 wrap; upper bound excluded; distinct position/rotation units."
+          ]
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Validate statistical distribution and temporal perceptual behavior across long sequences",
+        "Integrate per-axis position and rotation channels in full stop-motion evaluator",
+        "Add deterministic frame cache and render-order invariance tests"
       ]
     },
     {
