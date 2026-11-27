@@ -46,5 +46,10 @@ class D02ReferenceValidationTests(unittest.TestCase):
         self.assertEqual(summary["local_adaptations_tested"], 0)
         self.assertEqual(summary["certified_as_locally_operational"], 0)
 
+    def test_loop_subdivision_scope_is_explicit(self):
+        record = next(r for r in self.data["records"] if r["record_key"] == "D02:7")
+        self.assertIn("Loop subdivision", record["mathematics"])
+        self.assertTrue(any("Catmull–Clark" in item for item in self.data["limitations"]))
+
 if __name__ == "__main__":
     unittest.main()
