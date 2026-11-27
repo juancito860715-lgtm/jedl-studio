@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D09 Iluminación, sombreado y color",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -103,9 +103,9 @@
         "Albedo cero produce salida difusa cero."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "albedo is dimensionless reflectance; N and L are unit directions and max(N·L,0) is dimensionless.",
+        "lightColor and I_d must use the same radiometric quantity and units; if using physical radiance, radiance has W·m⁻²·sr⁻¹ (SI base dimensions M·T⁻³).",
+        "The Lambert factor multiplies incident radiance by dimensionless albedo and cosine; output retains radiance units."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -186,9 +186,9 @@
         "n=0 da lóbulo constante en hemisferio positivo según fórmula."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "R and V are unit directions; (R·V)^n is dimensionless for n≥0 and a nonnegative clamped cosine.",
+        "k_s is dimensionless; I_s must be multiplied by incident light radiance to retain radiometric units.",
+        "If the formula is stored as a normalized shading coefficient, label it dimensionless and keep light intensity separate."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -269,9 +269,9 @@
         "Si L+V≈0, contribución especular cero o fallback."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "N and H are unit directions; (N·H)^n is dimensionless after clamping to [0,1].",
+        "k_s is dimensionless; the specular contribution inherits the units of incident illumination when multiplied by light radiance.",
+        "The half-vector requires a nonzero view+light vector; normalize only when its norm is nonzero."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -282,16 +282,8 @@
         {
           "symbol": "D",
           "meaning": "distribución microfacet",
-          "unit": "1",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
+          "unit": "sr⁻¹ (microfacet normal distribution convention)",
+          "dimension": "inverse solid angle; sr dimensionless in SI but retained as angular measure",
           "domain": "normalizada según convención"
         },
         {
@@ -367,9 +359,9 @@
         "Cosenos próximos a cero requieren límite numérico estable."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "F and G are dimensionless; N·L and N·V are dimensionless positive cosines.",
+        "Microfacet distribution D and BRDF have inverse-steradian convention; the denominator is dimensionless.",
+        "The BRDF output must integrate consistently with incident radiance and projected solid angle; D cannot be dimensionless under the standard microfacet convention."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -434,9 +426,9 @@
         "cosθ=0 devuelve 1 según Schlick."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "F0, cosθ and F are dimensionless; (1−cosθ)^5 is dimensionless.",
+        "cosθ must be clamped to [0,1] for the usual entering/exiting interface convention.",
+        "F remains a reflectance ratio in [0,1], not radiance."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -517,9 +509,9 @@
         "En igualdad de profundidad aplicar regla de comparación consistente."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "World position p has L; depth comparisons are valid only when receiver depth and sampled depth use the same light projection and encoding.",
+        "If depth is linear world distance, both d_light and d_map have L and bias has L; if hardware depth is normalized, all three are dimensionless.",
+        "visibility is dimensionless in [0,1]; depth comparison is a visibility test, not a physical subtraction across encodings."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -600,9 +592,9 @@
         "Kernel fuera del mapa requiere clamp/border policy explícita."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "d, d_i and bias must share the same depth encoding and units (all L for linear depth or all dimensionless for normalized depth).",
+        "Each comparison yields a dimensionless 0/1 visibility sample; averaging preserves dimensionless visibility.",
+        "The PCF kernel radius is in texels/pixels and is separate from the depth bias."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -682,9 +674,9 @@
         "N_y=−1 usa groundColor; N_y=1 usa skyColor."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "N_y and t=0.5N_y+0.5 are dimensionless; t lies in [0,1] for unit normal N.",
+        "groundColor, skyColor and L must share the same linear color/radiance representation.",
+        "lerp preserves the units and color space of its endpoints."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -755,17 +747,32 @@
         {
           "symbol": "L",
           "meaning": "radiancia integrada",
-          "unit": "radiometric",
+          "unit": "radiancia integrada W·m⁻²·sr⁻¹",
           "dimension": {
             "L": 0,
-            "M": 0,
-            "T": 0,
+            "M": 1,
+            "T": -3,
             "I": 0,
             "Theta": 0,
             "N": 0,
             "J": 0
           },
           "domain": "finita"
+        },
+        {
+          "symbol": "L_i",
+          "meaning": "radiancia incidente de la fuente",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y no negativa"
         }
       ],
       "constraints": [
@@ -780,9 +787,9 @@
         "T=0 anula contribución posterior al punto opaco."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "s and ds have L; σ_s has L^-1; T(s) is dimensionless; phase has sr^-1.",
+        "σ_s·phase·ds has sr^-1; multiplying by incident radiance and integrating yields radiance units.",
+        "The current integral must include incident radiance/source term and a declared phase normalization to be physically dimensionally complete."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -863,9 +870,9 @@
         "Valores altos se comprimen según curva; no asumir clipping lineal."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "Exposure multiplier is dimensionless; C_HDR and C_out are linear color values in declared relative/display-referred conventions.",
+        "ToneMap is a nonlinear mapping between declared color encodings; it does not convert physical dimensions by itself.",
+        "Apply tone mapping to linear HDR values before display encoding; avoid applying twice."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -931,9 +938,9 @@
         "EV→−∞ tiende a negro; límites prácticos deben evitar under/overflow."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "EV is a logarithmic exposure value in stops and dimensionless; 2^EV is a dimensionless multiplier.",
+        "C and C′ share the same linear color/radiance units; multiplication by 2^EV preserves them.",
+        "The reference exposure convention (EV=0) must be defined; EV changes do not alter physical units."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -950,7 +957,7 @@
             "M": 0,
             "T": 0,
             "I": 0,
-            "Theta": 0,
+            "Theta": 1,
             "N": 0,
             "J": 0
           },
@@ -1013,9 +1020,9 @@
         "Peso único selecciona su color; transición continua entre muestras."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "T_color has thermodynamic temperature dimension Θ and unit kelvin; it must be positive.",
+        "warm, neutral, cool and C are linear RGB vectors; blend weights are dimensionless and sum to one.",
+        "Temperature-to-color conversion is an empirical mapping; do not treat RGB components as kelvin or linearly interpolate temperatures as colors."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1126,17 +1133,21 @@
         "Pendiente/flujo nulo usa orientación neutra determinista."
       ],
       "dimensional_checks": [
-        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
-        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
-        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+        "p has L; amplitude has L; flow direction, slope and orientation_strength are dimensionless; octave count is discrete.",
+        "If noise is sampled spatially, each frequency has L^-1 so frequency·p is dimensionless.",
+        "The perturbation amplitude times normalized structured noise has L and can be added to terrain height; gradient direction requires nonzero gradient."
       ],
       "status": "REVIEWED_POINT1"
     }
   ],
   "validation": {
     "structural_checks": [
-      "13/13 registros incluidos",
-      "Todos los registros incluyen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales"
+      "13/13 técnicas incluidas; ninguna protegida",
+      "Cada registro incluye variables, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "Corregida dimensión termodinámica de temperatura de color y tipado radiométrico de microfacet/volumetría"
+    ],
+    "limitations": [
+      "Las ecuaciones de iluminación simplificadas no especifican todos los factores radiométricos; se documentan las convenciones necesarias sin atribuirles precisión física no demostrada."
     ]
   },
   "integrity": {
