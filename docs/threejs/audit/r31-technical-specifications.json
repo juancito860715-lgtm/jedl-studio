@@ -62,7 +62,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
           },
           {
             "symbol": "t",
@@ -76,7 +77,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
           },
           {
             "symbol": "k=floor(t*f_s)",
@@ -90,7 +92,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
           },
           {
             "symbol": "seed",
@@ -104,7 +107,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
           },
           {
             "symbol": "channel",
@@ -118,7 +122,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
           },
           {
             "symbol": "u",
@@ -132,7 +137,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
           },
           {
             "symbol": "A_pos",
@@ -146,7 +152,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
           },
           {
             "symbol": "A_rot",
@@ -160,7 +167,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
           },
           {
             "symbol": "epsilon",
@@ -174,7 +182,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
           }
         ],
         "dimensional_analysis": {
@@ -261,7 +270,8 @@
             "type": "AUTHORED_PROCEDURAL_RULE",
             "supported_claim": "The exact uint32 hash recipe and its application as frame-indexed microjitter are project-authored; no paper is attributed.",
             "formula_level_status": "authored_convention",
-            "exact_equation_locator": "Project-authored rule: frame-indexed uint32 hash mapped to [0,1), then epsilon=A*(2u-1)."
+            "exact_equation_locator": "Project-authored rule: frame-indexed uint32 hash mapped to [0,1), then epsilon=A*(2u-1).",
+            "formula_locator": "Project-authored rule: frame-indexed uint32 hash mapped to [0,1), then epsilon=A*(2u-1)."
           }
         ],
         "independent_tests": {
@@ -284,6 +294,148 @@
           "edge_cases": [
             "A=0; negative time; negative frame index; frame/seed/channel uint32 wrap; upper bound excluded; distinct position/rotation units."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "f_s",
+            "meaning": "pose sample rate",
+            "unit": "Hz",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+          },
+          {
+            "symbol": "t",
+            "meaning": "absolute animation time",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+          },
+          {
+            "symbol": "k=floor(t*f_s)",
+            "meaning": "integer pose frame",
+            "unit": "count",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+          },
+          {
+            "symbol": "seed",
+            "meaning": "fixed deterministic seed",
+            "unit": "integer",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+          },
+          {
+            "symbol": "channel",
+            "meaning": "independent jitter stream identifier",
+            "unit": "integer",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+          },
+          {
+            "symbol": "u",
+            "meaning": "uint32 hash mapped to [0,1)",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+          },
+          {
+            "symbol": "A_pos",
+            "meaning": "maximum position offset",
+            "unit": "m or scene length",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+          },
+          {
+            "symbol": "A_rot",
+            "meaning": "maximum angular offset",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+          },
+          {
+            "symbol": "epsilon",
+            "meaning": "signed jitter offset",
+            "unit": "same unit as selected amplitude",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite t; f_s>0; integer seed/frame/channel; finite amplitude A>=0; uint32 hash arithmetic."
+          }
+        ],
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Evaluate from absolute animation time in the CPU rig update or a deterministic shader function. Use independent channels for x/y/z translation and rotation; keep jitter stable during the frame. The precise hash constants and uint32 semantics must match the tested reference."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -351,7 +503,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
           },
           {
             "symbol": "d_i",
@@ -365,7 +518,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
           },
           {
             "symbol": "t",
@@ -379,7 +533,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
           },
           {
             "symbol": "r_i",
@@ -393,7 +548,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
           },
           {
             "symbol": "k_i=d_i/r_i",
@@ -407,7 +563,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
           },
           {
             "symbol": "epsilon",
@@ -421,7 +578,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
           },
           {
             "symbol": "I_max",
@@ -435,7 +593,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
           }
         ],
         "dimensional_analysis": {
@@ -513,7 +672,8 @@
             "type": "PRIMARY_PAPER",
             "supported_claim": "FABRIK's reachable/unreachable branching, backward/forward positional projections and residual-based termination.",
             "formula_level_status": "verified",
-            "exact_equation_locator": "Aristidou & Lasenby 2011, Section 4, Algorithm 1; PDF pp. 245-246, lines 327-354 and 405-445; projection interpolation at lines 304-322."
+            "exact_equation_locator": "Aristidou & Lasenby 2011, Section 4, Algorithm 1; PDF pp. 245-246, lines 327-354 and 405-445; projection interpolation at lines 304-322.",
+            "formula_locator": "Aristidou & Lasenby 2011, Section 4, Algorithm 1; PDF pp. 245-246, lines 327-354 and 405-445; projection interpolation at lines 304-322."
           }
         ],
         "independent_tests": {
@@ -540,6 +700,127 @@
           "edge_cases": [
             "n=2 minimum chain; equality at reach boundary; max-iteration exhaustion; zero-length link rejected."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "p_i",
+            "meaning": "joint position",
+            "unit": "m (or one consistent scene-length unit)",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
+          },
+          {
+            "symbol": "d_i",
+            "meaning": "fixed link length between p_i and p_(i+1)",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
+          },
+          {
+            "symbol": "t",
+            "meaning": "end-effector target position",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
+          },
+          {
+            "symbol": "r_i",
+            "meaning": "current distance between adjacent projected joints",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
+          },
+          {
+            "symbol": "k_i=d_i/r_i",
+            "meaning": "dimensionless interpolation ratio",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
+          },
+          {
+            "symbol": "epsilon",
+            "meaning": "end-effector convergence tolerance",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
+          },
+          {
+            "symbol": "I_max",
+            "meaning": "maximum full iterations",
+            "unit": "count",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
+          }
+        ],
+        "algorithm_steps": [
+          "Comprobar alcance total.",
+          "Fijar efector al objetivo.",
+          "Barrido backward preservando longitudes.",
+          "Fijar raíz.",
+          "Barrido forward preservando longitudes.",
+          "Repetir hasta tolerancia."
+        ],
+        "pseudocode": "repeat: backward(chain,target); forward(chain,root); until distance(end,target)<epsilon",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "CPU solver over Vector3 joint positions. Convert solved world-space positions to each bone's local transform using parent world matrices; preserve bind lengths and update skeleton/bone matrices before SkinnedMesh rendering. GPU implementation is unnecessary for a single chain and requires a separate data-parallel design for crowds."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -605,7 +886,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
           },
           {
             "symbol": "q_d",
@@ -619,7 +901,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
           },
           {
             "symbol": "w_i",
@@ -633,7 +916,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
           },
           {
             "symbol": "b_0",
@@ -647,7 +931,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
           },
           {
             "symbol": "b_epsilon",
@@ -661,7 +946,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
           },
           {
             "symbol": "v",
@@ -675,7 +961,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
           }
         ],
         "dimensional_analysis": {
@@ -753,7 +1040,8 @@
             "type": "PRIMARY_PAPER",
             "supported_claim": "Weighted dual-quaternion sum, normalization, vertex/normal transformation, and antipodality correction.",
             "formula_level_status": "verified",
-            "exact_equation_locator": "Kavan et al. 2008, Section 4, Algorithm 1, lines 588-609 (PDF pp. 105:12-13); antipodality and sign correction Section 4.1, Eq. (16), lines 603-609."
+            "exact_equation_locator": "Kavan et al. 2008, Section 4, Algorithm 1, lines 588-609 (PDF pp. 105:12-13); antipodality and sign correction Section 4.1, Eq. (16), lines 603-609.",
+            "formula_locator": "Kavan et al. 2008, Section 4, Algorithm 1, lines 588-609 (PDF pp. 105:12-13); antipodality and sign correction Section 4.1, Eq. (16), lines 603-609."
           }
         ],
         "independent_tests": {
@@ -780,6 +1068,111 @@
           "edge_cases": [
             "Zero-weight influences; antipodal pairs; degenerate zero real sum; non-finite components."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "q_r",
+            "meaning": "unit real quaternion encoding rotation",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
+          },
+          {
+            "symbol": "q_d",
+            "meaning": "dual quaternion component encoding translation",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
+          },
+          {
+            "symbol": "w_i",
+            "meaning": "nonnegative skinning influence weight",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
+          },
+          {
+            "symbol": "b_0",
+            "meaning": "weighted sum of real quaternion components",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
+          },
+          {
+            "symbol": "b_epsilon",
+            "meaning": "weighted sum of dual quaternion components",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
+          },
+          {
+            "symbol": "v",
+            "meaning": "vertex position relative to the declared transform frame",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
+          }
+        ],
+        "algorithm_steps": [
+          "Obtener dual quaternion por hueso.",
+          "Alinear signos respecto a referencia.",
+          "Mezclar con pesos normalizados.",
+          "Normalizar parte real y dual.",
+          "Transformar posición y normal."
+        ],
+        "pseudocode": "ref=q[0]; blend=0; for bone: q=signAlign(q,ref); blend+=weight*q; blend=normalizeDual(blend); p'=transform(blend,p)",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Use CPU reference with Quaternion and Vector3 or a custom vertex shader. For GPU skinning, upload two vec4 values per bone, preserve sign alignment per vertex influence, and implement the paper's vector rotation/translation expression. Validate against CPU results; do not assume built-in SkinnedMesh uses dual quaternions."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -843,11 +1236,12 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "finite real timestamp"
           },
           {
             "symbol": "f_s",
-            "meaning": "frecuencia de muestras de pose",
+            "meaning": "frecuencia de muestreo de pose",
             "unit": "Hz",
             "dimension": {
               "L": 0,
@@ -857,11 +1251,12 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "finite and strictly positive"
           },
           {
             "symbol": "k",
-            "meaning": "índice de muestra",
+            "meaning": "índice entero de muestra",
             "unit": "count",
             "dimension": {
               "L": 0,
@@ -871,11 +1266,12 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "signed integer produced by floor"
           },
           {
             "symbol": "t_q",
-            "meaning": "tiempo cuantizado",
+            "meaning": "instante de muestra cuantizado",
             "unit": "s",
             "dimension": {
               "L": 0,
@@ -885,31 +1281,26 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "finite sample timestamp"
           }
         ],
         "dimensional_analysis": {
           "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "Auditoría limitada a las variables y ecuaciones declaradas; no certifica variantes no descritas."
+            "t*f_s es adimensional; k es entero adimensional; k/f_s tiene segundos."
           ]
         },
         "equations": [
           {
             "expression": "k=floor(t*f_s)",
-            "meaning": "índice de muestra",
+            "meaning": "índice de muestra izquierda",
             "dimensional_check": "pass",
             "status": "authored_convention"
           },
           {
             "expression": "t_q=k/f_s",
-            "meaning": "instante de muestra en el borde izquierdo",
-            "dimensional_check": "pass",
-            "status": "authored_convention"
-          },
-          {
-            "expression": "pose(t)=F(t_q)",
-            "meaning": "evaluación de pose cuantizada",
+            "meaning": "tiempo de muestra",
             "dimensional_check": "pass",
             "status": "authored_convention"
           }
@@ -918,68 +1309,147 @@
           "status": "complete_for_core_kernel",
           "steps": [
             "t*f_s es adimensional porque T*T^-1=1.",
-            "floor produce índice entero k; k/f_s vuelve a segundos.",
-            "Para t en [k/f_s,(k+1)/f_s), se conserva el tiempo de muestra k/f_s.",
-            "floor, a diferencia de truncamiento hacia cero, define intervalos coherentes para tiempos negativos."
+            "floor asigna cada tiempo al índice entero del intervalo que comienza en k/f_s.",
+            "Dividir k por f_s recupera una magnitud temporal.",
+            "Usar reloj absoluto evita acumulación de error dependiente del orden de renderizado."
           ]
         },
         "assumptions": [
-          "f_s finita y estrictamente positiva; t finito.",
-          "Es una convención de muestreo del proyecto, no una ley física ni una fórmula atribuida a una publicación.",
-          "La frecuencia de pose es independiente de la frecuencia de render; la interpolación de cámara/FX es una política separada."
+          "Convención temporal del proyecto, no una ley física ni una fórmula atribuida a un artículo.",
+          "f_s finita y estrictamente positiva; el evaluador de pose F es determinista para un timestamp dado."
         ],
         "valid_domain": [
-          "t positivo y negativo admitidos si finitos.",
-          "En t=m/f_s se selecciona exactamente m/f_s.",
-          "f_s<=0 es inválido."
+          "t finito, positivo o negativo.",
+          "f_s>0."
         ],
         "boundary_conditions": [
-          "Tiempo solicitado t",
+          "En t=m/f_s se elige exactamente la muestra m.",
+          "Los tiempos negativos usan floor, no truncamiento hacia cero.",
+          "La interpolación entre muestras es una política separada y no está definida por esta cuantización."
+        ],
+        "inputs": [
+          "Tiempo absoluto t",
           "Frecuencia de pose f_s",
           "Evaluador determinista F"
         ],
-        "inputs": [
-          "Tiempo cuantizado y pose F(t_q)"
-        ],
         "outputs": [
-          "Validar t y f_s finitos y f_s>0.",
-          "Calcular k=floor(t*f_s).",
-          "Calcular t_q=k/f_s.",
-          "Evaluar F(t_q)."
+          "Índice entero k",
+          "Tiempo cuantizado t_q",
+          "Pose F(t_q)"
         ],
         "algorithm_completeness": "CORE_KERNEL_COMPLETE_FULL_METHOD_PARTIAL",
         "pseudocode_status": "EXECUTABLE_REFERENCE_KERNEL_TESTED",
-        "complexity": "Evaluar el rig desde un reloj absoluto y el timestamp cuantizado; no acumular deltas por frame. Esto permite búsqueda temporal y render de fotogramas fuera de orden. La interpolación visual debe ser una política separada.",
+        "complexity": {
+          "time": "O(1) para cuantización, más el coste del evaluador de pose",
+          "space": "O(1) auxiliar"
+        },
         "threejs_binding": {
           "status": "CORE_MAPPING_DEFINED_FULL_INTEGRATION_PENDING",
-          "details": {
-            "url": "No se reclama publicación externa; convención de muestreo creada para el proyecto.",
-            "type": "AUTHORED_IMPLEMENTATION_CONVENTION",
-            "supported_claim": "Solo la convención de cuantización temporal floor del manifiesto.",
-            "formula_level_status": "authored_convention",
-            "exact_equation_locator": "Convención del proyecto: k=floor(t*f_s), t_q=k/f_s; no se atribuye a fuente externa."
-          }
+          "details": "Evaluar canales del rig desde el tiempo absoluto y el timestamp cuantizado. No acumular deltas por frame; interpolación de cámara/FX permanece como política independiente."
         },
         "source_claims": [
-          [
-            "1.13 s a 12 Hz -> 13/12 s.",
-            "-0.01 s a 12 Hz -> -1/12 s.",
-            "1 s a 12 Hz -> 1 s."
-          ]
+          {
+            "url": "https://github.com/juancito860715-lgtm/jedl-studio",
+            "type": "AUTHORED_PROJECT_CONVENTION",
+            "supported_claim": "La convención floor de muestreo temporal definida en este proyecto; no se atribuye a una publicación externa.",
+            "formula_level_status": "authored_convention",
+            "exact_equation_locator": "Convención del proyecto: k=floor(t*f_s), t_q=k/f_s.",
+            "formula_locator": "Convención del proyecto: k=floor(t*f_s), t_q=k/f_s."
+          }
         ],
         "independent_tests": {
           "python": [
             {
-              "description": "Mismos casos positivos, negativos y de frontera que Python.",
-              "oracle": "oráculo numérico independiente"
+              "description": "1.13 s a 12 Hz -> 13/12 s; -0.01 s -> -1/12 s; 1 s -> 1 s.",
+              "oracle": "Python standard-library math.floor."
             }
           ],
           "javascript": [
             {
-              "description": "Tiempos negativos; fronteras exactas; overflow de t*f_s; frecuencia cero o negativa.",
-              "oracle": "paridad cruzada con Python"
+              "description": "Mismos casos positivos, negativos y de frontera que Python.",
+              "oracle": "JavaScript Math.floor parity."
             }
+          ],
+          "edge_cases": [
+            "Tiempos negativos",
+            "Fronteras exactas",
+            "f_s=0 o negativa",
+            "Overflow o pérdida de precisión en t*f_s."
           ]
+        },
+        "algorithm_steps": [
+          "Validar t y f_s finitos y f_s>0.",
+          "Calcular k=floor(t*f_s).",
+          "Calcular t_q=k/f_s.",
+          "Evaluar F(t_q) desde el reloj absoluto."
+        ],
+        "pseudocode": "function quantizedPose(t, fs, evaluate):\n  require finite(t) and finite(fs) and fs > 0\n  k = floor(t * fs)\n  tq = k / fs\n  return {index:k, time:tq, pose:evaluate(tq)}",
+        "variables": [
+          {
+            "symbol": "t",
+            "meaning": "tiempo solicitado",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite real timestamp"
+          },
+          {
+            "symbol": "f_s",
+            "meaning": "frecuencia de muestreo de pose",
+            "unit": "Hz",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and strictly positive"
+          },
+          {
+            "symbol": "k",
+            "meaning": "índice entero de muestra",
+            "unit": "count",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "signed integer produced by floor"
+          },
+          {
+            "symbol": "t_q",
+            "meaning": "instante de muestra cuantizado",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite sample timestamp"
+          }
+        ],
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Evaluar canales del rig desde el tiempo absoluto y el timestamp cuantizado. No acumular deltas por frame; interpolación de cámara/FX permanece como política independiente."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -1531,7 +2001,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
           },
           {
             "symbol": "o",
@@ -1545,7 +2016,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
           },
           {
             "symbol": "h",
@@ -1559,7 +2031,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
           },
           {
             "symbol": "i,j,k",
@@ -1573,7 +2046,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
           },
           {
             "symbol": "p1,p2,p3",
@@ -1587,7 +2061,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
           },
           {
             "symbol": "n",
@@ -1601,7 +2076,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
           },
           {
             "symbol": "H",
@@ -1615,7 +2091,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
           }
         ],
         "dimensional_analysis": {
@@ -1692,7 +2169,8 @@
             "type": "PRIMARY_PAPER",
             "supported_claim": "Uniform-grid floor quantization, prime-multiplier XOR hash, modulo table indexing, and collision-aware primitive candidate processing.",
             "formula_level_status": "verified",
-            "exact_equation_locator": "Teschner et al. 2003, Section 4.1 Eq. (1), PDF p. 667 / lines 203-222; Section 3 and spatial hashing of vertices, lines 144-155 and 234-267."
+            "exact_equation_locator": "Teschner et al. 2003, Section 4.1 Eq. (1), PDF p. 667 / lines 203-222; Section 3 and spatial hashing of vertices, lines 144-155 and 234-267.",
+            "formula_locator": "Teschner et al. 2003, Section 4.1 Eq. (1), PDF p. 667 / lines 203-222; Section 3 and spatial hashing of vertices, lines 144-155 and 234-267."
           }
         ],
         "independent_tests": {
@@ -1719,6 +2197,126 @@
           "edge_cases": [
             "Coordinates on cell boundaries; negative epsilon; bucket collisions retained as candidates; large integer overflow policy."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "x",
+            "meaning": "world/local position component",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
+          },
+          {
+            "symbol": "o",
+            "meaning": "grid origin component",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
+          },
+          {
+            "symbol": "h",
+            "meaning": "positive grid cell width",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
+          },
+          {
+            "symbol": "i,j,k",
+            "meaning": "integer grid-cell coordinates",
+            "unit": "1 (integer index)",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
+          },
+          {
+            "symbol": "p1,p2,p3",
+            "meaning": "integer hash multipliers",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
+          },
+          {
+            "symbol": "n",
+            "meaning": "positive hash-table size",
+            "unit": "count",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
+          },
+          {
+            "symbol": "H",
+            "meaning": "hash table bucket index",
+            "unit": "integer index",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
+          }
+        ],
+        "algorithm_steps": [
+          "Calcular celda de cada agente.",
+          "Contar ocupación por celda.",
+          "Construir offsets compactos.",
+          "Consultar celda y vecinas inmediatas.",
+          "Filtrar por distancia real."
+        ],
+        "pseudocode": "cell=floor((p-origin)/h); insert(index,hash(cell)); for c in neighborCells(cell): test agents[c]",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Implement CPU broadphase with typed arrays and bucket heads/next indices, or a Map keyed by exact integer cell coordinates for a collision-free dictionary baseline. For WebGPU, use integer storage buffers and explicit atomic bucket insertion; keep exact cell coordinates for collision filtering. The kernel in this PR validates only cell quantization and bucket-index arithmetic, not tetrahedron/triangle intersection."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -2347,13 +2945,28 @@
             "url": "https://www.kyprianidis.com/p/pg2009/jkyprian-pg2009.pdf",
             "type": "PRIMARY_PAPER_PDF",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Calcular gradiente de luminancia.",
+          "Formar productos exteriores.",
+          "Suavizar con Gaussiana.",
+          "Diagonalizar analíticamente 2×2.",
+          "Usar autovector dominante como dirección."
+        ],
+        "pseudocode": "grad=gradient(luma); J=blur(outer(grad,grad)); theta=0.5*atan2(2*J.xy,J.xx-J.yy);",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -2952,13 +3565,28 @@
             "url": "https://www.jcad.cn/en/article/doi/10.3724/SP.J.1089.2020.17954",
             "type": "PRIMARY_ARTICLE",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Generar segmentos de pincelada.",
+          "Calcular distancia al eje y ancho variable.",
+          "Acumular altura por trazo.",
+          "Calcular gradiente de altura.",
+          "Usar normal perturbada y roughness asociada."
+        ],
+        "pseudocode": "height=0; for stroke in strokes: height+=stroke.height*profile(distanceToStroke(P,stroke)); normal2=normalize(normal-gradient(height));",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -3050,13 +3678,27 @@
             "url": "https://onlinelibrary.wiley.com/doi/10.1111/cgf.14992",
             "type": "PRIMARY_ARTICLE",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Calcular pendiente y dirección de drenaje aproximada.",
+          "Evaluar ruido estructurado orientado.",
+          "Modular amplitud por pendiente/exposición.",
+          "Combinar escalas y conservar continuidad entre tiles."
+        ],
+        "pseudocode": "g=gradient(height); flow=estimateFlow(g); detail=orientedNoise(p,flow,g); h2=height+amplitude*detail",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -3129,7 +3771,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "a,b finitos; k>=0; una misma unidad de distancia."
           },
           {
             "symbol": "k",
@@ -3143,7 +3786,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "a,b finitos; k>=0; una misma unidad de distancia."
           },
           {
             "symbol": "h",
@@ -3157,7 +3801,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "a,b finitos; k>=0; una misma unidad de distancia."
           },
           {
             "symbol": "d_s",
@@ -3171,7 +3816,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "a,b finitos; k>=0; una misma unidad de distancia."
           }
         ],
         "dimensional_analysis": {
@@ -3246,7 +3892,8 @@
             "type": "AUTHOR_PRIMARY_TECHNICAL_ARTICLE",
             "supported_claim": "Variantes smooth-min y fórmula polinómica cuadrática, parámetro de radio y derivación del término corrector.",
             "formula_level_status": "verified",
-            "exact_equation_locator": "Iñigo Quilez, Smooth Minimum (2013), secciones 'Several implementations' (polynomial smooth min 2) y 'Derivation'."
+            "exact_equation_locator": "Iñigo Quilez, Smooth Minimum (2013), secciones 'Several implementations' (polynomial smooth min 2) y 'Derivation'.",
+            "formula_locator": "Iñigo Quilez, Smooth Minimum (2013), secciones 'Several implementations' (polynomial smooth min 2) y 'Derivation'."
           }
         ],
         "independent_tests": {
@@ -3273,6 +3920,81 @@
           "edge_cases": [
             "k=0; k negativo; campos iguales; límite |a-b|=k; sensibilidad al orden en mezclas anidadas."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "a,b",
+            "meaning": "valores de distancia con signo",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "a,b finitos; k>=0; una misma unidad de distancia."
+          },
+          {
+            "symbol": "k",
+            "meaning": "radio de mezcla",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "a,b finitos; k>=0; una misma unidad de distancia."
+          },
+          {
+            "symbol": "h",
+            "meaning": "peso de mezcla",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "a,b finitos; k>=0; una misma unidad de distancia."
+          },
+          {
+            "symbol": "d_s",
+            "meaning": "distancia combinada",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "a,b finitos; k>=0; una misma unidad de distancia."
+          }
+        ],
+        "algorithm_steps": [
+          "Definir SDF primitivas.",
+          "Transformar coordenadas locales.",
+          "Combinar con unión/intersección/diferencia.",
+          "Evaluar gradiente para normal.",
+          "Raymarch o extraer malla."
+        ],
+        "pseudocode": "d=smin(sdfA(p),sdfB(p),k); n=normalize(gradient(d,p))",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Operador SDF CPU o función GLSL/TSL para ray marching. k debe permanecer en las mismas unidades de distancia que los campos. El resultado no debe tratarse automáticamente como SDF euclídeo exacto."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -3360,13 +4082,28 @@
             "url": "https://hdl.handle.net/2022/34260",
             "type": "PRIMARY_TECHNICAL_REPORT",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Definir spline de posición.",
+          "Evaluar posición y tangente.",
+          "Transportar marco local entre muestras.",
+          "Resolver objetivo/look-at con amortiguación.",
+          "Controlar velocidad por curva de arco."
+        ],
+        "pseudocode": "p=C(u); tangent=normalize(C'(u)); frame=parallelTransport(previousFrame,tangent); camera.quaternion=lookRotation(tangent,frame.normal)",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -3459,13 +4196,28 @@
             "url": "https://link.springer.com/article/10.1007/s00371-018-1551-5",
             "type": "PRIMARY_ARTICLE",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Renderizar depth y normal.",
+          "Linearizar profundidad.",
+          "Comparar vecinos en cuatro u ocho direcciones.",
+          "Aplicar umbral dependiente de profundidad.",
+          "Componer tinta y antialiasing."
+        ],
+        "pseudocode": "edge=max(abs(z-zN),lambda*(1-dot(n,nN))); ink=smoothstep(t0,t1,edge);",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -3558,13 +4310,28 @@
             "url": "https://opg.optica.org/josaa/abstract.cfm?uri=josaa-5-9-1502",
             "type": "PRIMARY_JOURNAL_ARTICLE",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Transformar coordenadas a espacio de pantalla o UV.",
+          "Calcular luminancia.",
+          "Evaluar patrón periódico o matriz Bayer.",
+          "Umbralizar y mezclar con tinta/paleta.",
+          "Aplicar antialiasing según derivadas."
+        ],
+        "pseudocode": "q=screenUV*frequency; pattern=0.5+0.5*sin(PI*q.x)*sin(PI*q.y); ink=step(pattern,luma);",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -3657,13 +4424,28 @@
             "url": "https://gfx.cs.princeton.edu/proj/hatching/",
             "type": "PRIMARY_SIGGRAPH_PAPER",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Definir dirección tangente.",
+          "Proyectar posición sobre la dirección.",
+          "Repetir fase con módulo.",
+          "Modular densidad por luminancia.",
+          "Combinar varias familias para cross-hatching."
+        ],
+        "pseudocode": "phase=fract(dot(p,dir)/spacing); line=1-smoothstep(width,width+aa,abs(phase-0.5));",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -3756,13 +4538,28 @@
             "url": "https://pubmed.ncbi.nlm.nih.gov/23492376/",
             "type": "PRIMARY_ARTICLE_ABSTRACT",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Definir grid UV y campo de velocidad.",
+          "Retrotrazar cada celda.",
+          "Muestrear pigmento previo bilinealmente.",
+          "Aplicar difusión/decaimiento y condiciones de borde.",
+          "Depositar o secar pigmento."
+        ],
+        "pseudocode": "for x in grid: back=x-dt*velocity(x); cNext[x]=sample(c,back); cNext[x]=diffuseAndDry(cNext[x])",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -3857,13 +4654,28 @@
             "url": "https://onlinelibrary.wiley.com/doi/10.1002/0470868279.ch3",
             "type": "PRIMARY_TEXTBOOK_CHAPTER",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Definir V(x,t) analítica o por suma de campos.",
+          "Elegir integrador y timestep.",
+          "Integrar estado con semilla determinista.",
+          "Aplicar límites/colisiones si existen.",
+          "Mapear estado a geometría/material."
+        ],
+        "pseudocode": "state=initial; for n in steps: state=RK4(V,state,t,dt)",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -4326,13 +5138,28 @@
             "url": "https://github.com/mikolalysenko/greedy-mesher",
             "type": "PRIMARY_IMPLEMENTATION_SOURCE",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Marcar caras expuestas.",
+          "Crear máscara 2D por plano y orientación.",
+          "Buscar rectángulos máximos de celdas equivalentes.",
+          "Emitir cuatro vértices y dos triángulos por rectángulo.",
+          "Repetir seis orientaciones."
+        ],
+        "pseudocode": "for axis in axes: mask=exposedFaces(axis); while findRectangle(mask): emitQuad(rect); clear(rect)",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -4405,7 +5232,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
           },
           {
             "symbol": "sigma_t",
@@ -4419,7 +5247,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
           },
           {
             "symbol": "rho",
@@ -4433,7 +5262,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
           },
           {
             "symbol": "mu_t=sigma_t*rho",
@@ -4447,7 +5277,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
           },
           {
             "symbol": "T",
@@ -4461,7 +5292,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
           },
           {
             "symbol": "alpha",
@@ -4475,7 +5307,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
           },
           {
             "symbol": "L",
@@ -4489,7 +5322,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
           },
           {
             "symbol": "S",
@@ -4503,7 +5337,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
           }
         ],
         "dimensional_analysis": {
@@ -4580,7 +5415,8 @@
             "type": "PRIMARY_TECHNICAL_REPORT",
             "supported_claim": "Attenuation-only exponential integral Eq. (1.2) and volume-ray integral Eq. (1.1), with t explicitly defined as distance along the ray.",
             "formula_level_status": "verified",
-            "exact_equation_locator": "Levoy 1992, §1, Eqs. (1.1)-(1.2), PDF p. 1; Eq. (1.2) is the attenuation-only Beer-Lambert form."
+            "exact_equation_locator": "Levoy 1992, §1, Eqs. (1.1)-(1.2), PDF p. 1; Eq. (1.2) is the attenuation-only Beer-Lambert form.",
+            "formula_locator": "Levoy 1992, §1, Eqs. (1.1)-(1.2), PDF p. 1; Eq. (1.2) is the attenuation-only Beer-Lambert form."
           }
         ],
         "independent_tests": {
@@ -4607,6 +5443,141 @@
           "edge_cases": [
             "rho dimension convention; variable density quadrature; alpha underflow/rounding; very opaque medium; segment order; colored extinction; phase function and shadows are out of scope."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "s, Delta s",
+            "meaning": "distance along ray and segment length",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
+          },
+          {
+            "symbol": "sigma_t",
+            "meaning": "base extinction coefficient",
+            "unit": "m^-1",
+            "dimension": {
+              "L": -1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
+          },
+          {
+            "symbol": "rho",
+            "meaning": "dimensionless density multiplier in the reference kernel",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
+          },
+          {
+            "symbol": "mu_t=sigma_t*rho",
+            "meaning": "effective volumetric extinction coefficient",
+            "unit": "m^-1",
+            "dimension": {
+              "L": -1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
+          },
+          {
+            "symbol": "T",
+            "meaning": "transmittance",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
+          },
+          {
+            "symbol": "alpha",
+            "meaning": "segment opacity",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
+          },
+          {
+            "symbol": "L",
+            "meaning": "radiance",
+            "unit": "W m^-2 sr^-1",
+            "dimension": {
+              "L": 0,
+              "M": 1,
+              "T": -3,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
+          },
+          {
+            "symbol": "S",
+            "meaning": "conditional source radiance assigned to an extinction event in the segment",
+            "unit": "same as L",
+            "dimension": {
+              "L": 0,
+              "M": 1,
+              "T": -3,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
+          }
+        ],
+        "algorithm_steps": [
+          "Construir densidad procedural.",
+          "Raymarch desde cámara hasta profundidad/limite.",
+          "Evaluar extinción y dispersión por paso.",
+          "Acumular radiancia premultiplicada.",
+          "Componer con escena opaca."
+        ],
+        "pseudocode": "T=1; L=0; for i in steps: rho=density(ray(t)); a=1-exp(-sigmaT*rho*ds); L+=T*a*sourceLight; T*=1-a",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Use a custom raymarching ShaderMaterial or TSL node graph with front-to-back accumulation. `sigma_t` must be in inverse world units and `ds` in the same world units. The existing CPU reference kernel validates constant segments and transmittance, not phase-function sampling, shadows, multiple scattering, or the complete volume renderer."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -4670,7 +5641,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
           },
           {
             "symbol": "F0",
@@ -4684,7 +5656,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
           },
           {
             "symbol": "u=cos(theta)",
@@ -4698,7 +5671,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
           },
           {
             "symbol": "N,V",
@@ -4712,7 +5686,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
           },
           {
             "symbol": "eta_i,eta_t",
@@ -4726,7 +5701,8 @@
               "Theta": 0,
               "N": 0,
               "J": 0
-            }
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
           }
         ],
         "dimensional_analysis": {
@@ -4796,7 +5772,8 @@
             "type": "PRIMARY_PAPER",
             "supported_claim": "Fifth-power Fresnel approximation and its four kernel conditions.",
             "formula_level_status": "verified",
-            "exact_equation_locator": "Schlick 1994, §4.2, Eq. (15), PDF pp. 7-8; same spectral-factor expression restated in §5.1 Eq. (24)."
+            "exact_equation_locator": "Schlick 1994, §4.2, Eq. (15), PDF pp. 7-8; same spectral-factor expression restated in §5.1 Eq. (24).",
+            "formula_locator": "Schlick 1994, §4.2, Eq. (15), PDF pp. 7-8; same spectral-factor expression restated in §5.1 Eq. (24)."
           }
         ],
         "independent_tests": {
@@ -4823,6 +5800,95 @@
           "edge_cases": [
             "u outside [0,1] clamps; F0 endpoints 0 and 1; vector normalization; backface/interface handling; RGB F0."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "F",
+            "meaning": "approximated Fresnel reflectance",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
+          },
+          {
+            "symbol": "F0",
+            "meaning": "reflectance at normal incidence",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
+          },
+          {
+            "symbol": "u=cos(theta)",
+            "meaning": "cosine between surface normal and incident/view half direction as specified by the BRDF",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
+          },
+          {
+            "symbol": "N,V",
+            "meaning": "unit surface normal and unit direction vector",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
+          },
+          {
+            "symbol": "eta_i,eta_t",
+            "meaning": "refractive indices of incident and transmitted media",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
+          }
+        ],
+        "algorithm_steps": [
+          "Normalizar normal y dirección de vista.",
+          "Calcular cosθ.",
+          "Evaluar potencia quinta.",
+          "Mezclar reflectancia con componente base según modelo BRDF."
+        ],
+        "pseudocode": "c=clamp(dot(N,V),0,1); F=F0+(1-F0)*pow(1-c,5)",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Implement in a ShaderMaterial/TSL material function or CPU reference. For Cook-Torrance use the half-vector cosine V·H; do not substitute N·V without changing the BRDF convention. Three.js built-in physical materials should not be assumed to expose this kernel as a separately configurable function."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -4908,13 +5974,28 @@
             "url": "https://profiles.wustl.edu/en/publications/dual-contouring-of-hermite-data/",
             "type": "PRIMARY_SIGGRAPH_PAPER",
             "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "exact_equation_locator": null,
+            "formula_locator": "Exact locator pending; claim must remain incomplete."
           }
         ],
         "independent_tests": {
           "python": [],
           "javascript": [],
           "edge_cases": []
+        },
+        "variables": [],
+        "algorithm_steps": [
+          "Detectar celdas con cambio de signo.",
+          "Interpolar intersecciones de arista.",
+          "Estimar normales del campo.",
+          "Resolver QEF por celda.",
+          "Conectar vértices vecinos según cambios de signo."
+        ],
+        "pseudocode": "for cell in activeCells: H=hermiteIntersections(cell); vertex=solveQEF(H); connectAdjacentCells()",
+        "implementation_mapping": {
+          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
+          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
         }
       },
       "readiness_status": "INCOMPLETE",
