@@ -1,0 +1,507 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D37 Anatomía procedural, biomecánica y deformación de personajes",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D37",
+    "record_count": 13,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D37 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D37:0",
+      "name": "Jerarquía ósea y transformaciones homogéneas",
+      "starting_principles": [
+        "Jerarquía acíclica; matrices homogéneas y bind inversibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "M_local,i=T_iR_iS_i",
+          "justification": "Definir transformación local por hueso."
+        },
+        {
+          "step": 2,
+          "equation": "M_world,i=M_world,parent·M_local,i",
+          "justification": "Componer con jerarquía padre-hijo."
+        },
+        {
+          "step": 3,
+          "equation": "M_skin,i=M_world,i·M_bind,i^{-1}",
+          "justification": "Calcular transformación desde bind a pose actual."
+        },
+        {
+          "step": 4,
+          "equation": "p_world=M_skin,i p_bind",
+          "justification": "Transformar punto influido por hueso."
+        }
+      ],
+      "assumptions": [
+        "Jerarquía acíclica; matrices homogéneas y bind inversibles."
+      ],
+      "result": "La jerarquía compone matrices locales hasta mundo y matrices de skinning.",
+      "limits": [
+        "Escala no uniforme y shear requieren tratamiento específico de normales y DQS."
+      ]
+    },
+    {
+      "record_key": "D37:1",
+      "name": "Linear Blend Skinning",
+      "starting_principles": [
+        "Pesos no negativos y suma uno; topología/índices válidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_i'=M_iM_bind,i^{-1}p",
+          "justification": "Transformar vértice por hueso i."
+        },
+        {
+          "step": 2,
+          "equation": "p'=Σ_iw_ip_i'",
+          "justification": "Combinar transformaciones ponderadas."
+        },
+        {
+          "step": 3,
+          "equation": "Σ_iw_i=1",
+          "justification": "Normalizar pesos para que mezcla sea convexa."
+        },
+        {
+          "step": 4,
+          "equation": "normal'=normalize(Σ_iw_iN_i')",
+          "justification": "Aproximar normal deformada y normalizar."
+        }
+      ],
+      "assumptions": [
+        "Pesos no negativos y suma uno; topología/índices válidos."
+      ],
+      "result": "LBS combina transformaciones de huesos con pesos normalizados.",
+      "limits": [
+        "LBS puede producir candy-wrapper collapse en torsiones grandes."
+      ]
+    },
+    {
+      "record_key": "D37:2",
+      "name": "Dual Quaternion Skinning",
+      "starting_principles": [
+        "Transformaciones rígidas o escala compatible; cuaterniones duales normalizables."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "q_i=dualQuaternion(M_iM_bind,i^{-1})",
+          "justification": "Convertir transformación rígida a cuaternión dual."
+        },
+        {
+          "step": 2,
+          "equation": "align signs of q_i to reference",
+          "justification": "Evitar cancelación entre representaciones antipodales."
+        },
+        {
+          "step": 3,
+          "equation": "q=normalize(Σ_iw_iq_i)",
+          "justification": "Combinar y normalizar dual quaternions."
+        },
+        {
+          "step": 4,
+          "equation": "p'=q p q*",
+          "justification": "Transformar punto con rotación y traslación codificadas."
+        }
+      ],
+      "assumptions": [
+        "Transformaciones rígidas o escala compatible; cuaterniones duales normalizables."
+      ],
+      "result": "DQS combina transformaciones rígidas en espacio de cuaterniones duales.",
+      "limits": [
+        "DQS básico no maneja escala no uniforme arbitraria."
+      ]
+    },
+    {
+      "record_key": "D37:3",
+      "name": "Inverse Kinematics CCD",
+      "starting_principles": [
+        "Pivotes, ejes y límites articulares definidos; tolerancia positiva."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e=target−endEffector",
+          "justification": "Calcular error cartesiano."
+        },
+        {
+          "step": 2,
+          "equation": "for joint i from distal to root",
+          "justification": "Iterar articulaciones desde efector hacia raíz."
+        },
+        {
+          "step": 3,
+          "equation": "Δθ_i=angle((e−p_i),(target−p_i))",
+          "justification": "Calcular giro que alinea vector actual y vector objetivo."
+        },
+        {
+          "step": 4,
+          "equation": "rotate joint; update chain; repeat",
+          "justification": "Actualizar cadena y comprobar tolerancia/límites."
+        }
+      ],
+      "assumptions": [
+        "Pivotes, ejes y límites articulares definidos; tolerancia positiva."
+      ],
+      "result": "CCD alinea sucesivamente cada articulación hacia el objetivo.",
+      "limits": [
+        "CCD puede oscilar o quedarse en mínimos locales; límites articulares afectan convergencia."
+      ]
+    },
+    {
+      "record_key": "D37:4",
+      "name": "FABRIK",
+      "starting_principles": [
+        "Longitudes l_i positivas; raíz fija; objetivo alcanzable o extensión definida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "backward: p_n=target",
+          "justification": "Fijar efector en objetivo."
+        },
+        {
+          "step": 2,
+          "equation": "p_i=p_{i+1}+l_i normalize(p_i−p_{i+1})",
+          "justification": "Pasada hacia atrás preserva longitudes."
+        },
+        {
+          "step": 3,
+          "equation": "forward: p_0=root",
+          "justification": "Restablecer raíz fija."
+        },
+        {
+          "step": 4,
+          "equation": "p_{i+1}=p_i+l_i normalize(p_{i+1}−p_i)",
+          "justification": "Pasada hacia delante preserva longitudes."
+        },
+        {
+          "step": 5,
+          "equation": "repeat until ||p_n−target||≤ε",
+          "justification": "Iterar hasta tolerancia."
+        }
+      ],
+      "assumptions": [
+        "Longitudes l_i positivas; raíz fija; objetivo alcanzable o extensión definida."
+      ],
+      "result": "FABRIK resuelve posiciones mediante pasadas backward/forward preservando longitudes.",
+      "limits": [
+        "Objetivos fuera de alcance requieren extensión o fallback."
+      ]
+    },
+    {
+      "record_key": "D37:5",
+      "name": "Jacobian Damped Least Squares IK",
+      "starting_principles": [
+        "J diferenciable; damping λ>0; unidades angulares y cartesianas coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e=target−f(θ)",
+          "justification": "Calcular error del efector."
+        },
+        {
+          "step": 2,
+          "equation": "J=∂f/∂θ",
+          "justification": "Construir Jacobiano."
+        },
+        {
+          "step": 3,
+          "equation": "Δθ=Jᵀ(JJᵀ+λ²I)^{-1}e",
+          "justification": "Resolver corrección amortiguada."
+        },
+        {
+          "step": 4,
+          "equation": "θ←θ+Δθ",
+          "justification": "Actualizar ángulos y aplicar límites."
+        }
+      ],
+      "assumptions": [
+        "J diferenciable; damping λ>0; unidades angulares y cartesianas coherentes."
+      ],
+      "result": "DLS minimiza error cartesiano con regularización del Jacobiano.",
+      "limits": [
+        "Singularidades y Jacobianos mal condicionados exigen damping y límites."
+      ]
+    },
+    {
+      "record_key": "D37:6",
+      "name": "Curva fuerza-longitud muscular",
+      "starting_principles": [
+        "Curvas musculares son aproximaciones empíricas; activación a∈[0,1]."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "l=muscle length; v=dl/dt",
+          "justification": "Medir longitud y velocidad de fibra."
+        },
+        {
+          "step": 2,
+          "equation": "f_l(l)=exp(−((l−l_opt)/w)²)",
+          "justification": "Aproximar curva activa longitud-tensión alrededor de longitud óptima."
+        },
+        {
+          "step": 3,
+          "equation": "f_v(v)=HillCurve(v)",
+          "justification": "Representar dependencia de fuerza con velocidad mediante curva empírica."
+        },
+        {
+          "step": 4,
+          "equation": "F=aF_max f_l(l)f_v(v)+F_passive(l)",
+          "justification": "Combinar activación, capacidad activa y tensión pasiva."
+        }
+      ],
+      "assumptions": [
+        "Curvas musculares son aproximaciones empíricas; activación a∈[0,1]."
+      ],
+      "result": "El modelo fuerza-longitud combina activación, longitud, velocidad y tensión pasiva.",
+      "limits": [
+        "Las curvas son aproximaciones biomecánicas, no parámetros clínicos."
+      ]
+    },
+    {
+      "record_key": "D37:7",
+      "name": "Modelo Hill músculo-tendón",
+      "starting_principles": [
+        "Tendón y fascículo en serie; pennation α y curvas constitutivas definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "l_MT=l_t+l_f cosα",
+          "justification": "Descomponer longitud músculo-tendón en tendón y proyección de fascículo."
+        },
+        {
+          "step": 2,
+          "equation": "F_CE=aF_max f_l(l_f)f_v(v_f)",
+          "justification": "Calcular fuerza contráctil."
+        },
+        {
+          "step": 3,
+          "equation": "F_PE=F_passive(l_f)",
+          "justification": "Calcular fuerza pasiva paralela."
+        },
+        {
+          "step": 4,
+          "equation": "F_SE=(F_CE+F_PE)cosα",
+          "justification": "Equilibrar fuerza tendinosa con componente axial de fibras."
+        },
+        {
+          "step": 5,
+          "equation": "solve l_f,l_t from length and force balance",
+          "justification": "Resolver estado de músculo-tendón."
+        }
+      ],
+      "assumptions": [
+        "Tendón y fascículo en serie; pennation α y curvas constitutivas definidas."
+      ],
+      "result": "Hill músculo-tendón impone equilibrio entre fascículo y tendón con geometría de pennation.",
+      "limits": [
+        "Modelo simplificado; tejido real tiene activación, viscoelasticidad y geometría complejas."
+      ]
+    },
+    {
+      "record_key": "D37:8",
+      "name": "Volumen muscular conservado",
+      "starting_principles": [
+        "Volumen aproximadamente constante; sección circular para radio."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "V=A·L",
+          "justification": "Aproximar volumen de segmento como área transversal por longitud."
+        },
+        {
+          "step": 2,
+          "equation": "V≈constant",
+          "justification": "Imponer incompresibilidad aproximada."
+        },
+        {
+          "step": 3,
+          "equation": "A_2=A_1L_1/L_2",
+          "justification": "Despejar área al cambiar longitud."
+        },
+        {
+          "step": 4,
+          "equation": "radius_2=radius_1√(L_1/L_2)",
+          "justification": "Para sección circular, A=πr²."
+        }
+      ],
+      "assumptions": [
+        "Volumen aproximadamente constante; sección circular para radio."
+      ],
+      "result": "La conservación de volumen deriva de A·L constante en segmento aproximado.",
+      "limits": [
+        "El volumen segmentario no se conserva exactamente con deformaciones arbitrarias."
+      ]
+    },
+    {
+      "record_key": "D37:9",
+      "name": "Fascia y deslizamiento de tejidos",
+      "starting_principles": [
+        "Capas y normales de contacto definidos; μ,k_t son parámetros del modelo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d=distance(layerA,layerB)",
+          "justification": "Calcular separación entre capas."
+        },
+        {
+          "step": 2,
+          "equation": "C_n=max(0,d−d_0)",
+          "justification": "Definir restricción de separación normal."
+        },
+        {
+          "step": 3,
+          "equation": "F_t=clamp(−k_tΔs,−μN,μN)",
+          "justification": "Limitar fuerza tangencial de deslizamiento según contacto normal en el modelo simplificado."
+        },
+        {
+          "step": 4,
+          "equation": "update layers with constraints",
+          "justification": "Actualizar capas manteniendo continuidad visual."
+        }
+      ],
+      "assumptions": [
+        "Capas y normales de contacto definidos; μ,k_t son parámetros del modelo."
+      ],
+      "result": "El deslizamiento de fascia combina restricción normal y movimiento tangencial limitado.",
+      "limits": [
+        "Fricción de tejidos es aproximada y no constituye modelo médico validado."
+      ]
+    },
+    {
+      "record_key": "D37:10",
+      "name": "Corrective blendshape por pose",
+      "starting_principles": [
+        "Poses de referencia compatibles; σ_k>0; features normalizadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ=poseFeatures(jointAngles)",
+          "justification": "Extraer vector de pose."
+        },
+        {
+          "step": 2,
+          "equation": "w_k=exp(−||φ−φ_k||²/(2σ_k²))",
+          "justification": "Calcular influencia radial de cada pose correctiva."
+        },
+        {
+          "step": 3,
+          "equation": "w'_k=w_k/Σ_jw_j",
+          "justification": "Normalizar pesos."
+        },
+        {
+          "step": 4,
+          "equation": "p'=p_skinning+Σ_kw'_kΔp_k",
+          "justification": "Aplicar correctivos tras skinning."
+        }
+      ],
+      "assumptions": [
+        "Poses de referencia compatibles; σ_k>0; features normalizadas."
+      ],
+      "result": "Correctives por pose se derivan de interpolación RBF en espacio de características articulares.",
+      "limits": [
+        "Correctives dependen de poses de entrenamiento/esculpido y no extrapolan bien."
+      ]
+    },
+    {
+      "record_key": "D37:11",
+      "name": "Anatomía segmentaria de mano",
+      "starting_principles": [
+        "Segmentos y pivotes definidos; longitudes positivas; límites aproximados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "M_tip=M_wristΠ_j(T_jR_j)",
+          "justification": "Componer transformaciones de segmentos de dedo."
+        },
+        {
+          "step": 2,
+          "equation": "p_tip=M_tip p_local",
+          "justification": "Calcular posición de punta."
+        },
+        {
+          "step": 3,
+          "equation": "θ_j=clamp(θ_j,limits_j)",
+          "justification": "Aplicar rangos articulares aproximados."
+        },
+        {
+          "step": 4,
+          "equation": "IK(target) adjusts θ_j",
+          "justification": "Resolver contacto/objetivo mediante IK."
+        }
+      ],
+      "assumptions": [
+        "Segmentos y pivotes definidos; longitudes positivas; límites aproximados."
+      ],
+      "result": "La mano se modela como cadenas jerárquicas de segmentos articulados.",
+      "limits": [
+        "Anatomía estilizada no reproduce todas las restricciones tendinosas."
+      ]
+    },
+    {
+      "record_key": "D37:12",
+      "name": "Respiración torácica procedural",
+      "starting_principles": [
+        "f>0; amplitudes acotadas; canales sincronizados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r(t)=r_0+A sin(2πft+φ)",
+          "justification": "Definir señal periódica para expansión torácica."
+        },
+        {
+          "step": 2,
+          "equation": "abdomen(t)=A_a sin(2πft+φ−δ)",
+          "justification": "Desfasar movimiento abdominal."
+        },
+        {
+          "step": 3,
+          "equation": "shoulder(t)=A_s sin(2πft+φ+δ_s)",
+          "justification": "Añadir movimiento secundario de hombros."
+        },
+        {
+          "step": 4,
+          "equation": "apply channels to rig",
+          "justification": "Mapear señales a morphs/huesos."
+        }
+      ],
+      "assumptions": [
+        "f>0; amplitudes acotadas; canales sincronizados."
+      ],
+      "result": "La respiración procedural se deriva de señales periódicas desfasadas aplicadas al rig.",
+      "limits": [
+        "Frecuencia/amplitud son controles de animación, no parámetros de salud."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "13/13 técnicas cubiertas.",
+      "Cada derivación contiene pasos, supuestos y límites.",
+      "Se distinguen transformaciones geométricas, IK, constitutivas musculares y deformación artística."
+    ],
+    "limitations": [
+      "Los modelos biomecánicos son aproximaciones para animación; no constituyen diagnóstico ni parámetros clínicos."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
