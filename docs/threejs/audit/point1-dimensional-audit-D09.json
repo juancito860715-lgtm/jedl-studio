@@ -1,0 +1,1146 @@
+{
+  "title": "Auditoría dimensional punto 1 — D09 Iluminación, sombreado y color",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D09",
+    "domain": "Iluminación, sombras y exposición",
+    "record_count": 13,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D09 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "radiometry": "Separar radiancia, reflectancia, BRDF y color display-referred; declarar unidades y espacio de color.",
+    "depth": "Profundidad métrica y depth buffer normalizado no son intercambiables.",
+    "scene_length": "Unidad global de longitud; SI si se declara."
+  },
+  "records": [
+    {
+      "record_key": "D09:0",
+      "name": "Lambert diffuse",
+      "variables": [
+        {
+          "symbol": "albedo",
+          "meaning": "reflectancia difusa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o RGB lineal"
+        },
+        {
+          "symbol": "lightColor",
+          "meaning": "radiancia/color de luz",
+          "unit": "radiometric units",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "N,L",
+          "meaning": "normal y dirección de luz",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "I_d",
+          "meaning": "radiancia reflejada aproximada",
+          "unit": "radiometric units",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        }
+      ],
+      "constraints": [
+        "N y L deben estar normalizados; max(N·L,0) es adimensional.",
+        "Albedo no debe exceder rango físico; color de luz conserva unidad radiométrica."
+      ],
+      "valid_domain": [
+        "Vectores no nulos y albedo/radiancia finitos."
+      ],
+      "boundary_conditions": [
+        "N·L≤0 produce contribución difusa cero.",
+        "Albedo cero produce salida difusa cero."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:1",
+      "name": "Phong specular",
+      "variables": [
+        {
+          "symbol": "R,V",
+          "meaning": "direcciones reflejada y vista",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "k_s",
+          "meaning": "coeficiente especular",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        },
+        {
+          "symbol": "n",
+          "meaning": "exponente Phong",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n≥0"
+        },
+        {
+          "symbol": "I_s",
+          "meaning": "intensidad especular",
+          "unit": "1 o radiancia escalada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Producto R·V adimensional y acotado; clamp a [0,1].",
+        "Phong es modelo empírico; normalizar energía según implementación."
+      ],
+      "valid_domain": [
+        "R,V unitarios; k_s,n finitos."
+      ],
+      "boundary_conditions": [
+        "R·V≤0 produce cero.",
+        "n=0 da lóbulo constante en hemisferio positivo según fórmula."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:2",
+      "name": "Blinn-Phong",
+      "variables": [
+        {
+          "symbol": "N,H",
+          "meaning": "normal y half-vector",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarios"
+        },
+        {
+          "symbol": "k_s",
+          "meaning": "coeficiente especular",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "n",
+          "meaning": "exponente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "I_s",
+          "meaning": "intensidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "H=normalize(L+V); caso L≈−V degenera y requiere fallback.",
+        "N·H se limita a [0,1]."
+      ],
+      "valid_domain": [
+        "Vectores unitarios y half-vector definido."
+      ],
+      "boundary_conditions": [
+        "N·H≤0 produce cero.",
+        "Si L+V≈0, contribución especular cero o fallback."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:3",
+      "name": "PBR microfacet",
+      "variables": [
+        {
+          "symbol": "D",
+          "meaning": "distribución microfacet",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada según convención"
+        },
+        {
+          "symbol": "F",
+          "meaning": "Fresnel",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "G",
+          "meaning": "máscara geométrica",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "N·L,N·V",
+          "meaning": "cosenos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos en hemisferio visible"
+        },
+        {
+          "symbol": "BRDF",
+          "meaning": "reflectancia bidireccional",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y energética"
+        }
+      ],
+      "constraints": [
+        "Denominador 4(N·L)(N·V) solo en hemisferio válido y con epsilon numérico.",
+        "D,F,G deben corresponder al mismo modelo microfacet y convención de rugosidad."
+      ],
+      "valid_domain": [
+        "N·L>0 y N·V>0; microfacet parameters válidos."
+      ],
+      "boundary_conditions": [
+        "Fuera de hemisferio visible, BRDF=0.",
+        "Cosenos próximos a cero requieren límite numérico estable."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:4",
+      "name": "Fresnel Schlick",
+      "variables": [
+        {
+          "symbol": "F0",
+          "meaning": "reflectancia frontal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] RGB"
+        },
+        {
+          "symbol": "cosθ",
+          "meaning": "coseno ángulo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F",
+          "meaning": "reflectancia Fresnel",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Todas las magnitudes son adimensionales; cosθ debe corresponder a ángulo entre dirección y normal."
+      ],
+      "valid_domain": [
+        "F0 y cosθ dentro de [0,1]."
+      ],
+      "boundary_conditions": [
+        "cosθ=1 devuelve F0.",
+        "cosθ=0 devuelve 1 según Schlick."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:5",
+      "name": "Shadow mapping",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "punto en mundo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "d_light",
+          "meaning": "profundidad desde luz",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "proyección coherente"
+        },
+        {
+          "symbol": "d_map",
+          "meaning": "profundidad almacenada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio/proyección"
+        },
+        {
+          "symbol": "visibility",
+          "meaning": "visibilidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Profundidades deben compararse en la misma convención, espacio y rango de proyección.",
+        "Bias evita acne pero debe mantenerse pequeño respecto a escala."
+      ],
+      "valid_domain": [
+        "Punto dentro del frustum de luz y mapa de profundidad válido."
+      ],
+      "boundary_conditions": [
+        "Fuera del frustum aplicar visibilidad declarada (normalmente 1).",
+        "En igualdad de profundidad aplicar regla de comparación consistente."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:6",
+      "name": "PCF soft shadows",
+      "variables": [
+        {
+          "symbol": "d",
+          "meaning": "profundidad del receptor",
+          "unit": "m o depth normalizado",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "misma codificación"
+        },
+        {
+          "symbol": "d_i",
+          "meaning": "muestras depth",
+          "unit": "misma unidad/codificación",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vecindad finita"
+        },
+        {
+          "symbol": "b",
+          "meaning": "bias",
+          "unit": "misma unidad depth",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        },
+        {
+          "symbol": "visibility",
+          "meaning": "promedio comparaciones",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Todas las muestras y bias deben usar la misma codificación de profundidad.",
+        "Promedio divide por número de muestras positivo."
+      ],
+      "valid_domain": [
+        "Kernel de muestras no vacío; depth finito."
+      ],
+      "boundary_conditions": [
+        "Una muestra equivale a comparación simple.",
+        "Kernel fuera del mapa requiere clamp/border policy explícita."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:7",
+      "name": "Hemisphere lighting",
+      "variables": [
+        {
+          "symbol": "N_y",
+          "meaning": "componente vertical normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[-1,1]"
+        },
+        {
+          "symbol": "t",
+          "meaning": "factor de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "clamp(0.5N_y+0.5,0,1)"
+        },
+        {
+          "symbol": "groundColor,skyColor",
+          "meaning": "colores",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio"
+        },
+        {
+          "symbol": "L",
+          "meaning": "color resultante",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "interpolación"
+        }
+      ],
+      "constraints": [
+        "N debe ser unitario para que N_y tenga significado coseno.",
+        "Mezclar en espacio lineal."
+      ],
+      "valid_domain": [
+        "Colores finitos; normal unitaria."
+      ],
+      "boundary_conditions": [
+        "N_y=−1 usa groundColor; N_y=1 usa skyColor."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:8",
+      "name": "Volumetric light",
+      "variables": [
+        {
+          "symbol": "s",
+          "meaning": "distancia sobre rayo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,D]"
+        },
+        {
+          "symbol": "T(s)",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "σ_s",
+          "meaning": "coeficiente dispersión",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "phase",
+          "meaning": "función de fase",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        },
+        {
+          "symbol": "L",
+          "meaning": "radiancia integrada",
+          "unit": "radiometric",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "σ_s ds es adimensional; phase y radiancia deben seguir convención angular/radiométrica.",
+        "La integral requiere muestreo y extinción coherentes; omitir absorción solo si se declara."
+      ],
+      "valid_domain": [
+        "D≥0; coeficientes no negativos y campos integrables."
+      ],
+      "boundary_conditions": [
+        "D=0 produce contribución cero.",
+        "T=0 anula contribución posterior al punto opaco."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:9",
+      "name": "ACES-like tone mapping",
+      "variables": [
+        {
+          "symbol": "C_HDR",
+          "meaning": "color HDR",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "componentes finitas no negativas"
+        },
+        {
+          "symbol": "exposure",
+          "meaning": "exposición",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "ToneMap",
+          "meaning": "operador",
+          "unit": "mapeo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "salida display-referred"
+        },
+        {
+          "symbol": "C_out",
+          "meaning": "color salida",
+          "unit": "RGB display",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango destino"
+        }
+      ],
+      "constraints": [
+        "Operar en espacio lineal antes de tone mapping; operador específico debe declararse.",
+        "No asumir ACES exacto si solo es ACES-like."
+      ],
+      "valid_domain": [
+        "Color y exposición finitos; exposición>0."
+      ],
+      "boundary_conditions": [
+        "C_HDR=0 produce negro.",
+        "Valores altos se comprimen según curva; no asumir clipping lineal."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:10",
+      "name": "Exposure",
+      "variables": [
+        {
+          "symbol": "EV",
+          "meaning": "valor de exposición",
+          "unit": "stops",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "C",
+          "meaning": "color lineal",
+          "unit": "RGB",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "C′",
+          "meaning": "color expuesto",
+          "unit": "RGB",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "2^EV·C"
+        }
+      ],
+      "constraints": [
+        "EV es log₂ adimensional; 2^EV factor sin dimensión.",
+        "Aplicar a color lineal, no a valores sRGB codificados."
+      ],
+      "valid_domain": [
+        "EV finito dentro de rango numérico; C finito."
+      ],
+      "boundary_conditions": [
+        "EV=0 deja C sin cambio.",
+        "EV→−∞ tiende a negro; límites prácticos deben evitar under/overflow."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:11",
+      "name": "Color temperature",
+      "variables": [
+        {
+          "symbol": "T_color",
+          "meaning": "temperatura de color",
+          "unit": "K",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "warm,neutral,cool",
+          "meaning": "colores",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "w",
+          "meaning": "pesos de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos; suma 1"
+        },
+        {
+          "symbol": "C",
+          "meaning": "color final",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Kelvin es temperatura termodinámica; receta artística de mezcla no equivale a conversión espectral física.",
+        "Pesos de mezcla normalizados."
+      ],
+      "valid_domain": [
+        "T_color>0 si se usa como temperatura; colores finitos."
+      ],
+      "boundary_conditions": [
+        "Peso único selecciona su color; transición continua entre muestras."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:12",
+      "name": "Ruido de erosión orientado por flujo y pendiente",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición de terreno",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "flow",
+          "meaning": "dirección de flujo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector normalizado"
+        },
+        {
+          "symbol": "slope",
+          "meaning": "pendiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "gradiente"
+        },
+        {
+          "symbol": "amplitude",
+          "meaning": "amplitud de ruido",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0–5% altura local inicial"
+        },
+        {
+          "symbol": "octaves",
+          "meaning": "octavas",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "2–6"
+        },
+        {
+          "symbol": "orientation_strength",
+          "meaning": "fuerza orientación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Amplitud es longitud; pendiente y orientación strength son adimensionales.",
+        "La orientación debe derivarse de flujo/pendiente sin normalizar vectores nulos."
+      ],
+      "valid_domain": [
+        "Campos de flujo y pendiente finitos; octavas enteras."
+      ],
+      "boundary_conditions": [
+        "Amplitud cero elimina perturbación.",
+        "Pendiente/flujo nulo usa orientación neutra determinista."
+      ],
+      "dimensional_checks": [
+        "Direcciones, cosenos, factores de Fresnel y parámetros de material son adimensionales.",
+        "Profundidades y distancias son longitud si están en espacio métrico; profundidad normalizada requiere codificación declarada.",
+        "Coeficientes volumétricos tienen dimensión inversa de longitud; σ_s ds es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "13/13 registros incluidos",
+      "Todos los registros incluyen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
