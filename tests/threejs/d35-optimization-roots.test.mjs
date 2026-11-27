@@ -44,7 +44,7 @@ test("D35:6 Newton finds linear, quadratic and trigonometric roots", () => {
 });
 
 test("D35:6 Newton handles small-scale derivatives without a fixed absolute cutoff", () => {
-  const result = newtonRoot(x => 1e-20 * (x - 2), () => 1e-20, 10);
+  const result = newtonRoot(x => 1e-20 * (x - 2), () => 1e-20, 10, { fTolerance: 1e-30 });
   assert.ok(Math.abs(result.root - 2) < 1e-12);
 });
 
