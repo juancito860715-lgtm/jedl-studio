@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D12 Fuego, humo, energía y efectos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -118,9 +118,9 @@
         "En límites temporales declarar continuidad/periodicidad del ruido."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "scale has L^-1 and p has L, so scale·p is dimensionless before noise evaluation.",
+        "amplitude and T must share a declared field unit; if T is normalized heat/noise, both are dimensionless; if temperature, use Θ and kelvin.",
+        "Time-dependent noise must use dimensionless temporal frequency·t or a time-normalized argument."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -174,19 +174,19 @@
           "domain": "finito"
         },
         {
-          "symbol": "v_noise",
-          "meaning": "desplazamiento por tiempo",
-          "unit": "m/s",
+          "symbol": "d_noise",
+          "meaning": "desplazamiento de advección por ruido",
+          "unit": "m",
           "dimension": {
             "L": 1,
             "M": 0,
-            "T": -1,
+            "T": 0,
             "I": 0,
             "Theta": 0,
             "N": 0,
             "J": 0
           },
-          "domain": "campo acotado"
+          "domain": "campo de desplazamiento acotado"
         },
         {
           "symbol": "p′",
@@ -215,9 +215,9 @@
         "Limitar desplazamiento para evitar salir de volumen de simulación sin reciclar partículas."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "v_up·t has L; the noise term subtracted from p must also have L.",
+        "If v_noise is a velocity (L/T), integrate it over time; if it is a displacement field, rename it d_noise and give it L.",
+        "p and p′ retain L; advection coordinates must use one world-space frame."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -234,7 +234,7 @@
             "M": 0,
             "T": 0,
             "I": 0,
-            "Theta": 0,
+            "Theta": 1,
             "N": 0,
             "J": 0
           },
@@ -282,9 +282,9 @@
         "Fuera de rango clamp o extrapolación declarada; nunca NaN."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "T_K has thermodynamic dimension Θ and unit kelvin; it must be positive.",
+        "Wavelength λ has L; if Planck's law is evaluated, constants and spectral radiance must use a consistent wavelength/frequency convention.",
+        "RGB output is dimensionless display/color data; the palette is an approximation, not a physical radiance spectrum."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -365,7 +365,22 @@
             "N": 0,
             "J": 0
           },
-          "domain": "≥0"
+          "domain": "ρ(p,t)=ρ0·noise(p−vt)·envelope(t); kg/m³"
+        },
+        {
+          "symbol": "ρ0",
+          "meaning": "densidad base del humo",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ0≥0"
         }
       ],
       "constraints": [
@@ -380,9 +395,9 @@
         "Densidad fuera de rango se satura según modelo."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "p−v·t has L; noise is dimensionless and envelope is dimensionless.",
+        "ρ has mass density M·L^-3; therefore a physical density field requires a base density ρ0 with M·L^-3 multiplying normalized noise/envelope.",
+        "If ρ is instead an extinction coefficient, use L^-1 and do not label it kg/m³."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -453,17 +468,16 @@
         {
           "symbol": "density",
           "meaning": "densidad",
-          "unit": "unidad declarada",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
+          "unit": "unidad de densidad declarada",
+          "dimension": "misma dimensión que density0; kg/m³ si densidad de masa",
           "domain": "decaimiento temporal"
+        },
+        {
+          "symbol": "density0",
+          "meaning": "amplitud inicial de densidad",
+          "unit": "unidad de densidad declarada",
+          "dimension": "misma que density",
+          "domain": "finita y no negativa"
         }
       ],
       "constraints": [
@@ -477,9 +491,9 @@
         "τ≤0 inválido."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "Rmax and R(t) have L; t, τ and τ2 have T; t/τ and t/τ2 are dimensionless.",
+        "density(t) must have a declared unit and its initial amplitude; exponential decay is dimensionless and preserves that unit.",
+        "Rmax≥0 and τ,τ2>0; t<0 requires a pre-event policy."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -574,9 +588,9 @@
         "No permitir σ=0."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "r, vt and σ have L; (r−vt)/σ is dimensionless.",
+        "front is a dimensionless envelope; if it scales physical pressure/energy, multiply by a separately typed amplitude.",
+        "σ>0; r and vt must be measured from the same event origin."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -671,9 +685,9 @@
         "Amplitudes cero recuperan trayectoria lineal."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "linearPath(s), A_k and P(s) have L; noise_k and s are dimensionless.",
+        "Every noise term must be bounded and expressed in a common coordinate frame; A_k supplies length scale.",
+        "At s endpoints, path continuity and branch-junction constraints must be explicit."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -753,9 +767,9 @@
         "Normalizar dirección resultante; degeneración usa eje de respaldo."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "P(s0) has L; mainDir and direction are unitless vectors; randomCone is an angular/directional parameter, not a length.",
+        "The perturbed direction must be normalized after addition; angular cone width is in radians.",
+        "Branch length is a separate length-valued parameter and must not be inferred from direction alone."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -820,9 +834,9 @@
         "Si ambos radios cero, volumen degenerado."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "s is dimensionless; r0 and r1 have L; radius(s) has L by linear interpolation.",
+        "The cone axis position also has L and must be combined with radius in a local frame.",
+        "r0=r1 gives a cylinder; zero radius at an endpoint gives a pointed/tapered limit."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -834,30 +848,14 @@
           "symbol": "sceneDepth,particleDepth",
           "meaning": "profundidades",
           "unit": "m o depth-buffer normalizado",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
+          "dimension": "L si profundidad lineal; adimensional si depth buffer normalizado",
           "domain": "misma codificación"
         },
         {
           "symbol": "softRange",
           "meaning": "rango de suavizado",
           "unit": "misma unidad que depth",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
+          "dimension": "misma que depth: L o adimensional",
           "domain": ">0"
         },
         {
@@ -888,9 +886,9 @@
         "Diferencia≥softRange produce factor uno."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "sceneDepth, particleDepth and softRange must all use the same encoding: L for linear view depth or dimensionless for normalized depth buffer.",
+        "(sceneDepth−particleDepth)/softRange is dimensionless; α remains dimensionless in [0,1].",
+        "Depth ordering/sign convention must be consistent with the camera's depth direction."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -956,9 +954,9 @@
         "Empate conserva orden previo/ID estable."
       ],
       "dimensional_checks": [
-        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
-        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
-        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+        "cameraDepth_i values must share one camera-space coordinate and depth convention; if linear view depth, they have L.",
+        "Sorting order is a discrete index; camera transform is affine-typed with dimensionless linear block and L translation.",
+        "Back-to-front sorting uses a stable tie-break for equal depths; sorting does not itself resolve intersecting transparent surfaces."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -966,8 +964,12 @@
   "validation": {
     "structural_checks": [
       "11/13 técnicas no protegidas incluidas",
+      "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
       "2 registros protegidos excluidos",
-      "Todos los registros incluidos contienen campos del punto 1"
+      "Corregida dimensión termodinámica de temperatura y tipado de ruido de advección, densidad de humo y profundidades"
+    ],
+    "limitations": [
+      "Los campos de llama/humo se tratan como modelos procedurales; la ficha no especifica transferencia radiativa completa ni ecuaciones de combustión."
     ]
   },
   "integrity": {
