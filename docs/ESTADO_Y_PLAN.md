@@ -210,3 +210,12 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - Se añadieron kernels de referencia Python y JavaScript y fixtures analíticos para invariancia de escala, discontinuidades ortogonales/opuestas, normalización de normales, cobertura y entradas degeneradas. La paridad matemática queda pendiente de la ejecución CI del head.
 - D14:15 permanece INCOMPLETE: faltan el pase real de depth/normal en Three.js, políticas de fondo/MSAA/proyección y comparación visual cuantitativa con escenas de referencia. No se afirma que el artículo DepthCut valide la heurística local.
 - No se alteró el manifiesto original ni los 46 registros preservados. PR #43 permanece abierta, en borrador y sin merge; no se ejecutó Godot/Android.
+
+
+## 14. Séptimo bloque R31: tramado sinusoidal / Ben-Day (2026-11-26)
+
+- D14:16 se desarrolló como pantalla sinusoidal periódica con umbral y cobertura antialias. Se corrigió una ambigüedad importante: en sin(pi*f*x), el período es 2/f; por tanto f es inverso del semiperíodo, no ciclos por unidad. Se definió la convención del umbral H(L-m) y se fijó luminancia lineal normalizada.
+- La referencia Rao y Arce (1988), JOSA A 5(9), 1502–1511, fue verificada bibliográficamente como artículo sobre periodicidades arbitrarias de pantalla. No se le atribuyó la máscara sinusoidal: la ecuación del manifiesto queda etiquetada como convención procedural propia porque no se verificó un localizador de ecuación que la respalde.
+- Se añadieron símbolos y unidades, derivación del período, rotación de coordenadas, dominio, extremos, pseudocódigo, complejidad y contrato ShaderMaterial. Se agregó un kernel de cobertura antialias en Python/JavaScript y pruebas analíticas de umbral, rango y periodicidad.
+- D14:16 permanece INCOMPLETE: falta validar el shader real en Three.js/WebGL2/WebGPU, comparar imágenes de referencia con un oráculo raster CPU y distinguir variantes de puntos agrupados de la pantalla sinusoidal.
+- El bloque previo D14:15 y este bloque no modifican el manifiesto original ni las 46 fichas preservadas. La auditoría dimensional sigue siendo condicional. PR #43 permanece draft/open/unmerged; no se ejecutó Godot/Android.
