@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D05 Vegetación, hojas, árboles e insectos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -289,28 +289,28 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "a_wind(t)=F_wind(t)/m; p''(t)=g+a_wind(t)",
-          "justification": "Convertir fuerza de viento en aceleración y sumarla a gravedad mediante segunda ley de Newton."
+          "equation": "a_wind(t)=F_wind(t)/m",
+          "justification": "La segunda ley de Newton convierte la fuerza de viento en aceleración, siempre que F_wind esté expresada en newtons y m en kilogramos."
         },
         {
           "step": 2,
-          "equation": "p(t)=p0+v0 t+∫₀ᵗ(t−τ)[g+a_wind(τ)]dτ",
-          "justification": "Integrar dos veces la aceleración variable con condiciones iniciales p(0)=p0 y p'(0)=v0."
+          "equation": "drift(t)=∫₀ᵗ(t−τ)a_wind(τ)dτ",
+          "justification": "Integrar dos veces la aceleración de viento con desplazamiento y velocidad de deriva iniciales nulos produce un desplazamiento de longitud."
         },
         {
           "step": 3,
-          "equation": "si a_wind es constante: p(t)=p0+v0t+½(g+a_wind)t²",
-          "justification": "Reducir la integral doble a la solución balística para aceleración constante."
+          "equation": "p(t)=p0+v0t+½gt²+drift(t)",
+          "justification": "La trayectoria es la suma de posición inicial, movimiento con velocidad inicial, desplazamiento gravitatorio y desplazamiento adicional del viento."
         },
         {
           "step": 4,
-          "equation": "θ(t)=θ0+ωt; R(t)=R_axis(θ(t))",
-          "justification": "Integrar velocidad angular constante y construir la orientación alrededor de un eje unitario."
+          "equation": "si a_wind es constante: drift(t)=½a_wind t²",
+          "justification": "La integral doble de aceleración constante se reduce a la ecuación de movimiento uniformemente acelerado."
         },
         {
           "step": 5,
-          "equation": "q(t)=axisAngle(axis,θ(t))",
-          "justification": "Representar la orientación como cuaternión unitario para evitar una exponencial escalar incorrecta de matriz."
+          "equation": "θ(t)=θ0+ωt; q(t)=axisAngle(axis,θ(t))",
+          "justification": "Integrar velocidad angular constante produce un ángulo; axisAngle construye una orientación unitaria alrededor de un eje normalizado."
         }
       ],
       "assumptions": [
@@ -318,14 +318,14 @@
         "p0 y p tienen L; v0 L/T; g y a_wind L/T².",
         "ω constante en el tramo y eje de giro unitario; si ω varía, integrar ω(t)."
       ],
-      "result": "La trayectoria se obtiene integrando dos veces gravedad más aceleración del viento; la rotación se obtiene integrando velocidad angular y convirtiendo el ángulo a orientación.",
+      "result": "La caída de la hoja se deriva como movimiento balístico más desplazamiento integrado del viento; la orientación se deriva de la velocidad angular.",
       "limits": [
         "Para viento variable, la forma cerrada requiere evaluar la integral; si se aproxima por tramos, declarar paso y error.",
         "La orientación puede necesitar integración de velocidad angular vectorial si el eje cambia."
       ],
       "dimensional_verification": [
-        "g y F_wind/m tienen L/T²; la integral doble de aceleración sobre tiempo produce L.",
-        "ω tiene T⁻¹; ωt es ángulo adimensional; la orientación se representa por matriz/cuaternión, no por exponencial escalar de una matriz."
+        "F_wind/m tiene L/T²; la integral doble de aceleración sobre tiempo produce drift con L.",
+        "p0, v0t, gt² y drift tienen L; ωt es un ángulo adimensional y q es orientación unitaria."
       ]
     },
     {
@@ -482,7 +482,8 @@
       "Cada derivación tiene pasos matemáticos justificados, resultado, supuestos, límites y verificación dimensional",
       "Se corrigió la integración de viento variable y la orientación de hojas cayendo",
       "La hoja de pasto queda definida como superficie P(s,v,t), no como curva sin parámetro transversal",
-      "Enjambre de insectos y bandada convierten separación/alineación/cohesión a aceleración mediante ganancias con unidades explícitas"
+      "Enjambre de insectos y bandada convierten separación/alineación/cohesión a aceleración mediante ganancias con unidades explícitas",
+      "La derivación de hojas cayendo incluye explícitamente drift(t) como integral doble de la aceleración del viento, coherente con la ficha dimensional."
     ],
     "limitations": [
       "La validación cubre derivaciones matemáticas y dimensiones; algoritmos completos, pseudocódigo y pruebas numéricas se desarrollan en puntos posteriores."
