@@ -47,6 +47,10 @@
       "result": "A* deriva de combinar coste acumulado y cota inferior de coste restante.",
       "limits": [
         "Heurística no admisible puede perder optimalidad."
+      ],
+      "dimensional_verification": [
+        "g(n) y h(n) comparten unidad de coste (L, T o coste abstracto declarado); f(n) conserva esa unidad.",
+        "n y prioridades son índices discretos; heurística admisible no altera dimensiones."
       ]
     },
     {
@@ -85,6 +89,10 @@
       "result": "Dijkstra deriva de relajación iterativa con extracción de distancia mínima.",
       "limits": [
         "Con aristas negativas el algoritmo no garantiza resultado correcto."
+      ],
+      "dimensional_verification": [
+        "cost(u,v) y dist(v) tienen misma unidad; sumas y mínimos son homogéneos.",
+        "Nodos y colas de prioridad son discretos."
       ]
     },
     {
@@ -123,6 +131,10 @@
       "result": "Flow fields convierten un mapa de coste global en direcciones locales compartidas.",
       "limits": [
         "Gradientes discretos pueden atascarse en mínimos locales o zonas planas."
+      ],
+      "dimensional_verification": [
+        "∇cost tiene unidad coste/L; normalizar produce dirección adimensional.",
+        "El campo de dirección no es velocidad hasta multiplicarlo por rapidez L/T."
       ]
     },
     {
@@ -161,6 +173,10 @@
       "result": "El modelo social combina objetivo, interacción con agentes y obstáculos en una dinámica simplificada.",
       "limits": [
         "Los parámetros no representan conducta humana completa ni normas de tránsito."
+      ],
+      "dimensional_verification": [
+        "m_i tiene kg; a_i L/T²; m_i a_i tiene N; todas las fuerzas sumadas tienen N.",
+        "k_g en F_goal=k_g(v_des−v) tiene kg/s; fuerzas de agentes/obstáculos tienen N."
       ]
     },
     {
@@ -199,6 +215,10 @@
       "result": "ORCA elige velocidad preferida dentro de intersección de semiplanos que evitan colisiones futuras.",
       "limits": [
         "ORCA depende de estimación de velocidad/radio y horizonte; no garantiza seguridad ante percepción incompleta."
+      ],
+      "dimensional_verification": [
+        "p y radios tienen L; velocidades L/T; horizonte τ tiene T; vτ tiene L.",
+        "Los semiplanos están definidos en espacio de velocidades L/T; la velocidad elegida conserva L/T."
       ]
     },
     {
@@ -232,6 +252,10 @@
       "result": "Separación deriva de repulsión local ponderada por distancia.",
       "limits": [
         "Separación sola puede producir oscilación o dispersión excesiva."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; normalize(S_i) es adimensional.",
+        "Para a_i=w_sS_i, w_s tiene L²/T² y a_i tiene L/T²."
       ]
     },
     {
@@ -260,11 +284,16 @@
       ],
       "assumptions": [
         "Vecindad definida; velocidades finitas.",
-        "Ganancia w_a tiene unidad temporal inversa para aceleración."
+        "Ganancia w_a tiene unidad temporal inversa para aceleración.",
+        "w_a tiene unidad T⁻¹ para convertir diferencia de velocidades en aceleración."
       ],
       "result": "Alineación deriva de reducir diferencia respecto a velocidad media vecinal.",
       "limits": [
         "Alineación sola puede colapsar velocidades sin cohesión."
+      ],
+      "dimensional_verification": [
+        "A_i=v_mean−v_i tiene L/T.",
+        "Para a_i=w_aA_i, w_a tiene T⁻¹ y a_i tiene L/T²."
       ]
     },
     {
@@ -293,11 +322,16 @@
       ],
       "assumptions": [
         "Centroide definido para N_i no vacío.",
-        "Ganancia w_c tiene unidad T⁻²."
+        "Ganancia w_c tiene unidad T⁻².",
+        "w_c tiene unidad T⁻² para convertir vector de posición a aceleración."
       ],
       "result": "Cohesión deriva de dirigir al agente hacia el centroide de su vecindad.",
       "limits": [
         "Cohesión sola puede causar aglomeración."
+      ],
+      "dimensional_verification": [
+        "C_i=p_mean−p_i tiene L.",
+        "Para a_i=w_cC_i, w_c tiene T⁻² y a_i tiene L/T²."
       ]
     },
     {
@@ -336,6 +370,10 @@
       "result": "Una máquina de estados es una función de transición sobre estados y condiciones.",
       "limits": [
         "Transiciones mal priorizadas pueden oscilar entre estados."
+      ],
+      "dimensional_verification": [
+        "state, conditions, transition IDs y priority son discretos/booleanos; no se suman como magnitudes físicas.",
+        "tiene T si las transiciones incluyen duración/timeout."
       ]
     },
     {
@@ -374,6 +412,10 @@
       "result": "Utility AI deriva de puntuación ponderada y selección de máximo.",
       "limits": [
         "Scores no calibrados pueden dominar por escala de features."
+      ],
+      "dimensional_verification": [
+        "Features y scores son adimensionales si están normalizados; pesos adimensionales.",
+        "Si una feature conserva unidad física, su peso debe compensarla antes de sumar."
       ]
     },
     {
@@ -412,6 +454,10 @@
       "result": "Crowd LOD deriva de error proyectado y relevancia por agente.",
       "limits": [
         "El tamaño proyectado no capta por sí solo importancia narrativa o interacción."
+      ],
+      "dimensional_verification": [
+        "f_px y screenSize usan px; radius/depth es adimensional; s_i queda en px.",
+        "distance tiene L; importance es adimensional; detail es índice discreto."
       ]
     },
     {
@@ -450,6 +496,10 @@
       "result": "Los campos vectoriales generan trayectorias como soluciones de una EDO.",
       "limits": [
         "El integrador no corrige un campo vectorial mal definido."
+      ],
+      "dimensional_verification": [
+        "x tiene L; V tiene L/T; Δt tiene T; ΔtV tiene L.",
+        "Cada pendiente RK4 tiene L/T y la suma ponderada produce estado con L."
       ]
     },
     {
@@ -467,8 +517,8 @@
         },
         {
           "step": 2,
-          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i",
-          "justification": "Combinar con ganancias que convierten cada término a aceleración."
+          "equation": "a_i=(L²/T²)S_i+(T⁻¹)A_i+(T⁻²)C_i",
+          "justification": "Asignar a cada regla una ganancia dimensional que convierte separación, alineación y cohesión en aceleraciones compatibles antes de sumarlas."
         },
         {
           "step": 3,
@@ -483,22 +533,30 @@
       ],
       "assumptions": [
         "Vecindad por radio; ganancias tipadas a aceleración.",
-        "Velocidad máxima y aceleración máxima declaradas."
+        "Velocidad máxima y aceleración máxima declaradas.",
+        "Los coeficientes tienen unidades w_s=L²/T², w_a=T⁻¹ y w_c=T⁻²; no son pesos adimensionales genéricos."
       ],
       "result": "Boids combina tres términos locales y una integración cinemática.",
       "limits": [
         "Pesos y límites requieren calibración para evitar inestabilidad."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; A_i L/T; C_i L; no se pueden sumar directamente.",
+        "Para aceleración: w_s L²/T², w_a T⁻¹, w_c T⁻²; cada término queda L/T²."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "13/13 técnicas cubiertas, incluidas dos investigaciones R31.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Los términos de Boids se tipan para producir aceleración homogénea."
+      "13/13 técnicas D27 cubiertas; ninguna protegida",
+      "Cada derivación tiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Boids separa las unidades de separación, alineación y cohesión y declara ganancias para convertir a aceleración",
+      "Social force distingue fuerza, masa, velocidad y tiempo de relajación",
+      "ORCA opera en espacio de velocidades y usa horizonte temporal con unidades",
+      "A* y Dijkstra requieren costes y heurísticas homogéneos; crowd LOD separa px y metros"
     ],
     "limitations": [
-      "Modelos de agentes y multitudes son aproximaciones; no sustituyen modelos sociales o de seguridad reales."
+      "Los modelos de multitud/peatones son aproximaciones; no representan conducta humana completa ni sustituyen análisis de seguridad de tránsito."
     ]
   },
   "integrity": {
