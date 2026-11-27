@@ -99,10 +99,71 @@
           },
           "unit": "rad",
           "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "semilla entera determinista",
+          "unit": "integer",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite signed/unsigned integer under declared uint32 wrap"
+        },
+        {
+          "symbol": "channel",
+          "meaning": "identificador de flujo de jitter",
+          "unit": "integer",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite integer channel identifier"
+        },
+        {
+          "symbol": "u",
+          "meaning": "hash uint32 normalizado",
+          "unit": "dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0 <= u < 1"
+        },
+        {
+          "symbol": "epsilon",
+          "meaning": "offset de jitter",
+          "unit": "same as A_pos or A_rot",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "bounded by the selected amplitude"
         }
       ],
       "dimensional_findings": [
-        "La multiplicación t*f_s es adimensional; floor produce índice entero y t_q vuelve a segundos. A_pos y A_rot no pueden compartir una sola amplitud numérica sin unidades separadas."
+        "La multiplicación t*f_s es adimensional; floor produce índice entero y t_q vuelve a segundos. A_pos y A_rot no pueden compartir una sola amplitud numérica sin unidades separadas.",
+        "u y 2u-1 son adimensionales; epsilon hereda la dimensión de A_pos o A_rot. Los canales de posición y rotación no comparten unidades."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
