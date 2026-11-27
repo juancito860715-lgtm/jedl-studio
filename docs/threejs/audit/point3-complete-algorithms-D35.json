@@ -14,9 +14,12 @@
       "name": "PID controller",
       "use": "seguimiento de cámara, estabilización y control",
       "source_equations": [
-        "u_k=Kp e_k + Ki I_k + Kd (e_k-e_{k-1})/Δt; I_k=I_{k-1}+Δt e_k"
+        "e_k = target - measurement",
+        "d_k = -(measurement_k-measurement_(k-1))/dt (derivative on measurement; first sample d=0)",
+        "I* = clamp(I_(k-1)+Ki*e_k*dt, I_min, I_max)",
+        "u_raw = Kp*e_k + I* + Kd*d_k; u=clamp(u_raw,u_min,u_max)"
       ],
-      "mathematical_derivation": "Partir de u=Kp e+Ki∫e dt+Kd de/dt. Aproximar la integral por rectángulos izquierdos I_k=I_{k-1}+Δt e_k y la derivada por diferencia hacia atrás (e_k-e_{k-1})/Δt. Sustituir ambas aproximaciones produce la ley discreta. Para evitar windup, limitar u y congelar o retrocalcular el integrador cuando la saturación y el error empujan en la misma dirección.",
+      "mathematical_derivation": "La forma paralela PID aproxima la integral por I*=I_(k-1)+Ki*e_k*dt y la derivada por diferencia hacia atrás. Para evitar derivative kick cuando cambia la consigna, se usa la variante práctica derivada sobre la medición: d_k=−(y_k−y_(k−1))/dt. La salida se limita al rango del actuador y la integración condicional se acepta solo si no empuja más hacia la saturación. La implementación local admite también derivada sobre error mediante una opción explícita.",
       "variables_units": {
         "explicit": "e [unidad de error E]; u [unidad de control U]; Δt [s]; I [E·s]; Kp [U/E]; Ki [U/(E·s)]; Kd [U·s/E].",
         "all_symbols": "k índice entero; e_k consigna menos medida; u_k salida saturada; I_k integral acumulada; e_{k-1} error previo; u_min/u_max [U]."
@@ -42,14 +45,15 @@
         "boundary_conditions": "No requiere BC espacial."
       },
       "algorithm_steps": [
-        "Calcular e_k=target-measurement.",
-        "Actualizar integral candidata I*=I+Δt e_k.",
-        "Calcular derivada filtrada o diferencia hacia atrás.",
-        "Calcular u_raw y saturar a [u_min,u_max].",
-        "Si saturó, aplicar anti-windup; guardar e_k y devolver u."
+        "Validar ganancias, medición finita, límites ordenados y dt>0 en segundos.",
+        "Calcular error e=setpoint−measurement y cambio de medición.",
+        "Calcular P=Kp*e y D=−Kd*Δmeasurement/dt (D=0 en la primera muestra).",
+        "Calcular integral candidata I*=clamp(I+Ki*e*dt, límites).",
+        "Calcular salida candidata, saturarla y aceptar I* solo si la saturación no se agrava.",
+        "Guardar medición/error previos y devolver salida limitada junto a sus componentes."
       ],
-      "pseudocode": "INPUT target, measurement, dt, state, gains, limits\nASSERT dt>0 AND limits.min<=limits.max\ne = target - measurement\nI_candidate = state.I + dt*e\nd = (e - state.ePrev)/dt  // first sample: 0\nu_raw = Kp*e + Ki*I_candidate + Kd*d\nu = clamp(u_raw, limits.min, limits.max)\nIF u==u_raw OR (u==limits.max AND e<0) OR (u==limits.min AND e>0): I=I_candidate\nELSE: I=state.I  // conditional integration anti-windup\nRETURN u, {I, ePrev:e}",
-      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "pseudocode": "INPUT measurement, dt, setpoint, gains, limits, state\\nASSERT finite(measurement,dt) AND dt>0 AND limits.min<limits.max\\ne = setpoint - measurement\\ndy = 0 if firstSample else measurement - state.previousMeasurement\\nP = Kp*e\\nD = -Kd*dy/dt  // derivative on measurement\\nI_candidate = clamp(state.I + Ki*e*dt, limits.min, limits.max)\\nu_candidate = P + I_candidate + D\\nu = clamp(u_candidate, limits.min, limits.max)\\nIF u==u_candidate OR (u==limits.max AND e<0) OR (u==limits.min AND e>0): I=I_candidate\\nELSE: I=state.I\\nRETURN u, {P,I,D,previousMeasurement:measurement}",
+      "threejs_adaptation": "Usar PIDController desde un bucle CPU de cámara/objeto/control; pasar dt en segundos y aplicar la salida a Object3D/Camera o a la magnitud controlada. No ejecutar una instancia de controlador compartida entre objetos distintos.",
       "numerical_validation": {
         "cases": [
           [
@@ -88,7 +92,7 @@
         "Los gains dependen de escala temporal y unidades."
       ],
       "convergence_stability": "Para planta estable y gains apropiados; el PID por sí solo no garantiza estabilidad. Usar análisis de la planta o sintonía validada.",
-      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "evidence_status": "source inspected; local production implementation and CI validation pending",
       "derivation_status": "derivada"
     },
     {
@@ -96,7 +100,10 @@
       "name": "Proportional tracking",
       "use": "seguir objetivo",
       "source_equations": [
-        "v_cmd=Kp(x_target-x); x_{k+1}=x_k+Δt v_cmd"
+        "v_cmd=Kp*(target−x)",
+        "x_(k+1)=x_k+dt*v_cmd",
+        "e(t)=e(0)*exp(−Kp*t)",
+        "0<Kp*dt<2 (Euler stability); 0<Kp*dt≤1 (monotonic no-overshoot)"
       ],
       "mathematical_derivation": "La ley proporcional define el error e=x_target-x y una velocidad comandada v=Kp e. Para un objetivo constante y sin saturación, e_dot=-Kp e; resolver la EDO da e(t)=e(0)exp(-Kp t), por lo que converge si Kp>0. Con Euler explícito, e_{k+1}=(1-KpΔt)e_k; la estabilidad discreta exige |1-KpΔt|<1.",
       "variables_units": {
@@ -130,7 +137,7 @@
         "Comprobar distancia y detener si está dentro de tolerancia."
       ],
       "pseudocode": "INPUT x, target, Kp, dt, vmax, epsilon\nASSERT Kp>0 AND dt>0\ne=target-x\nv=Kp*e\nIF vmax exists AND norm(v)>vmax: v=vmax*normalize(v)\nxNext=x+dt*v\nIF norm(target-xNext)<=epsilon: xNext=target\nRETURN xNext, v",
-      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "threejs_adaptation": "La función pura proporcionalTrack acepta escalares o arreglos numéricos; convertir el resultado a Vector3/Object3D.position en el límite de integración. Para seguimiento independiente por eje, mantener dt y unidades coherentes.",
       "numerical_validation": {
         "cases": [
           [
@@ -167,7 +174,7 @@
         "No modela inercia ni aceleración; si se necesita dinámica física usar un controlador de segundo orden."
       ],
       "convergence_stability": "Estabilidad discreta exacta para el modelo escalar/vectorial desacoplado; límite conservador de paso según Kp.",
-      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "evidence_status": "Three.js MathUtils.damp source and unit tests inspected; local production implementation and CI validation pending",
       "derivation_status": "derivada"
     },
     {
@@ -175,9 +182,12 @@
       "name": "Critically damped spring",
       "use": "cámara suave sin rebote excesivo",
       "source_equations": [
-        "x¨+2ωx˙+ω²(x-target)=0; a=ω²(target-x)-2ωv"
+        "x¨+2ωx˙+ω²(x−target)=0",
+        "y=x−target; c=v+ωy",
+        "x(t+dt)=target+(y+c*dt)*exp(−ω*dt)",
+        "v(t+dt)=(v−ω*c*dt)*exp(−ω*dt)"
       ],
-      "mathematical_derivation": "El sistema masa-resorte-amortiguador m x¨+c x˙+k(x-target)=0 tiene frecuencia natural ω_n=√(k/m) y razón de amortiguamiento ζ=c/(2√(km)). Para ζ=1 se obtiene c=2mω_n y, dividiendo por m, x¨+2ω_n x˙+ω_n²(x-target)=0. Definiendo v=x˙ se obtiene la aceleración usada en la integración.",
+      "mathematical_derivation": "Para ζ=1, la ecuación característica tiene raíz doble r=−ω. Con y=x−target y condiciones iniciales y0,v0, la solución es y(t)=(y0+(v0+ωy0)t)e^(−ωt). Definiendo c=v0+ωy0 se obtiene el propagador exacto por dt: y1=(y0+c*dt)e^(−ωdt), v1=(v0−ω*c*dt)e^(−ωdt). Para target constante, componer dos pasos exactos equivale a un único paso con la suma de sus dt.",
       "variables_units": {
         "explicit": "x,target [m]; v [m/s]; a [m/s²]; ω [rad/s]; m [kg]; k [N/m]; c [N·s/m].",
         "all_symbols": "ω=√(k/m); ζ=1 para amortiguamiento crítico; Δt [s]."
@@ -203,41 +213,48 @@
         "boundary_conditions": "Si hay límites físicos, proyectar x y tratar el impacto como evento separado."
       },
       "algorithm_steps": [
-        "Calcular error target-x.",
-        "Evaluar aceleración ω²e-2ωv.",
-        "Integrar estado (x,v) con método elegido.",
-        "Para estabilidad robusta usar actualización analítica amortiguada o paso semi-implícito.",
-        "Evaluar error y velocidad para criterio de reposo."
+        "Validar estados de igual dimensión, valores finitos, ω≥0 y dt≥0.",
+        "Si dt=0, devolver el estado sin cambios.",
+        "Calcular y=x−target y c=v+ωy.",
+        "Calcular decay=exp(−ωdt).",
+        "Calcular x_next=target+(y+c*dt)*decay y v_next=(v−ω*c*dt)*decay.",
+        "Si ω=0, usar el límite de movimiento libre x_next=x+v*dt, v_next=v."
       ],
-      "pseudocode": "INPUT x, v, target, omega, dt\nASSERT omega>=0 AND dt>0\na=omega*omega*(target-x)-2*omega*v\nvNext=v+dt*a  // semi-implicit Euler\nxNext=x+dt*vNext\nRETURN xNext,vNext",
-      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "pseudocode": "INPUT x, v, target, omega, dt\\nASSERT finite(x,v,target,omega,dt) AND omega>=0 AND dt>=0 AND shapes_match\\nIF dt==0: RETURN x,v\\nIF omega==0: RETURN x+v*dt,v\\ny = x-target\\nc = v+omega*y\\ndecay = exp(-omega*dt)\\nxNext = target + (y+c*dt)*decay\\nvNext = (v-omega*c*dt)*decay\\nRETURN xNext,vNext",
+      "threejs_adaptation": "Llamar criticalDampedSpringStep desde el update CPU de cámara/objeto y copiar posición/velocidad resultantes a Vector3. La actualización exacta presupone objetivo constante durante dt; si el objetivo cambia dentro del paso, subdividirlo o usar el objetivo muestreado al inicio.",
       "numerical_validation": {
         "cases": [
           [
-            "rest_at_target",
-            "x=target,v=0",
-            "a=0 and state unchanged",
+            "closed_form",
+            "x=0,v=0,target=1,omega=2,dt=0.5",
+            "x=1−2/e; v=2/e",
             1e-12
           ],
           [
-            "displaced_rest",
-            "x=0,target=1,v=0,ω=2,dt=0.01",
-            "a=4; vNext=0.04; xNext=0.0004",
+            "semigroup",
+            "same target; one 0.4 s step vs two 0.2 s steps",
+            "same position and velocity",
             1e-12
+          ],
+          [
+            "zero_time",
+            "dt=0",
+            "state unchanged",
+            0
           ],
           [
             "zero_frequency",
-            "ω=0",
-            "a=0; constant velocity",
+            "omega=0",
+            "constant velocity x+=v*dt",
             1e-12
           ]
         ],
         "metrics": [
-          "position error",
-          "velocity",
-          "mechanical energy"
+          "position error against closed form",
+          "velocity error against closed form",
+          "step-composition residual"
         ],
-        "acceptance": "Check monotonic decay of energy for unforced critically damped case; halve Δt to assess convergence."
+        "acceptance": "Closed-form fixtures and semigroup composition agree within 1e-12 for tested scalar states; vector path preserves component shape."
       },
       "computational_cost": {
         "time_complexity": "O(d) por paso",
@@ -245,11 +262,11 @@
         "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
       },
       "limitations": [
-        "Semi-implicit Euler es una aproximación; para amortiguamiento crítico exacto implementar propagador cerrado.",
-        "El resorte lineal no modela límites ni colisiones."
+        "El propagador es exacto solo para target constante durante el paso y frecuencia constante.",
+        "No modela límites, colisiones, masa variable ni resortes no lineales."
       ],
-      "convergence_stability": "La estabilidad del paso semi-implícito depende de ωΔt; para ωΔt grande usar propagación exacta o método implícito.",
-      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "convergence_stability": "No introduce error de discretización temporal para el modelo lineal críticamente amortiguado con parámetros constantes; la precisión restante es de coma flotante.",
+      "evidence_status": "react-spring source and tests inspected; local exact propagator implementation and CI validation pending",
       "derivation_status": "derivada"
     },
     {
