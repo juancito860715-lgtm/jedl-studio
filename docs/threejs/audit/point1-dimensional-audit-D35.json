@@ -582,17 +582,18 @@
         {
           "symbol": "λ",
           "meaning": "amortiguamiento",
-          "unit": "D_r² para λ escalar cuando los parámetros están normalizados; sin escalado, usar regularización diagonal tipada",
+          "unit": "adimensional en la formulación de la ficha fuente; D debe escalar columnas de J de forma compatible",
           "dimension": {
-            "L": "2*D_r.L",
-            "M": "2*D_r.M",
-            "T": "2*D_r.T",
-            "I": "2*D_r.I",
-            "Theta": "2*D_r.Theta",
-            "N": "2*D_r.N",
-            "J": "2*D_r.J"
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
           },
-          "domain": "≥0"
+          "domain": "≥0",
+          "dimension_note": "No usar el anterior criterio residual²: la ficha fuente define λ multiplicando la diagonal de JᵀJ. La consistencia de DᵀD y JᵀJ sigue condicionada a escalas de parámetros homogéneas o a una normalización explícita."
         },
         {
           "symbol": "Δ",
@@ -1480,14 +1481,16 @@
       "15/15 técnicas incluidas; ninguna protegida",
       "Cada registro contiene variables, unidades, restricciones, dominio, límites y comprobaciones dimensionales",
       "Kalman incorpora covarianzas y ganancia tipadas por componente; wavelet fija convención continua L²",
-      "38/38 definiciones dimensionales genéricas reemplazadas por vectores SI o mapas simbólicos de siete componentes; variables agrupadas con dimensiones distintas se desglosan mediante dimension_by_symbol."
+      "38/38 definiciones dimensionales genéricas reemplazadas por vectores SI o mapas simbólicos de siete componentes; variables agrupadas con dimensiones distintas se desglosan mediante dimension_by_symbol.",
+      "Corrección de D35:5 λ: se marca adimensional según la formulación fuente λ·DᵀD; se retira la asignación residual² que no correspondía a la ecuación original."
     ],
     "limitations": [
       "La auditoría dimensional no certifica convergencia, estabilidad de control, condición numérica ni calidad de estimación.",
       "Las magnitudes abstractas (estado, actuador, residual, parámetro, señal y dominio) requieren instanciar sus dimensiones físicas antes de una comprobación numérica SI concreta.",
       "Levenberg–Marquardt: λ escalar solo es dimensionalmente consistente tras escalar/normalizar parámetros; en parámetros heterogéneos se requiere regularización diagonal tipada.",
       "Cubic interpolation: seleccionar la rama t normalizado o t en segundos antes de asignar unidades a b,c,d.",
-      "Monte Carlo: la unidad de p(x) es la inversa de la medida integrada, no necesariamente la inversa de una sola coordenada."
+      "Monte Carlo: la unidad de p(x) es la inversa de la medida integrada, no necesariamente la inversa de una sola coordenada.",
+      "D35:5 requiere revisión dimensional del escalado diagonal D en parámetros heterogéneos; λ es adimensional solo cuando DᵀD tiene las mismas unidades matriciales que JᵀJ."
     ]
   },
   "integrity": {
