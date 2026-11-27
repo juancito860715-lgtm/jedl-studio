@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D13 Cámaras, lentes y lenguaje cinematográfico",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -21,32 +21,31 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "x_n=x/z; y_n=y/z",
-          "justification": "Similar triangles in the pinhole camera project a point by dividing by depth."
+          "equation": "x_sensor=f_phys·x/z; y_sensor=f_phys·y/z",
+          "justification": "Por triángulos semejantes en cámara pinhole, la razón coordenada/profundidad es adimensional y la focal física convierte el resultado a longitud en el plano sensor."
         },
         {
           "step": 2,
-          "equation": "x_screen=f_px x/z; y_screen=f_px y/z",
-          "justification": "Scale normalized coordinates by focal length in pixels."
+          "equation": "x_pixel=s_x·x_sensor; y_pixel=s_y·y_sensor",
+          "justification": "La densidad de píxeles s_x,s_y [px/m] convierte coordenadas físicas del sensor a coordenadas raster."
         },
         {
           "step": 3,
-          "equation": "f_norm=1/tan(FOV_y/2)",
-          "justification": "Derive focal scale from right-triangle geometry of the image plane."
+          "equation": "f_phys=S/[2tan(FOV/2)]",
+          "justification": "El semialto S/2 y la distancia focal forman un triángulo rectángulo cuyo ángulo en cámara es FOV/2."
         }
       ],
       "assumptions": [
-        "z>0; FOV in (0,π).",
-        "Aspect ratio and camera convention declared.",
-        "f_px se calcula a partir de FOV y altura del viewport; z es profundidad positiva en espacio de cámara."
+        "Cámara pinhole ideal; z>0 y eje óptico definido.",
+        "f_phys y S están en unidades físicas del sensor; s_x,s_y describen densidad de píxel."
       ],
-      "result": "Perspective follows pinhole projection and similar triangles.",
+      "result": "La proyección perspectiva se deriva por triángulos semejantes en el plano físico del sensor; después, una escala px/m convierte a píxeles.",
       "limits": [
         "Clipping and lens distortion are separate stages."
       ],
       "dimensional_verification": [
-        "x,y,z tienen L; x/z e y/z son adimensionales; f_px tiene px y la salida queda en px.",
-        "FOV y razones trigonométricas son adimensionales; near/far tienen L."
+        "x,y,z,f_phys y x_sensor,y_sensor tienen m; x/z es adimensional y f_phys·x/z tiene m.",
+        "s_x,s_y tienen px/m; la salida raster tiene px; FOV y tan(FOV/2) son adimensionales."
       ]
     },
     {
@@ -60,30 +59,30 @@
         {
           "step": 1,
           "equation": "p_view=(x,y,z)",
-          "justification": "Express point in camera coordinates."
+          "justification": "Expresar el punto en el marco de cámara."
         },
         {
           "step": 2,
-          "equation": "x_screen=s_x x; y_screen=s_y y",
-          "justification": "Apply constant scale independent of depth."
+          "equation": "x_sensor=s_x x; y_sensor=s_y y",
+          "justification": "Aplicar escala ortográfica adimensional constante sobre el plano físico de imagen; la profundidad no altera x/y."
         },
         {
           "step": 3,
-          "equation": "z_depth=z",
-          "justification": "Retain depth for visibility testing."
+          "equation": "x_pixel=ρ_x x_sensor; y_pixel=ρ_y y_sensor; z_depth=z",
+          "justification": "Convertir longitud de sensor a píxeles mediante densidad ρ [px/m] y conservar profundidad lineal para visibilidad."
         }
       ],
       "assumptions": [
         "Bounds nonzero; camera basis orthonormal.",
         "Aspect ratio handled in projection bounds."
       ],
-      "result": "Orthographic projection is an affine map of view-space x/y.",
+      "result": "La proyección ortográfica es una transformación afín de x/y independiente de z; el viewport convierte el plano físico a píxeles.",
       "limits": [
         "No perspective foreshortening."
       ],
       "dimensional_verification": [
-        "x,y,z tienen L; s_x,s_y tienen px/L para salida en píxeles o L⁻¹ para NDC.",
-        "z_depth conserva L si es lineal; si se almacena normalizado, es adimensional y debe declararse."
+        "x,y,z y x_sensor,y_sensor tienen m; s_x,s_y son adimensionales.",
+        "ρ_x,ρ_y tienen px/m; x_pixel,y_pixel tienen px; z_depth conserva m."
       ]
     },
     {
@@ -565,7 +564,7 @@
     },
     {
       "record_key": "D13:14",
-      "name": "SDF smooth union",
+      "name": "SDF smooth union y modelado implícito",
       "starting_principles": [
         "a,b,k have L; k>0.",
         "SDF inputs share frame/sign convention."
@@ -607,7 +606,7 @@
     },
     {
       "record_key": "D13:15",
-      "name": "Curvas de cámara con marco estable",
+      "name": "Curvas de cámara con marco de orientación estable",
       "starting_principles": [
         "Tangents nonzero; antiparallel case uses fallback axis.",
         "Handedness and up convention fixed."
@@ -616,35 +615,42 @@
         {
           "step": 1,
           "equation": "T_i=normalize(C_{i+1}−C_i)",
-          "justification": "Approximate tangent along sampled path."
+          "justification": "Aproximar la tangente unitaria mediante diferencias de posiciones consecutivas."
         },
         {
           "step": 2,
-          "equation": "a=T_{i−1}×T_i; θ=atan2(||a||,T_{i−1}·T_i)",
-          "justification": "Find minimal rotation between consecutive tangents."
+          "equation": "B_i=normalize(T_i×N_{i−1})",
+          "justification": "El producto cruzado construye una binormal perpendicular a la tangente nueva y a la normal previa."
         },
         {
           "step": 3,
-          "equation": "N_i=R(a/||a||,θ)N_{i−1}; B_i=T_i×N_i",
-          "justification": "Transport normal and rebuild orthonormal frame."
+          "equation": "N_i=B_i×T_i",
+          "justification": "El producto cruzado devuelve una normal perpendicular a T_i y B_i; con ambos unitarios y ortogonales, N_i también es unitario."
         },
         {
           "step": 4,
+          "equation": "N_i=normalize(N_{i−1}−(N_{i−1}·T_i)T_i)",
+          "justification": "Por la identidad del triple producto, la operación equivale a proyectar la normal previa sobre el plano ortogonal a la tangente nueva y normalizarla."
+        },
+        {
+          "step": 5,
           "equation": "q_i=lookRotation(T_i,N_i)",
-          "justification": "Convert stable frame to camera orientation."
+          "justification": "Convertir el marco ortonormal en orientación de cámara; mantener convención local forward/up consistente."
         }
       ],
       "assumptions": [
-        "Tangents nonzero; antiparallel case uses fallback axis.",
-        "Handedness and up convention fixed."
+        "La curva es regular y la tangente no se anula.",
+        "La normal previa no es paralela a la nueva tangente; usar fallback estable si el producto cruzado es casi cero."
       ],
-      "result": "Parallel transport stabilizes camera orientation along a curve by minimizing twist.",
+      "result": "El marco estable de catálogo se deriva proyectando la normal previa sobre el plano normal a la tangente nueva, reconstruyendo binormal y normal. Es un transporte por proyección de mínimo cambio, no la rotación de transporte paralelo exacta.",
       "limits": [
-        "Cusps and zero tangents require regularization."
+        "El transporte por proyección minimiza el cambio de normal local, pero no coincide en todos los casos con la rotación mínima exacta de un marco de Bishop.",
+        "Para curvas con cúspides o giros grandes, usar subdivisión adaptativa o transporte por rotación con eje T_{i−1}×T_i."
       ],
       "dimensional_verification": [
-        "C'(u) tiene L si u es adimensional; T,N,B y eje de rotación son unitarios.",
-        "θ es radianes; el transporte de marco y quaternion conservan orientación adimensional."
+        "C_i y C_{i+1} tienen m; T_i,N_i,B_i y productos vectoriales son adimensionales.",
+        "El producto cruzado debe tener norma mayor que ε; normalizar produce marco unitario.",
+        "q_i es adimensional y conserva orientación."
       ]
     }
   ],
@@ -655,7 +661,9 @@
       "Proyección perspectiva/ortográfica distingue metros, NDC y píxeles",
       "Profundidad de campo deriva círculo físico en sensor y separa conversión a píxeles",
       "Continuidad de plano corregida para no mezclar coordenadas de pantalla con vectores mundo",
-      "Trayectorias, FOV, velocidades, exposición temporal y SDF conservan unidades compatibles"
+      "Trayectorias, FOV, velocidades, exposición temporal y SDF conservan unidades compatibles",
+      "Perspective y orthographic separan plano físico del sensor y raster px",
+      "D13:15 deriva exactamente el marco por proyección declarado en el catálogo y distingue su límite frente al transporte paralelo exacto"
     ],
     "limitations": [
       "Las aproximaciones de lente son para cámara pinhole/Thin Lens; no sustituyen trazado óptico completo ni calibración de una cámara real."
