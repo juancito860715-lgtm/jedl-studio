@@ -1,0 +1,757 @@
+{
+  "title": "Algoritmos completos y pseudocódigo ejecutable — D35 Matemáticas de sistemas, control y optimización",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
+  "derivation_blob_sha": "273f4578ffb56ddea12f8ab9e0e652a2e3162270",
+  "scope": {
+    "domain_id": "D35",
+    "record_count": 15,
+    "excluded_protected_records": 0
+  },
+  "records": [
+    {
+      "record_key": "D35:0",
+      "name": "PID controller",
+      "inputs": [
+        "r_n, y_n: referencia y salida con unidades declaradas",
+        "Δt>0, Kp, Ki, Kd tipados por unidad de error y salida",
+        "I_(n−1), e_(n−1), límites u_min/u_max"
+      ],
+      "outputs": [
+        "u_n saturada",
+        "estado integral actualizado",
+        "error e_n"
+      ],
+      "preconditions": [
+        "r e y tienen la misma unidad X; u y límites tienen unidad U.",
+        "Kp=U/X, Ki=U/(X·T), Kd=U·T/X; Δt>0.",
+        "El límite inferior no supera el superior; estado previo finito."
+      ],
+      "algorithm_steps": [
+        "Validar unidades compatibles, Δt positivo, parámetros y límites finitos.",
+        "Calcular e_n=r_n−y_n.",
+        "Calcular término proporcional P=Kp·e_n.",
+        "Calcular integral candidato I*=I_(n−1)+e_n·Δt y término integral Ki·I*.",
+        "Calcular derivada D=(e_n−e_(n−1))/Δt y término derivativo Kd·D.",
+        "Calcular u_raw=P+Ki·I*+Kd·D; saturar u_n al intervalo [u_min,u_max].",
+        "Aplicar anti-windup condicional: si saturación y el error integral empuja más hacia saturación, conservar I_(n−1); en otro caso aceptar I*.",
+        "Comprobar finitud y publicar u_n, I_n y e_n; conservar e_n como estado previo."
+      ],
+      "pseudocode": "function pidStep(r, y, dt, gains, state, limits):\n  require finite(r,y,dt) and dt > 0\n  require compatibleUnits(r,y) and typedGains(gains)\n  require limits.min <= limits.max\n  e = r - y\n  iCandidate = state.integral + e * dt\n  p = gains.Kp * e\n  d = (e - state.previousError) / dt\n  uCandidate = p + gains.Ki * iCandidate + gains.Kd * d\n  u = clamp(uCandidate, limits.min, limits.max)\n  drivesFurtherIntoSaturation = (u != uCandidate) and sign(e) == sign(uCandidate - u)\n  integral = state.integral if drivesFurtherIntoSaturation else iCandidate\n  require finite(u, integral, e)\n  return {u, state:{integral, previousError:e}}",
+      "invariants": [
+        "P, I y D expresan U; la suma también expresa U.",
+        "El estado integral solo cambia bajo regla anti-windup declarada.",
+        "Para entradas y estado idénticos, la salida es determinista."
+      ],
+      "edge_cases": [
+        "Δt≤0: rechazar sin actualizar estado.",
+        "Error o estado no finito: rechazar.",
+        "Límites invertidos: rechazar.",
+        "Ki=0: el estado integral puede omitirse sin cambiar P y D."
+      ],
+      "complexity": "O(1) tiempo y O(1) estado.",
+      "failure_conditions": [
+        "Unidades incompatibles",
+        "Δt no positivo",
+        "Ganancias o estados no finitos",
+        "Límites de saturación inválidos"
+      ],
+      "derived_from": [
+        "e=r−y",
+        "uP=Kp e; uI=Ki∫e dt; uD=Kd de/dt",
+        "I_n=I_(n−1)+e_nΔt; D_n=(e_n−e_(n−1))/Δt",
+        "u=uP+uI+uD"
+      ]
+    },
+    {
+      "record_key": "D35:1",
+      "name": "Proportional tracking",
+      "inputs": [
+        "x actual y target con misma unidad de longitud",
+        "Kp>0 con unidad T⁻¹",
+        "Δt>0"
+      ],
+      "outputs": [
+        "x_next",
+        "error e"
+      ],
+      "preconditions": [
+        "Target constante durante el paso.",
+        "Kp>0; Δt>0; x y target finitos y dimensionalmente compatibles."
+      ],
+      "algorithm_steps": [
+        "Validar target, x, Kp y Δt.",
+        "Calcular e=target−x.",
+        "Calcular v=Kp·e.",
+        "Integrar el modelo continuo con Euler explícito: x_next=x+Δt·v.",
+        "Comprobar finitud y devolver x_next."
+      ],
+      "pseudocode": "function proportionalTrack(x, target, Kp, dt):\n  require finite(x,target,Kp,dt) and Kp > 0 and dt > 0\n  e = target - x\n  velocity = Kp * e\n  next = x + dt * velocity\n  require finite(next)\n  return {position:next, error:e}",
+      "invariants": [
+        "v tiene unidad X/T; Δt·v tiene X.",
+        "Con target fijo, el error continuo decae exponencialmente para Kp>0.",
+        "El paso discreto es estable sin alternancia si 0<Kp·Δt≤1; para 1<Kp·Δt<2 alterna; Kp·Δt≥2 no es estable."
+      ],
+      "edge_cases": [
+        "Kp=0 viola precondición; si se desea congelar, usar explícitamente un modo distinto.",
+        "Δt≤0: rechazar.",
+        "Target móvil dentro del paso: esta fórmula cerrada deja de aplicar."
+      ],
+      "complexity": "O(1) tiempo y memoria.",
+      "failure_conditions": [
+        "Kp≤0",
+        "Δt≤0",
+        "Datos no finitos",
+        "Unidades incompatibles"
+      ],
+      "derived_from": [
+        "dx/dt=Kp(target−x)",
+        "x(t)=target+(x0−target)e^(−Kp t)"
+      ]
+    },
+    {
+      "record_key": "D35:2",
+      "name": "Critically damped spring",
+      "inputs": [
+        "x, target, velocity",
+        "ω>0 en s⁻¹",
+        "Δt>0"
+      ],
+      "outputs": [
+        "posición y velocidad del siguiente paso"
+      ],
+      "preconditions": [
+        "Target constante por paso; sistema lineal de segundo orden.",
+        "Estado inicial finito y unidades homogéneas."
+      ],
+      "algorithm_steps": [
+        "Validar ω>0, Δt>0 y estado finito.",
+        "Definir error q=x−target.",
+        "Evaluar solución exacta para intervalo constante: q_next=(q+(v+ωq)Δt)e^(−ωΔt).",
+        "Evaluar velocidad exacta: v_next=(v−ω(v+ωq)Δt)e^(−ωΔt).",
+        "Reconstruir x_next=target+q_next.",
+        "Comprobar finitud y devolver estado."
+      ],
+      "pseudocode": "function criticalSpringStep(x, v, target, omega, dt):\n  require finite(x,v,target,omega,dt) and omega > 0 and dt > 0\n  q = x - target\n  c = v + omega*q\n  decay = exp(-omega*dt)\n  qNext = (q + c*dt) * decay\n  vNext = (v - omega*c*dt) * decay\n  xNext = target + qNext\n  require finite(xNext,vNext)\n  return {x:xNext, velocity:vNext}",
+      "invariants": [
+        "ωΔt es adimensional.",
+        "q_next tiene unidad de posición y v_next posición/tiempo.",
+        "Para target constante, el error tiende a cero sin oscilación en el modelo ideal."
+      ],
+      "edge_cases": [
+        "ω≤0 o Δt≤0: rechazar.",
+        "Exponente fuera del rango representable: informar underflow/overflow según entorno.",
+        "Target variable requiere actualizar el objetivo por tramo; no usar solución exacta de target constante a través de discontinuidad."
+      ],
+      "complexity": "O(1) tiempo y memoria.",
+      "failure_conditions": [
+        "Parámetros no finitos",
+        "ω o Δt no positivos",
+        "Overflow numérico"
+      ],
+      "derived_from": [
+        "x''+2ωx'+ω²(x−target)=0",
+        "x(t)=target+(A+Bt)e^(−ωt)"
+      ]
+    },
+    {
+      "record_key": "D35:3",
+      "name": "Kalman state model",
+      "inputs": [
+        "A,H,Q,R y estado x_hat,P",
+        "medición z y covarianza de ruido",
+        "matrices con dimensiones por componente"
+      ],
+      "outputs": [
+        "x_hat posterior y P posterior"
+      ],
+      "preconditions": [
+        "Matrices de tamaños compatibles; Q y R semidefinidas positivas; innovación invertible.",
+        "Modelo lineal y covarianzas finitas; componentes con unidades coherentes."
+      ],
+      "algorithm_steps": [
+        "Validar dimensiones matriciales, unidades por componente y simetría/semidefinición de Q y R.",
+        "Predecir x_minus=A·x_hat y P_minus=A·P·Aᵀ+Q.",
+        "Calcular innovación y=z−H·x_minus y S=H·P_minus·Hᵀ+R.",
+        "Resolver S·X=(P_minus·Hᵀ)ᵀ y transponer X para obtener K; evitar invertir S explícitamente.",
+        "Actualizar x_hat_new=x_minus+K·y.",
+        "Actualizar covarianza con forma Joseph: P_new=(I−KH)P_minus(I−KH)ᵀ+KRKᵀ.",
+        "Simetrizar por redondeo P_new←(P_new+P_newᵀ)/2 y validar finitud/semidefinición dentro de tolerancia declarada."
+      ],
+      "pseudocode": "function kalmanStep(A,H,Q,R,x,P,z):\n  validateShapesAndUnits(A,H,Q,R,x,P,z)\n  require isSymmetricPSD(Q) and isSymmetricPSD(R)\n  xPred = A*x\n  PPred = A*P*transpose(A) + Q\n  innovation = z - H*xPred\n  S = H*PPred*transpose(H) + R\n  require solveIsWellConditioned(S)\n  K = transpose(solve(S, transpose(PPred*transpose(H))))\n  xNew = xPred + K*innovation\n  C = identity(size(K,0)) - K*H\n  PNew = C*PPred*transpose(C) + K*R*transpose(K)\n  PNew = (PNew + transpose(PNew))/2\n  require finite(xNew,PNew) and isPSDWithinDeclaredTolerance(PNew)\n  return {state:xNew,covariance:PNew}",
+      "invariants": [
+        "A_ij lleva unidad estado_i/estado_j; H_ij observación_i/estado_j.",
+        "P,Q,R son covarianzas por pares de componentes; K mapea observación a estado.",
+        "La forma Joseph conserva simetría/positividad mejor que la actualización simplificada bajo redondeo."
+      ],
+      "edge_cases": [
+        "S singular o mal condicionada: fallo explícito; no usar inversa pseudoarbitraria.",
+        "Q o R no PSD: rechazar.",
+        "Medición ausente: devolver predicción documentada sin corrección.",
+        "Dimensiones incompatibles: rechazar."
+      ],
+      "complexity": "Dominada por factorización/solución lineal; O(n³) para matrices densas de dimensión n.",
+      "failure_conditions": [
+        "Matrices incompatibles",
+        "S singular/mal condicionada",
+        "Q o R no PSD",
+        "Resultados no finitos"
+      ],
+      "derived_from": [
+        "x−=Ax_hat; P−=APAᵀ+Q",
+        "K=P−Hᵀ(HP−Hᵀ+R)⁻¹",
+        "x_hat=x−+K(z−Hx−)",
+        "P update"
+      ]
+    },
+    {
+      "record_key": "D35:4",
+      "name": "Gradient descent",
+      "inputs": [
+        "objetivo E diferenciable",
+        "vector θ y gradiente",
+        "tasas η_j tipadas por parámetro"
+      ],
+      "outputs": [
+        "θ actualizado y valor del objetivo"
+      ],
+      "preconditions": [
+        "Cada η_j tiene unidad θ_j²/E; o θ y E están normalizados.",
+        "Objetivo y gradiente finitos; criterio de parada declarado."
+      ],
+      "algorithm_steps": [
+        "Validar dimensión de θ, gradiente y tasas por componente.",
+        "Evaluar E(θ) y ∇E(θ).",
+        "Para cada j calcular θ_next,j=θ_j−η_j·∂E/∂θ_j.",
+        "Evaluar E(θ_next); comprobar finitud.",
+        "Terminar si se alcanza criterio de gradiente, cambio de objetivo, límite de iteraciones o fallo de descenso según tolerancias recibidas."
+      ],
+      "pseudocode": "function gradientDescent(objective, gradient, theta, eta, stop):\n  require compatibleLengths(theta,eta)\n  for iteration in 0..stop.maxIterations-1:\n    value = objective(theta)\n    g = gradient(theta)\n    require finite(value,g)\n    next = theta - componentwise(eta * g)\n    nextValue = objective(next)\n    require finite(next,nextValue)\n    if stopSatisfied(theta,next,value,nextValue,g,stop):\n      return {theta:next,value:nextValue,iterations:iteration+1}\n    theta = next\n  return {theta,value:objective(theta),status:'MAX_ITERATIONS'}",
+      "invariants": [
+        "η_j·∂E/∂θ_j tiene unidad θ_j.",
+        "La expansión de primer orden predice descenso para tasas suficientemente pequeñas, no garantiza descenso global.",
+        "No mezclar parámetros de unidades distintas con una única tasa escalar no tipada."
+      ],
+      "edge_cases": [
+        "Gradiente cero: convergencia estacionaria.",
+        "Objetivo no finito o gradiente no finito: abortar.",
+        "Máximo de iteraciones alcanzado: devolver estado no certificado como convergido.",
+        "Tasas no positivas: rechazar si el método declarado requiere η_j>0."
+      ],
+      "complexity": "O(C_E+C_∇E) por iteración más operaciones vectoriales O(n).",
+      "failure_conditions": [
+        "Tamaños incompatibles",
+        "Tasas dimensionalmente incorrectas",
+        "Evaluación no finita",
+        "Criterios de parada inválidos"
+      ],
+      "derived_from": [
+        "E(θ+Δ)≈E(θ)+∇EᵀΔ",
+        "Δθ_j=−η_j∂E/∂θ_j",
+        "θ_(n+1)=θ_n−η∇E(θ_n)"
+      ]
+    },
+    {
+      "record_key": "D35:5",
+      "name": "Levenberg–Marquardt",
+      "inputs": [
+        "residual r(θ) y Jacobiano J",
+        "escalas no nulas s_j y r_scale,i",
+        "λ≥0 adimensional y criterios de aceptación"
+      ],
+      "outputs": [
+        "θ actualizado o estado de rechazo del paso"
+      ],
+      "preconditions": [
+        "Escalas s_j y r_scale,i positivas y con unidades respectivas.",
+        "Problema normalizado; J_tilde adimensional; sistema lineal resoluble."
+      ],
+      "algorithm_steps": [
+        "Validar residual, Jacobiano y escalas por componente.",
+        "Normalizar θ_tilde,j=(θ_j−θ_ref,j)/s_j y residual r_tilde,i=r_i/r_scale,i.",
+        "Construir J_tilde como derivada de r_tilde respecto a θ_tilde.",
+        "Resolver (J_tildeᵀJ_tilde+λI)Δθ_tilde=−J_tildeᵀr_tilde por solver estable.",
+        "Formar candidato θ_candidate=θ+s⊙Δθ_tilde.",
+        "Evaluar residual candidato y comparar coste real con predicción; aceptar o rechazar según regla declarada.",
+        "Actualizar λ según regla de aceptación configurada; detener por tolerancia, gradiente, paso o máximo de iteraciones."
+      ],
+      "pseudocode": "function levenbergMarquardt(r, J, theta, scales, lambda, policy):\n  require lambda >= 0 and positive(scales.parameter,scales.residual)\n  rt = normalizeResidual(r(theta), scales.residual)\n  Jt = normalizedJacobian(J(theta), scales.parameter, scales.residual)\n  M = transpose(Jt)*Jt + lambda*identity()\n  rhs = -transpose(Jt)*rt\n  deltaT = solveSPDOrReport(M,rhs)\n  candidate = theta + scales.parameter * deltaT\n  actual = cost(r(candidate))\n  predicted = predictedReduction(rt,Jt,deltaT,lambda)\n  decision = policy.accept(actual,predicted)\n  return policy.update(theta,candidate,lambda,decision,actual,predicted)",
+      "invariants": [
+        "λ y J_tilde son adimensionales en la formulación normalizada.",
+        "s_j·Δθ_tilde,j recupera unidad de θ_j.",
+        "No sumar JᵀJ de parámetros heterogéneos a λI sin normalización."
+      ],
+      "edge_cases": [
+        "Escala cero o no finita: rechazar.",
+        "Matriz normal singular/mal condicionada: reportar fallo del solver.",
+        "λ<0: rechazar.",
+        "No mejora: rechazar candidato y ajustar λ según política suministrada."
+      ],
+      "complexity": "O(mn²+n³) por iteración densa para m residuos y n parámetros.",
+      "failure_conditions": [
+        "Escalas inválidas",
+        "Sistema lineal no resoluble",
+        "Residual/Jacobiano no finitos",
+        "Política de aceptación no definida"
+      ],
+      "derived_from": [
+        "θ_tilde=(θ−θ_ref)/s; r_tilde=r/r_scale",
+        "min ||r_tilde+J_tildeΔθ_tilde||²+λ||Δθ_tilde||²",
+        "(J_tildeᵀJ_tilde+λI)Δθ_tilde=−J_tildeᵀr_tilde",
+        "θ_next=θ+s⊙Δθ_tilde"
+      ]
+    },
+    {
+      "record_key": "D35:6",
+      "name": "Newton method",
+      "inputs": [
+        "f y f' evaluables",
+        "x inicial",
+        "tolerancias y máximo de iteraciones"
+      ],
+      "outputs": [
+        "raíz aproximada y estado de convergencia"
+      ],
+      "preconditions": [
+        "f diferenciable y f'(x) no nula en iteraciones; unidades f/f' compatibles con x.",
+        "Tolerancias positivas y finitas."
+      ],
+      "algorithm_steps": [
+        "Validar x inicial y criterios de parada.",
+        "Evaluar f(x), f'(x); rechazar valores no finitos.",
+        "Si |f(x)| cumple tolerancia, devolver convergencia.",
+        "Si f'(x)=0 o está bajo umbral declarado, devolver fallo de derivada.",
+        "Calcular Δ=−f(x)/f'(x), x_next=x+Δ.",
+        "Evaluar x_next; si no finito, fallar; en otro caso iterar.",
+        "Al agotar iteraciones devolver último x con estado MAX_ITERATIONS."
+      ],
+      "pseudocode": "function newton(f, df, x, stop):\n  require stop.maxIterations > 0 and stop.tolerance > 0\n  for i in 0..stop.maxIterations-1:\n    fx = f(x); dfx = df(x)\n    require finite(fx,dfx)\n    if abs(fx) <= stop.tolerance: return {root:x,status:'CONVERGED'}\n    if abs(dfx) <= stop.derivativeFloor: return {root:x,status:'ZERO_DERIVATIVE'}\n    delta = -fx/dfx\n    next = x + delta\n    require finite(next)\n    if abs(delta) <= stop.stepTolerance: return {root:next,status:'STEP_SMALL'}\n    x = next\n  return {root:x,status:'MAX_ITERATIONS'}",
+      "invariants": [
+        "f/f' tiene unidad x.",
+        "Cada iteración preserva unidad de x.",
+        "Convergencia cuadrática solo cerca de raíz simple y bajo hipótesis regulares."
+      ],
+      "edge_cases": [
+        "f'=0 o bajo umbral: no dividir.",
+        "Raíz múltiple puede degradar convergencia.",
+        "Semilla fuera de región de convergencia: no garantizar convergencia.",
+        "Máximo de iteraciones: informar no convergencia."
+      ],
+      "complexity": "O(C_f+C_df) por iteración.",
+      "failure_conditions": [
+        "Derivada nula/casi nula",
+        "Evaluaciones no finitas",
+        "Criterios de parada inválidos"
+      ],
+      "derived_from": [
+        "f(x+Δ)≈f(x)+f'(x)Δ",
+        "Δ=−f(x)/f'(x)",
+        "x_next=x−f(x)/f'(x)"
+      ]
+    },
+    {
+      "record_key": "D35:7",
+      "name": "Bisection",
+      "inputs": [
+        "f continua en [a,b]",
+        "a,b con f(a)f(b)≤0",
+        "tolerancia de intervalo y máximo de iteraciones"
+      ],
+      "outputs": [
+        "intervalo acotado y punto medio"
+      ],
+      "preconditions": [
+        "a<b; f(a),f(b) finitos; continuidad declarada en intervalo.",
+        "Las unidades de a,b,m coinciden."
+      ],
+      "algorithm_steps": [
+        "Evaluar f(a), f(b) y validar cambio de signo o raíz exacta en extremo.",
+        "Si f(a)=0 o f(b)=0 devolver ese extremo.",
+        "Mientras ancho exceda tolerancia y no se alcance límite, calcular m=(a+b)/2.",
+        "Evaluar f(m); si es cero devolver m.",
+        "Conservar [a,m] cuando f(a) y f(m) tienen signos opuestos; en caso contrario conservar [m,b].",
+        "Devolver punto medio final, intervalo y estado."
+      ],
+      "pseudocode": "function bisection(f,a,b,tol,maxIterations):\n  require finite(a,b,tol) and a < b and tol > 0\n  fa=f(a); fb=f(b)\n  require finite(fa,fb) and fa*fb <= 0\n  if fa == 0: return {root:a,status:'ENDPOINT'}\n  if fb == 0: return {root:b,status:'ENDPOINT'}\n  for i in 0..maxIterations-1:\n    if (b-a)/2 <= tol: return {root:(a+b)/2,interval:[a,b],status:'CONVERGED'}\n    m=(a+b)/2; fm=f(m)\n    require finite(fm)\n    if fm == 0: return {root:m,status:'EXACT'}\n    if sign(fa) != sign(fm): b=m; fb=fm\n    else: a=m; fa=fm\n  return {root:(a+b)/2,interval:[a,b],status:'MAX_ITERATIONS'}",
+      "invariants": [
+        "La raíz permanece encerrada en el intervalo bajo continuidad y cambio de signo.",
+        "El ancho se reduce por factor 2 por iteración.",
+        "El producto de signos es adimensional; f(a), f(b) deben compartir unidad."
+      ],
+      "edge_cases": [
+        "Raíz en extremo: devolverla sin iterar.",
+        "Sin cambio de signo y sin extremo cero: rechazar.",
+        "f(m) no finito: fallar.",
+        "Tolerancia no positiva o a≥b: rechazar."
+      ],
+      "complexity": "O(N_f·iterations) tiempo y O(1) memoria.",
+      "failure_conditions": [
+        "No hay bracket válido",
+        "f no continua según hipótesis",
+        "Evaluación no finita",
+        "Máximo de iteraciones"
+      ],
+      "derived_from": [
+        "f(a)f(b)<0",
+        "m=(a+b)/2",
+        "retener subintervalo con cambio de signo",
+        "width_n=(b−a)/2^n"
+      ]
+    },
+    {
+      "record_key": "D35:8",
+      "name": "Cubic interpolation",
+      "inputs": [
+        "t0,t1,p0,p1,v0,v1",
+        "modo temporal: normalizado o segundos"
+      ],
+      "outputs": [
+        "coeficientes a,b,c,d y evaluador p(t)"
+      ],
+      "preconditions": [
+        "t0≠t1; valores y pendientes finitos.",
+        "Elegir una sola convención dimensional para t antes de resolver."
+      ],
+      "algorithm_steps": [
+        "Validar t0≠t1 y unidades de p0,p1,v0,v1.",
+        "Construir sistema lineal de cuatro ecuaciones p(t0)=p0, p(t1)=p1, p'(t0)=v0, p'(t1)=v1.",
+        "Resolver sistema 4×4 con solver estable; no fijar coeficientes por heurística.",
+        "Verificar residuos de las cuatro condiciones dentro de tolerancia numérica recibida.",
+        "Evaluar p(t)=a+bt+ct²+dt³ y p'(t) según coeficientes.",
+        "Devolver coeficientes, convención temporal y verificación."
+      ],
+      "pseudocode": "function cubicHermiteCoefficients(t0,t1,p0,p1,v0,v1,solver,tolerance):\n  require finite(t0,t1,p0,p1,v0,v1) and t0 != t1\n  M = [[1,t0,t0^2,t0^3],[1,t1,t1^2,t1^3],[0,1,2*t0,3*t0^2],[0,1,2*t1,3*t1^2]]\n  rhs = [p0,p1,v0,v1]\n  coeff = solver.solve(M,rhs)\n  require finite(coeff)\n  require norm(M*coeff-rhs) <= tolerance\n  return {a:coeff[0],b:coeff[1],c:coeff[2],d:coeff[3]}",
+      "invariants": [
+        "Si t está en segundos, coeficiente de t^k tiene unidad p·s⁻ᵏ.",
+        "Si t está normalizado, t es adimensional y los coeficientes tienen unidad p.",
+        "Las cuatro condiciones de frontera se satisfacen dentro de tolerancia."
+      ],
+      "edge_cases": [
+        "t0=t1: sistema degenerado; rechazar.",
+        "Sistema mal condicionado: reportar y no inventar solución.",
+        "Tangentes excesivas pueden producir overshoot; no se afirma monotonicidad."
+      ],
+      "complexity": "O(1) para sistema 4×4.",
+      "failure_conditions": [
+        "Extremos coincidentes",
+        "Datos no finitos",
+        "Solver singular/mal condicionado",
+        "Residuos superan tolerancia"
+      ],
+      "derived_from": [
+        "p(t)=a+bt+ct²+dt³",
+        "p(t0)=p0; p(t1)=p1",
+        "p'(t0)=v0; p'(t1)=v1"
+      ]
+    },
+    {
+      "record_key": "D35:9",
+      "name": "Fourier series",
+      "inputs": [
+        "muestras periódicas o función integrable en periodo T",
+        "número de armónicos N",
+        "frecuencia angular ω=2π/T"
+      ],
+      "outputs": [
+        "a0, an, bn y reconstrucción truncada"
+      ],
+      "preconditions": [
+        "T>0; señal integrable y periodo definido.",
+        "La convención de a0 (media o término constante) debe seguir la ecuación usada."
+      ],
+      "algorithm_steps": [
+        "Validar periodo, señal y número de armónicos.",
+        "Calcular ω=2π/T.",
+        "Para cada n proyectar señal sobre cos(nωt) y sin(nωt) usando integrales o cuadratura declarada.",
+        "Mantener coeficientes con unidad de la señal.",
+        "Reconstruir suma truncada con los coeficientes obtenidos.",
+        "Registrar ventana, cuadratura y número de armónicos."
+      ],
+      "pseudocode": "function fourierSeries(signal, period, harmonics, integrate):\n  require finite(period) and period > 0 and harmonics >= 0\n  omega = 2*pi/period\n  a0 = (1/period) * integrate(signal,0,period)\n  for n in 1..harmonics:\n    an = (2/period) * integrate(t => signal(t)*cos(n*omega*t),0,period)\n    bn = (2/period) * integrate(t => signal(t)*sin(n*omega*t),0,period)\n  return {a0,an,bn,omega}",
+      "invariants": [
+        "ωt es adimensional; an,bn,a0 tienen unidad de señal.",
+        "La base seno/coseno es ortogonal en periodo bajo hipótesis establecidas.",
+        "La suma truncada no implica igualdad exacta para señal arbitraria."
+      ],
+      "edge_cases": [
+        "T≤0: rechazar.",
+        "Discontinuidades: convergencia puntual y fenómeno de Gibbs.",
+        "Muestreo insuficiente o no uniforme: esta proyección continua requiere cuadratura apropiada."
+      ],
+      "complexity": "O(N·C_integral); para M muestras uniformes O(NM).",
+      "failure_conditions": [
+        "Periodo inválido",
+        "Señal no integrable/no finita",
+        "Cuadratura no definida"
+      ],
+      "derived_from": [
+        "f(t)=a0+Σ(an cos nωt+bn sin nωt)",
+        "an=(2/T)∫f cos",
+        "bn=(2/T)∫f sin",
+        "ω=2π/T"
+      ]
+    },
+    {
+      "record_key": "D35:10",
+      "name": "FFT",
+      "inputs": [
+        "N muestras x_n",
+        "N potencia de dos para radix-2",
+        "convención de signo y normalización"
+      ],
+      "outputs": [
+        "espectro complejo X_k"
+      ],
+      "preconditions": [
+        "N≥1; radix-2 exige N potencia de dos.",
+        "Muestras finitas y equiespaciadas para interpretación espectral estándar."
+      ],
+      "algorithm_steps": [
+        "Validar N y convención DFT.",
+        "Si N=1 devolver la única muestra.",
+        "Separar muestras pares e impares.",
+        "Calcular recursivamente E y O para ambas subsecuencias.",
+        "Combinar X_k=E_k+W_N^k O_k y X_(k+N/2)=E_k−W_N^k O_k.",
+        "Aplicar normalización solo según convención declarada y verificar finitud."
+      ],
+      "pseudocode": "function fftRadix2(x):\n  N = length(x)\n  require N >= 1 and isPowerOfTwo(N) and finite(x)\n  if N == 1: return copy(x)\n  even = fftRadix2(x[0:N:2])\n  odd = fftRadix2(x[1:N:2])\n  X = zerosComplex(N)\n  for k in 0..N/2-1:\n    W = exp(-i*2*pi*k/N)\n    X[k] = even[k] + W*odd[k]\n    X[k+N/2] = even[k] - W*odd[k]\n  return X",
+      "invariants": [
+        "X_k tiene la misma unidad de amplitud que x_n para DFT sin factor Δt.",
+        "Los índices y N son conteos adimensionales.",
+        "El algoritmo conserva la definición DFT dada la convención de signo."
+      ],
+      "edge_cases": [
+        "N no potencia de dos: rechazar esta variante radix-2 o usar algoritmo distinto documentado.",
+        "N=1: identidad.",
+        "Entrada no finita: rechazar.",
+        "La interpretación de frecuencia requiere frecuencia de muestreo conocida."
+      ],
+      "complexity": "O(N log₂N) tiempo y O(N) memoria.",
+      "failure_conditions": [
+        "N inválido",
+        "N no potencia de dos",
+        "Muestras no finitas"
+      ],
+      "derived_from": [
+        "X_k=Σx_n e^(−i2πkn/N)",
+        "split even/odd",
+        "X_k=E_k+W_N^kO_k; X_(k+N/2)=E_k−W_N^kO_k"
+      ]
+    },
+    {
+      "record_key": "D35:11",
+      "name": "Wavelet transform",
+      "inputs": [
+        "señal f(t)",
+        "wavelet ψ de energía finita y admisible",
+        "escalas a≠0 y traslaciones b"
+      ],
+      "outputs": [
+        "coeficientes W(a,b)"
+      ],
+      "preconditions": [
+        "Convención L²: ψ_a,b(t)=1/√|a| ψ((t−b)/a).",
+        "a y b tienen unidad temporal cuando t se mide en segundos; la integral y normalización usan la misma convención."
+      ],
+      "algorithm_steps": [
+        "Validar wavelet, soporte/integrabilidad, a≠0 y escalas/traslaciones.",
+        "Para cada par (a,b) formar ψ_a,b(t) con normalización 1/√|a|.",
+        "Calcular W(a,b)=∫f(t)ψ*_a,b(t)dt mediante cuadratura declarada.",
+        "Comprobar convergencia y finitud de la integral.",
+        "Registrar convención de escala, conjugación compleja y cuadratura."
+      ],
+      "pseudocode": "function continuousWaveletTransform(signal, psi, scales, shifts, integrate):\n  require all(scales != 0) and finite(scales,shifts)\n  for a in scales:\n    for b in shifts:\n      coefficient = integrate(t => signal(t)*conjugate(psi((t-b)/a))/sqrt(abs(a)), domain)\n      require finite(coefficient)\n      W[a,b] = coefficient\n  return W",
+      "invariants": [
+        "Con normalización L² y a temporal, ψ_a,b tiene unidad T⁻¹/².",
+        "W tiene unidad señal·T¹/².",
+        "La convención de escala y medida no se cambia entre coeficientes."
+      ],
+      "edge_cases": [
+        "a=0: rechazar.",
+        "Wavelet no admisible: análisis puede calcularse pero reconstrucción no queda garantizada.",
+        "Ventana finita: documentar efectos de borde.",
+        "Escalas no finitas: rechazar."
+      ],
+      "complexity": "O(N_a·N_b·C_integral); depende de cuadratura y soporte.",
+      "failure_conditions": [
+        "Escala nula",
+        "Wavelet no integrable",
+        "Cuadratura no convergente",
+        "Coeficientes no finitos"
+      ],
+      "derived_from": [
+        "ψ_a,b(t)=1/√|a| ψ((t−b)/a)",
+        "W(a,b)=∫f(t)ψ*_{a,b}(t)dt",
+        "admissibility condition"
+      ]
+    },
+    {
+      "record_key": "D35:12",
+      "name": "Monte Carlo sampling",
+      "inputs": [
+        "integrando f(x) y densidad p(x)",
+        "soporte y medida dx",
+        "N muestras y generador aleatorio"
+      ],
+      "outputs": [
+        "estimador I_hat y estimación de error"
+      ],
+      "preconditions": [
+        "p normalizada, positiva donde f contribuye y muestreo conforme a p.",
+        "Varianza finita; la unidad de p es inversa de la medida integrada."
+      ],
+      "algorithm_steps": [
+        "Validar N>0 y distribución p normalizada/positiva en soporte relevante.",
+        "Generar x_i independientes según p.",
+        "Evaluar w_i=f(x_i)/p(x_i), verificando finitud.",
+        "Calcular promedio I_hat=(1/N)Σw_i.",
+        "Calcular varianza muestral y error estándar si N>1.",
+        "Registrar semilla/estado del generador para reproducibilidad."
+      ],
+      "pseudocode": "function monteCarloIntegral(f,p,sample,N,rng):\n  require N > 0 and normalized(p) and finiteVarianceAssumed(p,f)\n  sum = 0; sumSquares = 0\n  for i in 1..N:\n    x = sample(p,rng)\n    px = p(x)\n    require finite(px) and px > 0\n    w = f(x)/px\n    require finite(w)\n    sum += w; sumSquares += w*w\n  estimate = sum/N\n  if N > 1:\n    variance = max(0,(sumSquares - sum*sum/N)/(N-1))\n    standardError = sqrt(variance/N)\n  else: standardError = undefined\n  return {estimate,standardError}",
+      "invariants": [
+        "f/p tiene unidad f·unidad(dx); el promedio conserva unidad de integral.",
+        "N es conteo adimensional.",
+        "El estimador es insesgado bajo hipótesis de soporte y muestreo."
+      ],
+      "edge_cases": [
+        "p(x)=0 donde f no es cero: inválido.",
+        "N=0: rechazar; N=1: no estimar error muestral.",
+        "Pesos no finitos: fallar e informar muestra.",
+        "Varianza infinita: error estándar no fiable."
+      ],
+      "complexity": "O(N·C_sample+C_f) y O(1) memoria si se acumula en línea.",
+      "failure_conditions": [
+        "PDF no normalizada o no positiva en soporte",
+        "Muestreo no conforme a p",
+        "Peso no finito",
+        "N inválido"
+      ],
+      "derived_from": [
+        "I=∫f(x)p(x)/p(x)dx",
+        "x_i∼p(x)",
+        "I=E_p[f(x)/p(x)]",
+        "I_hat=(1/N)Σf(x_i)/p(x_i)"
+      ]
+    },
+    {
+      "record_key": "D35:13",
+      "name": "Blue-noise sampling",
+      "inputs": [
+        "dominio Ω",
+        "distancia mínima r_min>0",
+        "N puntos objetivo o criterio de cobertura",
+        "criterio espectral de baja frecuencia y presupuesto de iteraciones"
+      ],
+      "outputs": [
+        "conjunto de puntos con separación mínima y diagnóstico espectral"
+      ],
+      "preconditions": [
+        "Dominio y métrica definidos; puntos finitos dentro de Ω.",
+        "El criterio espectral y el presupuesto de iteraciones se suministran; no hay solución universal."
+      ],
+      "algorithm_steps": [
+        "Validar dominio, r_min y criterio espectral.",
+        "Inicializar conjunto vacío y generador reproducible.",
+        "Generar candidatos en Ω y aceptar solo si distancia a todo punto aceptado es ≥r_min.",
+        "Evaluar estructura espectral S(k) del conjunto con normalización declarada.",
+        "Si el criterio de baja frecuencia no se cumple, proponer reposición/ajuste de puntos que mantenga separación.",
+        "Detener al cumplir criterio, presupuesto o falta de candidatos; devolver estado y diagnóstico."
+      ],
+      "pseudocode": "function blueNoiseSample(domain,rMin,targetCount,spectralCriterion,budget,rng):\n  require valid(domain) and rMin > 0 and targetCount > 0 and budget > 0\n  points = []\n  for attempt in 1..budget:\n    candidate = sampleUniform(domain,rng)\n    if all(distance(candidate,p) >= rMin for p in points):\n      points.append(candidate)\n    if length(points) == targetCount: break\n  spectrum = structureFactor(points)\n  status = spectralCriterion(spectrum) ? 'CRITERION_MET' : 'BUDGET_OR_CANDIDATES_EXHAUSTED'\n  return {points,spectrum,status}",
+      "invariants": [
+        "r_min tiene unidad de longitud; k·x es adimensional.",
+        "Los puntos aceptados permanecen en Ω y separados al menos r_min.",
+        "El criterio espectral depende del dominio, densidad y normalización."
+      ],
+      "edge_cases": [
+        "Dominio vacío o r_min≤0: rechazar.",
+        "No se puede alcanzar N puntos con r_min dado: devolver conjunto parcial y estado.",
+        "Conjunto pequeño: estimación espectral inestable; marcar diagnóstico insuficiente."
+      ],
+      "complexity": "O(A·N) con comprobación ingenua de A candidatos y N puntos; aceleración espacial queda fuera de esta especificación.",
+      "failure_conditions": [
+        "Dominio inválido",
+        "Criterio espectral ausente",
+        "Presupuesto inválido",
+        "No se alcanza densidad objetivo"
+      ],
+      "derived_from": [
+        "generate Poisson-separated candidates",
+        "S(k)=|Σ_j e^(−ik·x_j)|²/N",
+        "penalize low-frequency S(k)",
+        "accept/reposition points to minimize spectral penalty"
+      ]
+    },
+    {
+      "record_key": "D35:14",
+      "name": "Integración volumétrica Beer–Lambert",
+      "inputs": [
+        "rayo y paso espacial Δs>0",
+        "σ_t(s), σ_s(s), ρ(s)",
+        "radiancia incidente y fase p normalizada angularmente"
+      ],
+      "outputs": [
+        "transmisión T y radiancia acumulada"
+      ],
+      "preconditions": [
+        "σ_t≥σ_s≥0; Δs>0; ρ adimensional.",
+        "p tiene unidad sr⁻¹ y se integra a 1 sobre ángulo sólido; fuente direccional usa delta angular coherente.",
+        "La radiancia y coeficientes tienen unidades físicas compatibles."
+      ],
+      "algorithm_steps": [
+        "Inicializar T=1 y radiancia acumulada L=0.",
+        "Para cada segmento evaluar σ_t, σ_s, ρ y fuente angular integrada.",
+        "Calcular profundidad óptica τ=σ_t·Δs para coeficientes constantes por segmento.",
+        "Calcular transmisión de segmento Tseg=exp(−τ).",
+        "Acumular contribución ΔL=T·σ_s·ρ·S_angular·Δs con S_angular=∫pL_i dω.",
+        "Actualizar T←T·Tseg.",
+        "Detener si el rayo termina o T es menor que el umbral de terminación suministrado; no inventar ese umbral.",
+        "Devolver L y T con diagnóstico de pasos."
+      ],
+      "pseudocode": "function integrateBeerLambert(segments, angularSource, stopThreshold):\n  T = 1; L = 0\n  for segment in segments:\n    require segment.ds > 0 and segment.sigmaT >= segment.sigmaS >= 0\n    S = angularSource.integratePhase(segment)  # integral over solid angle\n    tau = segment.sigmaT * segment.ds\n    Tseg = exp(-tau)\n    L += T * segment.sigmaS * segment.rho * S * segment.ds\n    T *= Tseg\n    if stopThreshold is defined and T <= stopThreshold: break\n  require finite(L,T)\n  return {radiance:L,transmittance:T}",
+      "invariants": [
+        "σ_tΔs y la exponencial son adimensionales.",
+        "σ_sΔs es adimensional; integral angular de fase por radiancia conserva radiancia.",
+        "La transmisión se mantiene en [0,1] para coeficientes no negativos."
+      ],
+      "edge_cases": [
+        "Δs≤0 o σ_s>σ_t: rechazar.",
+        "No integrar la fase angular: rechazar como especificación incompleta.",
+        "Coeficientes variables dentro del segmento requieren cuadratura/subdivisión declarada.",
+        "Múltiple dispersión no incluida por la formulación de una sola dispersión."
+      ],
+      "complexity": "O(S·C_angular) para S segmentos.",
+      "failure_conditions": [
+        "Coeficientes no físicos/no finitos",
+        "Paso no positivo",
+        "Fase no normalizada o fuente angular indefinida",
+        "Acumulación no finita"
+      ],
+      "derived_from": [
+        "dT/ds=−σ_tT",
+        "T(s)=exp(−∫σ_t ds)",
+        "dL=Tσ_sρ[∫pL_i dω]ds",
+        "raymarch sum with Δs"
+      ]
+    }
+  ],
+  "algorithmValidation": {
+    "structural_checks": [
+      "15/15 técnicas D35 tienen entradas, salidas, precondiciones, pasos, pseudocódigo, invariantes, casos límite, complejidad y condiciones de fallo.",
+      "Los pseudocódigos son especificaciones independientes del motor; no llaman APIs de Godot ni de otro motor.",
+      "Los parámetros de tolerancia, límites y políticas que dependen del caso se reciben como entradas, no se inventan constantes universales."
+    ],
+    "limitations": [
+      "Este archivo no demuestra por sí solo corrección numérica; requiere pruebas independientes Python y JavaScript y revisión de correspondencia contra ecuaciones de origen.",
+      "Blue-noise se limita a muestreo por separación y diagnóstico espectral; la optimización/reubicación queda parametrizada y no se presenta como algoritmo universal.",
+      "PID anti-windup se expresa como regla condicional declarada; la convención exacta de dirección de saturación debe contrastarse con la ecuación/fuente del registro.",
+      "La técnica Beer–Lambert usa integral angular explícita; no incluye dispersión múltiple."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
+    "derivation_blob_sha": "273f4578ffb56ddea12f8ab9e0e652a2e3162270"
+  }
+}
