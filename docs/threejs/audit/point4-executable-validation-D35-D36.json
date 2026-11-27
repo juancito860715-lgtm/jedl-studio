@@ -1,0 +1,337 @@
+{
+  "title": "Punto 4 — Validación ejecutable inicial D35/D36",
+  "version": "1.0.0",
+  "scope": {
+    "domains": [
+      "D35",
+      "D36"
+    ],
+    "techniques": 30,
+    "reference_tests": 30,
+    "threejs_integration_smoke_tests": 1
+  },
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "execution": {
+    "workflow": "Validate Three.js Manifest — Math and CPU",
+    "run_id": 46008649444,
+    "run_number": 564,
+    "commit_sha": "5515e12062c2c9e3d0f91c6a451396d1526dd624",
+    "conclusion": "success",
+    "node": "22",
+    "threejs": "0.180.0",
+    "python_tests": "success",
+    "javascript_tests": "success",
+    "structural_audit": "success",
+    "readiness_gate": "success"
+  },
+  "records": [
+    {
+      "record_key": "D35:0",
+      "name": "PID controller",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:0 PID controller — proportional step and output saturation",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Proportional term and output clipping only; integral anti-windup dynamics not fully exercised.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:1",
+      "name": "Proportional tracking",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:1 proportional tracking — equilibrium and bounded Euler step",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Equilibrium and one scalar Euler step; vector convergence envelope remains to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:2",
+      "name": "Critically damped spring",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:2 critically damped spring — acceleration and state step",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "One semi-implicit step; long-horizon stability and convergence remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:3",
+      "name": "Kalman state model",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:3 Kalman state model — scalar prediction and correction",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Scalar covariance update; matrix PSD and observability cases remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:4",
+      "name": "Gradient descent",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:4 gradient descent — quadratic objective decreases",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "One convex quadratic step; line search and non-convex stopping remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:5",
+      "name": "Levenberg–Marquardt",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:5 Levenberg–Marquardt — damped scalar normal equation",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Scalar damped normal equation; rank-deficient and gain-ratio acceptance remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:6",
+      "name": "Newton method",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:6 Newton method — square-root convergence",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Scalar simple-root convergence and derivative-free failure path not yet tested.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:7",
+      "name": "Bisection",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:7 bisection — bracket contracts around sqrt(2)",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Deterministic bracket contraction; pathological floating-point endpoints remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:8",
+      "name": "Cubic interpolation",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:8 cubic interpolation — Hermite endpoints and tangents",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Endpoint and tangent constraints; multi-segment continuity remains to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:9",
+      "name": "Fourier series",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:9 Fourier series — constant and single sine reconstruction",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Constant and single harmonic only; general coefficient reconstruction remains to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:10",
+      "name": "FFT",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:10 FFT — DFT impulse and inverse round trip",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Naive DFT reference; optimized FFT complexity and Parseval suite remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:11",
+      "name": "Wavelet transform",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:11 wavelet transform — Haar transform annihilates constant details",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Haar constant-signal detail coefficients; reconstruction and scale normalization remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:12",
+      "name": "Monte Carlo sampling",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:12 Monte Carlo — deterministic sample mean estimates expectation",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Fixed deterministic sample mean; confidence coverage and statistical convergence remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:13",
+      "name": "Blue-noise sampling",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:13 blue-noise sampling — rejection sampler preserves minimum spacing",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Hard-core spacing/domain invariant only; blue-noise spectral quality is not tested.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:14",
+      "name": "Integración volumétrica Beer–Lambert",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D35:14 Beer–Lambert — homogeneous medium transmittance",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Homogeneous transmittance; in-scattering quadrature and step refinement remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:0",
+      "name": "Derivada material",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:0 material derivative — chain rule along moving particle",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Analytic scalar chain-rule point; field discretization and interpolation remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:1",
+      "name": "Euler explícito",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:1 explicit Euler — first-order scalar step",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "One scalar step; order/stability sweep remains to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:2",
+      "name": "Runge–Kutta de cuarto orden",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:2 RK4 — fourth-order step for exponential decay",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "One canonical decay step; convergence-order study remains to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:3",
+      "name": "Integrador Verlet",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:3 Verlet — harmonic oscillator recurrence",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "One recurrence step; long-term energy behavior remains to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:4",
+      "name": "CFL condition",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:4 CFL — Courant number and admissible timestep",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Scalar admissibility check; multi-dimensional wave speeds remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:5",
+      "name": "Poisson equation",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:5 Poisson — discrete 1D Dirichlet solution satisfies stencil",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Exact discrete stencil residual; general boundary handling and solver convergence remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:6",
+      "name": "Conjugate gradient",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:6 conjugate gradient — SPD system reaches exact solution",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Two-dimensional SPD system; ill-conditioning and breakdown cases remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:7",
+      "name": "Multigrid",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:7 multigrid transfers — restriction and prolongation preserve constants",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Transfer invariance only; complete V-cycle convergence is not tested.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:8",
+      "name": "Método de volúmenes finitos",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:8 finite volumes — shared face flux cancels globally",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Global shared-face flux accounting; numerical flux stability and consistency remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:9",
+      "name": "Método de elementos finitos",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:9 finite elements — linear bar stiffness and displacement",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Single linear bar closed form; mesh convergence and assembly generality remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:10",
+      "name": "Smoothed Particle Hydrodynamics completo",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:10 SPH — normalized particle sum reproduces constant field",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Constant-field particle sum; boundary correction and dynamic equations remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:11",
+      "name": "Ecuación de elasticidad de Cauchy",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:11 Cauchy elasticity — momentum balance returns acceleration",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Scalar momentum balance; tensor constitutive and boundary problems remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:12",
+      "name": "Viscoelasticidad Kelvin–Voigt",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:12 Kelvin–Voigt — elastic and viscous stress contributions add",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Constitutive stress sum; time-dependent relaxation response remains to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:13",
+      "name": "Plasticidad J2 von Mises",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:13 J2 von Mises — deviatoric stress equivalent and yield check",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Equivalent stress/yield condition only; return mapping and plastic strain evolution remain to test.",
+      "certification_status": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:14",
+      "name": "Difusión anisotrópica",
+      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
+      "test_name": "D36:14 anisotropic diffusion — tensor-weighted Laplacian",
+      "status": "REFERENCE_TEST_PASSED",
+      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
+      "coverage_limit": "Constant diagonal tensor and quadratic field; variable tensor discretization remains to test.",
+      "certification_status": "NOT_CERTIFIED"
+    }
+  ],
+  "global_limitations": [
+    "La suite ejecuta oráculos numéricos de referencia, no llama todavía a implementaciones de producción de las 30 técnicas.",
+    "No se ha ejecutado un navegador real; el workflow actual corre pruebas Node.js CPU y un smoke test de BufferGeometry.",
+    "Las coberturas parciales indicadas por técnica deben ampliarse antes de certificación.",
+    "La certificación independiente de las derivaciones y la trazabilidad desde el algoritmo hasta la implementación siguen pendientes.",
+    "La contingencia de buscar e integrar una implementación empírica externa se activará solo ante un fallo reproducible; en esta ejecución no hubo fallo de pruebas."
+  ],
+  "result": "30/30 pruebas de referencia aprobadas; esto demuestra consistencia de casos numéricos básicos, no certificación final de implementación."
+}
