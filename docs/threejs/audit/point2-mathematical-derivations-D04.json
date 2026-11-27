@@ -51,6 +51,10 @@
       "result": "La curva temporal queda determinada por claves, parámetro u y método de interpolación por canal.",
       "limits": [
         "No mezclar interpolación de posición, escala y orientación con la misma fórmula si sus espacios son distintos."
+      ],
+      "dimensional_verification": [
+        "u=(t−t_i)/(t_{i+1}−t_i) es adimensional; x(t) conserva la unidad del canal.",
+        "La interpolación quaternion conserva orientación unitaria; no se asigna longitud a sus componentes."
       ]
     },
     {
@@ -90,6 +94,10 @@
       "result": "Smoothstep cúbico produce transición C¹ con velocidad cero en extremos.",
       "limits": [
         "No garantiza aceleración nula en extremos; para continuidad C² se requiere otro polinomio."
+      ],
+      "dimensional_verification": [
+        "u y e(u) son adimensionales; e'(u) es derivada respecto de parámetro adimensional.",
+        "x_0+(x_1−x_0)e(u) conserva la unidad de x."
       ]
     },
     {
@@ -129,6 +137,10 @@
       "result": "El movimiento periódico se obtiene de una fase lineal y una función seno.",
       "limits": [
         "Para movimiento físico amortiguado, la amplitud constante no es suficiente; usar modelo de disipación."
+      ],
+      "dimensional_verification": [
+        "ω tiene T⁻¹; ωt y φ son adimensionales angulares.",
+        "A y x_0 tienen unidad del canal; v=Aω cos(...) tiene unidad canal/T."
       ]
     },
     {
@@ -173,6 +185,10 @@
       "result": "La ecuación no lineal deriva del balance de torque; el límite de ángulo pequeño da oscilación armónica.",
       "limits": [
         "Para amplitudes grandes el periodo depende de amplitud y la aproximación seno≈θ pierde precisión."
+      ],
+      "dimensional_verification": [
+        "g/L tiene T⁻²; √(g/L) tiene T⁻¹; multiplicar por t produce fase adimensional.",
+        "θ y sus amplitudes son angulares adimensionales."
       ]
     },
     {
@@ -217,6 +233,10 @@
       "result": "La dinámica resulta de sumar fuerzas elástica, viscosa y externa.",
       "limits": [
         "La estabilidad y respuesta dependen de c,k,m y del integrador; no sustituir parámetros sin conservar unidades."
+      ],
+      "dimensional_verification": [
+        "m x'' tiene N; c x' tiene N si c es kg/s; k(x−x_0) tiene N si k es N/m.",
+        "ω_n tiene T⁻¹ y ζ es adimensional."
       ]
     },
     {
@@ -256,6 +276,10 @@
       "result": "Verlet deriva de una aproximación centrada de la segunda derivada.",
       "limits": [
         "El método es sensible a paso temporal; colisiones y restricciones requieren proyección adicional."
+      ],
+      "dimensional_verification": [
+        "a_nΔt² tiene L y se suma a posiciones.",
+        "La diferencia segunda dividida por Δt² tiene L/T²."
       ]
     },
     {
@@ -295,6 +319,10 @@
       "result": "La actualización semiimplícita usa Euler en velocidad y luego posición con la velocidad actualizada.",
       "limits": [
         "No equivale a Euler explícito; cambiar el orden cambia estabilidad y trayectoria."
+      ],
+      "dimensional_verification": [
+        "F/m tiene L/T²; aΔt tiene L/T y se suma a velocidad.",
+        "v_{n+1}Δt tiene L y se suma a posición."
       ]
     },
     {
@@ -339,6 +367,10 @@
       "result": "RK4 aproxima la integral de dy/dt=f(t,y) con error local O(Δt⁵) bajo regularidad.",
       "limits": [
         "El mayor orden no garantiza estabilidad para pasos arbitrariamente grandes."
+      ],
+      "dimensional_verification": [
+        "Cada k_i tiene unidad de estado/T; Δt k_i tiene unidad de estado.",
+        "La combinación ponderada conserva la unidad del estado."
       ]
     },
     {
@@ -383,6 +415,10 @@
       "result": "La conducta emergente resulta de tres reglas locales y una integración temporal.",
       "limits": [
         "Los pesos no son adimensionales en esta forma abreviada; usar unidades de D27 para que la suma sea homogénea."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; A_i tiene L/T; C_i tiene L.",
+        "w_s debe tener L²/T², w_a T⁻¹ y w_c T⁻² para que cada término sea aceleración L/T²."
       ]
     },
     {
@@ -422,6 +458,10 @@
       "result": "La trayectoria balística es la solución cerrada de p''(t)=a constante.",
       "limits": [
         "Fuerzas variables requieren integración numérica; nacimiento y muerte de partículas requieren condiciones de ciclo de vida."
+      ],
+      "dimensional_verification": [
+        "v_0t tiene L; at² tiene L; p(t) conserva L.",
+        "La derivación supone aceleración constante en el tramo."
       ]
     },
     {
@@ -461,6 +501,10 @@
       "result": "La difusión se obtiene de incrementos gaussianos cuya varianza es proporcional al paso temporal.",
       "limits": [
         "El movimiento browniano no es diferenciable; no tratar su velocidad instantánea como finita."
+      ],
+      "dimensional_verification": [
+        "D tiene L²/T; DΔt tiene L² y √(2DΔt) tiene L.",
+        "ξ es adimensional; Δp y p tienen L; la varianza acumulada 2Dt tiene L²."
       ]
     },
     {
@@ -500,6 +544,10 @@
       "result": "La condición de intersección se deriva de la distancia mínima entre centros.",
       "limits": [
         "La prueba de solape no determina por sí sola impulso, fricción ni restitución."
+      ],
+      "dimensional_verification": [
+        "d, r_1, r_2 y penetration tienen L; normal n es adimensional.",
+        "La comparación d<r_1+r_2 es dimensionalmente homogénea."
       ]
     },
     {
@@ -539,6 +587,10 @@
       "result": "El contacto se reduce a comparar distancia firmada con radio de esfera.",
       "limits": [
         "Para cajas/cápsulas o planos finitos se necesita otra prueba de contacto."
+      ],
+      "dimensional_verification": [
+        "n es unitario/adimensional; n·p y c tienen L; d y r tienen L.",
+        "penetration·n tiene L y puede sumarse a p."
       ]
     },
     {
@@ -578,6 +630,10 @@
       "result": "La cadena discreta surge de conectar masas vecinas con resortes y amortiguadores.",
       "limits": [
         "Un paso excesivo puede generar oscilación numérica; constraints y colisiones se resuelven aparte."
+      ],
+      "dimensional_verification": [
+        "k tiene N/m; diferencia de posiciones tiene L y produce fuerza N.",
+        "c tiene kg/s; c v tiene N; m x'' también tiene N."
       ]
     },
     {
@@ -617,6 +673,10 @@
       "result": "La evaluación por tiempo absoluto permite renderizar frames en cualquier orden sin acumular error de estado.",
       "limits": [
         "Sistemas que dependen de historial deben almacenar estado/eventos suficientes o precalcular la trayectoria."
+      ],
+      "dimensional_verification": [
+        "El tiempo t tiene T; seed/eventId son discretos; estado conserva unidad por canal.",
+        "La misma tupla de entradas debe producir el mismo resultado sin depender de orden de frames."
       ]
     },
     {
@@ -656,6 +716,10 @@
       "result": "Una tabla de eventos convierte una simulación costosa en consulta temporal y reconstrucción.",
       "limits": [
         "La interpolación puede suavizar o alterar picos; almacenar muestras densas o usar interpolador apropiado."
+      ],
+      "dimensional_verification": [
+        "t_i y Δt tienen T; u es adimensional.",
+        "La interpolación solo es válida entre estados con tipos y unidades compatibles."
       ]
     },
     {
@@ -683,8 +747,8 @@
         },
         {
           "step": 4,
-          "equation": "f_render≥f_s",
-          "justification": "La presentación puede repetir una pose cuantizada entre actualizaciones."
+          "equation": "f_render≥f_s si se exige presentar cada muestra de pose",
+          "justification": "Para que cada intervalo de pose de duración 1/f_s contenga al menos una oportunidad de presentación; si la frecuencia de render es menor, algunas poses pueden omitirse."
         }
       ],
       "assumptions": [
@@ -695,6 +759,10 @@
       "result": "La pose queda constante por intervalos de duración 1/f_s, emulando muestreo en doses/treses.",
       "limits": [
         "El salto temporal es intencional; interpolar canales no cuantizados puede romper el estilo si se aplica globalmente."
+      ],
+      "dimensional_verification": [
+        "f_s tiene T⁻¹; t f_s es adimensional; k es índice entero; t_q tiene T.",
+        "f_render≥f_s solo es requisito si se pretende presentar cada muestra de pose; si no, algunas poses cuantizadas pueden no aparecer."
       ]
     },
     {
@@ -739,6 +807,10 @@
       "result": "XPBD deriva de la proyección de restricciones de PBD con un multiplicador persistente y compliance escalada por Δt².",
       "limits": [
         "La convergencia depende de orden/iteraciones; colisiones y restricciones acopladas pueden requerir substeps."
+      ],
+      "dimensional_verification": [
+        "C tiene L; ∇C es adimensional; w_i tiene M⁻¹; αtilde tiene M⁻¹.",
+        "α tiene T²/M; λ tiene M·L; Δλ tiene M·L; w_i∇CΔλ tiene L."
       ]
     },
     {
@@ -783,18 +855,24 @@
       "result": "La partición reduce el conjunto de candidatos de vecinos; el filtrado geométrico conserva exactitud de la consulta.",
       "limits": [
         "Complejidad esperada depende de ocupación; celdas muy densas pueden degradar a búsqueda casi cuadrática."
+      ],
+      "dimensional_verification": [
+        "p−origin y h tienen L; cell es índice entero adimensional.",
+        "r/h es adimensional; ceil produce número entero de celdas; filtro final compara distancias L."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "19 derivaciones para las 19 claves no protegidas.",
-      "Cada paso contiene ecuación y justificación.",
-      "Las unidades y condiciones de los integradores, restricciones y colisiones están declaradas.",
-      "La clave protegida D04:2 no se modifica."
+      "19/19 técnicas no protegidas cubiertas; D04:2 protegida excluida",
+      "Cada derivación incluye pasos y justificación matemática",
+      "Todas las derivaciones tienen verificación dimensional específica",
+      "Boids usa ganancias con unidades explícitas para homogeneizar separación, alineación y cohesión",
+      "XPBD tipa compliance, multiplicador y corrección para restricción de longitud",
+      "Cuantización temporal distingue frecuencia de pose y frecuencia de presentación"
     ],
     "limitations": [
-      "Las derivaciones definen los modelos matemáticos; la selección de timestep, pruebas de estabilidad y pseudocódigo portable pertenecen a puntos posteriores."
+      "La derivación matemática no sustituye análisis de estabilidad, pseudocódigo portable ni pruebas numéricas, que pertenecen a los puntos posteriores."
     ]
   },
   "integrity": {
