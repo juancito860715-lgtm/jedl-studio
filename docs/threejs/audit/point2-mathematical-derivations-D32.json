@@ -45,6 +45,10 @@
       "result": "Voxel grid deriva de discretizar el espacio en celdas uniformes y usar índices enteros.",
       "limits": [
         "Coordenadas en frontera requieren convención half-open y clamp."
+      ],
+      "dimensional_verification": [
+        "p,origin,voxelSize tienen L; q es adimensional; index entero.",
+        "origin+(index+0.5)voxelSize devuelve posición L."
       ]
     },
     {
@@ -81,6 +85,10 @@
       "result": "Trilinear interpolation deriva del producto de interpolaciones lineales por eje.",
       "limits": [
         "Es continua dentro de celda pero derivada puede cambiar en fronteras."
+      ],
+      "dimensional_verification": [
+        "u,v,w y pesos w_ijk son adimensionales; Σw_ijk=1.",
+        "f interpolado conserva unidad de valores de esquina."
       ]
     },
     {
@@ -112,11 +120,16 @@
         }
       ],
       "assumptions": [
-        "σ_t≥σ_s≥0; paso de muestreo suficiente; color lineal."
+        "σ_t≥σ_s≥0; paso de muestreo suficiente; color lineal.",
+        "c(s) representa radiancia fuente o señal lineal con unidad declarada; σ_s ds es adimensional."
       ],
       "result": "Volume rendering deriva de integrar emisión/scattering atenuados por transmitancia.",
       "limits": [
         "El paso de integración afecta error y transparencia aparente."
+      ],
+      "dimensional_verification": [
+        "σ_t y σ_s tienen L⁻¹; ds tiene L; T y α son adimensionales.",
+        "c y C deben compartir unidad de radiancia/señal lineal; σ_s c ds conserva unidad de c."
       ]
     },
     {
@@ -153,6 +166,10 @@
       "result": "MIP selecciona el máximo escalar a lo largo del rayo.",
       "limits": [
         "MIP pierde información de profundidad y contribución acumulada."
+      ],
+      "dimensional_verification": [
+        "V(ray(s)) y max_i conservan unidad del campo escalar.",
+        "Pixel coordinates px and sample indices are discrete; display normalization maps the field to a declared output range."
       ]
     },
     {
@@ -194,6 +211,10 @@
       "result": "Isosurface extraction encuentra cruces de un campo con un nivel constante.",
       "limits": [
         "Resolución de muestreo limita detalle; casos ambiguos requieren topología coherente."
+      ],
+      "dimensional_verification": [
+        "V_i e iso comparten unidad de campo; t es adimensional.",
+        "p_i,p_j,p_iso tienen L; ∇V tiene unidad de campo/L; normal normalizada es adimensional."
       ]
     },
     {
@@ -230,6 +251,10 @@
       "result": "Octree refina recursivamente solo celdas cuyo error supera umbral.",
       "limits": [
         "Error y umbral dependen de aplicación; refinamiento puede crecer mucho."
+      ],
+      "dimensional_verification": [
+        "error(cell) y τ comparten unidad (L si es error geométrico, o unidad del campo si es error escalar).",
+        "Cell bounds tienen L; depth/count son discretos."
       ]
     },
     {
@@ -266,6 +291,10 @@
       "result": "SVO comprime celdas uniformes y almacena nodos no uniformes de forma dispersa.",
       "limits": [
         "Actualizaciones locales requieren gestión de nodos y referencias."
+      ],
+      "dimensional_verification": [
+        "Bounds y voxelSize tienen L; child masks, occupancy and node indices are discrete.",
+        "Material/field values preserve their declared units."
       ]
     },
     {
@@ -297,11 +326,16 @@
         }
       ],
       "assumptions": [
-        "Covarianza Σ positiva definida; profundidad de splats ordenada."
+        "Covarianza Σ positiva definida; profundidad de splats ordenada.",
+        "Σ_i es covarianza espacial en m²; J de proyección es px/m y Σ'_i se expresa en px²."
       ],
       "result": "Gaussian splatting proyecta gaussianas 3D a elipses 2D y las compone por profundidad.",
       "limits": [
         "La proyección de covarianza es aproximada; orden de transparencia importa."
+      ],
+      "dimensional_verification": [
+        "x y μ_i tienen L; Σ tiene L²; Σ⁻¹ L⁻²; exponente es adimensional.",
+        "Jacobian de proyección tiene px/L; Σ' tiene px²; opacity y α son adimensionales; color conserva unidad de señal."
       ]
     },
     {
@@ -338,6 +372,10 @@
       "result": "Surfel representa una pequeña área de superficie alrededor de cada punto.",
       "limits": [
         "Radio mal estimado genera huecos o sobrecobertura."
+      ],
+      "dimensional_verification": [
+        "p_i y r_i tienen L; n_i es unitario; A_i≈πr_i² tiene L².",
+        "Color conserva señal declarada; κ es adimensional."
       ]
     },
     {
@@ -374,17 +412,24 @@
       "result": "Marching tetrahedra extrae cruces de isovalor en tetraedros y emite triángulos.",
       "limits": [
         "Conectividad entre tetraedros y diagonales debe ser consistente."
+      ],
+      "dimensional_verification": [
+        "V_a,V_b e iso comparten unidad; t es adimensional.",
+        "p_a,p_b y p_iso tienen L; las aristas y triángulos son topología discreta."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "10/10 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen datos discretos, interpolación, transporte volumétrico, extracción de superficies y splatting."
+      "10/10 técnicas D32 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Trilinear interpolation y MIP conservan unidad del campo",
+      "Volume rendering tipa extinción, dispersión, distancia y radiancia",
+      "Gaussian splatting distingue covarianza 3D m² de covarianza proyectada px²",
+      "Voxel/octree/surfel/isosurface separan índices discretos, longitudes y atributos"
     ],
     "limitations": [
-      "La fidelidad depende de resolución, muestreo, filtros y codificación de datos volumétricos."
+      "La derivación no certifica fidelidad de CT, calibración de datos científicos, antialiasing, estabilidad de extracción ni rendimiento; requieren pruebas posteriores."
     ]
   },
   "integrity": {
