@@ -18,8 +18,8 @@ class TestR31OracleCoverage(unittest.TestCase):
         self.assertEqual(len(ids),len(set(ids)))
         py_text="\n".join(p.read_text(encoding="utf-8") for p in PY_FILES)
         js_text="\n".join(p.read_text(encoding="utf-8") for p in JS_FILES)
-        py_names=set(re.findall(r"def (test_[A-Za-z0-9_]+)\\(",py_text))
-        js_names=set(re.findall(r'test\\("([^"]+)"',js_text))
+        py_names=set(re.findall(r"def (test_[A-Za-z0-9_]+)\(",py_text))
+        js_names=set(re.findall(r'test\("([^"]+)"',js_text))
         for record in payload["records"]:
             with self.subTest(research_id=record["research_id"]):
                 self.assertTrue(record["python_tests"])
