@@ -699,8 +699,8 @@
       "name": "Modelo de dispersión microfacet para cabello",
       "variables": [
         {
-          "symbol": "roughness",
-          "meaning": "rugosidad microfacet",
+          "symbol": "ω_i,ω_o,m",
+          "meaning": "direcciones incidentes/salientes y normal microfacet unitaria",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -711,11 +711,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "[0,1] o convención del modelo"
+          "domain": "vectores unitarios; marcos fibra/tangente declarados"
+        },
+        {
+          "symbol": "roughness, α",
+          "meaning": "rugosidad y parámetro de distribución microfacet",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos y dentro del intervalo definido por la parametrización"
         },
         {
           "symbol": "cuticle_tilt",
-          "meaning": "inclinación cuticular",
+          "meaning": "inclinación angular de cutícula",
           "unit": "rad",
           "dimension": {
             "L": 0,
@@ -726,7 +741,7 @@
             "N": 0,
             "J": 0
           },
-          "domain": "rango físico/calibrado"
+          "domain": "finita; convención angular documentada"
         },
         {
           "symbol": "fiber_radius",
@@ -741,11 +756,18 @@
             "N": 0,
             "J": 0
           },
-          "domain": ">0"
+          "domain": "r>0"
         },
         {
-          "symbol": "ω_i,ω_o",
-          "meaning": "direcciones de luz y vista",
+          "symbol": "D(m)",
+          "meaning": "distribución de normales microfacet",
+          "unit": "sr⁻¹ bajo normalización por ángulo sólido",
+          "dimension": "inversa de ángulo sólido (ángulo sólido SI adimensional)",
+          "domain": "no negativa e integrable según la medida y convención del modelo"
+        },
+        {
+          "symbol": "G",
+          "meaning": "factor de enmascaramiento/sombreado geométrico",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -756,12 +778,12 @@
             "N": 0,
             "J": 0
           },
-          "domain": "unitarias"
+          "domain": "0≤G≤1 en el modelo físico"
         },
         {
-          "symbol": "f_r",
-          "meaning": "BRDF",
-          "unit": "sr⁻¹",
+          "symbol": "F",
+          "meaning": "factor de Fresnel",
+          "unit": "1",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -771,37 +793,51 @@
             "N": 0,
             "J": 0
           },
-          "domain": "no negativa y normalizada según convención"
+          "domain": "reflectancia física acotada; convención espectral declarada"
+        },
+        {
+          "symbol": "f_r / S",
+          "meaning": "BRDF o BCSDF según modelo exacto; no intercambiables",
+          "unit": "sr⁻¹ para BRDF; unidad de medida específica de scattering para BCSDF",
+          "dimension": "depende de la función de distribución y de la medida de salida definida por el artículo",
+          "domain": "no negativa y normalizada según la definición integral del modelo"
         }
       ],
       "constraints": [
-        "Rugosidad es adimensional; cuticle tilt angular; radio de fibra longitud.",
-        "No hay ecuación completa en ficha: parámetros requieren modelo microfacet citado y calibración; no inventar distribución."
+        "Los vectores de dirección y la normal microfacet son adimensionales y unitarios; los ángulos se expresan en radianes.",
+        "Rugosidad y parámetros de distribución son adimensionales; fiber_radius tiene dimensión L y debe coincidir con la escala geométrica de la hebra.",
+        "En una BRDF microfacet convencional, D se expresa respecto de ángulo sólido (sr⁻¹), G y F son adimensionales y el denominador geométrico es adimensional; la salida BRDF es sr⁻¹.",
+        "La ficha de origen describe una BCSDF para fibras y aporta solo una ecuación esquemática: no se puede asignar con rigor la unidad final de la BCSDF sin la medida integral exacta del artículo; no sustituirla silenciosamente por una BRDF superficial.",
+        "Los términos de la ecuación completa y sus jacobianos deben conservar la normalización integral de energía del modelo publicado; la presente auditoría no certifica esa ecuación ausente."
       ],
       "valid_domain": [
-        "Parámetros dentro de rango del modelo de dispersión elegido; direcciones unitarias."
+        "Geometría de fibra con radio estrictamente positivo, marco local regular y direcciones incidentes/salientes válidas.",
+        "Parámetros dentro del dominio publicado y calibrado; distribución no negativa e integrable.",
+        "Estado de dimensionalidad de la salida BCSDF: CONDICIONAL hasta recuperar la ecuación completa, definición de medida y jacobiano de SRC-HUANG-2022."
       ],
       "boundary_conditions": [
-        "Fibra de radio cero no física; rechazar.",
-        "Rugosidad límite debe seguir convención concreta del modelo, no asumir equivalencia entre implementaciones."
+        "Fibra de radio cero se rechaza como degenerada; límites de rugosidad deben seguir la parametrización publicada.",
+        "Direcciones rasantes y denominadores cercanos a cero requieren límite analítico o regularización documentada, no epsilon arbitrario.",
+        "En el límite de reflectancia nula, el lóbulo reflejado debe anularse; el balance total debe respetar la conservación energética del modelo."
       ],
       "dimensional_checks": [
-        "roughness is dimensionless; cuticle_tilt is an angle; fiber_radius has L; ω_i and ω_o are unitless directions.",
-        "BRDF f_r has inverse-steradian units under radiometric convention; steradian is dimensionless in SI but retained as an angular measure label.",
-        "The current source equation is schematic; no complete dimensional proof of D(m)G F/geometryTerm is possible until every factor and convention is specified."
+        "En la formulación microfacet BRDF estándar, D tiene sr⁻¹, G y F son adimensionales y el factor geométrico es adimensional; por tanto f_r tiene sr⁻¹.",
+        "En una BCSDF de fibras, la dimensión/unidad depende de la medida diferencial elegida (dirección sólida y/o coordenada transversal); sin la definición integral no se declara una unidad numérica única.",
+        "fiber_radius aporta L solo a la geometría; no puede sumarse a rugosidad, ángulos ni direcciones.",
+        "El artículo citado es necesario para verificar términos, jacobianos, normalización e integral de energía; la ficha esquemática no basta para certificar equivalencia matemática."
       ],
-      "status": "REVIEWED_POINT1"
+      "status": "CONDITIONAL_POINT1_SOURCE_EQUATION_REQUIRED"
     }
   ],
   "validation": {
     "structural_checks": [
       "8/12 técnicas no protegidas incluidas",
-      "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Todos los registros contienen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
       "4 registros protegidos excluidos",
-      "Aclaradas las unidades de frecuencia espacial, amplitud fractal y variables de erosión hidráulica"
+      "D06:11 separa BRDF convencional de BCSDF fibrosa y condiciona la unidad final a la medida integral de la fuente"
     ],
     "limitations": [
-      "La ficha de dispersión microfacet conserva una expresión esquemática; su verificación dimensional completa queda condicionada a disponer de la ecuación integral y definiciones de todos los términos."
+      "La ficha de dispersión microfacet requiere recuperar y leer la ecuación completa de SRC-HUANG-2022. Los parámetros están tipados, pero la unidad final de la BCSDF y su normalización no se certifican con la fórmula esquemática."
     ]
   },
   "integrity": {
