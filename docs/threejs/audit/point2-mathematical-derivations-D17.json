@@ -48,6 +48,10 @@
       "result": "El vehículo se construye con una transformación del chasis y subárboles locales para ruedas.",
       "limits": [
         "No representa deformación de neumático ni suspensión por sí sola."
+      ],
+      "dimensional_verification": [
+        "Matrices afines tienen bloque lineal adimensional y traslaciones L; offsets de ruedas tienen L.",
+        "Ángulos de dirección/rotación son radianes; la transformación conserva posición L."
       ]
     },
     {
@@ -86,6 +90,10 @@
       "result": "La relación de rodadura se deriva de igualdad entre desplazamiento lineal y arco s=rθ.",
       "limits": [
         "Con deslizamiento, deformación o radio variable la relación debe modificarse."
+      ],
+      "dimensional_verification": [
+        "distance y r tienen L; θ=distance/r es adimensional angular.",
+        "v tiene L/T y ω=v/r tiene T⁻¹."
       ]
     },
     {
@@ -125,11 +133,16 @@
       "assumptions": [
         "m>0; c,k≥0; x,y en longitud.",
         "F_ext se distingue de y(t): fuerza y desplazamiento de carretera no son intercambiables.",
-        "Condiciones iniciales y unidades de tiempo declaradas."
+        "Condiciones iniciales y unidades de tiempo declaradas.",
+        "RoadInput en la ecuación base es desplazamiento y(t) con L; F_ext es fuerza con N; no se intercambian ni suman directamente."
       ],
       "result": "La suspensión se deriva de fuerzas de resorte y amortiguador que dependen del movimiento relativo entre carrocería y base.",
       "limits": [
         "RoadInput debe tiparse como desplazamiento de base o fuerza externa; sumarlos directamente es dimensionalmente incorrecto."
+      ],
+      "dimensional_verification": [
+        "m tiene kg; c kg/s; k N/m=kg/s²; x,y tienen L.",
+        "m x'' , c(x'−y') y k(x−y) tienen N; y es desplazamiento de base, F_ext es fuerza."
       ]
     },
     {
@@ -169,6 +182,10 @@
       "result": "Ackermann se deriva de que las ruedas interior y exterior deben ser tangentes a círculos concéntricos alrededor del mismo centro instantáneo de giro.",
       "limits": [
         "Es aproximación geométrica; no modela neumáticos, slip angle ni flexibilidad."
+      ],
+      "dimensional_verification": [
+        "L,W,R tienen L; cocientes L/(R±W/2) son adimensionales.",
+        "δ_i,δ_o son ángulos en radianes; condiciones R>W/2 evitan denominador no positivo."
       ]
     },
     {
@@ -208,6 +225,10 @@
       "result": "La hélice/rotor se anima aplicando una matriz de rotación temporal a su geometría local.",
       "limits": [
         "No incluye deformación aerodinámica ni cargas del rotor."
+      ],
+      "dimensional_verification": [
+        "ω tiene T⁻¹; t tiene T; φ=θ0+ωt es adimensional angular.",
+        "r,z y puntos de pala tienen L; la matriz de rotación es adimensional."
       ]
     },
     {
@@ -247,6 +268,10 @@
       "result": "La relación de transmisión deriva de igualdad de velocidades tangenciales en el punto de contacto.",
       "limits": [
         "Engranajes internos invierten la relación de signo; mecanismos compuestos requieren relaciones por etapa."
+      ],
+      "dimensional_verification": [
+        "r_1,r_2 tienen L; ω_1,ω_2 tienen T⁻¹; velocidades tangenciales rω tienen L/T.",
+        "N_1,N_2 son conteos adimensionales; relación de transmisión es adimensional."
       ]
     },
     {
@@ -291,6 +316,10 @@
       "result": "La posición del pistón se obtiene de la restricción geométrica de longitud constante de la biela.",
       "limits": [
         "La singularidad de alineación y la rama de ensamblaje deben manejarse según configuración del mecanismo."
+      ],
+      "dimensional_verification": [
+        "r,l,x tienen L; radicando l²−r²sin²θ tiene L² y raíz L.",
+        "θ es adimensional angular; la ecuación devuelve posición x con L."
       ]
     },
     {
@@ -330,6 +359,10 @@
       "result": "Un cable/manguera se deriva como barrido de una sección circular a lo largo de una spline.",
       "limits": [
         "Para cadena articulada, la aproximación tubular no representa eslabones rígidos ni articulaciones."
+      ],
+      "dimensional_verification": [
+        "P_i,C(u),r(u) tienen L; u y θ son adimensionales angulares.",
+        "T,N,B son direcciones unitarias; P(u,θ) conserva L."
       ]
     },
     {
@@ -369,6 +402,10 @@
       "result": "La bisagra se deriva de una rotación alrededor de un punto arbitrario mediante traslación al origen y regreso.",
       "limits": [
         "Ejes deformables o bisagras con múltiples grados de libertad requieren articulación adicional."
+      ],
+      "dimensional_verification": [
+        "p y pivot tienen L; R(θ) es adimensional; traslaciones tienen L.",
+        "La composición T(pivot)R(θ)T(−pivot) conserva posición L."
       ]
     },
     {
@@ -408,22 +445,29 @@
       "assumptions": [
         "m>0; tensor de inercia válido; fuerzas/torques finitos.",
         "Tiempo y longitud coherentes; orientación unitaria.",
-        "Contactos y restricciones se resuelven aparte."
+        "Contactos y restricciones se resuelven aparte.",
+        "Iα=τ se usa en eje principal o aproximación escalar; el caso 3D general requiere término giroscópico ω×(Iω)."
       ],
       "result": "La aproximación rígida deriva de las ecuaciones de Newton–Euler y su integración temporal.",
       "limits": [
         "La integración explícita puede ser inestable con pasos grandes; colisiones y fricción requieren modelos separados."
+      ],
+      "dimensional_verification": [
+        "F tiene N; m kg; a L/T²; torque N·m; I kg·m²; α T⁻².",
+        "vΔt tiene L; aΔt tiene L/T; ωΔt es ángulo adimensional; quaternion es adimensional."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "10/10 técnicas cubiertas.",
-      "Cada derivación incluye pasos matemáticos justificados, supuestos y límites.",
-      "Se separan cinemática, restricciones geométricas, transmisión y dinámica rígida."
+      "10/10 técnicas D17 cubiertas; ninguna protegida",
+      "Cada derivación tiene pasos matemáticos justificados, supuestos, límites y verificación dimensional",
+      "Suspensión separa desplazamiento de carretera y fuerza externa",
+      "Ackermann, engranajes y pistón-biela conservan relaciones geométricas homogéneas",
+      "Newton–Euler tipa fuerza, torque, inercia, aceleración y velocidad angular"
     ],
     "limitations": [
-      "Modelos orientados a animación y geometría; no constituyen especificaciones de ingeniería mecánica certificada."
+      "Los modelos son aproximaciones para animación y simulación visual; no constituyen especificaciones de ingeniería mecánica certificada ni validación de un vehículo real."
     ]
   },
   "integrity": {
