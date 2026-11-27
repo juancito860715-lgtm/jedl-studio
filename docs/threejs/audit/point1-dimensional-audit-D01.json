@@ -124,7 +124,8 @@
       ],
       "dimensional_checks": [
         "R·p y S·p conservan longitud; t+p tiene longitud; coordenada homogénea w permanece adimensional.",
-        "La multiplicación de matrices afines conserva el tipo de bloque y no suma longitud a cantidades adimensionales."
+        "La multiplicación de matrices afines conserva el tipo de bloque y no suma longitud a cantidades adimensionales.",
+        "La composición M_parent·M_local mantiene una transformación afín tipada: la parte lineal es adimensional y la traslación conserva L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -207,7 +208,8 @@
         "Edición compartida afecta a todos los consumidores; clonado crea independencia."
       ],
       "dimensional_checks": [
-        "Las posiciones tienen longitud; normales y UV son adimensionales; índices son conteos enteros."
+        "Las posiciones tienen longitud; normales y UV son adimensionales; índices son conteos enteros.",
+        "Las geometrías compartidas no cambian la dimensión de sus vértices; las matrices de instancia conservan el marco y unidad de cada malla."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -282,7 +284,8 @@
         "Más allá del último umbral se selecciona el nivel más lejano o se oculta, según política explícita; no asumir ocultación."
       ],
       "dimensional_checks": [
-        "Comparaciones d≥tau_k son homogéneas porque ambos son longitudes."
+        "Comparaciones d≥tau_k son homogéneas porque ambos son longitudes.",
+        "La selección de nivel depende de distancia en L y umbrales en L; los índices de nivel son discretos y no se suman a distancias."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -380,7 +383,8 @@
         "Si existe j con s_j<−r, la esfera queda completamente fuera y puede descartarse."
       ],
       "dimensional_checks": [
-        "n_j·c tiene longitud porque n_j es adimensional; b_j y r también longitud."
+        "n_j·c tiene longitud porque n_j es adimensional; b_j y r también longitud.",
+        "La prueba de esfera usa signed distance en L comparada con radio/bounds en L; los planos normalizados producen distancias homogéneas."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -478,7 +482,8 @@
         "Coordenadas negativas se asignan a índices negativos con floor; overflow entero debe detectarse."
       ],
       "dimensional_checks": [
-        "(p−origin) y cellSize tienen longitud; su cociente es adimensional; floor devuelve índice entero."
+        "(p−origin) y cellSize tienen longitud; su cociente es adimensional; floor devuelve índice entero.",
+        "(p−origin)/cellSize es adimensional; floor devuelve índices enteros y la reconstrucción espacial multiplica por cellSize [L]."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -546,7 +551,8 @@
         "activeAnimation=true: solicitar siguiente frame hasta detenerse."
       ],
       "dimensional_checks": [
-        "Predicado booleano sin dimensión física; no mezclar con tiempo o distancia."
+        "Predicado booleano sin dimensión física; no mezclar con tiempo o distancia.",
+        "dirty es booleano; la decisión de render no tiene dimensión física y el tiempo de animación mantiene T."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -630,7 +636,8 @@
         "dt=0 no avanza simulación, pero puede renderizar estado actual."
       ],
       "dimensional_checks": [
-        "t, dt en segundos; frame es conteo adimensional; state conserva las unidades de cada propiedad."
+        "t, dt en segundos; frame es conteo adimensional; state conserva las unidades de cada propiedad.",
+        "El tiempo t tiene T; la función F(t) debe devolver estado con las unidades de cada canal (posición L, rotación rad, etc.)."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -646,7 +653,8 @@
     "status": "DOMAIN_D01_POINT1_REVIEWED_NOT_FULL_CATALOG_CERTIFICATION",
     "structural_checks": [
       "7/8 registros no protegidos incluidos; claves protegidas excluidas",
-      "Todos los registros incluidos contienen los campos requeridos"
+      "Todos los registros incluidos contienen los campos requeridos",
+      "Se añadió una segunda comprobación dimensional específica a cada registro D01 para completar la matriz de validación."
     ]
   },
   "integrity": {
