@@ -105,13 +105,12 @@ class TestD35DimensionalAudit(unittest.TestCase):
             variable["dimension"],
         )
 
-    def test_lm_lambda_requires_residual_squared_dimension(self):
+    def test_lm_lambda_is_dimensionless_per_source_equation(self):
         variable = next(
             v for r in self.audit["records"] if r["record_key"] == "D35:5"
             for v in r["variables"] if v["symbol"] == "λ"
         )
-        self.assertEqual("2*D_r.L", variable["dimension"]["L"])
-        self.assertEqual("2*D_r.T", variable["dimension"]["T"])
+        self.assertEqual({"L": 0, "M": 0, "T": 0, "I": 0, "Theta": 0, "N": 0, "J": 0}, variable["dimension"])
 
 
 if __name__ == "__main__":
