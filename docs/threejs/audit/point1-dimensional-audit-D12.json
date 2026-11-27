@@ -1,0 +1,977 @@
+{
+  "title": "Auditoría dimensional punto 1 — D12 Fuego, humo, energía y efectos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D12",
+    "domain": "Fuego, humo, explosiones, rayos y partículas",
+    "record_count": 11,
+    "excluded_protected_records": 2,
+    "excluded_reason": "D12:9 y D12:10 están protegidos por el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud global; SI si se declara.",
+    "time": "Segundos.",
+    "density": "Densidad física y campos artísticos deben distinguirse; declarar unidades de salida."
+  },
+  "records": [
+    {
+      "record_key": "D12:0",
+      "name": "Flame noise field",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición de muestra",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "scale",
+          "meaning": "frecuencia espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "amplitude",
+          "meaning": "amplitud del campo",
+          "unit": "unidad del campo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "T",
+          "meaning": "campo de temperatura/ruido",
+          "unit": "unidad declarada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "p·scale debe ser adimensional; si scale es vector de frecuencias, cada componente L⁻¹.",
+        "No mezclar temperatura física con ruido adimensional sin función de conversión."
+      ],
+      "valid_domain": [
+        "Campo de ruido definido en espacio-tiempo; parámetros finitos."
+      ],
+      "boundary_conditions": [
+        "Amplitude=0 devuelve base.",
+        "En límites temporales declarar continuidad/periodicidad del ruido."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:1",
+      "name": "Flame advection",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "v_up",
+          "meaning": "velocidad ascendente",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "v_noise",
+          "meaning": "desplazamiento por tiempo",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "campo acotado"
+        },
+        {
+          "symbol": "p′",
+          "meaning": "posición advectada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada término restado de p debe ser longitud; v_noise debe representar velocidad o integrar campo de desplazamiento con unidades declaradas."
+      ],
+      "valid_domain": [
+        "t≥0; campos de velocidad finitos."
+      ],
+      "boundary_conditions": [
+        "t=0 devuelve p si advección inicial nula.",
+        "Limitar desplazamiento para evitar salir de volumen de simulación sin reciclar partículas."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:2",
+      "name": "Blackbody color approximation",
+      "variables": [
+        {
+          "symbol": "T_K",
+          "meaning": "temperatura absoluta",
+          "unit": "K",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "T_K>0"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ>0 si se calcula Planck"
+        },
+        {
+          "symbol": "color",
+          "meaning": "RGB lineal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "paleta calibrada"
+        }
+      ],
+      "constraints": [
+        "Temperatura en kelvin; una paleta artística no equivale a integración espectral de Planck.",
+        "La conversión temperatura-color debe declarar rango y calibración."
+      ],
+      "valid_domain": [
+        "T_K dentro del rango de tabla/paleta."
+      ],
+      "boundary_conditions": [
+        "Fuera de rango clamp o extrapolación declarada; nunca NaN."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:3",
+      "name": "Smoke density",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad de advección",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "envelope",
+          "meaning": "envolvente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o escala declarada"
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "p−vt tiene longitud; ruido adimensional debe escalarse a densidad física si se requiere.",
+        "ρ no negativa; envelope acotada."
+      ],
+      "valid_domain": [
+        "Campo de ruido y envolvente finitos."
+      ],
+      "boundary_conditions": [
+        "Envelope=0 produce densidad cero.",
+        "Densidad fuera de rango se satura según modelo."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:4",
+      "name": "Explosion envelope",
+      "variables": [
+        {
+          "symbol": "Rmax",
+          "meaning": "radio máximo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo desde evento",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        },
+        {
+          "symbol": "τ,τ2",
+          "meaning": "constantes temporales",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "R(t)",
+          "meaning": "radio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Rmax(1−exp(−t/τ))"
+        },
+        {
+          "symbol": "density",
+          "meaning": "densidad",
+          "unit": "unidad declarada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "decaimiento temporal"
+        }
+      ],
+      "constraints": [
+        "t/τ y t/τ2 adimensionales; Rmax aporta longitud."
+      ],
+      "valid_domain": [
+        "Rmax≥0; τ,τ2>0."
+      ],
+      "boundary_conditions": [
+        "t=0 da R=0; t→∞ da R→Rmax.",
+        "τ≤0 inválido."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:5",
+      "name": "Shock front",
+      "variables": [
+        {
+          "symbol": "r",
+          "meaning": "distancia radial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad frente",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "σ",
+          "meaning": "ancho espacial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "front",
+          "meaning": "intensidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "exponencial"
+        }
+      ],
+      "constraints": [
+        "(r−vt)/σ adimensional."
+      ],
+      "valid_domain": [
+        "r≥0; σ>0."
+      ],
+      "boundary_conditions": [
+        "Máximo en r=vt; fuera de frente decae exponencialmente.",
+        "No permitir σ=0."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:6",
+      "name": "Lightning path",
+      "variables": [
+        {
+          "symbol": "s",
+          "meaning": "parámetro de trayectoria",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "linearPath",
+          "meaning": "posición base",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "A_k",
+          "meaning": "amplitud perturbación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "noise_k",
+          "meaning": "ruido",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "P(s)",
+          "meaning": "posición de rayo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Todas las perturbaciones son longitudes; ruido adimensional."
+      ],
+      "valid_domain": [
+        "Trayectoria base continua y ruido finito."
+      ],
+      "boundary_conditions": [
+        "En s=0 y 1 fijar extremos o aceptar offset explícito.",
+        "Amplitudes cero recuperan trayectoria lineal."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:7",
+      "name": "Lightning branching",
+      "variables": [
+        {
+          "symbol": "P(s0)",
+          "meaning": "punto de ramificación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "sobre trayectoria principal"
+        },
+        {
+          "symbol": "mainDir",
+          "meaning": "dirección principal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "randomCone",
+          "meaning": "perturbación angular/direccional",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "direction",
+          "meaning": "dirección rama",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        }
+      ],
+      "constraints": [
+        "La perturbación cónica se expresa angularmente en radianes o vector unitario; no sumar magnitudes incompatibles."
+      ],
+      "valid_domain": [
+        "Punto finito; dirección principal no nula; apertura de cono acotada."
+      ],
+      "boundary_conditions": [
+        "Apertura cero produce rama colineal.",
+        "Normalizar dirección resultante; degeneración usa eje de respaldo."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:8",
+      "name": "Beam cone",
+      "variables": [
+        {
+          "symbol": "s",
+          "meaning": "parámetro axial",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "r0,r1",
+          "meaning": "radios extremos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "radius(s)",
+          "meaning": "radio del cono",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "interpolación lineal"
+        }
+      ],
+      "constraints": [
+        "s adimensional; radios longitudes."
+      ],
+      "valid_domain": [
+        "r0,r1≥0."
+      ],
+      "boundary_conditions": [
+        "s=0 devuelve r0; s=1 devuelve r1.",
+        "Si ambos radios cero, volumen degenerado."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:11",
+      "name": "Soft particles",
+      "variables": [
+        {
+          "symbol": "sceneDepth,particleDepth",
+          "meaning": "profundidades",
+          "unit": "m o depth-buffer normalizado",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "misma codificación"
+        },
+        {
+          "symbol": "softRange",
+          "meaning": "rango de suavizado",
+          "unit": "misma unidad que depth",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "α",
+          "meaning": "opacidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Profundidades deben estar en mismo espacio/proyección y unidad.",
+        "softRange positivo; clamp asegura alfa válido."
+      ],
+      "valid_domain": [
+        "Profundidades finitas; softRange>0."
+      ],
+      "boundary_conditions": [
+        "sceneDepth−particleDepth≤0 produce factor cero.",
+        "Diferencia≥softRange produce factor uno."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D12:12",
+      "name": "Depth sorting transparency",
+      "variables": [
+        {
+          "symbol": "cameraDepth_i",
+          "meaning": "profundidad de partícula/objeto",
+          "unit": "m o depth view-space",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo marco"
+        },
+        {
+          "symbol": "order",
+          "meaning": "índice de orden",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "orden estable"
+        },
+        {
+          "symbol": "camera",
+          "meaning": "transformación de vista",
+          "unit": "afín tipada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Todas las profundidades deben calcularse en espacio de cámara consistente; back-to-front ordena de mayor distancia a menor según convención.",
+        "Empates requieren desempate estable para evitar flicker."
+      ],
+      "valid_domain": [
+        "Objetos con profundidad finita y cámara válida."
+      ],
+      "boundary_conditions": [
+        "Objetos fuera de cámara pueden excluirse o conservar orden definido.",
+        "Empate conserva orden previo/ID estable."
+      ],
+      "dimensional_checks": [
+        "Posiciones, radios, distancias y amplitudes tienen dimensión L.",
+        "Velocidades tienen L/T; escalas espaciales y coeficientes de decaimiento tienen L⁻¹.",
+        "Argumentos de exponencial y ruido normalizado deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "11/13 técnicas no protegidas incluidas",
+      "2 registros protegidos excluidos",
+      "Todos los registros incluidos contienen campos del punto 1"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
