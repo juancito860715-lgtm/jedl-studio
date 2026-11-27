@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D21 Mecánica de fluidos avanzada",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -546,8 +546,8 @@
         },
         {
           "symbol": "∇|ω|",
-          "meaning": "gradiente de magnitud",
-          "unit": "m⁻¹s⁻¹",
+          "meaning": "gradiente de magnitud de vorticidad",
+          "unit": "m⁻¹·s⁻¹",
           "dimension": {
             "L": -1,
             "M": 0,
@@ -560,15 +560,53 @@
           "domain": "finito"
         },
         {
+          "symbol": "ε_g",
+          "meaning": "regularización del gradiente",
+          "unit": "m⁻¹·s⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ε_g>0"
+        },
+        {
+          "symbol": "N",
+          "meaning": "dirección normalizada del gradiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria cuando gradiente no nulo"
+        },
+        {
           "symbol": "ε_c",
-          "meaning": "coeficiente",
-          "unit": "unidad por formulación",
-          "dimension": "condicional",
-          "domain": "definido"
+          "meaning": "coeficiente de confinamiento",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito y calibrado"
         },
         {
           "symbol": "f_conf",
-          "meaning": "aceleración resultante",
+          "meaning": "aceleración de confinamiento",
           "unit": "m/s²",
           "dimension": {
             "L": 1,
@@ -583,8 +621,8 @@
         }
       ],
       "constraints": [
-        "La normalización N=∇|ω|/(|∇|ω||+ε) exige ε con unidad m⁻¹s⁻¹.",
-        "La expresión ε_c(N×ω) por sí sola no define aceleración lineal; falta factor espacial/escala en la ficha."
+        "N=∇|ω|/(|∇|ω||+ε_g) requiere ε_g con unidad m⁻¹s⁻¹ y produce N adimensional.",
+        "f_conf=ε_c(N×ω) tiene m/s² si ε_c tiene m/s; el coeficiente debe declararse con esa dimensión o definirse desde una escala espacial/temporal del solver."
       ],
       "valid_domain": [
         "Campo suave; regularizador positivo con unidad del gradiente."
@@ -594,8 +632,8 @@
         "No convertir a fuerza/acceleración sin factor dimensional."
       ],
       "dimensional_checks": [
-        "ω tiene T⁻¹; ∇|ω| tiene L⁻¹T⁻¹.",
-        "La ecuación de fuerza queda condicional por escala ausente."
+        "ω tiene T⁻¹; ∇|ω| y ε_g tienen L⁻¹T⁻¹; N es adimensional.",
+        "ε_c tiene L/T; ε_c·ω tiene L/T², unidad de aceleración."
       ],
       "status": "CONDITIONAL_POINT1_EQUATION_SCALE_REQUIRED"
     },
@@ -845,14 +883,23 @@
         {
           "symbol": "λ_i",
           "meaning": "multiplicador",
-          "unit": "no fijado sin fórmula completa",
-          "dimension": "condicional",
-          "domain": "depende de normalización"
+          "unit": "m⁵ para la forma abreviada Δx=Σ(λ_i+λ_j)∇W_ij",
+          "dimension": {
+            "L": 5,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "multiplicador dimensional de la fórmula abreviada; si se añaden masas/densidad, recalcular unidad"
         }
       ],
       "constraints": [
-        "C_i es adimensional y ∇_x C_i tiene L⁻¹.",
-        "La fórmula abreviada omite factores de masa/normalización; λ no se tipa de forma única sin ecuación completa."
+        "C_i=ρ_i/ρ0−1 es adimensional y ∇_x C_i tiene L⁻¹.",
+        "En la forma abreviada escrita Δx_i=Σ(λ_i+λ_j)∇W_ij, ∇W tiene L⁻⁴ y λ debe tener L⁵ para producir corrección L.",
+        "La formulación PBF habitual incorpora factores de masa y normalización; esa variante requiere volver a derivar la unidad de λ según la ecuación exacta implementada."
       ],
       "valid_domain": [
         "ρ0>0; densidades y gradientes válidos."
@@ -862,8 +909,8 @@
         "Densidad nula/gradiente degenerado requiere fallback."
       ],
       "dimensional_checks": [
-        "C_i es adimensional; gradiente tiene L⁻¹.",
-        "La dimensión de λ y la corrección completa queda condicional."
+        "C_i es adimensional; ∇_x C_i tiene L⁻¹; kernel W tiene L⁻³ y gradiente L⁻⁴.",
+        "Para la fórmula abreviada de la ficha, λ L⁵ produce Δx L; cualquier variante ponderada debe reauditar λ."
       ],
       "status": "CONDITIONAL_POINT1_FULL_PBF_FORMULA_REQUIRED"
     },
@@ -1823,11 +1870,11 @@
   "validation": {
     "structural_checks": [
       "22/22 técnicas incluidas",
-      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
-      "D21:6 y D21:9 quedan condicionales por factores de escala/normalización ausentes en la ficha"
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Cerradas dimensionalmente las formas abreviadas de vorticity confinement y PBF mediante unidades explícitas de coeficientes/multiplicadores"
     ],
     "limitations": [
-      "Vorticity confinement y PBF requieren ecuación completa para cerrar las dimensiones de todos los términos; no se inventan factores faltantes."
+      "Las asignaciones de ε_c y λ corresponden exactamente a las formas abreviadas declaradas; una implementación con otra normalización debe recalcular sus unidades antes de codificar."
     ]
   },
   "integrity": {
