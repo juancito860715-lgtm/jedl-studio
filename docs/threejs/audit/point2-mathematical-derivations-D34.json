@@ -40,11 +40,16 @@
         }
       ],
       "assumptions": [
-        "Objetos/materiales visibles; luces y BRDF válidos."
+        "Objetos/materiales visibles; luces y BRDF válidos.",
+        "Para luces discretas, el término L_l incluye irradiancia o radiancia integrada por su ángulo sólido/atenuación; no sumar BRDF·radiancia sin medida angular."
       ],
       "result": "Forward evalúa iluminación directa durante el shading de geometría visible.",
       "limits": [
         "Coste de shading crece con número de luces por fragmento."
+      ],
+      "dimensional_verification": [
+        "f_r has sr⁻¹; L_l is radiance; cosθ and light solid-angle/attenuation factors are dimensionless.",
+        "Each discrete light contribution must already include its angular measure/irradiance so output is radiance."
       ]
     },
     {
@@ -81,6 +86,10 @@
       "result": "Forward+ reduce luces por fragmento mediante culling por tiles.",
       "limits": [
         "Listas de luces y overdraw consumen memoria/tiempo."
+      ],
+      "dimensional_verification": [
+        "Tile bounds and light bounds have L; tile indices and light lists are discrete.",
+        "Frustum planes have unit normals and offsets L."
       ]
     },
     {
@@ -117,6 +126,10 @@
       "result": "Deferred separa generación de atributos de superficie e iluminación.",
       "limits": [
         "Ancho de banda y formatos G-buffer pueden ser altos."
+      ],
+      "dimensional_verification": [
+        "Albedo/material channels and normals are dimensionless; depth is L or normalized depth.",
+        "G-buffer attachments have separate declared formats/units; lighting output is radiance."
       ]
     },
     {
@@ -153,6 +166,10 @@
       "result": "Clustered shading asigna luces a volúmenes 3D y consulta por posición.",
       "limits": [
         "Gestión de clusters y límites de luz requieren memoria adicional."
+      ],
+      "dimensional_verification": [
+        "Cluster bounds have L; cluster coordinates and light indices are discrete.",
+        "View-space position and light bounds use same coordinate frame and length unit."
       ]
     },
     {
@@ -189,6 +206,10 @@
       "result": "Tiled deferred combina G-buffer con listas de luces por tile.",
       "limits": [
         "Transparencias y materiales especiales pueden necesitar rutas separadas."
+      ],
+      "dimensional_verification": [
+        "Tile bounds have L; G-buffer and light list channels retain their own units.",
+        "The shading result preserves radiance/color signal."
       ]
     },
     {
@@ -225,6 +246,10 @@
       "result": "OIT acumula contribuciones transparentes en estructuras resolubles sin ordenar draw calls.",
       "limits": [
         "Algunas OIT exactas requieren memoria por fragmento; aproximaciones pierden capas."
+      ],
+      "dimensional_verification": [
+        "α_i, w_i and revealage are dimensionless; C_i has color/radiance signal unit.",
+        "A_rgb has color unit; A_w dimensionless; C_trans and C_out preserve color unit."
       ]
     },
     {
@@ -261,6 +286,10 @@
       "result": "Weighted blended OIT aproxima transparencia con acumuladores de color y revelación.",
       "limits": [
         "Weighted OIT no preserva orden/transmisión exacta de capas."
+      ],
+      "dimensional_verification": [
+        "C_cur and C_hist share color space/exposure; α is dimensionless.",
+        "Motion vectors are px or UV; depth values share encoding; output retains color unit."
       ]
     },
     {
@@ -302,6 +331,10 @@
       "result": "TAA mezcla muestras subpíxel actuales con historial reproyectado.",
       "limits": [
         "Ghosting si reproyección/validación de historia falla."
+      ],
+      "dimensional_verification": [
+        "Y has luminance/color-signal unit; ∇Y has signal/px; normalized edge direction is dimensionless.",
+        "Weighted samples and C' preserve color-signal unit."
       ]
     },
     {
@@ -338,6 +371,10 @@
       "result": "FXAA detecta bordes en luminancia y filtra a lo largo de su orientación.",
       "limits": [
         "FXAA puede suavizar detalles finos o no resolver aliasing geométrico profundo."
+      ],
+      "dimensional_verification": [
+        "Coverage_i and 1/N are dimensionless; colors share the same signal unit.",
+        "Resolve average preserves color unit."
       ]
     },
     {
@@ -374,6 +411,10 @@
       "result": "MSAA evalúa cobertura/profundidad en varias muestras por píxel.",
       "limits": [
         "MSAA aumenta coste de memoria/bandwidth y no suaviza shading aliasing por sí solo."
+      ],
+      "dimensional_verification": [
+        "samplesPassed is an integer count; visible is boolean.",
+        "Depth and candidate bounds share the same projection/coding."
       ]
     },
     {
@@ -410,6 +451,10 @@
       "result": "Occlusion query usa número de muestras que pasan depth test para decidir visibilidad.",
       "limits": [
         "Queries pueden causar stalls si se esperan sincrónicamente."
+      ],
+      "dimensional_verification": [
+        "Depth pyramid values share depth-buffer encoding; min/max reduction depends on standard vs reverse-Z.",
+        "Object and occluder depths must be compared in the same units/encoding."
       ]
     },
     {
@@ -441,11 +486,16 @@
         }
       ],
       "assumptions": [
-        "Convención standard/reverse-Z declarada; pirámide usa reducción apropiada."
+        "Convención standard/reverse-Z declarada; pirámide usa reducción apropiada.",
+        "La reducción de profundidad usa min/max según convención estándar o reverse-Z y el bound de oclusión debe ser conservador."
       ],
       "result": "Hi-Z resume profundidad por niveles y descarta bounds completamente ocultos.",
       "limits": [
         "Profundidad conservadora y reverse-Z requieren reducción/compare correctos."
+      ],
+      "dimensional_verification": [
+        "Portal positions and translations have L; rotation matrices are dimensionless.",
+        "Clip plane n is unitless and offset d has L; camera transformation preserves L."
       ]
     },
     {
@@ -482,6 +532,10 @@
       "result": "Portals transforman cámara entre marcos y recortan vista a polígonos de abertura.",
       "limits": [
         "Recursión de portales requiere límites y gestión de clipping."
+      ],
+      "dimensional_verification": [
+        "Impostor worldSize and z have L; f_px has px; projected screenSize has px.",
+        "τ is pixel error; UV and billboard axes are dimensionless."
       ]
     },
     {
@@ -518,17 +572,24 @@
       "result": "Impostors reemplazan geometría distante por imagen representativa bajo tolerancia proyectada.",
       "limits": [
         "Impostor puede fallar con cambios grandes de vista, luz o animación."
+      ],
+      "dimensional_verification": [
+        "f_px has px; worldSize and z have L; screenSize has px.",
+        "τ is px; the LOD decision compares like pixel quantities."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "14/14 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen pipelines, transparencia, anti-aliasing, culling, portales e impostors."
+      "14/14 técnicas D34 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Forward/deferred/clustered shading separan BRDF, radiancia y atributos de G-buffer",
+      "Weighted OIT, TAA, FXAA y MSAA mantienen pesos adimensionales y señales compatibles",
+      "Occlusion query y Hi-Z comparan profundidad en codificación coherente",
+      "Portals e impostors distinguen transformaciones espaciales y error proyectado en píxeles"
     ],
     "limitations": [
-      "La eficiencia depende de GPU/backend y del coste de memoria; las variantes aproximadas deben documentar sus errores."
+      "La derivación no certifica rendimiento por GPU, calidad de OIT/TAA, exactitud de oclusión ni compatibilidad de renderer; requieren pruebas por backend."
     ]
   },
   "integrity": {
