@@ -5015,8 +5015,9 @@
           "ink=step(m,L(x,y))"
         ],
         "clarification": [
-          "La fórmula es una pantalla periódica sinusoidal, no reproduce por sí sola todos los patrones Ben-Day/halftone. Definir si f se expresa en ciclos/píxel, celdas/pantalla o coordenadas UV.",
-          "Rotación debe aplicarse a coordenadas antes del patrón; filtrar con derivadas/footprint para evitar aliasing."
+          "For sin(pi*f*x), the period is 2/f; f is an inverse half-period, not conventional cycles per coordinate unit. Conventional cycles per unit are f/2.",
+          "The hard threshold is defined as H(L-m), returning 1 when L>=m; this matches GLSL step(edge=m,x=L).",
+          "Rao and Arce (1988) is cited for arbitrary screen periodicity context only; the sinusoidal mask remains project-authored unless an exact equation locator is independently verified."
         ],
         "assumptions": [
           "L y m en [0,1]; decidir convención de step(edge,x) del shader y orientación del eje Y."
@@ -5024,86 +5025,272 @@
         "units": [
           "f inverso a unidad de coordenada elegida."
         ],
-        "status": "CLARIFICATION_PROPOSED",
+        "status": "CORRECTED_PERIOD_AND_THRESHOLD_CONVENTION",
         "source": "REF-HALFTONE-1988"
       },
       "existing_source_coverage": {
         "research_id": "R31-HALFTONE-BEN-DAY-PROCEDURAL",
         "source_type": "PRIMARY_JOURNAL_ARTICLE",
-        "reference": "https://opg.optica.org/josaa/abstract.cfm?uri=josaa-5-9-1502",
-        "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
+        "reference": "Rao and Arce (1988), JOSA A 5(9), 1502–1511; source confirms the article title and pagination, but not the exact sinusoidal formula.",
+        "formula_level_status": "PRIMARY_SOURCE_CONTEXT_ONLY_CUSTOM_MASK_AUTHORED"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "PERIODIC_SINUSOIDAL_SCREEN_HALFTONE_WITH_THRESHOLD_COVERAGE",
+        "symbol_table": [
+          {
+            "symbol": "x,y",
+            "meaning": "coordinates in the chosen screen or UV plane",
+            "unit": "px or UV",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite coordinates; x and y use the same coordinate system"
+          },
+          {
+            "symbol": "f",
+            "meaning": "inverse half-period parameter in the manifest's pi*f sinusoid",
+            "unit": "coordinate_unit^-1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >0; actual full period is 2/f, so cycles per coordinate unit are f/2"
+          },
+          {
+            "symbol": "theta",
+            "meaning": "screen rotation angle",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite angle; coordinate rotation occurs before evaluating the pattern"
+          },
+          {
+            "symbol": "L",
+            "meaning": "linear normalized luminance",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite [0,1]; derive from linear RGB, not gamma-encoded display RGB"
+          },
+          {
+            "symbol": "m",
+            "meaning": "sinusoidal threshold mask",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "[0,1] for finite coordinates and f"
+          },
+          {
+            "symbol": "w",
+            "meaning": "antialias transition half-width",
+            "unit": "1 (luminance difference)",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0; shader estimate from derivatives of L-m"
+          },
+          {
+            "symbol": "a",
+            "meaning": "ink coverage",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "clamped to [0,1]"
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "PASS_FOR_PERIODIC_MASK_AND_THRESHOLD",
           "notes": [
-            "f inverso a unidad de coordenada elegida."
+            "f*x and f*y are dimensionless; trigonometric arguments are therefore valid.",
+            "L, m, w and a are normalized dimensionless scalar quantities and may be compared/interpolated.",
+            "The parameter f is not cycles per unit for the written sin(pi*f*x) expression: the period is 2/f and the cycles-per-unit value is f/2."
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "COMPLETE_FOR_AUTHORED_SINUSOIDAL_SCREEN_PATTERN",
+          "steps": [
+            "Choose one coordinate space (pixel coordinates for a screen-fixed screen, or UV for a surface-attached pattern); do not mix units between axes.",
+            "Translate coordinates around a screen center c and rotate by theta: p'=R(-theta)(p-c).",
+            "Evaluate the separable periodic mask m=1/2+1/2 sin(pi*f*x') sin(pi*f*y').",
+            "Because each sine factor has period 2/f, the mask repeats after 2/f along either coordinate axis; its range is [0,1].",
+            "Convert input RGB to linear light and compute normalized luminance L (for linear Rec.709 RGB, Y=0.2126R+0.7152G+0.0722B).",
+            "The binary ink rule is H(L-m), with H(q)=1 when q>=0 and 0 otherwise. In GLSL this is step(m,L).",
+            "For antialiasing, let w be a positive derivative footprint (for example 0.5*fwidth(L-m)) and compute a=smoothstep(-w,w,L-m); if w=0, use the exact binary rule."
+          ]
         },
-        "assumptions": [
-          "L y m en [0,1]; decidir convención de step(edge,x) del shader y orientación del eje Y."
+        "equations": [
+          {
+            "expression": "x'=cos(theta)*(x-cx)+sin(theta)*(y-cy)",
+            "meaning": "rotated screen coordinate x",
+            "dimensional_check": "pass",
+            "status": "coordinate_transform"
+          },
+          {
+            "expression": "y'=-sin(theta)*(x-cx)+cos(theta)*(y-cy)",
+            "meaning": "rotated screen coordinate y",
+            "dimensional_check": "pass",
+            "status": "coordinate_transform"
+          },
+          {
+            "expression": "m=0.5+0.5*sin(pi*f*x')*sin(pi*f*y')",
+            "meaning": "periodic sinusoidal threshold mask",
+            "dimensional_check": "pass",
+            "status": "authored_procedural_pattern"
+          },
+          {
+            "expression": "ink=H(L-m)",
+            "meaning": "binary threshold, H(q)=1 for q>=0",
+            "dimensional_check": "pass",
+            "status": "threshold_definition"
+          },
+          {
+            "expression": "a=smoothstep(-w,w,L-m)",
+            "meaning": "antialiased coverage for w>0",
+            "dimensional_check": "pass",
+            "status": "standard_smoothstep_filtering"
+          }
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "assumptions": [
+          "The written sinusoidal mask is a stylized periodic screen, not a complete model of every historical Ben-Day or clustered-dot halftone process.",
+          "The pattern coordinate system is selected deliberately: screen-space keeps dot spacing fixed on screen; UV-space attaches the screen to the surface and may stretch with UV distortion.",
+          "L is linear-light luminance in [0,1]; if input color is sRGB, decode before computing L.",
+          "The threshold polarity is ink=1 when L>=m; invert it explicitly if a white-dot convention is desired.",
+          "Derivative-based antialiasing is a local footprint approximation; severe minification still benefits from mipmapped/pre-filtered masks or supersampling."
+        ],
+        "valid_domain": [
+          "Finite x,y,theta; f>0.",
+          "L finite in [0,1].",
+          "w finite and >=0.",
+          "All coordinates and f share a consistent coordinate unit."
+        ],
+        "boundary_conditions": [
+          "m is always in [0,1].",
+          "m(x+2/f,y)=m(x,y) and m(x,y+2/f)=m(x,y).",
+          "m(1/(2f),1/(2f))=1; m(3/(2f),1/(2f))=0.",
+          "At L=m, the hard step returns 1 under the declared >= convention; the symmetric smoothstep returns 0.5 for w>0.",
+          "At w=0, coverage is binary; at L-m<=-w coverage is 0 and at L-m>=w coverage is 1."
+        ],
+        "inputs": [
+          "Screen or UV coordinate",
+          "Positive inverse half-period f",
+          "Rotation angle and optional pattern center",
+          "Linear RGB or precomputed normalized luminance",
+          "Derivative footprint or explicit nonnegative antialias width",
+          "Ink and paper colors"
+        ],
+        "outputs": [
+          "Periodic mask m in [0,1]",
+          "Binary threshold or antialiased ink coverage a in [0,1]"
+        ],
+        "algorithm_completeness": "SCALAR_PATTERN_AND_THRESHOLD_COMPLETE_FULL_MATERIAL_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_PYTHON_AND_JAVASCRIPT_REFERENCE_KERNELS_TESTED_IN_CI_PENDING",
+        "algorithm_steps": [
+          "Select screen-space or UV-space coordinates and document the scale.",
+          "Apply center offset and rotate coordinates by theta.",
+          "Evaluate the sinusoidal mask.",
+          "Decode RGB to linear light and compute luminance.",
+          "Compute the threshold difference L-m.",
+          "Use a hard step when antialiasing is disabled, otherwise use a derivative-width smoothstep.",
+          "Mix paper and ink colors with coverage a in linear color space, then let the renderer perform output color-space conversion."
+        ],
+        "pseudocode": "function halftone(uv, center, theta, f, linearRGB, aaWidth):\\n  require finite(uv,center,theta,f) and f>0\\n  p=rotate(uv-center,-theta)\\n  mask=0.5+0.5*sin(PI*f*p.x)*sin(PI*f*p.y)\\n  L=dot(linearRGB,vec3(0.2126,0.7152,0.0722))\\n  d=L-mask\\n  if aaWidth==0: coverage=(d>=0 ? 1 : 0)\\n  else: coverage=smoothstep(-aaWidth,aaWidth,d)\\n  return mix(paper,ink,coverage)",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(N) per image pixel; two sine evaluations plus luminance and threshold operations",
+          "space": "O(1) per pixel; no history buffer required"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "SHADER_CONTRACT_DEFINED_RENDER_VALIDATION_PENDING",
+          "details": "Implement in a fullscreen ShaderMaterial for screen-space or a mesh material for UV-space. Use gl_FragCoord/resolution for pixel coordinates or vUv for surface coordinates. GLSL derivatives fwidth/dFdx/dFdy require derivative support in the selected shader profile; port the derivative operation explicitly when using WebGPU/TSL. Keep luminance and color mixing in linear space and verify output color-space conversion. Actual Three.js/WebGL2/WebGPU/mobile shader validation remains pending."
         },
         "source_claims": [
           {
             "url": "https://opg.optica.org/josaa/abstract.cfm?uri=josaa-5-9-1502",
-            "type": "PRIMARY_JOURNAL_ARTICLE",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null,
-            "formula_locator": "Exact locator pending; claim must remain incomplete."
+            "type": "PRIMARY_ARTICLE_CONTEXT_ONLY",
+            "formula_level_status": "DOES_NOT_VALIDATE_MANIFEST_SINUSOID",
+            "exact_equation_locator": "Rao and Arce (1988), JOSA A 5(9), 1502–1511; article title and bibliographic locator verified in the Optica issue contents. Full text formula transcription has not been verified.",
+            "formula_locator": "No equation locator claimed for the manifest's sinusoidal mask.",
+            "supported_claim": "The cited article concerns halftone patterns with arbitrary screen periodicities; it is relevant context for screen-period design but is not claimed as the source of the sinusoidal mask equation."
+          },
+          {
+            "url": "Project-authored sinusoidal threshold mask.",
+            "type": "AUTHORED_PROCEDURAL_RULE",
+            "formula_level_status": "AUTHORED_CONVENTION",
+            "exact_equation_locator": "Equations m, H(L-m), and smoothstep coverage in this specification.",
+            "formula_locator": "Project-authored equations; no publication equation attribution."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
-        },
-        "variables": [],
-        "algorithm_steps": [
-          "Transformar coordenadas a espacio de pantalla o UV.",
-          "Calcular luminancia.",
-          "Evaluar patrón periódico o matriz Bayer.",
-          "Umbralizar y mezclar con tinta/paleta.",
-          "Aplicar antialiasing según derivadas."
-        ],
-        "pseudocode": "q=screenUV*frequency; pattern=0.5+0.5*sin(PI*q.x)*sin(PI*q.y); ink=step(pattern,luma);",
-        "implementation_mapping": {
-          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
-          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
-          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
+          "python": [
+            {
+              "description": "Binary and antialiased threshold limits.",
+              "oracle": "Closed form: coverage is 0/1 outside the transition and 0.5 at L=m."
+            },
+            {
+              "description": "Period and range of the mask.",
+              "oracle": "Analytic period 2/f; mask is bounded by the product of two sine values in [-1,1]."
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Mask periodicity/range and threshold coverage agree with the independent Python scalar reference.",
+              "oracle": "Closed-form periodicity and smoothstep boundary values."
+            }
+          ],
+          "edge_cases": [
+            "f<=0; non-finite coordinates; coordinate units mismatch; zero antialias width; L=0 or 1; mask extrema; severe minification; UV seam and distortion; gamma-encoded luminance misuse."
+          ]
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Validate the actual ShaderMaterial implementation and derivative antialiasing in Three.js WebGL2 and WebGPU/TSL paths",
+        "Add pixel-grid reference images and minification/rotation/UV-seam fixtures against a CPU raster oracle",
+        "Distinguish and optionally implement clustered-dot/ordered-screen Ben-Day variants instead of treating the sinusoidal mask as a universal halftone model"
       ]
     },
     {
