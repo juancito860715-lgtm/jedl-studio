@@ -105,12 +105,20 @@
     {
       "record_key": "D35:4",
       "name": "Gradient descent",
-      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
-      "test_name": "D35:4 gradient descent — quadratic objective decreases",
-      "status": "REFERENCE_TEST_PASSED",
-      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
-      "coverage_limit": "One convex quadratic step; line search and non-convex stopping remain to test.",
-      "certification_status": "NOT_CERTIFIED"
+      "test_file": "tests/threejs/d35-optimization-roots.test.mjs",
+      "test_name": "D35:4 Gradient descent — local production implementation",
+      "status": "PRODUCTION_IMPLEMENTATION_TEST_PASSED",
+      "validation_level": "LOCAL_PRODUCTION_IMPLEMENTATION_TESTS",
+      "coverage_limit": "The CPU implementation and listed edge cases pass automated tests. Browser/renderer integration, performance profiling and application-specific parameter tuning remain outside this validation; certification is pending.",
+      "certification_status": "NOT_CERTIFIED",
+      "test_names": [
+        "minimizes a convex quadratic with Armijo backtracking",
+        "handles an initial optimum and projected constraints",
+        "reports iteration exhaustion and validates dimensions"
+      ],
+      "execution_run": 46020334225,
+      "execution_sha": "7485b219b0d99f95487b6737a7b1935e636d2cfd",
+      "execution_summary": "Full GitHub Actions workflow PASS (43 jobs); global validation PASS: 103 Python tests, 138 JavaScript tests, 0 failures; structural audit PASS; fail-closed readiness gate PASS. No browser-renderer or FPS certification implied."
     },
     {
       "record_key": "D35:5",
@@ -125,32 +133,59 @@
     {
       "record_key": "D35:6",
       "name": "Newton method",
-      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
-      "test_name": "D35:6 Newton method — square-root convergence",
-      "status": "REFERENCE_TEST_PASSED",
-      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
-      "coverage_limit": "Scalar simple-root convergence and derivative-free failure path not yet tested.",
-      "certification_status": "NOT_CERTIFIED"
+      "test_file": "tests/threejs/d35-optimization-roots.test.mjs",
+      "test_name": "D35:6 Newton method — local production implementation",
+      "status": "PRODUCTION_IMPLEMENTATION_TEST_PASSED",
+      "validation_level": "LOCAL_PRODUCTION_IMPLEMENTATION_TESTS",
+      "coverage_limit": "The CPU implementation and listed edge cases pass automated tests. Browser/renderer integration, performance profiling and application-specific parameter tuning remain outside this validation; certification is pending.",
+      "certification_status": "NOT_CERTIFIED",
+      "test_names": [
+        "finds linear, quadratic and trigonometric roots",
+        "handles small-scale derivatives without a fixed absolute cutoff",
+        "rejects zero derivative and respects the domain",
+        "reports non-convergence and validates options"
+      ],
+      "execution_run": 46020334225,
+      "execution_sha": "7485b219b0d99f95487b6737a7b1935e636d2cfd",
+      "execution_summary": "Full GitHub Actions workflow PASS (43 jobs); global validation PASS: 103 Python tests, 138 JavaScript tests, 0 failures; structural audit PASS; fail-closed readiness gate PASS. No browser-renderer or FPS certification implied."
     },
     {
       "record_key": "D35:7",
       "name": "Bisection",
-      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
-      "test_name": "D35:7 bisection — bracket contracts around sqrt(2)",
-      "status": "REFERENCE_TEST_PASSED",
-      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
-      "coverage_limit": "Deterministic bracket contraction; pathological floating-point endpoints remain to test.",
-      "certification_status": "NOT_CERTIFIED"
+      "test_file": "tests/threejs/d35-scalar-methods.test.mjs",
+      "test_name": "D35:7 Bisection — local production implementation",
+      "status": "PRODUCTION_IMPLEMENTATION_TEST_PASSED",
+      "validation_level": "LOCAL_PRODUCTION_IMPLEMENTATION_TESTS",
+      "coverage_limit": "The CPU implementation and listed edge cases pass automated tests. Browser/renderer integration, performance profiling and application-specific parameter tuning remain outside this validation; certification is pending.",
+      "certification_status": "NOT_CERTIFIED",
+      "test_names": [
+        "solves linear, quadratic and trigonometric roots",
+        "handles endpoint and exact midpoint roots",
+        "rejects invalid brackets and non-finite function values",
+        "reports positional error bound and iteration exhaustion"
+      ],
+      "execution_run": 46020334225,
+      "execution_sha": "7485b219b0d99f95487b6737a7b1935e636d2cfd",
+      "execution_summary": "Full GitHub Actions workflow PASS (43 jobs); global validation PASS: 103 Python tests, 138 JavaScript tests, 0 failures; structural audit PASS; fail-closed readiness gate PASS. No browser-renderer or FPS certification implied."
     },
     {
       "record_key": "D35:8",
       "name": "Cubic interpolation",
-      "test_file": "tests/threejs/d35-d36-point4.test.mjs",
-      "test_name": "D35:8 cubic interpolation — Hermite endpoints and tangents",
-      "status": "REFERENCE_TEST_PASSED",
-      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
-      "coverage_limit": "Endpoint and tangent constraints; multi-segment continuity remains to test.",
-      "certification_status": "NOT_CERTIFIED"
+      "test_file": "tests/threejs/d35-scalar-methods.test.mjs",
+      "test_name": "D35:8 Cubic interpolation — local production implementation",
+      "status": "PRODUCTION_IMPLEMENTATION_TEST_PASSED",
+      "validation_level": "LOCAL_PRODUCTION_IMPLEMENTATION_TESTS",
+      "coverage_limit": "The CPU implementation and listed edge cases pass automated tests. Browser/renderer integration, performance profiling and application-specific parameter tuning remain outside this validation; certification is pending.",
+      "certification_status": "NOT_CERTIFIED",
+      "test_names": [
+        "preserves endpoint values and derivatives",
+        "reproduces a linear function over a non-unit interval",
+        "supports vectors and clamps outside the interval",
+        "rejects mismatched shapes and invalid parameter intervals"
+      ],
+      "execution_run": 46020334225,
+      "execution_sha": "7485b219b0d99f95487b6737a7b1935e636d2cfd",
+      "execution_summary": "Full GitHub Actions workflow PASS (43 jobs); global validation PASS: 103 Python tests, 138 JavaScript tests, 0 failures; structural audit PASS; fail-closed readiness gate PASS. No browser-renderer or FPS certification implied."
     },
     {
       "record_key": "D35:9",
