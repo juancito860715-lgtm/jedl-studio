@@ -32,9 +32,9 @@ function createIsosurfaceMesh({bounds,resolution=24,field,iso=0,material=new THR
   const n=mesh.size, half=mesh.halfsize;
   for(let z=0;z<n;z++) for(let y=0;y<n;y++) for(let x=0;x<n;x++){
     const p=[
-      bounds[0]+(x/ (n-1))*(bounds[3]-bounds[0]),
-      bounds[1]+(y/ (n-1))*(bounds[4]-bounds[1]),
-      bounds[2]+(z/ (n-1))*(bounds[5]-bounds[2])
+      (bounds[0]+bounds[3])/2+((x-half)/half)*(bounds[3]-bounds[0])/2,
+      (bounds[1]+bounds[4])/2+((y-half)/half)*(bounds[4]-bounds[1])/2,
+      (bounds[2]+bounds[5])/2+((z-half)/half)*(bounds[5]-bounds[2])/2
     ];
     const value=field(new THREE.Vector3(...p));
     if(!Number.isFinite(value)) throw new RangeError("scalar field returned non-finite value");
@@ -162,7 +162,8 @@ function dqsTransform(position,normal,influences,dualBones,maxInfluences=Infinit
   const norm=r.length();
   if(!(norm>EPS)) throw new RangeError("degenerate dual quaternion blend");
   r.multiplyScalar(1/norm); d.multiplyScalar(1/norm);
-  d.x-=r.x*r.dot(d);d.y-=r.y*r.dot(d);d.z-=r.z*r.dot(d);d.w-=r.w*r.dot(d);
+  const orthogonality=r.dot(d);
+  d.x-=r.x*orthogonality;d.y-=r.y*orthogonality;d.z-=r.z*orthogonality;d.w-=r.w*orthogonality;
   const p=new THREE.Vector3(...position).applyQuaternion(r);
   const translation=d.clone().multiply(new THREE.Quaternion(-r.x,-r.y,-r.z,r.w));
   p.add(new THREE.Vector3(2*translation.x,2*translation.y,2*translation.z));
@@ -218,7 +219,7 @@ export function solveFabrik({positions,lengths,target,root=null,tolerance=1e-4,m
   const p=positions.map(v=>new THREE.Vector3(...v)),goal=new THREE.Vector3(...target),anchor=root?new THREE.Vector3(...root):p[0].clone();
   if(p.some(v=>![v.x,v.y,v.z].every(Number.isFinite))||![goal.x,goal.y,goal.z].every(Number.isFinite)) throw new RangeError("joint positions and target must be finite");
   const total=lengths.reduce((a,b)=>a+b,0),distance=anchor.distanceTo(goal);
-  if(distance>=total){
+  if(distance>total){
     const dir=goal.clone().sub(anchor).normalize();
     p[0].copy(anchor);for(let i=0;i<lengths.length;i++)p[i+1].copy(p[i]).addScaledVector(dir,lengths[i]);
     return {positions:p.map(v=>v.toArray()),reachable:false,converged:false,error:p[p.length-1].distanceTo(goal),iterations:0};
