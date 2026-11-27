@@ -196,3 +196,36 @@ export function regularizedPlaneQef(constraints,center,regularization) {
   }
   return b.map((v,i)=>A[i]?v/A[i]:center[i]);
 }
+
+
+// R31 spatial hashing: cell coordinates and bounded hash-table bucket index.
+// Hash collisions are expected; callers must retain cell coordinates in buckets.
+export function spatialHashIndex(cell, tableSize) {
+  if (!Number.isInteger(tableSize) || tableSize <= 0) throw new RangeError("tableSize must be a positive integer");
+  if (cell.length !== 3 || cell.some(v => !Number.isInteger(v))) throw new RangeError("cell must be an integer 3-vector");
+  const [x,y,z]=cell;
+  const mixed=(Math.imul(x,73856093)^Math.imul(y,19349663)^Math.imul(z,83492791))>>>0;
+  return mixed % tableSize;
+}
+
+// Weighted dual-quaternion blend with antipodal correction against the first
+// non-zero-weight real quaternion, followed by Study-condition normalization.
+export function blendDualQuaternions(items) {
+  if (!items.length) throw new RangeError("at least one transform is required");
+  let reference=null;
+  const real=[0,0,0,0], dual=[0,0,0,0];
+  let weightSum=0;
+  for (const item of items) {
+    const {qr,qd,weight}=item;
+    if (!Number.isFinite(weight) || weight < 0 || qr.length!==4 || qd.length!==4 ||
+        [...qr,...qd].some(v=>!Number.isFinite(v))) throw new RangeError("invalid weighted dual quaternion");
+    if (weight===0) continue;
+    if (reference===null) reference=qr;
+    const sign=qr.reduce((s,v,i)=>s+v*reference[i],0)<0?-1:1;
+    for(let i=0;i<4;i++){real[i]+=weight*sign*qr[i];dual[i]+=weight*sign*qd[i];}
+    weightSum+=weight;
+  }
+  if (!(weightSum>0)) throw new RangeError("weight sum must be positive");
+  const [r,d]=dualQuaternionNormalize(real,dual);
+  return [r,d];
+}
