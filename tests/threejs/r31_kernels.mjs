@@ -12,7 +12,7 @@ export function evaluateQuantizedChannel(keys,t,sampleRate,mode="hold") {
   const tq=quantizedTime(t,sampleRate);
   if(tq<=keys[0][0])return keys[0][1];
   for(let i=1;i<keys.length;i++){
-    if(tq<=keys[i][0]){
+    if(tq<keys[i][0]){
       const [t0,v0]=keys[i-1],[t1,v1]=keys[i];
       if(mode==="hold")return v0;
       const u=(tq-t0)/(t1-t0);
