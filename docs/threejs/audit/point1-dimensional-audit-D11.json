@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D11 Agua, olas y superficies líquidas",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -132,9 +132,9 @@
         "Para α>0 la amplitud decae al aumentar r."
       ],
       "dimensional_checks": [
-        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
-        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
-        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+        "r and A have L; α and k have L^-1, so αr and kr are dimensionless.",
+        "ω has T^-1; ωt is dimensionless; sin(kr−ωt) is valid and h(r,t) retains L.",
+        "At r=0, radial direction is undefined; define a finite center value and avoid singular radial derivatives."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -244,9 +244,9 @@
         "En σ→0 evitar división por cero; imponer ancho mínimo."
       ],
       "dimensional_checks": [
-        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
-        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
-        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+        "r, vt and σ have L; (r−vt)/σ is dimensionless.",
+        "k has L^-1, so k(r−vt) is dimensionless; the cosine argument is valid.",
+        "A has L and multiplies dimensionless envelope/oscillation; h retains L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -272,17 +272,17 @@
         {
           "symbol": "flow(uv)",
           "meaning": "campo de flujo UV",
-          "unit": "UV/s",
+          "unit": "UV/s (dimensionless UV coordinates per second)",
           "dimension": {
             "L": 0,
             "M": 0,
-            "T": 1,
+            "T": -1,
             "I": 0,
             "Theta": 0,
             "N": 0,
             "J": 0
           },
-          "domain": "finito"
+          "domain": "vector finito; UV displacement rate"
         },
         {
           "symbol": "time",
@@ -327,9 +327,9 @@
         "En límites aplicar wrap, clamp o extensión de flujo declarada."
       ],
       "dimensional_checks": [
-        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
-        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
-        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+        "uv is dimensionless; flow(uv) must have UV-coordinate units per second (dimension T^-1) and multiplying by time yields a dimensionless UV displacement.",
+        "If flow is a pixel or world-space velocity, convert it through texture/world mapping before adding to UV.",
+        "uv′ remains dimensionless; wrap, clamp or tile-boundary policy is required."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -408,9 +408,9 @@
         "μ=1 devuelve F0; μ=0 devuelve 1."
       ],
       "dimensional_checks": [
-        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
-        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
-        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+        "F0, N, V, μ and F are dimensionless; μ=|N·V| lies in [0,1] for unit vectors.",
+        "(1−μ)^5 is dimensionless; Fresnel reflectance remains a dimensionless ratio.",
+        "N and V must be normalized; grazing/normal incidence are bounded endpoints."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -489,9 +489,9 @@
         "depth=0 devuelve C_surface; depth→∞ con σ>0 tiende a C_water."
       ],
       "dimensional_checks": [
-        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
-        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
-        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+        "σ has L^-1 and depth has L; optical depth σ·depth is dimensionless.",
+        "T=exp(−σ·depth) is dimensionless and in (0,1] for nonnegative inputs.",
+        "C_water and C_surface must share linear RGB units/space; color interpolation preserves those units."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -571,9 +571,9 @@
         "width=0 inválido para smoothstep; rechazar."
       ],
       "dimensional_checks": [
-        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
-        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
-        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+        "waterLevel, bedHeight, width and d have L; d/width is dimensionless for smoothstep.",
+        "shore is dimensionless and bounded [0,1]; width must be positive.",
+        "If d≤0, water does not cover the bed under this convention; if d≥width, transition is fully saturated."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -581,7 +581,12 @@
   "validation": {
     "structural_checks": [
       "6/13 técnicas no protegidas incluidas",
-      "7 registros protegidos excluidos; todos los registros incluidos tienen campos de punto 1"
+      "Cada registro incluye variables, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "7 registros protegidos excluidos según mapa Crimson Loong",
+      "Corregida la dimensión temporal del campo de flujo UV"
+    ],
+    "limitations": [
+      "Las técnicas protegidas se conservan sin reauditoría; los registros restantes tienen revisión dimensional, no derivación formal ni pruebas numéricas."
     ]
   },
   "integrity": {
