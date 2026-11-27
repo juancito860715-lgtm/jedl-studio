@@ -1,0 +1,1404 @@
+{
+  "title": "Auditoría dimensional punto 1 — D08 Materiales, texturas y superficies",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D08",
+    "domain": "Materiales, texturas y superficies",
+    "record_count": 17,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D08 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "color": "RGB debe indicar espacio lineal o codificado; las operaciones físicas se realizan en lineal.",
+    "pixels": "px son unidades de raster dependientes de resolución, no unidades SI.",
+    "scene_length": "Unidad global de longitud; SI si se declara."
+  },
+  "records": [
+    {
+      "record_key": "D08:0",
+      "name": "UV mapping",
+      "variables": [
+        {
+          "symbol": "P",
+          "meaning": "posición superficial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "punto finito"
+        },
+        {
+          "symbol": "u,v",
+          "meaning": "coordenadas UV",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizadas o rango de atlas declarado"
+        },
+        {
+          "symbol": "project",
+          "meaning": "proyección",
+          "unit": "mapeo geométrico",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "proyección continua por parche"
+        }
+      ],
+      "constraints": [
+        "UV son adimensionales; discontinuidades de seam deben ser explícitas.",
+        "La proyección debe declarar espacio y orientación."
+      ],
+      "valid_domain": [
+        "Superficie con coordenadas y proyección definidas."
+      ],
+      "boundary_conditions": [
+        "En costuras, duplicar UV sin romper continuidad geométrica.",
+        "Degeneración de proyección debe resolverse por parche alternativo."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:1",
+      "name": "Triplanar mapping",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "normal de superficie",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "w_x,w_y,w_z",
+          "meaning": "pesos triplanares",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos; suma 1"
+        },
+        {
+          "symbol": "T_x,T_y,T_z",
+          "meaning": "muestras de textura",
+          "unit": "color lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio/colorimetría"
+        },
+        {
+          "symbol": "k",
+          "meaning": "exponente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k>0"
+        }
+      ],
+      "constraints": [
+        "Pesos se calculan a partir de componentes absolutas de normal y se normalizan.",
+        "Las muestras deben compartir espacio de color y escala de textura."
+      ],
+      "valid_domain": [
+        "Normal no nula; k positivo."
+      ],
+      "boundary_conditions": [
+        "Normal alineada con eje produce peso dominante en proyección correspondiente.",
+        "Si suma de pesos es cero, usar proyección de respaldo."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:2",
+      "name": "Procedural texture",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "coordenada de evaluación",
+          "unit": "m o coordenada normalizada",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dominio declarado"
+        },
+        {
+          "symbol": "noise,voronoi,curvature",
+          "meaning": "atributos de campo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados y acotados"
+        },
+        {
+          "symbol": "C",
+          "meaning": "color resultante",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "componentes según espacio declarado"
+        },
+        {
+          "symbol": "palette",
+          "meaning": "función de paleta",
+          "unit": "mapeo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "continua o discretización declarada"
+        }
+      ],
+      "constraints": [
+        "Curvatura tiene dimensión L⁻¹ si geométrica; normalizar por escala antes de mezclar con ruido adimensional.",
+        "Definir espacio lineal/sRGB y rango de canales."
+      ],
+      "valid_domain": [
+        "Campos evaluables en dominio; paleta definida."
+      ],
+      "boundary_conditions": [
+        "Valores de campo fuera del rango se saturan o extrapolan según política.",
+        "Color debe permanecer en rango representable tras tone/color management."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:3",
+      "name": "Texture atlas",
+      "variables": [
+        {
+          "symbol": "uv",
+          "meaning": "UV original",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "offset",
+          "meaning": "desplazamiento atlas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "coordenada UV"
+        },
+        {
+          "symbol": "scale",
+          "meaning": "escala atlas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "uv′",
+          "meaning": "UV transformada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "offset+scale·uv"
+        }
+      ],
+      "constraints": [
+        "Offset y escala UV adimensionales.",
+        "La región transformada debe quedar dentro de tile asignado con margen para filtrado."
+      ],
+      "valid_domain": [
+        "UV y rectángulo atlas válidos; scale>0."
+      ],
+      "boundary_conditions": [
+        "UV en borde de tile requiere padding/bleed para evitar contaminación.",
+        "Tiles vecinos deben usar límites y mipmaps consistentes."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:4",
+      "name": "Normal mapping",
+      "variables": [
+        {
+          "symbol": "T,B,N",
+          "meaning": "base tangente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ortonormal"
+        },
+        {
+          "symbol": "n_texture",
+          "meaning": "normal de mapa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector unitario en espacio tangente"
+        },
+        {
+          "symbol": "N′",
+          "meaning": "normal transformada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "uv",
+          "meaning": "coordenada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "atributos tangentes definidos"
+        }
+      ],
+      "constraints": [
+        "TBN debe ser ortonormal o corregirse; handedness de bitangent debe respetarse.",
+        "Normal map debe decodificarse desde espacio de color no lineal según formato."
+      ],
+      "valid_domain": [
+        "Tangentes válidas; normal map finito y no nulo."
+      ],
+      "boundary_conditions": [
+        "En costuras tangentes, separar vértices si discontinuidad.",
+        "Normal nula o TBN singular: fallback a normal geométrica."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:5",
+      "name": "Bump mapping",
+      "variables": [
+        {
+          "symbol": "h(u,v)",
+          "meaning": "altura de bump",
+          "unit": "m o escala normalizada declarada",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "campo diferenciable"
+        },
+        {
+          "symbol": "∇h",
+          "meaning": "gradiente tangencial",
+          "unit": "adimensional si h y UV coherentes",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "N",
+          "meaning": "normal base",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "N′",
+          "meaning": "normal perturbada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        }
+      ],
+      "constraints": [
+        "La derivada depende de unidades UV y escala física; ajustar factor de bump explícito.",
+        "La aproximación no desplaza geometría y no sustituye desplazamiento real."
+      ],
+      "valid_domain": [
+        "h diferenciable o gradiente filtrado; UV no degeneradas."
+      ],
+      "boundary_conditions": [
+        "Gradiente cero devuelve N.",
+        "En discontinuidades de altura, filtrar o definir normal por lado."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:6",
+      "name": "Roughness map",
+      "variables": [
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o convención renderer"
+        },
+        {
+          "symbol": "wear",
+          "meaning": "desgaste",
+          "unit": "0–1 normalizado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "wetness",
+          "meaning": "humedad",
+          "unit": "0–1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "F",
+          "meaning": "función de material",
+          "unit": "mapeo adimensional",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "salida dentro del rango"
+        }
+      ],
+      "constraints": [
+        "Roughness es parámetro adimensional, no longitud.",
+        "No confundir roughness perceptual con α de microfacet; declarar conversión."
+      ],
+      "valid_domain": [
+        "Entradas normalizadas y finitas."
+      ],
+      "boundary_conditions": [
+        "wetness=0 produce estado seco; wetness=1 estado completamente mojado según modelo.",
+        "Saturar salida a rango admitido por BRDF."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:7",
+      "name": "Metalness workflow",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "metalness",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F0_diel",
+          "meaning": "reflectancia dieléctrica",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango físico"
+        },
+        {
+          "symbol": "F0_cond",
+          "meaning": "reflectancia conductor",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "valores físicos"
+        },
+        {
+          "symbol": "BRDF",
+          "meaning": "respuesta reflectante",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "modelo energético"
+        }
+      ],
+      "constraints": [
+        "Metalness interpola clasificación de material, no mezcla arbitraria de energías sin conservar modelo BRDF.",
+        "Valores de F0 y albedo deben respetar conservación de energía."
+      ],
+      "valid_domain": [
+        "m∈[0,1]; entradas BRDF válidas."
+      ],
+      "boundary_conditions": [
+        "m=0 dieléctrico; m=1 conductor según workflow.",
+        "No extrapolar metalness fuera de [0,1]."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:8",
+      "name": "Clearcoat",
+      "variables": [
+        {
+          "symbol": "BRDF_base,BRDF_coat",
+          "meaning": "lóbulos de reflectancia",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos"
+        },
+        {
+          "symbol": "coat",
+          "meaning": "peso de capa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F_coat",
+          "meaning": "Fresnel capa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "BRDF_total",
+          "meaning": "respuesta",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "energéticamente acotada"
+        }
+      ],
+      "constraints": [
+        "La capa superior atenúa energía base según Fresnel; suma directa simple puede violar conservación.",
+        "Declarar rugosidad/IOR de coat y modelo de mezcla."
+      ],
+      "valid_domain": [
+        "Parámetros físicos y BRDF no negativa."
+      ],
+      "boundary_conditions": [
+        "coat=0 recupera base.",
+        "coat=1 no implica apagar base sin regla energética."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:9",
+      "name": "Subsurface approximation",
+      "variables": [
+        {
+          "symbol": "d",
+          "meaning": "distancia dentro del medio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "ℓ_mfp",
+          "meaning": "camino libre medio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ℓ_mfp>0"
+        },
+        {
+          "symbol": "wrap",
+          "meaning": "factor aproximado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "exp(−d/ℓ_mfp)"
+        }
+      ],
+      "constraints": [
+        "Exponente d/ℓ_mfp es adimensional.",
+        "La expresión es aproximación de light wrap, no solución general de transporte subsuperficial."
+      ],
+      "valid_domain": [
+        "Distancia no negativa y camino libre medio positivo."
+      ],
+      "boundary_conditions": [
+        "d=0 da wrap=1; d→∞ tiende a 0."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:10",
+      "name": "Anisotropía",
+      "variables": [
+        {
+          "symbol": "T",
+          "meaning": "dirección tangente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "V,L",
+          "meaning": "direcciones vista/luz",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "α_x,α_y",
+          "meaning": "rugosidades anisotrópicas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "BRDF",
+          "meaning": "respuesta",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "La orientación anisotrópica depende del marco tangente y dos ejes de rugosidad.",
+        "Rugosidad no debe ser negativa; isotropía cuando α_x=α_y."
+      ],
+      "valid_domain": [
+        "Marco tangente válido; parámetros dentro del dominio del BRDF."
+      ],
+      "boundary_conditions": [
+        "Si α_x=α_y se reduce a modelo isotrópico.",
+        "T degenerada: fallback a marco ortogonal."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:11",
+      "name": "Wetness blending",
+      "variables": [
+        {
+          "symbol": "wet",
+          "meaning": "humedad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "roughDry,roughWet,roughness′",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango BRDF"
+        },
+        {
+          "symbol": "colorDry,colorWet,color′",
+          "meaning": "color",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio"
+        }
+      ],
+      "constraints": [
+        "wet adimensional; interpolar en espacio lineal y con canales compatibles.",
+        "El oscurecimiento debe ser modelo de reflectancia explícito, no multiplicador arbitrario sin rango."
+      ],
+      "valid_domain": [
+        "wet∈[0,1]; colores finitos."
+      ],
+      "boundary_conditions": [
+        "wet=0 devuelve seco; wet=1 devuelve mojado.",
+        "Valores intermedios continuos."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:12",
+      "name": "Vertex colors",
+      "variables": [
+        {
+          "symbol": "C0,C1,C2",
+          "meaning": "colores por vértice",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "bary",
+          "meaning": "coordenadas baricéntricas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativas; suma 1"
+        },
+        {
+          "symbol": "C(p)",
+          "meaning": "color interpolado",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "combinación ponderada"
+        }
+      ],
+      "constraints": [
+        "Colores deben usar mismo espacio y codificación.",
+        "Interpolación baricéntrica requiere triángulo no degenerado."
+      ],
+      "valid_domain": [
+        "Punto dentro del triángulo o extrapolación declarada."
+      ],
+      "boundary_conditions": [
+        "En vértice, devuelve color correspondiente; en arista, interpola dos colores."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:13",
+      "name": "Baking procedural",
+      "variables": [
+        {
+          "symbol": "u,v",
+          "meaning": "coordenadas de textura",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dentro de dominio UV"
+        },
+        {
+          "symbol": "P(u,v)",
+          "meaning": "punto superficial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "superficie evaluable"
+        },
+        {
+          "symbol": "shader/evaluator",
+          "meaning": "función generadora",
+          "unit": "color/atributo tipado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "determinista si baking reproducible"
+        },
+        {
+          "symbol": "texture",
+          "meaning": "texel",
+          "unit": "color o canal tipado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "resolución finita"
+        }
+      ],
+      "constraints": [
+        "La evaluación debe muestrear la superficie y respetar espacio UV; antialiasing y filtrado deben definirse.",
+        "Baking almacena un resultado discreto; resolución limita frecuencia espacial representable."
+      ],
+      "valid_domain": [
+        "UV válidas, shader evaluable, resolución positiva."
+      ],
+      "boundary_conditions": [
+        "UV en seams deben hornearse con padding.",
+        "Texels fuera de UV válidas transparentes, repetidos o clamp según política."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:14",
+      "name": "Tensor de estructura para orientación de pincelada",
+      "variables": [
+        {
+          "symbol": "σ",
+          "meaning": "escala de tensor",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "1–8 px a resolución de trabajo"
+        },
+        {
+          "symbol": "J",
+          "meaning": "tensor de estructura",
+          "unit": "gradiente²",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "simétrico 2×2"
+        },
+        {
+          "symbol": "coherence",
+          "meaning": "coherencia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "radius",
+          "meaning": "radio de ventana",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "3–12 px"
+        }
+      ],
+      "constraints": [
+        "σ y radius están en píxeles y dependen de resolución; reescalar proporcionalmente al cambiar tamaño.",
+        "Tensor debe ser simétrico; eigenvalores no negativos salvo error numérico."
+      ],
+      "valid_domain": [
+        "Imagen con dimensiones positivas; parámetros dentro de rangos registrados."
+      ],
+      "boundary_conditions": [
+        "Bordes de imagen requieren padding/reflexión/clamp declarado.",
+        "Gradiente nulo produce orientación indefinida; usar orientación neutra estable."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:15",
+      "name": "Kuwahara anisotrópico multiescala",
+      "variables": [
+        {
+          "symbol": "r_k",
+          "meaning": "radio kernel",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "2–12 px"
+        },
+        {
+          "symbol": "n_sec",
+          "meaning": "sectores",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "4–8"
+        },
+        {
+          "symbol": "n_scale",
+          "meaning": "escalas",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "2–4"
+        },
+        {
+          "symbol": "I",
+          "meaning": "imagen",
+          "unit": "RGB",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "resolución finita"
+        },
+        {
+          "symbol": "I′",
+          "meaning": "imagen filtrada",
+          "unit": "RGB",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Kernel y sectores son discretos; coste crece con área de kernel y escalas.",
+        "Orientación anisotrópica debe derivarse del tensor y evitar saltos temporales."
+      ],
+      "valid_domain": [
+        "Imagen no vacía; parámetros dentro de rangos; sectores enteros."
+      ],
+      "boundary_conditions": [
+        "En borde usar extensión de imagen explícita.",
+        "Si coherencia cero, caer a filtro isotrópico."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:16",
+      "name": "Relieve de impasto derivado de pinceladas",
+      "variables": [
+        {
+          "symbol": "stroke_width",
+          "meaning": "ancho de pincelada",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "1–20 px equivalente"
+        },
+        {
+          "symbol": "height_amp",
+          "meaning": "amplitud de relieve",
+          "unit": "normalizada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0–1"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0.5–1"
+        },
+        {
+          "symbol": "h(u,v)",
+          "meaning": "altura derivada",
+          "unit": "m o unidad de relieve declarada",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "campo finito"
+        }
+      ],
+      "constraints": [
+        "El ancho en px depende de resolución; altura física debe declararse si se desplaza geometría.",
+        "Relieve derivado de imagen puede ser bump/normal o displacement; no confundir sus unidades."
+      ],
+      "valid_domain": [
+        "Pinceladas definidas y campos acotados."
+      ],
+      "boundary_conditions": [
+        "height_amp=0 elimina relieve.",
+        "En bordes de trazo, suavizar o definir discontinuidad deliberada."
+      ],
+      "dimensional_checks": [
+        "UV, roughness, metalness, pesos, coherencia y parámetros normalizados son adimensionales.",
+        "Posición, distancias y altura física tienen dimensión L; gradientes y BRDF conservan unidades según su definición.",
+        "Píxeles son unidades de resolución, no longitudes físicas sin calibración DPI/escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "17/17 registros incluidos",
+      "Todos los registros contienen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
