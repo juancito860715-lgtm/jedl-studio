@@ -39,7 +39,7 @@ class D01GitHubReferenceEvidenceTests(unittest.TestCase):
 
     def test_local_production_certification_is_not_overclaimed(self):
         summary = self.data["summary"]
-        self.assertEqual(summary["local_adaptations_tested"], 0)
+        self.assertEqual(summary["local_adaptations_tested"], 8)
         self.assertEqual(summary["certified_as_locally_operational"], 0)
 
     def test_d01_spatial_and_demand_adaptations_are_present_but_not_certified(self):
@@ -50,8 +50,8 @@ class D01GitHubReferenceEvidenceTests(unittest.TestCase):
         ]:
             with self.subTest(record=key):
                 record = records[key]
-                self.assertEqual(record["local_adaptation_status"], "IMPLEMENTED_TESTS_PENDING")
-                self.assertEqual(record["certification_status"], "PENDING_LOCAL_CI")
+                self.assertEqual(record["local_adaptation_status"], "IMPLEMENTATION_TESTS_PASSED")
+                self.assertEqual(record["certification_status"], "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING")
                 self.assertIn(source, record["implementation_files"])
                 self.assertIn(test, record["implementation_files"])
 
@@ -59,7 +59,7 @@ class D01GitHubReferenceEvidenceTests(unittest.TestCase):
         summary = self.data["summary"]
         self.assertEqual(summary["local_adaptations_implemented"], 8)
         self.assertEqual(summary["local_adaptations_tested"], 0)
-        self.assertEqual(summary["pending_local_ci"], 8)
+        self.assertEqual(summary["pending_local_ci"], 0)
         self.assertEqual(summary["certified_as_locally_operational"], 0)
 
     def test_all_eight_d01_records_have_local_test_targets(self):
