@@ -35,7 +35,8 @@ test("damped spring RK4 approaches target under positive damping",()=>{
  assert.ok(Math.abs(s.position-1)<.01);assert.ok(Math.abs(s.velocity)<.1);
 });
 test("Verlet and semi-implicit Euler use expected update order",()=>{
- assert.deepEqual(verletStep([1,0],[0,0],[0,-9.8],.1),[2,-.098]);
+ const verlet=verletStep([1,0],[0,0],[0,-9.8],.1);
+ assert.ok(Math.abs(verlet[0]-2)<1e-12);assert.ok(Math.abs(verlet[1]+.098)<1e-12);
  const e=semiImplicitEulerStep({position:[0,0],velocity:[1,0],acceleration:[0,-10],dt:.1});
  assert.deepEqual(e.velocity,[1,-1]);assert.deepEqual(e.position,[.1,-.1]);
 });
