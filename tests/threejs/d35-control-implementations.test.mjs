@@ -41,7 +41,7 @@ test("D35:1 proportional tracker moves toward a scalar target and converges", ()
 
 test("D35:1 proportional tracker supports vectors and speed limits", () => {
   const result = proportionalTrack([0, 0, 0], [3, 4, 0], 2, 0.1, { maxSpeed: 1 });
-  assert.deepEqual(result.position, [0.06, 0.08, 0]);
+  result.position.forEach((value, index) => assert.ok(Math.abs(value - [0.06, 0.08, 0][index]) < 1e-12));
   assert.ok(Math.abs(Math.hypot(...result.velocity) - 1) < 1e-12);
 });
 
