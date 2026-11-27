@@ -2387,10 +2387,26 @@
           },
           "unit": "m",
           "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "c",
+          "meaning": "centro de celda usado como ancla de regularización",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite point inside or at the cell"
         }
       ],
       "dimensional_findings": [
-        "Cada residuo n_i·(x-p_i) tiene unidad de longitud; QEF tiene longitud². El término de regularización debe conservar esa dimensión."
+        "Cada residuo n_i·(x-p_i) tiene unidad de longitud; QEF tiene longitud². El término de regularización debe conservar esa dimensión.",
+        "La variante ridge añade lambda*||x-c||²; lambda es adimensional para que el término tenga m², y c es una posición en metros."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
