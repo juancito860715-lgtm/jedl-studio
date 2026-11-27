@@ -8,7 +8,10 @@
     "domain_id": "D01",
     "domain_name": "Fundamentos de escena y arquitectura",
     "records": 8,
-    "of_total_catalog_elements": 563
+    "of_total_catalog_elements": 563,
+    "record_count": 7,
+    "excluded_protected_records": 1,
+    "excluded_reason": "Las claves protegidas se conservan sin reauditoría, según el mapa Crimson Loong."
   },
   "conventions": {
     "SI_dimension_order": [
@@ -122,97 +125,6 @@
       "dimensional_checks": [
         "R·p y S·p conservan longitud; t+p tiene longitud; coordenada homogénea w permanece adimensional.",
         "La multiplicación de matrices afines conserva el tipo de bloque y no suma longitud a cantidades adimensionales."
-      ],
-      "status": "REVIEWED_POINT1"
-    },
-    {
-      "record_key": "D01:1",
-      "name": "Instanciación de objetos",
-      "variables": [
-        {
-          "symbol": "p_local",
-          "meaning": "vértice local",
-          "unit": "scene_length",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "finite 3-vector"
-        },
-        {
-          "symbol": "A_i",
-          "meaning": "bloque lineal de la transformación de instancia",
-          "unit": "1",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "finite 3x3 matrix"
-        },
-        {
-          "symbol": "t_i",
-          "meaning": "traslación de instancia",
-          "unit": "scene_length",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "finite 3-vector"
-        },
-        {
-          "symbol": "M_i",
-          "meaning": "transformación afín homogénea de instancia",
-          "unit": "block-dependent",
-          "dimension": "linear block dimensionless; translation block length",
-          "domain": "finite affine transform"
-        },
-        {
-          "symbol": "p_i",
-          "meaning": "vértice transformado",
-          "unit": "scene_length",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "finite 3-vector"
-        }
-      ],
-      "constraints": [
-        "Cada instancia usa el mismo buffer geométrico local y su propia transformación.",
-        "A_i es adimensional y t_i comparte unidad con p_local.",
-        "El índice i es entero 0≤i<count; count entero no negativo."
-      ],
-      "valid_domain": [
-        "p_local y t_i finitos; matrices finitas; count≥0.",
-        "Para normales, usar transformación normal (inversa-transpuesta) cuando A_i no sea rotación uniforme."
-      ],
-      "boundary_conditions": [
-        "count=0 produce cero instancias y cero contribución geométrica.",
-        "M_i identidad reproduce p_local.",
-        "Escala singular puede colapsar geometría; la normal transformada no está definida si A_i no es invertible."
-      ],
-      "dimensional_checks": [
-        "p_i=A_i p_local+t_i: ambos términos tienen longitud; resultado longitud."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -731,7 +643,11 @@
     "all_have_valid_domain": true,
     "all_have_boundary_conditions": true,
     "all_have_dimensional_checks": true,
-    "status": "DOMAIN_D01_POINT1_REVIEWED_NOT_FULL_CATALOG_CERTIFICATION"
+    "status": "DOMAIN_D01_POINT1_REVIEWED_NOT_FULL_CATALOG_CERTIFICATION",
+    "structural_checks": [
+      "7/8 registros no protegidos incluidos; claves protegidas excluidas",
+      "Todos los registros incluidos contienen los campos requeridos"
+    ]
   },
   "integrity": {
     "manifest_modified": false,
