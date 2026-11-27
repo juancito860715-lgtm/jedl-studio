@@ -1,0 +1,528 @@
+{
+  "title": "Algoritmos completos derivados de matemáticas — D02 Modelado procedural y geometría",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D02",
+    "record_count": 11,
+    "excluded_protected_records": 5,
+    "excluded_keys": [
+      "D02:8",
+      "D02:9",
+      "D02:10",
+      "D02:11",
+      "D02:12"
+    ],
+    "excluded_reason": "Cinco técnicas protegidas de Crimson Loong se conservan sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D02:0",
+      "name": "Primitivas geométricas",
+      "inputs": [
+        "Tipo de primitiva",
+        "Parámetros dimensionales (radio, altura, ancho, segmentos, etc.)",
+        "Transformación local y opciones de topología"
+      ],
+      "outputs": [
+        "Atributos position/normal/uv",
+        "Índices de triángulos",
+        "Bounds locales"
+      ],
+      "preconditions": [
+        "Todos los parámetros son finitos; longitudes y radios no negativos y con límites geométricos válidos.",
+        "Segmentos son enteros positivos y cumplen mínimo por tipo de primitiva."
+      ],
+      "algorithm_steps": [
+        "Validar tipo y parámetros contra el contrato de la primitiva.",
+        "Determinar cantidad de vértices por anillos/caras según segmentos configurados.",
+        "Generar posiciones en espacio local usando parametrización específica del tipo.",
+        "Generar índices con winding consistente y evitar triángulos degenerados.",
+        "Calcular normales analíticas cuando estén definidas; en otro caso acumular normales de cara y normalizar.",
+        "Generar UV con dominio y costuras declaradas.",
+        "Calcular bounds locales; validar índices y atributos antes de publicar geometría."
+      ],
+      "pseudocode": "function buildPrimitive(type, params):\n  validate(type, params)\n  positions = generatePositions(type, params)\n  indices = generateIndices(type, params)\n  assert indicesWithinRange(indices, positions.count)\n  normals = analyticNormals(type, params) ?? computeVertexNormals(positions, indices)\n  uvs = generateUV(type, params)\n  bounds = computeBounds(positions)\n  validateFinite(positions, normals, uvs)\n  return Geometry(positions, normals, uvs, indices, bounds)",
+      "invariants": [
+        "Todos los índices están en [0,vertexCount).",
+        "Cada triángulo tiene tres índices válidos y winding declarado.",
+        "Posiciones, normales y UV tienen cardinalidades compatibles."
+      ],
+      "edge_cases": [
+        "Radio cero o altura cero: rechazar o producir primitiva degenerada solo si el contrato lo permite.",
+        "Seam angular: duplicar vértices de borde UV cuando la parametrización lo requiera.",
+        "Segmentos mínimos insuficientes: rechazar antes de generar."
+      ],
+      "complexity": "O(V+I), donde V es número de vértices e I número de índices.",
+      "failure_conditions": [
+        "Parámetros inválidos, índices fuera de rango, NaN/Inf, topología degenerada no permitida."
+      ],
+      "derived_from": [
+        "superficie parametrizada P(u,v)"
+      ]
+    },
+    {
+      "record_key": "D02:1",
+      "name": "BufferGeometry manual",
+      "inputs": [
+        "Array de posiciones",
+        "Array opcional de índices",
+        "Atributos opcionales normales, UV, color, joints/weights",
+        "Modo indexado/no indexado"
+      ],
+      "outputs": [
+        "BufferGeometry validada",
+        "Bounds y atributos listos para GPU"
+      ],
+      "preconditions": [
+        "Cada atributo declara itemSize y longitud compatible con vertexCount.",
+        "Índices enteros y dentro del rango de vértices."
+      ],
+      "algorithm_steps": [
+        "Validar que position existe, tiene itemSize=3 y longitud múltiplo de 3.",
+        "Calcular vertexCount; validar todos los atributos opcionales contra vertexCount.",
+        "Si hay índices, validar múltiplos de 3 para TRIANGLES y comprobar min/max.",
+        "Si no hay índices, comprobar que el número de vértices satisface el modo de primitiva.",
+        "Generar normales si se requieren y faltan; rechazar degeneraciones no permitidas.",
+        "Asignar BufferAttributes, índice y drawRange.",
+        "Calcular boundingBox/boundingSphere; ejecutar validación final y subir buffers."
+      ],
+      "pseudocode": "function makeBufferGeometry(data):\n  validatePosition(data.position, itemSize=3)\n  V = data.position.length / 3\n  for attr in data.attributes:\n    assert attr.length / attr.itemSize == V\n  if data.indices exists:\n    assert data.indices.length % 3 == 0\n    assert min(data.indices) >= 0 and max(data.indices) < V\n  else:\n    assert V % 3 == 0\n  normals = data.normals ?? computeNormals(data.position, data.indices)\n  geometry = createGeometry(data.position, normals, data.uvs, data.indices)\n  geometry.bounds = computeBounds(data.position)\n  validateGeometry(geometry)\n  return geometry",
+      "invariants": [
+        "Todos los atributos comparten vertexCount.",
+        "Índices y drawRange no exceden buffers.",
+        "Bounds contienen todos los vértices."
+      ],
+      "edge_cases": [
+        "Malla no indexada: vértices deben estar agrupados según modo de primitiva.",
+        "Atributo opcional ausente: calcular solo si el pipeline lo requiere; no inventar UV/material.",
+        "Buffer vacío: devolver error explícito o geometría vacía según contrato."
+      ],
+      "complexity": "O(V+I+A), siendo A el total de valores de atributos.",
+      "failure_conditions": [
+        "Longitudes incompatibles, índice inválido, buffers no finitos o drawRange fuera de rango."
+      ],
+      "derived_from": [
+        "vertices=[p0,p1,...]; indices=[i0,i1,i2,...]"
+      ]
+    },
+    {
+      "record_key": "D02:2",
+      "name": "Superficie paramétrica",
+      "inputs": [
+        "Función P(u,v)",
+        "Intervalos [u0,u1], [v0,v1]",
+        "Resoluciones Nu,Nv",
+        "Política de normales y costuras"
+      ],
+      "outputs": [
+        "Malla muestreada position/normal/uv/index",
+        "Bounds"
+      ],
+      "preconditions": [
+        "P es evaluable y finita en todo el dominio muestreado.",
+        "Nu,Nv son enteros positivos; dominios y unidades están declarados."
+      ],
+      "algorithm_steps": [
+        "Validar dominios y resoluciones.",
+        "Para j=0..Nv y i=0..Nu, calcular u_i y v_j incluyendo/excluyendo extremos según política de costura.",
+        "Evaluar P(u_i,v_j); rechazar valores no finitos.",
+        "Crear UV normalizadas desde los parámetros.",
+        "Para cada celda, crear dos triángulos con winding fijo y omitir triángulos degenerados según tolerancia declarada.",
+        "Calcular normales con derivadas P_u×P_v si están disponibles; si no, usar diferencias finitas/vecindad.",
+        "Calcular bounds y validar continuidad de bordes."
+      ],
+      "pseudocode": "for j in 0..Nv:\n  v = lerp(v0, v1, j/Nv)\n  for i in 0..Nu:\n    u = lerp(u0, u1, i/Nu)\n    P[i,j] = surface(u,v)\n    UV[i,j] = (i/Nu, j/Nv)\nfor each cell (i,j):\n  emit triangles with declared winding\nN = normalize(cross(derivativeU, derivativeV)) or computeNormals(mesh)\nreturn validated mesh",
+      "invariants": [
+        "Cada vértice corresponde a una pareja (u_i,v_j).",
+        "Índices conectan solo vértices vecinos de la rejilla.",
+        "Normals son unitarias donde la superficie es regular."
+      ],
+      "edge_cases": [
+        "Costura periódica: conectar última columna con primera sin duplicar superficie; UV puede duplicar seam.",
+        "Singularidad paramétrica: normal indefinida requiere fallback o recorte.",
+        "Dominio degenerado: intervalo de longitud cero se rechaza."
+      ],
+      "complexity": "O((Nu+1)(Nv+1)+Nu·Nv).",
+      "failure_conditions": [
+        "Evaluación no finita, winding inconsistente, resolución cero o superficie degenerada no tratada."
+      ],
+      "derived_from": [
+        "P(u,v)=(x(u,v),y(u,v),z(u,v))"
+      ]
+    },
+    {
+      "record_key": "D02:3",
+      "name": "Superficie de revolución",
+      "inputs": [
+        "Perfil r(u), y(u)",
+        "Intervalo u y número de muestras Nu",
+        "Número angular Nθ",
+        "Ángulo de revolución y política de tapas"
+      ],
+      "outputs": [
+        "Malla de anillos de revolución",
+        "Normales, UV, índices y bounds"
+      ],
+      "preconditions": [
+        "r(u)≥0; perfil finito; Nθ≥3; parámetros en unidades coherentes.",
+        "El eje de revolución y el sentido angular están declarados."
+      ],
+      "algorithm_steps": [
+        "Muestrear el perfil en Nu+1 puntos.",
+        "Para cada punto de perfil y ángulo θ_k, generar P=(r(u)cosθ,y(u),r(u)sinθ).",
+        "Conectar anillos consecutivos con dos triángulos por quad usando winding consistente.",
+        "Si r=0 en extremo, colapsar el anillo a vértice/polo sin generar triángulos de área cero.",
+        "Crear tapas solo cuando el perfil y contrato indiquen extremo cerrado.",
+        "Calcular normales desde derivadas de perfil/revolución o desde malla; generar UV y bounds.",
+        "Validar costura angular y degeneraciones."
+      ],
+      "pseudocode": "profile = sampleProfile(r, y, Nu)\nfor i in 0..Nu:\n  for k in 0..Nθ:\n    θ = θ_start + sweepAngle*k/Nθ\n    vertex[i,k] = (r[i]*cosθ, y[i], r[i]*sinθ)\nfor each adjacent profile ring and angular segment:\n  connect quad with fixed winding\nhandleAxisEndpoints(r==0)\naddCapsIfRequested()\ncomputeNormalsUVBounds(); validate()",
+      "invariants": [
+        "Cada anillo representa una misma muestra u y varía solo θ.",
+        "La costura θ_start/θ_end coincide geométricamente si sweepAngle=2π.",
+        "No se emiten triángulos degenerados en el eje."
+      ],
+      "edge_cases": [
+        "Perfil toca eje: usar polo y triangulación en abanico.",
+        "Revolución parcial: crear paredes de cierre si se solicitan.",
+        "Perfil autointersectado: detectar o marcar como no soportado."
+      ],
+      "complexity": "O(Nu·Nθ) en vértices e índices.",
+      "failure_conditions": [
+        "Radio negativo, perfil no finito, winding invertido o costura abierta accidental."
+      ],
+      "derived_from": [
+        "P(u,theta)=(r(u)cos(theta), y(u), r(u)sin(theta))"
+      ]
+    },
+    {
+      "record_key": "D02:4",
+      "name": "Extrusión",
+      "inputs": [
+        "Contorno C(u) cerrado o abierto",
+        "Dirección d o trayectoria de extrusión",
+        "Longitud/escala de extrusión",
+        "Resolución longitudinal"
+      ],
+      "outputs": [
+        "Superficie lateral y tapas opcionales",
+        "Malla validada"
+      ],
+      "preconditions": [
+        "Contorno y vector d son finitos; el contorno tiene orientación y política de cierre definidas.",
+        "Longitud y parámetros usan unidades compatibles."
+      ],
+      "algorithm_steps": [
+        "Validar contorno, detectar segmentos de longitud cero y verificar auto-intersección si se requiere sólido cerrado.",
+        "Normalizar dirección d cuando el parámetro representa solo dirección; conservar magnitud si define desplazamiento total.",
+        "Muestrear perfil C(u) y crear copias P(s,u)=C(u)+s·d para cada nivel s.",
+        "Conectar perfiles consecutivos con quads triangulados con winding coherente.",
+        "Triangular tapas inicial/final si contorno cerrado y extrusión sólida solicitada.",
+        "Calcular normales, UV y bounds; validar watertightness cuando sea requisito."
+      ],
+      "pseudocode": "validateContour(C)\nfor j in 0..Ns:\n  s = j/Ns\n  for i in 0..Nu:\n    P[j,i] = C(u_i) + s*d\nconnectAdjacentProfiles(P)\nif closedContour and solid:\n  triangulateCap(P[0]); triangulateCap(P[Ns])\ncomputeNormalsUVBounds(); validateMesh()",
+      "invariants": [
+        "Cada sección conserva la topología del contorno base.",
+        "Desplazamiento s·d tiene unidad de longitud.",
+        "Las caras laterales comparten aristas sin huecos."
+      ],
+      "edge_cases": [
+        "Contorno abierto: no generar sólido cerrado salvo opción explícita.",
+        "Dirección nula: rechazar si se espera volumen.",
+        "Contorno autointersectado: triangulación de tapa requiere resolver o rechazar."
+      ],
+      "complexity": "O(Ns·Nu) más coste de triangulación de tapas.",
+      "failure_conditions": [
+        "Contorno inválido, vector de extrusión nulo, tapa no triangulable o normales inconsistentes."
+      ],
+      "derived_from": [
+        "P(s,u)=C(u)+s·d"
+      ]
+    },
+    {
+      "record_key": "D02:5",
+      "name": "Sweep por curva",
+      "inputs": [
+        "Curva central C(s)",
+        "Radio/perfil r(s)",
+        "Resolución longitudinal Ns y angular Nθ",
+        "Marco local T,N,B"
+      ],
+      "outputs": [
+        "Tubo/sweep con anillos y caras",
+        "Normales, UV y bounds"
+      ],
+      "preconditions": [
+        "Curva regular con tangente no nula en muestras; radio finito no negativo.",
+        "Marco local y handedness declarados."
+      ],
+      "algorithm_steps": [
+        "Muestrear C(s) y derivada C'(s); normalizar T(s).",
+        "Construir marco inicial N,B perpendicular a T.",
+        "Para cada muestra posterior, transportar marco según política elegida; no recalcular N arbitrariamente por cross con up si se requiere estabilidad.",
+        "Generar anillo P(s,θ)=C(s)+r(s)(N cosθ+B sinθ).",
+        "Conectar anillos consecutivos con winding consistente; generar tapas opcionales.",
+        "Calcular normales/UV y bounds; verificar continuidad de marco y costuras."
+      ],
+      "pseudocode": "samples = sampleCurve(C, Ns)\nT[0] = normalize(C'(s0))\n(N[0],B[0]) = initialFrame(T[0])\nfor i in 1..Ns:\n  T[i] = normalize(C'(s_i))\n  (N[i],B[i]) = transportFrame(T[i-1], T[i], N[i-1])\n  for k in 0..Nθ:\n    θ = 2πk/Nθ\n    P[i,k] = C(s_i) + r(s_i)*(N[i]*cosθ + B[i]*sinθ)\nconnectRings(P); computeNormalsUVBounds(); validate()",
+      "invariants": [
+        "T,N,B son ortonormales dentro de tolerancia.",
+        "Cada anillo queda centrado en C(s).",
+        "El radio r(s) es no negativo y tiene unidad L."
+      ],
+      "edge_cases": [
+        "Tangente casi nula: marcar singularidad y usar marco anterior/segmentación.",
+        "Radio cero: anillo colapsa; evitar caras degeneradas.",
+        "Curva cerrada: corregir twist acumulado en costura si se exige cierre sin torsión."
+      ],
+      "complexity": "O(Ns·Nθ).",
+      "failure_conditions": [
+        "Marco no ortonormal, curva singular, radios inválidos o conectividad de anillos inconsistente."
+      ],
+      "derived_from": [
+        "P(s,theta)=C(s)+r(s)[N(s)cos(theta)+B(s)sin(theta)]"
+      ]
+    },
+    {
+      "record_key": "D02:6",
+      "name": "Sweep con marco paralelo",
+      "inputs": [
+        "Tangentes unitarias consecutivas T_i",
+        "Normal inicial N_0 ortogonal a T_0",
+        "Tolerancia angular ε"
+      ],
+      "outputs": [
+        "Marcos estables T_i,N_i,B_i a lo largo de curva"
+      ],
+      "preconditions": [
+        "T_i no nulas; normal inicial proyectable; convención de mano definida."
+      ],
+      "algorithm_steps": [
+        "Normalizar T_0 y proyectar N_0 al plano perpendicular: N_0←normalize(N_0−T_0(T_0·N_0)).",
+        "Para cada par T_prev,T_curr, calcular eje a=T_prev×T_curr y magnitud s=||a|| y coseno c=clamp(T_prev·T_curr,−1,1).",
+        "Si s>ε, definir eje a/s y ángulo atan2(s,c); rotar N_prev por la rotación mínima alrededor del eje.",
+        "Si s≤ε y c>0, conservar N_prev; si c<0, tangentes antiparalelas, usar eje de respaldo ortogonal declarado y rotación π.",
+        "Proyectar N_curr de nuevo al plano perpendicular a T_curr y normalizar.",
+        "Calcular B_curr=normalize(T_curr×N_curr); comprobar ortogonalidad.",
+        "Guardar marco y avanzar."
+      ],
+      "pseudocode": "N = normalize(N0 - T0*dot(T0,N0))\nB = normalize(cross(T0,N))\nfor i in 1..count-1:\n  a = cross(T[i-1], T[i]); s = length(a); c = clamp(dot(T[i-1],T[i]),-1,1)\n  if s > eps:\n    axis = a/s; angle = atan2(s,c)\n    N = rotateAroundAxis(N, axis, angle)\n  else if c < 0:\n    axis = deterministicOrthogonalAxis(T[i])\n    N = rotateAroundAxis(N, axis, PI)\n  N = normalize(N - T[i]*dot(T[i],N))\n  B = normalize(cross(T[i],N))\n  emitFrame(T[i],N,B)",
+      "invariants": [
+        "T_i·N_i≈0; T_i·B_i≈0; N_i·B_i≈0.",
+        "||T_i||=||N_i||=||B_i||≈1.",
+        "La rotación entre marcos es mínima salvo caso antiparalelo singular."
+      ],
+      "edge_cases": [
+        "Tangentes paralelas: conservar normal previa.",
+        "Tangentes antiparalelas: usar eje ortogonal determinista y documentado.",
+        "Curva con tangente cero: dividir curva o usar tangente vecina válida."
+      ],
+      "complexity": "O(Ns) en número de muestras.",
+      "failure_conditions": [
+        "Normal inicial paralela a tangente; tangentes nulas; eje de respaldo no determinista."
+      ],
+      "derived_from": [
+        "T=C'/|C'|; N transportado; B=T×N"
+      ]
+    },
+    {
+      "record_key": "D02:7",
+      "name": "Subdivision surfaces",
+      "inputs": [
+        "Malla poligonal manifold o reglas de borde declaradas",
+        "Número de niveles",
+        "Reglas de crease/boundary"
+      ],
+      "outputs": [
+        "Malla refinada de quads/triángulos",
+        "Superficie límite aproximada"
+      ],
+      "preconditions": [
+        "Topología consistente; cada arista tiene vecindad conocida.",
+        "Reglas Catmull–Clark/Loop elegidas explícitamente."
+      ],
+      "algorithm_steps": [
+        "Construir tablas de adyacencia de vértices, aristas y caras.",
+        "Calcular punto de cara como promedio de vértices de cara.",
+        "Calcular punto de arista interior con extremos y puntos de caras adyacentes; aplicar regla de borde/crease para aristas límite.",
+        "Calcular nuevo punto de vértice según valencia y promedios de caras/aristas; aplicar regla especial para boundary/crease.",
+        "Crear nuevas caras conectando puntos originales, de arista y de cara según patrón del esquema.",
+        "Recalcular normales, UV y bounds; repetir hasta nivel configurado.",
+        "Validar que no se generen caras degeneradas ni topología no manifold inesperada."
+      ],
+      "pseudocode": "for each face f: F[f] = average(vertices(f))\nfor each edge e=(v1,v2):\n  if interior: E[e] = (v1+v2+F[f1]+F[f2])/4\n  else: E[e] = boundaryRule(v1,v2,crease)\nfor each vertex v:\n  Vnew[v] = vertexRule(v, adjacentFaces, adjacentEdges, valence)\nnewMesh = rebuildFaces(Vnew,E,F)\nvalidateTopology(newMesh)\nrepeat levelCount",
+      "invariants": [
+        "Todos los puntos nuevos se derivan de vecindad de la malla previa.",
+        "La conectividad refinada cubre las caras originales sin huecos.",
+        "Reglas de borde/crease se aplican de forma consistente."
+      ],
+      "edge_cases": [
+        "Valencia irregular: usar fórmula dependiente de n.",
+        "Boundary edge: no aplicar fórmula interior de dos caras.",
+        "Non-manifold: rechazar o reparar con política explícita antes de subdividir."
+      ],
+      "complexity": "O(V+E+F) por nivel con adyacencia precalculada.",
+      "failure_conditions": [
+        "Topología inconsistente, reglas de borde indefinidas o índices duplicados."
+      ],
+      "derived_from": [
+        "P_nuevo=ponderación de vértices vecinos según reglas Catmull-Clark"
+      ]
+    },
+    {
+      "record_key": "D02:13",
+      "name": "Fractales geométricos",
+      "inputs": [
+        "Geometría inicial P_0",
+        "Conjunto de transformaciones T_i",
+        "Profundidad máxima n_max",
+        "Presupuesto de instancias/vértices",
+        "Semilla opcional"
+      ],
+      "outputs": [
+        "Jerarquía de instancias fractales",
+        "Geometría combinada o instanciada"
+      ],
+      "preconditions": [
+        "Transformaciones finitas y escala acotada.",
+        "Profundidad y presupuesto explícitos para evitar crecimiento ilimitado."
+      ],
+      "algorithm_steps": [
+        "Validar transformaciones y profundidad máxima.",
+        "Insertar raíz P_0 en una cola con profundidad 0 y transformación identidad.",
+        "Extraer nodo; emitir instancia con transformación acumulada.",
+        "Si profundidad<n_max y presupuesto disponible, generar hijos aplicando T_i al marco local del padre.",
+        "Componer M_child=M_parent·T_i y asignar seed estable por ruta de nodo.",
+        "Detener expansión cuando se alcance profundidad, presupuesto o umbral de tamaño proyectado.",
+        "Agrupar instancias por geometría/material y calcular bounds jerárquicos."
+      ],
+      "pseudocode": "queue=[(identity, 0, seedRoot)]\nwhile queue not empty and instanceCount < budget:\n  (M, depth, seed) = pop(queue)\n  emitInstance(P0, M, seed)\n  if depth < maxDepth and projectedSize(M) > minSize:\n    for i, T_i in enumerate(transforms):\n      push(queue, (M*T_i, depth+1, hash(seed,i)))\nreturn instanceSet",
+      "invariants": [
+        "Cada hijo deriva de su padre por transformación declarada.",
+        "Semillas dependen de ruta/ID y no del orden de ejecución.",
+        "La cantidad de instancias no supera el presupuesto."
+      ],
+      "edge_cases": [
+        "Factor de escala ≥1: profundidad/budget obligatorio.",
+        "Transformación singular: rechazar si colapsa geometría no permitido.",
+        "Recursión profunda: usar cola iterativa para evitar stack overflow."
+      ],
+      "complexity": "O(N) instancias emitidas; N acotado por presupuesto y branching^depth.",
+      "failure_conditions": [
+        "Transformaciones no finitas, crecimiento sin límite, IDs/semillas no deterministas."
+      ],
+      "derived_from": [
+        "P_n=transformaciones repetidas de P_0"
+      ]
+    },
+    {
+      "record_key": "D02:14",
+      "name": "Marching Cubes",
+      "inputs": [
+        "Campo escalar muestreado en grid 3D",
+        "Isovalor iso",
+        "Espaciado de grid",
+        "Tabla de casos y edge interpolation"
+      ],
+      "outputs": [
+        "Malla triangular de isosuperficie",
+        "Normales y bounds"
+      ],
+      "preconditions": [
+        "Valores escalares finitos; grid regular o coordenadas por vértice conocidas.",
+        "Convención de inside/outside y tabla de casos coherentes."
+      ],
+      "algorithm_steps": [
+        "Recorrer cada celda cúbica y leer sus ocho valores escalares.",
+        "Construir caseIndex usando comparación value<iso para cada vértice.",
+        "Si caseIndex es 0 o 255, no emitir geometría.",
+        "Para cada arista marcada por tabla, calcular t=(iso−fA)/(fB−fA); si denominador≈0 usar punto medio solo si la clasificación permite cruce estable.",
+        "Interpolar posición P=A+t(B−A) y almacenar vértice compartido mediante edge cache para evitar duplicados.",
+        "Consultar triTable y emitir triángulos con winding consistente.",
+        "Calcular normales mediante gradiente del campo o acumulación; validar ambigüedades, degeneraciones y bounds."
+      ],
+      "pseudocode": "for each cube cell:\n  values = sample8(field, cell)\n  case = bitmask(values[i] < iso)\n  if case == 0 or case == 255: continue\n  for edge in activeEdges(case):\n    (A,B) = edgeEndpoints(edge)\n    denom = fB - fA\n    t = (iso - fA)/denom if abs(denom)>eps else 0.5\n    vertex[edge] = interpolate(A,B,clamp(t,0,1))\n  for tri in triangleTable[case]: emit(vertex[tri])\ncomputeNormalsAndBounds(); validateMesh()",
+      "invariants": [
+        "Cada vértice extraído pertenece a una arista con cambio de signo respecto a iso.",
+        "La interpolación conserva el isovalor bajo aproximación lineal en la arista.",
+        "La tabla de casos y convención de winding son globalmente consistentes."
+      ],
+      "edge_cases": [
+        "fA=fB=iso: arista coincidente con superficie requiere regla de deduplicación.",
+        "Casos ambiguos: usar variante topológicamente consistente (p. ej. MC33) si se exige conectividad robusta.",
+        "Grid boundary: superficie puede quedar abierta si isosuperficie cruza el borde del volumen."
+      ],
+      "complexity": "O(N_cells+N_vertices+N_triangles), lineal en número de celdas.",
+      "failure_conditions": [
+        "Valores no finitos, tabla de casos incompatible, división por cero no tratada, malla con winding inconsistente."
+      ],
+      "derived_from": [
+        "isolevel: f(p)=iso; t=(iso-fA)/(fB-fA)"
+      ]
+    },
+    {
+      "record_key": "D02:15",
+      "name": "Stop-motion procedural con microjitter determinista",
+      "inputs": [
+        "Tiempo t",
+        "Cadencia fps_s",
+        "Semilla global y channelId",
+        "Amplitud por canal",
+        "Función base de pose F(t)"
+      ],
+      "outputs": [
+        "Índice entero de frame",
+        "Pose cuantizada",
+        "Jitter reproducible por frame/canal"
+      ],
+      "preconditions": [
+        "fps_s>0; amplitudes finitas y acotadas.",
+        "Hash/PRNG versionado y determinista."
+      ],
+      "algorithm_steps": [
+        "Calcular frameIndex=floor(t·fps_s).",
+        "Calcular tiempo cuantizado t_q=frameIndex/fps_s.",
+        "Para cada canal (posición, rotación, escala), derivar seedChannel=hash(globalSeed,frameIndex,channelId).",
+        "Generar valor pseudoaleatorio h∈[0,1) y mapear ε=A(2h−1).",
+        "Aplicar ε a la pose base en la unidad del canal; rotación en radianes, posición en longitud.",
+        "Limitar jitter a máximos declarados; devolver pose y frameIndex.",
+        "No usar generador aleatorio global sin semilla; mismo t, seed y versión deben producir misma pose."
+      ],
+      "pseudocode": "frame = floor(t * fps)\ntq = frame / fps\npose = F(tq)\nfor channel in channels:\n  h = hash01(globalSeed, frame, channel.id, algorithmVersion)\n  epsilon = channel.amplitude * (2*h - 1)\n  pose[channel] += clamp(epsilon, -channel.maxJitter, channel.maxJitter)\nreturn pose",
+      "invariants": [
+        "La pose es determinista para mismo frame, seed, channelId y versión de hash.",
+        "Jitter permanece dentro de amplitud máxima.",
+        "La cuantización temporal usa frameIndex entero y no depende de frame rate de render."
+      ],
+      "edge_cases": [
+        "t<0: rechazar o definir floor para timeline negativo.",
+        "fps_s no entero: usar valor racional/float versionado y precisión estable.",
+        "Canal angular: aplicar jitter en radianes y normalizar wrap."
+      ],
+      "complexity": "O(C) por frame para C canales.",
+      "failure_conditions": [
+        "fps_s≤0, amplitud no finita, semilla no determinista o jitter fuera de límites."
+      ],
+      "derived_from": [
+        "t_q=floor(t f_s)/f_s; ε_k=A(2h(k,seed)−1)"
+      ]
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "11/11 técnicas no protegidas tienen algoritmo, pseudocódigo, precondiciones, invariantes, límites, complejidad y fallos.",
+      "Los algoritmos derivan de las ecuaciones de superficies, curvas, marcos, subdivisión, fractales e isosuperficies.",
+      "No se reauditan ni modifican las cinco técnicas protegidas."
+    ],
+    "limitations": [
+      "Topología robusta, tolerancias numéricas y rendimiento se validan con pruebas independientes en el punto 5; la integración al manifiesto corresponde al punto 6."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
