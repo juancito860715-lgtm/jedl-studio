@@ -53,6 +53,10 @@
       "result": "La ramificación se obtiene por composición iterada de transformaciones afines.",
       "limits": [
         "Si escalas no decrecen o la ramificación es alta, coste y tamaño pueden crecer exponencialmente."
+      ],
+      "dimensional_verification": [
+        "Las transformaciones lineales de rama son adimensionales; traslaciones y puntos tienen L.",
+        "length_{n+1}=s_j length_n conserva L porque s_j es una razón adimensional."
       ]
     },
     {
@@ -92,6 +96,10 @@
       "result": "La gramática genera una secuencia de símbolos que se interpreta como geometría.",
       "limits": [
         "La longitud de palabra puede crecer exponencialmente; limitar generaciones y usar poda."
+      ],
+      "dimensional_verification": [
+        "Longitudes turtle tienen L; ángulos radianes y símbolos/índices son adimensionales/discretos.",
+        "Las probabilidades de reglas son adimensionales y suman 1 en cada contexto de producción."
       ]
     },
     {
@@ -136,6 +144,10 @@
       "result": "El muestreo es un proceso de aceptación/rechazo condicionado por una exclusión radial.",
       "limits": [
         "El resultado no es necesariamente maximal si se detiene por presupuesto antes de cubrir todo el dominio."
+      ],
+      "dimensional_verification": [
+        "p_i, p_j y r_min tienen L; la desigualdad de separación es homogénea.",
+        "El muestreo uniforme opera sobre una medida de área/volumen declarada."
       ]
     },
     {
@@ -175,6 +187,10 @@
       "result": "La distribución radial √n y el giro constante producen cobertura aproximadamente uniforme del disco.",
       "limits": [
         "La densidad depende del tamaño de dominio y del rango de n; no garantiza separación mínima estricta."
+      ],
+      "dimensional_verification": [
+        "n es un índice entero adimensional; θ_n es angular adimensional.",
+        "c tiene L y √n es adimensional; r_n tiene L; el área πr_n² tiene L²."
       ]
     },
     {
@@ -214,6 +230,10 @@
       "result": "La curva define el eje y el perfil de radio define la sección tubular.",
       "limits": [
         "La fórmula de radio se anula en la punta; la malla debe cerrar o colapsar sin degeneraciones no controladas."
+      ],
+      "dimensional_verification": [
+        "C(u), r_0 y r(u) tienen L; u y γ son adimensionales.",
+        "T,N,B son direcciones adimensionales; P(u,θ) conserva L."
       ]
     },
     {
@@ -253,6 +273,10 @@
       "result": "La hoja se genera como una superficie parametrizada alrededor de su nervio central.",
       "limits": [
         "La fórmula plana no incluye espesor, borde dentado ni curvatura de la lámina; se añaden desplazamientos/atributos."
+      ],
+      "dimensional_verification": [
+        "C(u), w(u) y P(u,v) tienen L; v es adimensional y N es unitario.",
+        "Las derivadas de P respecto de parámetros adimensionales tienen L; el producto cruzado usado para normalizar la normal tiene L² antes de normalización."
       ]
     },
     {
@@ -265,33 +289,43 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "a=g+F_wind/m",
-          "justification": "Combinar gravedad y fuerza del viento para obtener aceleración."
+          "equation": "a_wind(t)=F_wind(t)/m; p''(t)=g+a_wind(t)",
+          "justification": "Convertir fuerza de viento en aceleración y sumarla a gravedad mediante segunda ley de Newton."
         },
         {
           "step": 2,
-          "equation": "p(t)=p_0+v_0t+0.5at²",
-          "justification": "Integrar movimiento con aceleración constante por tramo."
+          "equation": "p(t)=p0+v0 t+∫₀ᵗ(t−τ)[g+a_wind(τ)]dτ",
+          "justification": "Integrar dos veces la aceleración variable con condiciones iniciales p(0)=p0 y p'(0)=v0."
         },
         {
           "step": 3,
-          "equation": "R(t)=R_0·exp(ωt)",
-          "justification": "Representar giro mediante integración angular si ω constante."
+          "equation": "si a_wind es constante: p(t)=p0+v0t+½(g+a_wind)t²",
+          "justification": "Reducir la integral doble a la solución balística para aceleración constante."
         },
         {
           "step": 4,
-          "equation": "drift(t)=∫v_wind(t)dt",
-          "justification": "Acumular deriva si el viento varía en el tiempo."
+          "equation": "θ(t)=θ0+ωt; R(t)=R_axis(θ(t))",
+          "justification": "Integrar velocidad angular constante y construir la orientación alrededor de un eje unitario."
+        },
+        {
+          "step": 5,
+          "equation": "q(t)=axisAngle(axis,θ(t))",
+          "justification": "Representar la orientación como cuaternión unitario para evitar una exponencial escalar incorrecta de matriz."
         }
       ],
       "assumptions": [
-        "Aceleración por tramo constante o integrador temporal definido.",
-        "Posición y velocidad usan mismas unidades de tiempo/longitud.",
-        "La rotación se representa con eje/ángulo o cuaternión."
+        "m>0; fuerza y masa definidas; a_wind integrable.",
+        "p0 y p tienen L; v0 L/T; g y a_wind L/T².",
+        "ω constante en el tramo y eje de giro unitario; si ω varía, integrar ω(t)."
       ],
-      "result": "La caída combina trayectoria balística, deriva y rotación secundaria.",
+      "result": "La trayectoria se obtiene integrando dos veces gravedad más aceleración del viento; la rotación se obtiene integrando velocidad angular y convirtiendo el ángulo a orientación.",
       "limits": [
-        "Para ráfagas variables, la solución cerrada deja de ser exacta y se requiere integración."
+        "Para viento variable, la forma cerrada requiere evaluar la integral; si se aproxima por tramos, declarar paso y error.",
+        "La orientación puede necesitar integración de velocidad angular vectorial si el eje cambia."
+      ],
+      "dimensional_verification": [
+        "g y F_wind/m tienen L/T²; la integral doble de aceleración sobre tiempo produce L.",
+        "ω tiene T⁻¹; ωt es ángulo adimensional; la orientación se representa por matriz/cuaternión, no por exponencial escalar de una matriz."
       ]
     },
     {
@@ -304,33 +338,43 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "b(s)=base+s·height·up",
-          "justification": "Definir eje de cada hoja de pasto."
+          "equation": "b(s)=base+s·height·up,  s∈[0,1]",
+          "justification": "Construir la línea central desde la base hasta la punta con altura física height y dirección up unitaria."
         },
         {
           "step": 2,
-          "equation": "bend(s,t)=A(s)·w(t)·dir",
-          "justification": "Añadir desplazamiento lateral dependiente de altura y tiempo."
+          "equation": "bend(s,t)=A(s)w(t)dir",
+          "justification": "Definir desplazamiento lateral de viento con amplitud espacial A(s), señal temporal w(t) y dirección unitaria dir."
         },
         {
           "step": 3,
-          "equation": "P(s,t)=b(s)+bend(s,t)",
-          "justification": "Componer eje y curvatura temporal."
+          "equation": "P(s,v,t)=b(s)+bend(s,t)+v·width(s)N(s),  v∈[−1,1]",
+          "justification": "Extender la línea central a una lámina de ancho width(s) alrededor de su dirección transversal N(s)."
         },
         {
           "step": 4,
-          "equation": "normal=normalize(∂P/∂s × ∂P/∂v)",
-          "justification": "Obtener normal de la lámina para iluminación."
+          "equation": "N(s)=normalize(T(s)×up_ref); T=normalize(∂b/∂s)",
+          "justification": "Construir marco local de la hoja; usar referencia alternativa si el producto cruzado es casi nulo."
+        },
+        {
+          "step": 5,
+          "equation": "n=normalize(P_s×P_v)",
+          "justification": "Obtener la normal geométrica de la lámina a partir de sus tangentes paramétricas."
         }
       ],
       "assumptions": [
-        "s∈[0,1]; height>0.",
-        "A(s) tiene unidad de longitud; w(t) adimensional.",
-        "Dirección y up normalizados."
+        "s y v adimensionales; height y width(s) tienen L.",
+        "A(s) tiene L; w(t) adimensional; dir y up_ref unitarios.",
+        "El marco transversal se estabiliza para evitar flips."
       ],
-      "result": "Cada brizna se representa por una curva/lamina paramétrica con deformación de viento.",
+      "result": "Cada brizna es una lámina parametrizada cuya línea central se deforma por el viento y cuyo ancho se controla a lo largo de la altura.",
       "limits": [
-        "La malla de la hoja debe actualizar normales o usar aproximación de iluminación adecuada."
+        "La lámina no incorpora espesor; doble cara o espesor se trata por material/geometría adicional.",
+        "Si P_s×P_v≈0, la normal no está definida y debe usarse fallback."
+      ],
+      "dimensional_verification": [
+        "base y height tienen L; s y v son adimensionales; bend y ancho w(s) tienen L.",
+        "Las derivadas paramétricas de la lámina tienen L y su producto cruzado tiene L² antes de normalizar la normal."
       ]
     },
     {
@@ -343,28 +387,28 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "S_i=separation(neighbors)",
-          "justification": "Calcular repulsión local."
+          "equation": "S_i=Σ_{j∈N_i, j≠i}−(p_j−p_i)/||p_j−p_i||²",
+          "justification": "La separación produce un vector de repulsión ponderado inversamente por la distancia cuadrática."
         },
         {
           "step": 2,
-          "equation": "C_i=cohesion(neighbors)",
-          "justification": "Calcular vector hacia centroide."
+          "equation": "C_i=mean_{j∈N_i}(p_j)−p_i; A_i=mean(v_j)−v_i",
+          "justification": "Cohesión apunta al centroide local; alineación es diferencia entre velocidad media y velocidad propia."
         },
         {
           "step": 3,
-          "equation": "N_i=noise(seed_i,t)",
-          "justification": "Añadir perturbación reproducible/correlacionada."
+          "equation": "n_i=normalize(p_light−p_i); ξ_i=noise(seed_i,t)",
+          "justification": "Construir dirección hacia la luz y ruido reproducible adimensional."
         },
         {
           "step": 4,
-          "equation": "A_i=attraction(light)",
-          "justification": "Calcular orientación hacia fuente lumínica."
+          "equation": "a_i=w_sS_i+w_cC_i+w_aA_i+w_nξ_i+w_l n_i",
+          "justification": "Convertir todos los términos a aceleración mediante ganancias dimensionales antes de sumarlos."
         },
         {
           "step": 5,
-          "equation": "a_i=w_sS_i+w_cC_i+w_nN_i+w_lA_i",
-          "justification": "Combinar componentes con ganancias dimensionales a aceleración."
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar aceleración y actualizar posición con paso temporal común."
         },
         {
           "step": 6,
@@ -375,11 +419,16 @@
       "assumptions": [
         "Ganancias convierten cada término a unidad común de aceleración.",
         "Semillas y estados finitos; radio de vecindad definido.",
-        "Luz y posiciones en marcos compatibles."
+        "Luz y posiciones en marcos compatibles.",
+        "w_s tiene L²/T²; w_c T⁻²; w_a T⁻¹; w_n y w_l L/T²."
       ],
       "result": "El movimiento colectivo surge de reglas locales y un campo de atracción ambiental.",
       "limits": [
         "No asumir que los vectores crudos tienen unidades homogéneas; definir ganancias y límites."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; C_i tiene L; A_i tiene L/T; noise y dirección a luz son adimensionales si normalizados.",
+        "Para aceleración: w_s L²/T², w_c T⁻², w_a T⁻¹ y w_n,w_l L/T²; todos los términos quedan L/T²."
       ]
     },
     {
@@ -392,45 +441,51 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i",
-          "justification": "Combinar separación, alineación y cohesión."
+          "equation": "S_i=Σ−(p_j−p_i)/||p_j−p_i||²; A_i=mean(v_j)−v_i; C_i=mean(p_j)−p_i",
+          "justification": "Definir separación, alineación y cohesión desde el vecindario local."
         },
         {
           "step": 2,
-          "equation": "leader(t)=path(t)",
-          "justification": "Definir trayectoria del líder o referencia de grupo."
+          "equation": "L_i=p_leader(t)−p_i",
+          "justification": "Obtener vector de seguimiento hacia la posición del líder en el tiempo t."
         },
         {
           "step": 3,
-          "equation": "a_i'=a_i+w_l(target_i−p_i)",
-          "justification": "Añadir seguimiento de líder con ganancia dimensional."
+          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i+w_lL_i",
+          "justification": "Homogeneizar cada término a aceleración con ganancias dimensionales antes de la suma."
         },
         {
           "step": 4,
-          "equation": "integrate(v_i,p_i,Δt)",
-          "justification": "Actualizar movimiento con paso temporal común."
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar el campo de aceleración y actualizar la posición de cada ave."
         }
       ],
       "assumptions": [
         "Los términos de Boids se escalan dimensionalmente a aceleración.",
         "La trayectoria líder comparte marco y unidad con agentes.",
-        "La fuerza de líder tiene ganancia tipada."
+        "La fuerza de líder tiene ganancia tipada.",
+        "w_s tiene L²/T²; w_a T⁻¹; w_c T⁻²; w_l T⁻²."
       ],
       "result": "La bandada combina reglas locales de Boids con una referencia de trayectoria.",
       "limits": [
         "El seguimiento de líder puede dominar cohesión si la ganancia no está acotada."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; A_i L/T; C_i L; el vector al líder tiene L.",
+        "Las ganancias deben convertir cada término a aceleración: w_s L²/T², w_a T⁻¹, w_c T⁻² y w_l T⁻²."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "10 derivaciones para las 10 técnicas no protegidas.",
-      "Cada paso contiene ecuación y justificación.",
-      "Se distinguen gramáticas, muestreo, geometría, cinemática y comportamiento emergente.",
-      "Tres claves protegidas excluidas."
+      "10/10 técnicas no protegidas cubiertas; D05:6, D05:7 y D05:9 excluidas por protección",
+      "Cada derivación tiene pasos matemáticos justificados, resultado, supuestos, límites y verificación dimensional",
+      "Se corrigió la integración de viento variable y la orientación de hojas cayendo",
+      "La hoja de pasto queda definida como superficie P(s,v,t), no como curva sin parámetro transversal",
+      "Enjambre de insectos y bandada convierten separación/alineación/cohesión a aceleración mediante ganancias con unidades explícitas"
     ],
     "limitations": [
-      "Las derivaciones establecen modelos matemáticos; los parámetros ecológicos/artísticos y la integración se validan en fases posteriores."
+      "La validación cubre derivaciones matemáticas y dimensiones; algoritmos completos, pseudocódigo y pruebas numéricas se desarrollan en puntos posteriores."
     ]
   },
   "integrity": {
