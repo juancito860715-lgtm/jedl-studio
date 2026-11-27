@@ -335,6 +335,35 @@ def volume_composite(segments):
     return radiance,trans
 
 
+def double_reflection_frame(x0, x1, t0, t1, r0):
+    """Wang et al. double-reflection RMF step for sampled curve points."""
+    def dot(a,b): return sum(x*y for x,y in zip(a,b))
+    def sub(a,b): return tuple(x-y for x,y in zip(a,b))
+    def reflect(v,axis):
+        denom=dot(axis,axis)
+        if denom < 1e-20: raise ValueError("degenerate reflection vector")
+        scale=2.0*dot(axis,v)/denom
+        return tuple(v[i]-scale*axis[i] for i in range(3))
+    vectors=(x0,x1,t0,t1,r0)
+    if any(len(v)!=3 or not all(math.isfinite(a) for a in v) for v in vectors):
+        raise ValueError("all inputs must be finite 3-vectors")
+    if abs(math.sqrt(dot(t0,t0))-1)>1e-6 or abs(math.sqrt(dot(t1,t1))-1)>1e-6:
+        raise ValueError("tangents must be unit length")
+    if abs(math.sqrt(dot(r0,r0))-1)>1e-6 or abs(dot(t0,r0))>1e-6:
+        raise ValueError("initial reference vector must be unit and orthogonal to t0")
+    v1=sub(x1,x0)
+    rL=reflect(r0,v1)
+    tL=reflect(t0,v1)
+    v2=sub(t1,tL)
+    r1=reflect(rL,v2)
+    s1=(t1[1]*r1[2]-t1[2]*r1[1],t1[2]*r1[0]-t1[0]*r1[2],t1[0]*r1[1]-t1[1]*r1[0])
+    norm=math.sqrt(dot(r1,r1))
+    if norm<1e-12: raise ValueError("transported normal is degenerate")
+    r1=tuple(v/norm for v in r1)
+    s1=(t1[1]*r1[2]-t1[2]*r1[1],t1[2]*r1[0]-t1[0]*r1[2],t1[0]*r1[1]-t1[1]*r1[0])
+    return r1,s1,tuple(t1)
+
+
 def regularized_plane_qef(points_normals, center, regularization):
     """Solve the full 3x3 regularized Hermite QEF normal equations."""
     if regularization < 0 or not math.isfinite(regularization):
@@ -642,6 +671,21 @@ def blend_dual_quaternions(items):
     def test_dual_contouring_qef_rejects_singular_unregularized_system(self):
         with self.assertRaises(ValueError):
             regularized_plane_qef([((0,0,0),(1,0,0))],(0,0,0),0.0)
+
+
+    def test_camera_double_reflection_frame_is_orthonormal(self):
+        r,s,t=double_reflection_frame((1,0,0),(0,1,0),(0,1,0),(-1,0,0),(0,0,1))
+        for v in (r,s,t):
+            self.assertAlmostEqual(math.sqrt(sum(a*a for a in v)),1.0,places=9)
+        self.assertAlmostEqual(sum(a*b for a,b in zip(r,t)),0.0,places=9)
+        self.assertAlmostEqual(sum(a*b for a,b in zip(s,t)),0.0,places=9)
+        self.assertAlmostEqual(sum(a*b for a,b in zip(r,s)),0.0,places=9)
+
+    def test_camera_double_reflection_preserves_reference_on_straight_line(self):
+        r,s,t=double_reflection_frame((0,0,0),(0,0,1),(0,0,1),(0,0,1),(1,0,0))
+        self.assertVecAlmostEqual(r,(1,0,0))
+        self.assertVecAlmostEqual(s,(0,1,0))
+        self.assertVecAlmostEqual(t,(0,0,1))
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
