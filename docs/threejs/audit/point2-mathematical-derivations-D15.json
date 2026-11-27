@@ -61,6 +61,10 @@
       "result": "SSAO aproxima visibilidad ambiental integrando muestras cercanas alrededor de la superficie.",
       "limits": [
         "Es screen-space: no ve geometría fuera de pantalla ni oclusores ocultos por otros objetos."
+      ],
+      "dimensional_verification": [
+        "p_view, radius y bias tienen L; TBN y kernel son adimensionales; sample position conserva L.",
+        "AO, o_i y pesos w_i son adimensionales; depth samples comparados comparten unidad/codificación."
       ]
     },
     {
@@ -95,11 +99,16 @@
       "assumptions": [
         "σ>0 y mismo espacio/unidad que coordenada x.",
         "Señal finita; borde usa clamp/mirror/renormalización declarada.",
-        "Kernel discreto renormalizado para que suma de pesos sea 1."
+        "Kernel discreto renormalizado para que suma de pesos sea 1.",
+        "σ y x se expresan en la misma unidad; la normalización del kernel depende de la dimensión del dominio de convolución."
       ],
       "result": "El desenfoque gaussiano es una convolución con kernel normalizado y separable.",
       "limits": [
         "σ=0 se trata como identidad; bordes cambian resultado según política."
+      ],
+      "dimensional_verification": [
+        "x y σ comparten unidad (px o coordenada física); el exponente es adimensional.",
+        "G tiene unidad inversa a x; ∫G dx=1; en 2D G_xG_y tiene unidad inversa de área."
       ]
     },
     {
@@ -139,6 +148,10 @@
       "result": "La viñeta es un multiplicador radial construido con una transición suave.",
       "limits": [
         "La forma circular puede convertirse en elíptica si el aspect ratio no se compensa."
+      ],
+      "dimensional_verification": [
+        "uv, center, r0, r1 y d son adimensionales en coordenadas normalizadas.",
+        "strength, s y vignette factor son adimensionales; C' conserva unidad/escala de C."
       ]
     },
     {
@@ -178,6 +191,10 @@
       "result": "El grano se modela como ruido de media aproximadamente cero añadido a la señal.",
       "limits": [
         "Ruido independiente por frame puede parpadear; usar correlación temporal si se desea grano estable."
+      ],
+      "dimensional_verification": [
+        "η y ξ son adimensionales; g tiene la misma unidad que la señal C.",
+        "C'=C+gξ conserva la unidad de C; clamp/tone map deben declarar espacio."
       ]
     },
     {
@@ -217,6 +234,10 @@
       "result": "Unsharp mask deriva el realce como original más una fracción de su residuo respecto a un blur.",
       "limits": [
         "Ganancia excesiva genera halos y ruido; no recupera detalle ausente."
+      ],
+      "dimensional_verification": [
+        "C y blur B tienen la misma unidad/espacio de color; H=C−B conserva esa unidad.",
+        "k es adimensional; C' conserva unidad de C."
       ]
     },
     {
@@ -251,11 +272,16 @@
       "assumptions": [
         "C_HDR en RGB lineal; EV finito.",
         "Operador y gamut de salida declarados.",
-        "La codificación de pantalla ocurre después del tone mapping."
+        "La codificación de pantalla ocurre después del tone mapping.",
+        "EV es una escala de exposición en stops; 2^EV es multiplicador sin unidad."
       ],
       "result": "Tone mapping transforma valores HDR expuestos a una señal display-referred dentro del rango del dispositivo.",
       "limits": [
         "No existe un operador universal; distintos operadores cambian contraste, saturación y altas luces."
+      ],
+      "dimensional_verification": [
+        "EV y 2^EV son adimensionales; C_e conserva unidad/escala de C_HDR.",
+        "Tone map y gamut mapping producen señal display-referred normalizada; la codificación no asigna unidad radiométrica."
       ]
     },
     {
@@ -295,6 +321,10 @@
       "result": "La distorsión radial Brown–Conrady se obtiene de una serie polinómica en r².",
       "limits": [
         "Para calibración real, los coeficientes deben ajustarse a lente/sensor y puede requerirse distorsión tangencial."
+      ],
+      "dimensional_verification": [
+        "uv, center, r², k1 y k2 son adimensionales.",
+        "uv' permanece adimensional y se usa como coordenada de muestreo."
       ]
     },
     {
@@ -344,17 +374,24 @@
       "result": "La gestión de color es una cadena de decodificación, transformación colorimétrica, adaptación, gamut mapping y codificación.",
       "limits": [
         "Sin perfiles/primarias conocidos, no puede garantizarse coincidencia colorimétrica exacta."
+      ],
+      "dimensional_verification": [
+        "Matrices RGB↔XYZ y adaptación son adimensionales para valores relativos compatibles.",
+        "Las transformaciones conservan escala relativa; transfer functions cambian codificación, no una unidad física."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "8/8 técnicas no protegidas cubiertas.",
-      "Cada derivación contiene pasos justificados, supuestos y límites.",
-      "Las seis claves protegidas se excluyen sin modificación."
+      "8/8 técnicas no protegidas cubiertas; seis claves protegidas excluidas",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "SSAO mantiene profundidad/posición en el mismo espacio y AO adimensional",
+      "Gaussian blur normaliza kernel según dimensión del dominio",
+      "Film grain y sharpen conservan escala del canal de color",
+      "Tone mapping y output color management separan radiancia HDR relativa de señal display-referred"
     ],
     "limitations": [
-      "Las derivaciones definen operadores; calibración de color, calidad visual y validación por dispositivo se realizan en puntos posteriores."
+      "La auditoría establece relaciones matemáticas y de unidades; la calibración de color, evaluación visual y rendimiento por dispositivo se validan posteriormente."
     ]
   },
   "integrity": {
