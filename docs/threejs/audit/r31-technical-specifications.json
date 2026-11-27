@@ -5556,8 +5556,9 @@
           "line=1−smoothstep(w,w+aa,abs(h−0.5))"
         ],
         "clarification": [
-          "d debe normalizarse y s ser periodo en el mismo espacio que p; fract crea discontinuidad de fase que necesita filtrado/antialiasing.",
-          "La dirección de trazos puede provenir de campo tangente de superficie o dirección de imagen; son implementaciones distintas."
+          "The phase is dimensionless only when dot(p,d_hat) and spacing s use the same coordinate units.",
+          "The line distance is measured in phase units; w and aa are fractions of one period.",
+          "The formula describes a periodic stripe family; it does not by itself integrate a spatially varying vector field and does not claim a specific publication."
         ],
         "assumptions": [
           "Definir coordenadas UV/world/screen, handedness, seam treatment y estabilidad temporal."
@@ -5565,86 +5566,366 @@
         "units": [
           "s y w en unidades del espacio de p; aa en la misma unidad/derivada."
         ],
-        "status": "CLARIFICATION_PROPOSED",
+        "status": "CLARIFIED_PERIODIC_PHASE_AND_ANTIALIAS_CONTRACT",
         "source": "REF-PRAUN-2001"
       },
       "existing_source_coverage": {
         "research_id": "R31-HACHURADO-ORIENTADO-POR-CAMPO-VECTORIAL",
-        "source_type": "PRIMARY_SIGGRAPH_PAPER",
-        "reference": "https://gfx.cs.princeton.edu/proj/hatching/",
-        "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
+        "source_type": "AUTHORED_PROCEDURAL_RULE",
+        "reference": "No external publication is claimed for the exact phase and stripe-coverage equations.",
+        "formula_level_status": "AUTHORED_CONVENTION"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "PERIODIC_VECTOR_FIELD_HATCHING_WITH_ANTIALIASED_STRIPE_COVERAGE",
+        "symbol_table": [
+          {
+            "symbol": "p",
+            "meaning": "screen, UV or object-space sample position",
+            "unit": "px, UV or m (one consistent space)",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite 2D or 3D coordinate vector"
+          },
+          {
+            "symbol": "d",
+            "meaning": "unit hatch direction",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite nonzero vector normalized before projection"
+          },
+          {
+            "symbol": "s",
+            "meaning": "distance between adjacent hatch periods",
+            "unit": "same coordinate unit as p",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >0"
+          },
+          {
+            "symbol": "phi",
+            "meaning": "wrapped periodic phase",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "fract(dot(p,d)/s), in [0,1)"
+          },
+          {
+            "symbol": "w",
+            "meaning": "stripe half-width",
+            "unit": "fraction of period",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "0<=w<=0.5"
+          },
+          {
+            "symbol": "aa",
+            "meaning": "antialias transition width",
+            "unit": "fraction of period",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "aa>=0 and w+aa<=0.5"
+          },
+          {
+            "symbol": "a",
+            "meaning": "hatch coverage",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "clamped to [0,1]"
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "PASS_FOR_PERIODIC_PHASE_AND_COVERAGE",
           "notes": [
-            "s y w en unidades del espacio de p; aa en la misma unidad/derivada."
+            "dot(p,d) has the same unit as p because d is unit; dividing by s yields dimensionless phase.",
+            "w and aa are fractions of one period and dimensionless; the smoothstep argument is dimensionless.",
+            "For world-space hatching, p and s use the same scene-length unit; for screen/UV hatching, both use that coordinate space."
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "COMPLETE_FOR_SINGLE_PERIODIC_HATCH_FAMILY",
+          "steps": [
+            "Normalize direction d so dot(p,d) measures position along the hatch direction.",
+            "Divide the projected coordinate by spacing s to express position in periods.",
+            "Wrap with fract to obtain phi in [0,1), making the pattern periodic with period s along d.",
+            "The stripe center is phi=0.5; periodic distance is q=abs(phi-0.5).",
+            "Define hard coverage as 1 when q<=w and 0 otherwise.",
+            "For antialiasing, transition from coverage 1 to 0 across q in [w,w+aa] using the complement of smoothstep."
+          ]
         },
-        "assumptions": [
-          "Definir coordenadas UV/world/screen, handedness, seam treatment y estabilidad temporal."
+        "equations": [
+          {
+            "expression": "d_hat=d/||d||",
+            "meaning": "unit hatch direction",
+            "dimensional_check": "pass",
+            "status": "authored_convention",
+            "evidence_status": "authored_convention"
+          },
+          {
+            "expression": "phi=fract(dot(p,d_hat)/s)",
+            "meaning": "periodic projected phase",
+            "dimensional_check": "pass",
+            "status": "authored_convention",
+            "evidence_status": "authored_convention"
+          },
+          {
+            "expression": "q=abs(phi-0.5)",
+            "meaning": "distance from stripe center in period units",
+            "dimensional_check": "pass",
+            "status": "authored_convention",
+            "evidence_status": "authored_convention"
+          },
+          {
+            "expression": "a=1-smoothstep(w,w+aa,q)",
+            "meaning": "antialiased stripe coverage for aa>0",
+            "dimensional_check": "pass",
+            "status": "standard_smoothstep_mapping",
+            "evidence_status": "standard_smoothstep_mapping"
+          }
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "assumptions": [
+          "The direction field is constant over the local evaluation; spatially varying fields require a separate integration/streamline method to avoid discontinuous direction changes.",
+          "The pattern may be evaluated in screen, UV or object coordinates, but the selected space must be consistent and documented.",
+          "This record specifies one periodic stripe family; cross-hatching composes multiple independently parameterized families and is not silently included.",
+          "The antialias width is expressed in phase units; a shader should derive it from the screen-space derivative footprint of the phase."
+        ],
+        "valid_domain": [
+          "p finite; d finite nonzero; s finite >0.",
+          "w finite >=0; aa finite >=0; w+aa<=0.5.",
+          "All coordinates and spacing use the same coordinate system."
+        ],
+        "boundary_conditions": [
+          "phi is always in [0,1) for finite projected coordinate.",
+          "phi is invariant under translation p -> p + k*s*d_hat for integer k.",
+          "At q<=w coverage is 1; at q>=w+aa coverage is 0.",
+          "At q=w+aa/2 coverage is 0.5 when aa>0.",
+          "When aa=0 the result is binary, with equality q=w assigned to the stripe."
+        ],
+        "inputs": [
+          "Sample position p",
+          "Hatch direction vector d",
+          "Positive period spacing s",
+          "Stripe half-width w",
+          "Antialias width aa"
+        ],
+        "outputs": [
+          "Wrapped phase phi",
+          "Antialiased hatch coverage a in [0,1]"
+        ],
+        "algorithm_completeness": "SINGLE_FAMILY_PHASE_AND_COVERAGE_COMPLETE_FIELD_INTEGRATION_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_PYTHON_AND_JAVASCRIPT_REFERENCE_KERNELS_TESTED_IN_CI_PENDING",
+        "algorithm_steps": [
+          "Choose screen/UV/object coordinate space and matching period unit.",
+          "Normalize the selected direction field vector; reject zero-length vectors.",
+          "Project position onto the direction and divide by spacing.",
+          "Wrap the phase to [0,1).",
+          "Compute distance to stripe center.",
+          "Use a hard threshold or derivative-width smoothstep for antialiased coverage.",
+          "For cross-hatching, evaluate separate directions and combine coverages using a declared union/overprint rule."
+        ],
+        "pseudocode": "function hatch(p,d,s,w,aa):\n  require finite(p,d,s,w,aa) and length(d)>0 and s>0\n  require w>=0 and aa>=0 and w+aa<=0.5\n  dHat=normalize(d)\n  phase=fract(dot(p,dHat)/s)\n  q=abs(phase-0.5)\n  if aa==0: return (q<=w ? 1 : 0)\n  return 1-smoothstep(w,w+aa,q)",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(D) per sample for a D-dimensional dot product and constant coverage operations",
+          "space": "O(1) per sample"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "SHADER_CONTRACT_DEFINED_FIELD_RENDER_VALIDATION_PENDING",
+          "details": "Use a fragment ShaderMaterial or TSL node graph. Provide p in a declared coordinate space, direction as a normalized varying/uniform or derived field, and s/w/aa as uniforms. In a fragment shader, estimate phase footprint with fwidth(phase) and derive a conservative aa in phase units. For a nonuniform vector field, test continuity and avoid treating local direction as globally integrable without a streamline solver. WebGL2 and WebGPU/TSL parity remains unvalidated."
         },
         "source_claims": [
           {
-            "url": "https://gfx.cs.princeton.edu/proj/hatching/",
-            "type": "PRIMARY_SIGGRAPH_PAPER",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null,
-            "formula_locator": "Exact locator pending; claim must remain incomplete."
+            "url": "Project-authored periodic line screen; no external paper is claimed for this exact phase/coverage formula.",
+            "type": "AUTHORED_PROCEDURAL_RULE",
+            "supported_claim": "The projected periodic phase and stripe coverage are implementation conventions defined by this project.",
+            "formula_level_status": "authored_convention",
+            "exact_equation_locator": "Equations phi, q and a in this record.",
+            "formula_locator": "Project-authored equations; no publication equation locator is claimed."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "Closed-form stripe coverage at center, transition midpoint, edge and outside.",
+              "oracle": "Expected values 1, 0.5 and 0 from the declared smoothstep complement."
+            },
+            {
+              "description": "Periodicity under integer phase shifts.",
+              "oracle": "fract(phi+k)=fract(phi) for integer k."
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Parity with Python for hard/soft coverage and periodic phase.",
+              "oracle": "Analytic phase wrapping and smoothstep boundary fixtures."
+            }
+          ],
+          "edge_cases": [
+            "Zero direction; nonpositive spacing; negative or excessive width; nonfinite phase; exact stripe boundary; phase wrap at 0/1; rapidly varying direction field; UV seams."
+          ]
         },
-        "variables": [],
-        "algorithm_steps": [
-          "Definir dirección tangente.",
-          "Proyectar posición sobre la dirección.",
-          "Repetir fase con módulo.",
-          "Modular densidad por luminancia.",
-          "Combinar varias familias para cross-hatching."
-        ],
-        "pseudocode": "phase=fract(dot(p,dir)/spacing); line=1-smoothstep(width,width+aa,abs(phase-0.5));",
-        "implementation_mapping": {
-          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
-          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
-          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
-        }
+        "variables": [
+          {
+            "symbol": "p",
+            "meaning": "screen, UV or object-space sample position",
+            "unit": "px, UV or m (one consistent space)",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite 2D or 3D coordinate vector"
+          },
+          {
+            "symbol": "d",
+            "meaning": "unit hatch direction",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite nonzero vector normalized before projection"
+          },
+          {
+            "symbol": "s",
+            "meaning": "distance between adjacent hatch periods",
+            "unit": "same coordinate unit as p",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >0"
+          },
+          {
+            "symbol": "phi",
+            "meaning": "wrapped periodic phase",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "fract(dot(p,d)/s), in [0,1)"
+          },
+          {
+            "symbol": "w",
+            "meaning": "stripe half-width",
+            "unit": "fraction of period",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "0<=w<=0.5"
+          },
+          {
+            "symbol": "aa",
+            "meaning": "antialias transition width",
+            "unit": "fraction of period",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "aa>=0 and w+aa<=0.5"
+          },
+          {
+            "symbol": "a",
+            "meaning": "hatch coverage",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "clamped to [0,1]"
+          }
+        ]
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Validate the field direction and derivative antialiasing in actual Three.js ShaderMaterial and WebGPU/TSL render paths",
+        "Add pixel reference images for rotated screens, screen-space/object-space mapping, UV seams and cross-hatching combinations",
+        "Define and validate a stable direction-field source for spatially varying fields rather than only a constant local direction"
       ]
     },
     {
