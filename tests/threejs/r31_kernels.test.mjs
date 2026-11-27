@@ -59,3 +59,12 @@ test("Beer-Lambert transmittance is invariant to homogeneous segment subdivision
   const part=k.beerLambertTransmittance(1.7,2.4/8);
   near(whole,part**8,1e-14);
 });
+
+test("regularized dual contour QEF solves non-axis-aligned planes",()=>{
+  const q=Math.SQRT1_2;
+  const c=[[[.5,.5,0],[q,q,0]],[[.25,-.25,0],[q,-q,0]],[[0,0,.4],[0,0,1]]];
+  vec(k.regularizedPlaneQef(c,[.5,.5,.5],1e-10),[.75,.25,.4],1e-6);
+});
+test("dual contour QEF rejects singular unregularized normal systems",()=>{
+  assert.throws(()=>k.regularizedPlaneQef([[[0,0,0],[1,0,0]]],[0,0,0],0),RangeError);
+});
