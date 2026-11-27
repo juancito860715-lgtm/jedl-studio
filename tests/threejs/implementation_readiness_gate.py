@@ -6,7 +6,7 @@ an evidence-backed specification. Crimson Loong records listed in the preservati
 map are excluded from re-audit and retained as PRESERVED_CRIMSON_LOONG.
 """
 from __future__ import annotations
-import argparse, json
+import argparse, json, math
 from pathlib import Path
 
 REQUIRED = (
