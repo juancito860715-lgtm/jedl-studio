@@ -104,11 +104,71 @@
             "J": 0
           },
           "domain": "finito"
+        },
+        {
+          "symbol": "base,amplitude",
+          "meaning": "temperatura base y amplitud térmica del campo",
+          "unit": "K",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 1,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas; amplitude≥0"
+        },
+        {
+          "symbol": "noise(p,t)",
+          "meaning": "ruido normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "y,y_base,height",
+          "meaning": "altura, base y escala vertical de envolvente",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "height>0"
+        },
+        {
+          "symbol": "f_t",
+          "meaning": "frecuencia temporal del ruido",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
         }
       ],
       "constraints": [
-        "p·scale debe ser adimensional; si scale es vector de frecuencias, cada componente L⁻¹.",
-        "No mezclar temperatura física con ruido adimensional sin función de conversión."
+        "T(p,t)=base+amplitude·e(y)·noise(scale·p,f_t t); base y amplitude tienen K, e y noise son adimensionales.",
+        "scale·p y f_t·t deben ser argumentos adimensionales; height y y−y_base tienen m."
       ],
       "valid_domain": [
         "Campo de ruido definido en espacio-tiempo; parámetros finitos."
@@ -118,9 +178,8 @@
         "En límites temporales declarar continuidad/periodicidad del ruido."
       ],
       "dimensional_checks": [
-        "scale has L^-1 and p has L, so scale·p is dimensionless before noise evaluation.",
-        "amplitude and T must share a declared field unit; if T is normalized heat/noise, both are dimensionless; if temperature, use Θ and kelvin.",
-        "Time-dependent noise must use dimensionless temporal frequency·t or a time-normalized argument."
+        "scale tiene m⁻¹ y p m; f_t tiene s⁻¹ y t s; argumentos de ruido son adimensionales.",
+        "base y amplitude tienen K; T conserva K porque e y noise son adimensionales."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -384,8 +443,8 @@
         }
       ],
       "constraints": [
-        "p−vt tiene longitud; ruido adimensional debe escalarse a densidad física si se requiere.",
-        "ρ no negativa; envelope acotada."
+        "ρ(p,t)=ρ0·noise(p−v t)·envelope(t); ρ0 tiene kg/m³ y los factores ruido/envolvente son adimensionales.",
+        "p−v t tiene m; la frecuencia espacial del ruido debe convertir esa coordenada a argumento adimensional."
       ],
       "valid_domain": [
         "Campo de ruido y envolvente finitos."
@@ -395,9 +454,8 @@
         "Densidad fuera de rango se satura según modelo."
       ],
       "dimensional_checks": [
-        "p−v·t has L; noise is dimensionless and envelope is dimensionless.",
-        "ρ has mass density M·L^-3; therefore a physical density field requires a base density ρ0 with M·L^-3 multiplying normalized noise/envelope.",
-        "If ρ is instead an extinction coefficient, use L^-1 and do not label it kg/m³."
+        "p−vt tiene m; ruido y envelope son adimensionales.",
+        "ρ0 y ρ tienen kg/m³; no tratar densidad de masa como campo adimensional ni como coeficiente m⁻¹."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -754,10 +812,56 @@
             "J": 0
           },
           "domain": "normalizada"
+        },
+        {
+          "symbol": "δ",
+          "meaning": "perturbación angular/direccional aleatoria",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "length_b",
+          "meaning": "longitud de rama",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "noise_b",
+          "meaning": "desplazamiento de jitter de rama",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
         }
       ],
       "constraints": [
-        "La perturbación cónica se expresa angularmente en radianes o vector unitario; no sumar magnitudes incompatibles."
+        "direction=normalize(mainDir+δ) combina solo vectores adimensionales; el ángulo del cono se declara en radianes.",
+        "P_b(u)=P(s0)+u·length_b·direction+noise_b(u); longitud y jitter tienen m."
       ],
       "valid_domain": [
         "Punto finito; dirección principal no nula; apertura de cono acotada."
@@ -767,9 +871,8 @@
         "Normalizar dirección resultante; degeneración usa eje de respaldo."
       ],
       "dimensional_checks": [
-        "P(s0) has L; mainDir and direction are unitless vectors; randomCone is an angular/directional parameter, not a length.",
-        "The perturbed direction must be normalized after addition; angular cone width is in radians.",
-        "Branch length is a separate length-valued parameter and must not be inferred from direction alone."
+        "P(s0), length_b y noise_b tienen L; u, mainDir, δ y direction son adimensionales.",
+        "La suma produce posiciones con m; normalizar la dirección no altera dimensiones."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -821,10 +924,41 @@
             "J": 0
           },
           "domain": "interpolación lineal"
+        },
+        {
+          "symbol": "C(s)",
+          "meaning": "línea central del haz",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "curva finita"
+        },
+        {
+          "symbol": "N,B",
+          "meaning": "base normal/bitangente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria y ortonormal"
         }
       ],
       "constraints": [
-        "s adimensional; radios longitudes."
+        "P(s,θ)=C(s)+r(s)(Ncosθ+Bsinθ); C tiene m, r tiene m y N,B son adimensionales.",
+        "s es adimensional y θ angular; el marco N,B debe ser continuo y ortonormal."
       ],
       "valid_domain": [
         "r0,r1≥0."
@@ -834,9 +968,8 @@
         "Si ambos radios cero, volumen degenerado."
       ],
       "dimensional_checks": [
-        "s is dimensionless; r0 and r1 have L; radius(s) has L by linear interpolation.",
-        "The cone axis position also has L and must be combined with radius in a local frame.",
-        "r0=r1 gives a cylinder; zero radius at an endpoint gives a pointed/tapered limit."
+        "r(s), C(s), P(s,θ) tienen m; N,B, s y trigonometría son adimensionales.",
+        "El producto r·(Ncosθ+Bsinθ) tiene m y puede sumarse a C."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -872,11 +1005,41 @@
             "J": 0
           },
           "domain": "[0,1]"
+        },
+        {
+          "symbol": "α_particle",
+          "meaning": "opacidad original de partícula",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "colorParticle,colorBackground",
+          "meaning": "colores lineales de composición",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio"
         }
       ],
       "constraints": [
-        "Profundidades deben estar en mismo espacio/proyección y unidad.",
-        "softRange positivo; clamp asegura alfa válido."
+        "α′=α_particle·u mantiene opacidad adimensional; u es máscara de separación de profundidad.",
+        "La composición alfa requiere colores en el mismo espacio lineal y convención premultiplicada/no premultiplicada declarada."
       ],
       "valid_domain": [
         "Profundidades finitas; softRange>0."
@@ -886,9 +1049,8 @@
         "Diferencia≥softRange produce factor uno."
       ],
       "dimensional_checks": [
-        "sceneDepth, particleDepth and softRange must all use the same encoding: L for linear view depth or dimensionless for normalized depth buffer.",
-        "(sceneDepth−particleDepth)/softRange is dimensionless; α remains dimensionless in [0,1].",
-        "Depth ordering/sign convention must be consistent with the camera's depth direction."
+        "α_particle y u son adimensionales; α′∈[0,1].",
+        "colorParticle y colorBackground comparten representación; la mezcla conserva esa escala."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -940,11 +1102,63 @@
             "J": 0
           },
           "domain": "finita"
+        },
+        {
+          "symbol": "p_i",
+          "meaning": "posición de objeto/partícula",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "V",
+          "meaning": "matriz de vista",
+          "unit": "afín tipada",
+          "dimension": "bloque lineal adimensional; traslación m",
+          "domain": "invertible para cámara válida"
+        },
+        {
+          "symbol": "α_i",
+          "meaning": "opacidad de capa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "C_i,C_bg",
+          "meaning": "color de capa y fondo",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio"
         }
       ],
       "constraints": [
-        "Todas las profundidades deben calcularse en espacio de cámara consistente; back-to-front ordena de mayor distancia a menor según convención.",
-        "Empates requieren desempate estable para evitar flicker."
+        "z_i=−(V·p_i)_z produce profundidad lineal en marco de vista; todos los objetos comparten cámara y convención.",
+        "La composición alfa solo es válida si α_i es adimensional y C_i/C_bg comparten espacio y convención de premultiplicación."
       ],
       "valid_domain": [
         "Objetos con profundidad finita y cámara válida."
@@ -954,9 +1168,8 @@
         "Empate conserva orden previo/ID estable."
       ],
       "dimensional_checks": [
-        "cameraDepth_i values must share one camera-space coordinate and depth convention; if linear view depth, they have L.",
-        "Sorting order is a discrete index; camera transform is affine-typed with dimensionless linear block and L translation.",
-        "Back-to-front sorting uses a stable tie-break for equal depths; sorting does not itself resolve intersecting transparent surfaces."
+        "p_i tiene m; la profundidad lineal cameraDepth_i tiene m; order es índice discreto.",
+        "α_i es adimensional; la mezcla de colores lineales conserva su escala."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -966,7 +1179,10 @@
       "11/13 técnicas no protegidas incluidas",
       "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
       "2 registros protegidos excluidos",
-      "Corregida dimensión termodinámica de temperatura y tipado de ruido de advección, densidad de humo y profundidades"
+      "Corregida dimensión termodinámica de temperatura y tipado de ruido de advección, densidad de humo y profundidades",
+      "D12:0 fija campo de llama como temperatura en K con argumentos de ruido adimensionales",
+      "D12:3 mantiene densidad de humo en kg/m³",
+      "D12:7–8 tipan geometría de ramas y cono; D12:11–12 incluyen opacidad y composición alfa"
     ],
     "limitations": [
       "Los campos de llama/humo se tratan como modelos procedurales; la ficha no especifica transferencia radiativa completa ni ecuaciones de combustión."
