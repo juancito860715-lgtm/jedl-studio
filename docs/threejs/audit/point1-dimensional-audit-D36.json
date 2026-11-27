@@ -1,0 +1,1023 @@
+{
+  "title": "Auditoría dimensional punto 1 — D36 Matemáticas profundas de simulación y métodos numéricos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D36",
+    "domain": "Matemáticas profundas de simulación y métodos numéricos",
+    "record_count": 15,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D36 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "time": "Segundos; derivadas temporales tipadas por T.",
+    "continuum": "Longitud m, masa kg, tiempo s, tensión Pa.",
+    "numerics": "Estados, derivadas, residuos, tolerancias y operadores conservan unidades declaradas."
+  },
+  "records": [
+    {
+      "record_key": "D36:0",
+      "name": "Derivada material",
+      "variables": [
+        {
+          "symbol": "φ",
+          "meaning": "campo",
+          "unit": "unidad φ",
+          "dimension": "tipado",
+          "domain": "diferenciable"
+        },
+        {
+          "symbol": "∂φ/∂t",
+          "meaning": "derivada temporal",
+          "unit": "φ/s",
+          "dimension": "φ·T⁻¹",
+          "domain": "finita"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "∇φ",
+          "meaning": "gradiente",
+          "unit": "φ/m",
+          "dimension": "φ·L⁻¹",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "∂φ/∂t y u·∇φ deben compartir unidad φ/T.",
+        "Campo y gradiente se evalúan en mismo marco."
+      ],
+      "valid_domain": [
+        "Campos diferenciables y finitos."
+      ],
+      "boundary_conditions": [
+        "u=0 reduce a derivada local; campo estacionario uniforme da cero."
+      ],
+      "dimensional_checks": [
+        "u·∇φ tiene (L/T)(φ/L)=φ/T.",
+        "La suma conserva unidad φ/T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:1",
+      "name": "Euler explícito",
+      "variables": [
+        {
+          "symbol": "y",
+          "meaning": "estado",
+          "unit": "unidad y",
+          "dimension": "tipado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "f",
+          "meaning": "derivada",
+          "unit": "unidad y/s",
+          "dimension": "y·T⁻¹",
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "y_next",
+          "meaning": "estado siguiente",
+          "unit": "unidad y",
+          "dimension": "igual a y",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Δt·f tiene unidad y y puede sumarse a y.",
+        "El paso debe respetar dominio y estabilidad."
+      ],
+      "valid_domain": [
+        "Δt≥0; estado y f finitos."
+      ],
+      "boundary_conditions": [
+        "Δt=0 conserva estado; paso excesivo puede ser inestable."
+      ],
+      "dimensional_checks": [
+        "Δt·f tiene unidad y.",
+        "y_next conserva unidad de y."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:2",
+      "name": "Runge–Kutta de cuarto orden",
+      "variables": [
+        {
+          "symbol": "y",
+          "meaning": "estado",
+          "unit": "unidad y",
+          "dimension": "tipado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "k1..k4",
+          "meaning": "pendientes",
+          "unit": "unidad y/s",
+          "dimension": "y·T⁻¹",
+          "domain": "finitas"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "y_next",
+          "meaning": "estado actualizado",
+          "unit": "unidad y",
+          "dimension": "igual a y",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Todas las pendientes comparten unidad y/T; pesos 1,2,2,1 son adimensionales.",
+        "Etapas intermedias deben permanecer dentro del dominio de f."
+      ],
+      "valid_domain": [
+        "Δt>0; f evaluable en cuatro etapas."
+      ],
+      "boundary_conditions": [
+        "Δt→0 produce cambio→0; etapa fuera del dominio invalida el paso."
+      ],
+      "dimensional_checks": [
+        "Δt·k_i tiene unidad y.",
+        "El error local se expresa en unidad de estado."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:3",
+      "name": "Integrador Verlet",
+      "variables": [
+        {
+          "symbol": "x_n,x_prev",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "a",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso fijo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "x_next",
+          "meaning": "posición siguiente",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "aΔt² tiene L; paso temporal y unidades constantes.",
+        "Restricciones posteriores deben proyectar en el mismo marco."
+      ],
+      "valid_domain": [
+        "Δt>0; estados iniciales finitos."
+      ],
+      "boundary_conditions": [
+        "a=0 produce extrapolación lineal; Δt=0 conserva estado."
+      ],
+      "dimensional_checks": [
+        "aΔt²=(L/T²)T²=L.",
+        "Todos los términos de posición tienen L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:4",
+      "name": "CFL condition",
+      "variables": [
+        {
+          "symbol": "u_max",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "Δx",
+          "meaning": "celda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "C",
+          "meaning": "número CFL",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≤C_max"
+        }
+      ],
+      "constraints": [
+        "C=|u|Δt/Δx es adimensional; C_max depende del esquema.",
+        "u_max debe representar velocidad característica máxima."
+      ],
+      "valid_domain": [
+        "Δx>0; Δt>0; C_max>0."
+      ],
+      "boundary_conditions": [
+        "u=0 da C=0; superar C_max exige reducir paso."
+      ],
+      "dimensional_checks": [
+        "(L/T)T/L=1.",
+        "C es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:5",
+      "name": "Poisson equation",
+      "variables": [
+        {
+          "symbol": "φ",
+          "meaning": "campo solución",
+          "unit": "unidad φ",
+          "dimension": "tipado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "∇²φ",
+          "meaning": "Laplaciano",
+          "unit": "φ/m²",
+          "dimension": "φ·L⁻²",
+          "domain": "finito"
+        },
+        {
+          "symbol": "f",
+          "meaning": "fuente",
+          "unit": "φ/m²",
+          "dimension": "igual a ∇²φ",
+          "domain": "finita"
+        },
+        {
+          "symbol": "boundary",
+          "meaning": "condición",
+          "unit": "φ o φ/m",
+          "dimension": "según tipo",
+          "domain": "definida"
+        }
+      ],
+      "constraints": [
+        "Fuente y Laplaciano comparten unidad; Dirichlet usa φ y Neumann usa φ/m.",
+        "Discretización incorpora espaciamiento de malla."
+      ],
+      "valid_domain": [
+        "Dominio y condiciones de contorno definidos."
+      ],
+      "boundary_conditions": [
+        "Fuente cero y condiciones compatibles producen solución armónica; sistema singular requiere referencia."
+      ],
+      "dimensional_checks": [
+        "∇²φ tiene φ·L⁻².",
+        "f debe compartir unidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:6",
+      "name": "Conjugate gradient",
+      "variables": [
+        {
+          "symbol": "A",
+          "meaning": "matriz",
+          "unit": "unidad b/unidad x",
+          "dimension": "tipada",
+          "domain": "SPD"
+        },
+        {
+          "symbol": "x",
+          "meaning": "solución",
+          "unit": "unidad x",
+          "dimension": "vector",
+          "domain": "finita"
+        },
+        {
+          "symbol": "b,r",
+          "meaning": "lado derecho/residuo",
+          "unit": "unidad b",
+          "dimension": "vector",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "tol",
+          "meaning": "tolerancia residual",
+          "unit": "unidad b",
+          "dimension": "igual a b",
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "A_ij debe mapear x_j a b_i; simetría/positividad deben definirse con producto interno compatible.",
+        "Residuo y tolerancia comparten unidad."
+      ],
+      "valid_domain": [
+        "A simétrica definida positiva; sistema compatible."
+      ],
+      "boundary_conditions": [
+        "Residuo cero termina; pᵀAp nulo indica degeneración."
+      ],
+      "dimensional_checks": [
+        "Ax y b tienen unidad b; r y tol comparten unidad.",
+        "La actualización x conserva unidad x."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:7",
+      "name": "Multigrid",
+      "variables": [
+        {
+          "symbol": "u_h",
+          "meaning": "solución nivel",
+          "unit": "unidad u",
+          "dimension": "tipado",
+          "domain": "finita"
+        },
+        {
+          "symbol": "r_h",
+          "meaning": "residuo",
+          "unit": "unidad operador·u",
+          "dimension": "tipado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "R,P",
+          "meaning": "transferencias",
+          "unit": "matrices tipadas",
+          "dimension": "adimensionales en mallas uniformes",
+          "domain": "compatibles"
+        },
+        {
+          "symbol": "h",
+          "meaning": "espaciamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Restricción/prolongación preservan unidad del campo; operador puede escalar con h.",
+        "Condiciones de borde se transfieren coherentemente."
+      ],
+      "valid_domain": [
+        "Niveles finitos; h>0; operadores definidos."
+      ],
+      "boundary_conditions": [
+        "Un nivel equivale a resolver en malla única; residuo cero termina."
+      ],
+      "dimensional_checks": [
+        "R y P suelen ser adimensionales; u conserva unidad.",
+        "Residuo conserva unidad del operador aplicado."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:8",
+      "name": "Método de volúmenes finitos",
+      "variables": [
+        {
+          "symbol": "U",
+          "meaning": "variable conservada",
+          "unit": "unidad U",
+          "dimension": "tipado",
+          "domain": "finita"
+        },
+        {
+          "symbol": "F",
+          "meaning": "flujo",
+          "unit": "U·m/s",
+          "dimension": "U·L/T",
+          "domain": "finito"
+        },
+        {
+          "symbol": "S",
+          "meaning": "fuente",
+          "unit": "U/s",
+          "dimension": "U·T⁻¹",
+          "domain": "finita"
+        },
+        {
+          "symbol": "V",
+          "meaning": "volumen",
+          "unit": "m³",
+          "dimension": {
+            "L": 3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "A_face",
+          "meaning": "área",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "Flujo F·A y derivada temporal de ∫U dV comparten U·m³/s.",
+        "Fuentes se integran sobre volumen."
+      ],
+      "valid_domain": [
+        "Volúmenes/áreas positivos; flujo finito."
+      ],
+      "boundary_conditions": [
+        "Flujo neto cero conserva cantidad; frontera cerrada no permite salida neta."
+      ],
+      "dimensional_checks": [
+        "F·A tiene U·L³/T.",
+        "La derivada temporal de U·V tiene misma unidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:9",
+      "name": "Método de elementos finitos",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "grados de libertad",
+          "unit": "unidad desplazamiento/campo",
+          "dimension": "tipado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "B",
+          "meaning": "gradiente forma",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "definido"
+        },
+        {
+          "symbol": "D",
+          "meaning": "constitutiva",
+          "unit": "unidad tensión/deformación",
+          "dimension": "tipada",
+          "domain": "válida"
+        },
+        {
+          "symbol": "K",
+          "meaning": "rigidez global",
+          "unit": "unidad f/unidad u",
+          "dimension": "tipada",
+          "domain": "compatible"
+        },
+        {
+          "symbol": "f",
+          "meaning": "carga",
+          "unit": "unidad de fuerza",
+          "dimension": "tipada",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Ku=f exige K_ij con unidad f_i/u_j; integral BᵀDBdΩ debe tiparse por material y volumen.",
+        "Derivadas espaciales de funciones de forma tienen L⁻¹."
+      ],
+      "valid_domain": [
+        "Malla no degenerada; material y restricciones definidos."
+      ],
+      "boundary_conditions": [
+        "Grados de libertad fijos eliminan modos rígidos; sistema homogéneo estable con carga cero da solución trivial."
+      ],
+      "dimensional_checks": [
+        "B tiene L⁻¹; D y dΩ se tipan por material y volumen.",
+        "Ku y f comparten unidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:10",
+      "name": "Smoothed Particle Hydrodynamics completo",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "masa",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "W",
+          "meaning": "kernel",
+          "unit": "m⁻³",
+          "dimension": {
+            "L": -3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizado"
+        },
+        {
+          "symbol": "h",
+          "meaning": "radio suavizado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "A",
+          "meaning": "campo interpolado",
+          "unit": "unidad A",
+          "dimension": "tipado",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "m/ρ tiene m³; multiplicado por W m⁻³ genera peso adimensional.",
+        "Kernel y radio usan misma unidad espacial."
+      ],
+      "valid_domain": [
+        "m>0; ρ>0; h>0."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos, usar fallback; h=0 se rechaza."
+      ],
+      "dimensional_checks": [
+        "(m/ρ)W es adimensional.",
+        "La suma conserva unidad del campo A."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:11",
+      "name": "Ecuación elasticidad de Cauchy",
+      "variables": [
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "ü",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "σ",
+          "meaning": "tensión",
+          "unit": "Pa",
+          "dimension": "M·L⁻¹·T⁻²",
+          "domain": "finita"
+        },
+        {
+          "symbol": "b",
+          "meaning": "fuerza por masa",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "ρü, ∇·σ y ρb deben compartir N/m³.",
+        "Tensión y gradiente espacial usan mismo marco."
+      ],
+      "valid_domain": [
+        "ρ>0; campos diferenciables."
+      ],
+      "boundary_conditions": [
+        "Sin carga ni tensión, aceleración cero; condiciones de contorno fijadas."
+      ],
+      "dimensional_checks": [
+        "ρü y ∇·σ tienen M·L⁻²·T⁻².",
+        "ρb tiene la misma unidad si b es aceleración específica."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:12",
+      "name": "Viscoelasticidad Kelvin–Voigt",
+      "variables": [
+        {
+          "symbol": "σ",
+          "meaning": "tensión",
+          "unit": "Pa",
+          "dimension": "M·L⁻¹·T⁻²",
+          "domain": "finita"
+        },
+        {
+          "symbol": "E",
+          "meaning": "módulo",
+          "unit": "Pa",
+          "dimension": "M·L⁻¹·T⁻²",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "deformación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "adimensional"
+        },
+        {
+          "symbol": "η",
+          "meaning": "viscosidad",
+          "unit": "Pa·s",
+          "dimension": "M·L⁻¹·T⁻¹",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "ε̇",
+          "meaning": "tasa deformación",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Eε y ηε̇ deben tener Pa.",
+        "Modelo lineal supone pequeñas deformaciones y material definido."
+      ],
+      "valid_domain": [
+        "E,η≥0; variables finitas."
+      ],
+      "boundary_conditions": [
+        "η=0 es elasticidad pura; E=0 respuesta viscosa."
+      ],
+      "dimensional_checks": [
+        "Eε tiene Pa; ηε̇=(Pa·s)s⁻¹=Pa.",
+        "La suma conserva tensión."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:13",
+      "name": "Plasticidad J2 von Mises",
+      "variables": [
+        {
+          "symbol": "s",
+          "meaning": "tensor desviador",
+          "unit": "Pa",
+          "dimension": "M·L⁻¹·T⁻²",
+          "domain": "finito"
+        },
+        {
+          "symbol": "σ_eq",
+          "meaning": "tensión equivalente",
+          "unit": "Pa",
+          "dimension": "M·L⁻¹·T⁻²",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "σ_y",
+          "meaning": "fluencia",
+          "unit": "Pa",
+          "dimension": "M·L⁻¹·T⁻²",
+          "domain": ">0"
+        },
+        {
+          "symbol": "ε_p",
+          "meaning": "deformación plástica",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acumulada"
+        }
+      ],
+      "constraints": [
+        "s:s tiene Pa²; raíz produce Pa; comparar con σ_y.",
+        "Endurecimiento requiere unidades de parámetros explícitas."
+      ],
+      "valid_domain": [
+        "Tensor finito; σ_y>0."
+      ],
+      "boundary_conditions": [
+        "σ_eq≤σ_y permanece elástico; por encima activa actualización constitutiva."
+      ],
+      "dimensional_checks": [
+        "σ_eq y σ_y comparten Pa.",
+        "ε_p es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D36:14",
+      "name": "Difusión anisotrópica",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "campo difundido",
+          "unit": "unidad u",
+          "dimension": "tipado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "D",
+          "meaning": "tensor difusión",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "semidefinido positivo"
+        },
+        {
+          "symbol": "∇u",
+          "meaning": "gradiente",
+          "unit": "u/m",
+          "dimension": "u·L⁻¹",
+          "domain": "finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "D∇u es flujo u·m/s; divergencia produce u/s.",
+        "Tensor D simétrico semidefinido positivo para difusión estable."
+      ],
+      "valid_domain": [
+        "D válido; campo diferenciable."
+      ],
+      "boundary_conditions": [
+        "D=0 congela difusión; borde no-flujo conserva integral."
+      ],
+      "dimensional_checks": [
+        "D∇u tiene u·L/T; divergencia tiene u/T.",
+        "∂u/∂t también tiene u/T."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "15/15 técnicas incluidas; ninguna protegida",
+      "Variables, unidades, restricciones, dominios, límites y verificaciones específicas por técnica",
+      "Separadas unidades de estado, derivadas, residuos, flujos, tensiones y operadores discretos"
+    ],
+    "limitations": [
+      "Auditoría dimensional; no certifica estabilidad/convergencia de un esquema concreto ni exactitud constitutiva."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
