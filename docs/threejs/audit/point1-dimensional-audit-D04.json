@@ -1,0 +1,1590 @@
+{
+  "title": "Auditoría dimensional punto 1 — D04 Animación, movimiento y simulación",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D04",
+    "domain": "Animación, movimiento y simulación",
+    "record_count": 19,
+    "excluded_protected_records": 1,
+    "excluded_reason": "D04:2 está protegido por el mapa Crimson Loong y no se reaudita."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud de escena; usar metros si SI declarado.",
+    "time": "Segundos; frecuencia Hz=s⁻¹.",
+    "typed_channels": "Los canales vectoriales, angulares, booleanos y transformaciones requieren tipos y unidades por canal."
+  },
+  "records": [
+    {
+      "record_key": "D04:0",
+      "name": "Keyframes",
+      "variables": [
+        {
+          "symbol": "t,t_i,t_{i+1}",
+          "meaning": "tiempo y tiempos de keyframes",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t_i≤t≤t_{i+1}"
+        },
+        {
+          "symbol": "u",
+          "meaning": "coordenada temporal normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "u=(t−t_i)/(t_{i+1}−t_i)∈[0,1]"
+        },
+        {
+          "symbol": "x_i,x_{i+1},x(t)",
+          "meaning": "valores interpolados",
+          "unit": "tipo de canal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "tipo homogéneo por canal"
+        }
+      ],
+      "constraints": [
+        "Los tiempos deben ser estrictamente crecientes para evitar intervalo nulo.",
+        "Interpolar solo canales compatibles; rotaciones deben usar interpolación angular/cuaternión adecuada."
+      ],
+      "valid_domain": [
+        "t dentro del intervalo o extrapolación explícitamente seleccionada."
+      ],
+      "boundary_conditions": [
+        "u=0 devuelve x_i; u=1 devuelve x_{i+1}.",
+        "En tiempo fuera de rango aplicar clamp, extrapolación o loop declarado."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:1",
+      "name": "Curvas easing",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "progreso normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "e(u)",
+          "meaning": "factor easing",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "3u²−2u³; adimensional"
+        },
+        {
+          "symbol": "t0,t1,t",
+          "meaning": "tiempos",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t1>t0"
+        }
+      ],
+      "constraints": [
+        "La función opera sobre u adimensional.",
+        "Para smoothstep cúbico, derivada cero en ambos extremos; no garantiza continuidad de aceleración."
+      ],
+      "valid_domain": [
+        "u∈[0,1]; si se extiende, declarar clamp o extrapolación."
+      ],
+      "boundary_conditions": [
+        "e(0)=0 y e(1)=1; e′(0)=e′(1)=0."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:3",
+      "name": "Movimiento armónico",
+      "variables": [
+        {
+          "symbol": "x,v,a",
+          "meaning": "estado posición, velocidad y aceleración",
+          "unit": "L; L/T; L/T²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "estado finito"
+        },
+        {
+          "symbol": "m,c,k",
+          "meaning": "masa, amortiguamiento y rigidez",
+          "unit": "kg; kg/s; kg/s²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m>0,c≥0,k≥0"
+        },
+        {
+          "symbol": "F(t)",
+          "meaning": "fuerza externa",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "función finita"
+        },
+        {
+          "symbol": "x0",
+          "meaning": "posición de equilibrio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "constante o función"
+        }
+      ],
+      "constraints": [
+        "Dimensionalmente m·x¨, c·x˙, k(x−x0) y F son fuerzas.",
+        "La ecuación requiere condiciones iniciales x(0),v(0) y fuerza definida."
+      ],
+      "valid_domain": [
+        "m>0; c,k≥0 para amortiguamiento pasivo y estabilidad básica; F integrable."
+      ],
+      "boundary_conditions": [
+        "Especificar x(0),v(0); en k=0 no existe restitución elástica.",
+        "Cambios discontinuos de F deben modelarse como eventos con continuidad de estado."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:4",
+      "name": "Péndulo simple",
+      "variables": [
+        {
+          "symbol": "θ",
+          "meaning": "ángulo pendular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ángulo finito"
+        },
+        {
+          "symbol": "g",
+          "meaning": "aceleración gravitatoria",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "g>0"
+        },
+        {
+          "symbol": "ℓ",
+          "meaning": "longitud del péndulo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ℓ>0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        },
+        {
+          "symbol": "A,φ",
+          "meaning": "amplitud y fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        }
+      ],
+      "constraints": [
+        "g/ℓ tiene dimensión T⁻²; frecuencia natural sqrt(g/ℓ) tiene T⁻¹.",
+        "Aproximación coseno válida para ángulos pequeños; no usar como solución exacta de sinθ."
+      ],
+      "valid_domain": [
+        "Péndulo ideal, longitud constante y sin amortiguamiento en la ecuación dada."
+      ],
+      "boundary_conditions": [
+        "Definir θ(0),θ′(0); para modelo pequeño usar A,φ coherentes.",
+        "En θ=0 la aceleración angular gravitatoria es cero."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:5",
+      "name": "Resorte amortiguado",
+      "variables": [
+        {
+          "symbol": "x,x_prev,x_next",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vectores finitos"
+        },
+        {
+          "symbol": "a",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        }
+      ],
+      "constraints": [
+        "a·Δt² tiene dimensión de longitud.",
+        "Verlet básico omite velocidad explícita; condiciones iniciales x0 y x1 o velocidad inicial necesarias."
+      ],
+      "valid_domain": [
+        "Aceleración evaluable y paso temporal fijo o declarado."
+      ],
+      "boundary_conditions": [
+        "Primer paso requiere inicialización consistente con velocidad inicial.",
+        "No usar Δt=0; reiniciar estado ante salto temporal no modelado."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:6",
+      "name": "Integración Verlet",
+      "variables": [
+        {
+          "symbol": "x,v",
+          "meaning": "posición y velocidad",
+          "unit": "m; m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "a",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        }
+      ],
+      "constraints": [
+        "v+aΔt conserva dimensión de velocidad; x+v_nextΔt conserva longitud.",
+        "Método semiimplícito actualiza v antes que x."
+      ],
+      "valid_domain": [
+        "Fuerza/aceleración definidas y Δt dentro de rango estable del sistema."
+      ],
+      "boundary_conditions": [
+        "Definir x0,v0.",
+        "Con Δt→0 el incremento tiende a cero; no permitir Δt≤0."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:7",
+      "name": "Euler semiimplícito",
+      "variables": [
+        {
+          "symbol": "y",
+          "meaning": "estado vectorial",
+          "unit": "tipo por componente",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "estado finito"
+        },
+        {
+          "symbol": "f(t,y)",
+          "meaning": "derivada temporal",
+          "unit": "estado/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "continua localmente para orden clásico"
+        },
+        {
+          "symbol": "k1…k4",
+          "meaning": "pendientes RK4",
+          "unit": "estado/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "evaluadas en subpasos"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        }
+      ],
+      "constraints": [
+        "Cada k tiene dimensión estado/tiempo; Δt·k conserva dimensión de estado.",
+        "La fórmula requiere sistema y′=f(t,y) y evaluación consistente en t,t+Δt/2,t+Δt."
+      ],
+      "valid_domain": [
+        "f evaluable en todos los subpasos; solución suficientemente regular."
+      ],
+      "boundary_conditions": [
+        "Inicializar y(t0); el último paso debe ajustarse al intervalo.",
+        "No evaluar fuera del dominio de f."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:8",
+      "name": "RK4",
+      "variables": [
+        {
+          "symbol": "p_i,v_i",
+          "meaning": "posición y velocidad agente",
+          "unit": "m; m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "r_s",
+          "meaning": "radio de separación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_s>0"
+        },
+        {
+          "symbol": "w_s,w_a,w_c",
+          "meaning": "pesos de reglas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; escala calibrada"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración/steering",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        }
+      ],
+      "constraints": [
+        "Separación, alineación y cohesión deben convertirse a una magnitud compatible antes de sumarse a velocidad o aceleración.",
+        "Limitar velocidad y aceleración; excluir al propio agente del vecindario."
+      ],
+      "valid_domain": [
+        "Población finita; posiciones/velocidades finitas; radio positivo."
+      ],
+      "boundary_conditions": [
+        "Vecindario vacío: no dividir por cero; contribución de alineación/cohesión nula.",
+        "Distancia cero entre agentes: dirección de separación determinista de respaldo."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:9",
+      "name": "Boids",
+      "variables": [
+        {
+          "symbol": "p0",
+          "meaning": "posición inicial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad inicial",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "a",
+          "meaning": "aceleración constante",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        },
+        {
+          "symbol": "p(t)",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        }
+      ],
+      "constraints": [
+        "Cada término p0, vt y 0.5at² tiene dimensión de longitud.",
+        "La ecuación supone aceleración constante en el intervalo."
+      ],
+      "valid_domain": [
+        "t finito; v y a constantes o congeladas por tramo."
+      ],
+      "boundary_conditions": [
+        "p(0)=p0; v(0)=v.",
+        "En cambios de aceleración, segmentar el tiempo y conservar continuidad de posición/velocidad."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:10",
+      "name": "Partículas",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "D",
+          "meaning": "coeficiente de difusión",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "D≥0"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt≥0"
+        },
+        {
+          "symbol": "ξ",
+          "meaning": "normal aleatoria estándar",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "media 0, varianza 1"
+        },
+        {
+          "symbol": "Δp",
+          "meaning": "incremento browniano",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "sqrt(2DΔt)ξ"
+        }
+      ],
+      "constraints": [
+        "DΔt tiene dimensión L²; raíz produce longitud.",
+        "La distribución debe declarar independencia y generador/semilla para reproducibilidad."
+      ],
+      "valid_domain": [
+        "D≥0; Δt≥0; muestras gaussianas estándar."
+      ],
+      "boundary_conditions": [
+        "D=0 o Δt=0 produce incremento cero.",
+        "Para Δt>0, la varianza por componente es 2DΔt."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:11",
+      "name": "Movimiento browniano",
+      "variables": [
+        {
+          "symbol": "c1,c2",
+          "meaning": "centros de esferas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vectores finitos"
+        },
+        {
+          "symbol": "r1,r2",
+          "meaning": "radios",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia entre centros",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d=|c1−c2|"
+        },
+        {
+          "symbol": "δ",
+          "meaning": "penetración",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "max(0,r1+r2−d)"
+        }
+      ],
+      "constraints": [
+        "La condición d<r1+r2 compara longitudes.",
+        "Contacto tangencial d=r1+r2 no es solapamiento estricto; definir tolerancia numérica."
+      ],
+      "valid_domain": [
+        "Radios no negativos y coordenadas en mismo marco/unidad."
+      ],
+      "boundary_conditions": [
+        "d=r1+r2: contacto sin penetración.",
+        "d=0: normal de colisión indeterminada; elegir eje estable de respaldo."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:12",
+      "name": "Colisión esfera-esfera",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "normal del plano",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "p",
+          "meaning": "punto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "c",
+          "meaning": "offset del plano",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "longitud si n unitario"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia firmada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n·p+c"
+        },
+        {
+          "symbol": "r",
+          "meaning": "radio esfera",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r≥0"
+        }
+      ],
+      "constraints": [
+        "n debe ser unitario para que d sea distancia; si no, dividir por |n|.",
+        "El signo de d depende de orientación de n."
+      ],
+      "valid_domain": [
+        "Plano y punto en el mismo marco; n≠0."
+      ],
+      "boundary_conditions": [
+        "d=r: tangencia según lado elegido.",
+        "d=0: centro sobre plano; normal define lado y resolución."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:13",
+      "name": "Colisión plano",
+      "variables": [
+        {
+          "symbol": "x_i",
+          "meaning": "posición masa i",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "v_i",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "m_i",
+          "meaning": "masa",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m_i>0"
+        },
+        {
+          "symbol": "k",
+          "meaning": "rigidez",
+          "unit": "kg/s²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "c",
+          "meaning": "amortiguamiento",
+          "unit": "kg/s",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "c≥0"
+        }
+      ],
+      "constraints": [
+        "Todos los términos de m_i x¨_i tienen fuerza; k·(x_{i+1}−2x_i+x_{i−1}) y c·v_i también.",
+        "Topología de vecinos y anclajes deben declararse; ecuación mostrada asume masas y espaciado compatibles."
+      ],
+      "valid_domain": [
+        "m_i>0; k,c≥0; cadena finita y condiciones iniciales."
+      ],
+      "boundary_conditions": [
+        "Definir extremos fijos/libres o resortes de frontera.",
+        "Inicializar x_i,v_i para todas las masas."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:14",
+      "name": "Sistema masa-resorte en cadena",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "tiempo absoluto",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito y monotónico"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "semilla",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero definido"
+        },
+        {
+          "symbol": "events",
+          "meaning": "eventos",
+          "unit": "tiempo s + payload tipado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ordenados y con identidad estable"
+        },
+        {
+          "symbol": "state",
+          "meaning": "estado generado",
+          "unit": "tipo por canal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "F determinista"
+        }
+      ],
+      "constraints": [
+        "F no debe depender del orden de render ni de estado oculto mutable.",
+        "Eventos y semilla deben ser idénticos para reproducir estado."
+      ],
+      "valid_domain": [
+        "t en intervalo temporal de la escena; eventos válidos y ordenables."
+      ],
+      "boundary_conditions": [
+        "En t inicial definir estado base.",
+        "Fuera del rango temporal aplicar política explícita; eventos simultáneos requieren orden estable."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:15",
+      "name": "Animación determinista",
+      "variables": [
+        {
+          "symbol": "t,t_i",
+          "meaning": "tiempo de consulta y evento",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t finito"
+        },
+        {
+          "symbol": "eventTable",
+          "meaning": "tabla de eventos",
+          "unit": "tiempo s + valores tipados",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ordenada; muestras finitas"
+        },
+        {
+          "symbol": "u",
+          "meaning": "fracción de interpolación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] entre muestras"
+        },
+        {
+          "symbol": "state(t)",
+          "meaning": "estado interpolado",
+          "unit": "tipo de canal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "coherente con tipo"
+        }
+      ],
+      "constraints": [
+        "Tiempos de tabla ordenados y sin duplicados ambiguos.",
+        "Interpolación específica por canal; rotaciones no interpolar componentes como escalares sin normalización."
+      ],
+      "valid_domain": [
+        "t dentro de tabla o política extrapolación/clamp definida."
+      ],
+      "boundary_conditions": [
+        "En tiempo exacto devolver muestra exacta.",
+        "Tabla vacía requiere estado de respaldo; una muestra constante."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:16",
+      "name": "Eventos con memoria precalculada",
+      "variables": [
+        {
+          "symbol": "f_pose,f_render",
+          "meaning": "frecuencias",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "f_pose 8–24; f_render 24–120"
+        },
+        {
+          "symbol": "Δt_pose,Δt_render",
+          "meaning": "periodos",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "recíprocos de frecuencias positivas"
+        },
+        {
+          "symbol": "mask",
+          "meaning": "máscara de canales",
+          "unit": "booleano/discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "por articulación/material"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        }
+      ],
+      "constraints": [
+        "f debe ser positiva; Δt=1/f.",
+        "La cuantización de pose no debe confundirse con frecuencia de render; declarar hold o interpolación."
+      ],
+      "valid_domain": [
+        "Rangos de frecuencia especificados; canal mask definido por conjunto finito."
+      ],
+      "boundary_conditions": [
+        "En t=0 elegir pose inicial.",
+        "En cambio de bloque de cuantización, usar regla de borde determinista; no leer índice fuera de rango."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:17",
+      "name": "Cuantización temporal de animación",
+      "variables": [
+        {
+          "symbol": "C(x)",
+          "meaning": "restricción",
+          "unit": "residuo con dimensión del constraint",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "C=0 ideal"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "multiplicador XPBD",
+          "unit": "tipo dependiente de C",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "inicialización definida"
+        },
+        {
+          "symbol": "α̃",
+          "meaning": "compliance escalada",
+          "unit": "1/(dimensión C)²·s²",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "α̃=α/Δt²; α≥0"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso fijo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        },
+        {
+          "symbol": "n_iter",
+          "meaning": "iteraciones",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero 4–12 inicial"
+        }
+      ],
+      "constraints": [
+        "La unidad de compliance depende de la definición y unidades de C; no asignar valor universal sin constraint dimensional.",
+        "Actualizar multiplicador con Δλ y proyección; masa inversa debe ser no negativa."
+      ],
+      "valid_domain": [
+        "Δt>0; compliance≥0; masas positivas o inversas no negativas; restricciones diferenciables donde se use gradiente."
+      ],
+      "boundary_conditions": [
+        "Compliance cero representa restricción rígida ideal.",
+        "Inicializar λ por paso según variante; reiniciar o transportar según política temporal."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:18",
+      "name": "XPBD: restricciones con compliance",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "posición de agente",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "h",
+          "meaning": "tamaño de celda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "h>0; típicamente cercano al radio de vecinos"
+        },
+        {
+          "symbol": "r_n",
+          "meaning": "radio de vecinos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_n≥0"
+        },
+        {
+          "symbol": "g",
+          "meaning": "coordenada entera de celda",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "floor((p−origin)/h)"
+        },
+        {
+          "symbol": "N_cell",
+          "meaning": "dimensiones de rejilla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "enteros positivos"
+        }
+      ],
+      "constraints": [
+        "h y r_n deben usar misma unidad.",
+        "La consulta debe inspeccionar suficientes celdas para cubrir r_n; h≈r_n no elimina necesidad de vecindad completa.",
+        "Gestionar celdas negativas y límites de rejilla explícitamente."
+      ],
+      "valid_domain": [
+        "Bounds finitos, h>0 y número finito de agentes."
+      ],
+      "boundary_conditions": [
+        "En límites usar clamp, wrap o hash disperso según política espacial.",
+        "Celda vacía devuelve lista vacía; colisiones hash deben resolver clave completa."
+      ],
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:19",
+      "name": "Hash espacial uniforme para vecinos",
+      "dimensional_checks": [
+        "Cada suma/resta combina magnitudes con dimensiones iguales.",
+        "Las derivadas temporales reducen potencia de T; los pasos temporales convierten derivadas a incrementos de estado.",
+        "Parámetros adimensionales, máscaras y pesos no se suman con cantidades físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "19/20 registros no protegidos incluidos",
+      "Cada registro tiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
+      "1 registro protegido excluido"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
