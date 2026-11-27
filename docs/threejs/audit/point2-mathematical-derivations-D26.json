@@ -1,0 +1,374 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D26 Animación facial, expresiones y actuación",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D26",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D26 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D26:0",
+      "name": "Blendshape deformation",
+      "starting_principles": [
+        "Targets con topología y unidades iguales; pesos finitos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Δp_i=p_i^target−p_i^base",
+          "justification": "Calcular delta entre target y forma neutral."
+        },
+        {
+          "step": 2,
+          "equation": "p'=p_base+Σ_iw_iΔp_i",
+          "justification": "Sumar deltas ponderados."
+        },
+        {
+          "step": 3,
+          "equation": "w_i∈[0,1]",
+          "justification": "Limitar intensidad por target y controlar overshoot si se permiten pesos mayores."
+        }
+      ],
+      "assumptions": [
+        "Targets con topología y unidades iguales; pesos finitos."
+      ],
+      "result": "La deformación facial se deriva de una suma lineal de deltas de forma.",
+      "limits": [
+        "Mezclas grandes pueden producir volumen/auto-intersección; correctivos pueden ser necesarios."
+      ]
+    },
+    {
+      "record_key": "D26:1",
+      "name": "FACS-inspired action units",
+      "starting_principles": [
+        "Action units se calibran sobre rig común; rangos limitados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "AU_i=vector of local control deltas",
+          "justification": "Representar cada unidad de acción como cambios articulares/morph."
+        },
+        {
+          "step": 2,
+          "equation": "face(t)=base+Σ_iw_i(t)AU_i",
+          "justification": "Combinar unidades de acción."
+        },
+        {
+          "step": 3,
+          "equation": "w_i(t)=clamp(control_i,0,1)",
+          "justification": "Mapear controles de actuación a pesos válidos."
+        }
+      ],
+      "assumptions": [
+        "Action units se calibran sobre rig común; rangos limitados."
+      ],
+      "result": "Las action units se combinan como coordenadas de control interpretables sobre la cara.",
+      "limits": [
+        "Las AU son aproximaciones artísticas; no representan medición clínica."
+      ]
+    },
+    {
+      "record_key": "D26:2",
+      "name": "Jaw hinge",
+      "starting_principles": [
+        "Pivote y eje definidos; ángulo en radianes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p'=p−pivot",
+          "justification": "Trasladar punto al origen del pivote."
+        },
+        {
+          "step": 2,
+          "equation": "p''=R_axis(θ)p'",
+          "justification": "Rotar alrededor del eje mandibular."
+        },
+        {
+          "step": 3,
+          "equation": "p_world=pivot+p''; M=T(pivot)R(θ)T(−pivot)",
+          "justification": "Regresar al marco original y componer matriz."
+        }
+      ],
+      "assumptions": [
+        "Pivote y eje definidos; ángulo en radianes."
+      ],
+      "result": "La mandíbula rota alrededor de pivote mediante transformación afín compuesta.",
+      "limits": [
+        "El modelo de bisagra no incluye deformación de labios/tejidos blandos."
+      ]
+    },
+    {
+      "record_key": "D26:3",
+      "name": "Viseme interpolation",
+      "starting_principles": [
+        "Visemas en mismo espacio facial; suma de pesos positiva."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "w_i(t)≥0",
+          "justification": "Definir pesos de visema."
+        },
+        {
+          "step": 2,
+          "equation": "w'_i=w_i/Σ_jw_j",
+          "justification": "Normalizar mezcla."
+        },
+        {
+          "step": 3,
+          "equation": "face(t)=Σ_iw'_i viseme_i",
+          "justification": "Combinar targets de visema en tiempo."
+        },
+        {
+          "step": 4,
+          "equation": "interpolate weights over phoneme interval",
+          "justification": "Suavizar entrada/salida de cada visema."
+        }
+      ],
+      "assumptions": [
+        "Visemas en mismo espacio facial; suma de pesos positiva."
+      ],
+      "result": "La sincronía labial mezcla visemas con pesos temporales normalizados.",
+      "limits": [
+        "Pesos normalizados no garantizan fonética correcta; timing y audio son esenciales."
+      ]
+    },
+    {
+      "record_key": "D26:4",
+      "name": "Coarticulation",
+      "starting_principles": [
+        "Tiempos fonéticos ordenados; σ_j>0; ventanas solapadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "g_j(t)=exp(−(t−center_j)²/(2σ_j²))",
+          "justification": "Asignar influencia temporal gaussiana a cada fonema."
+        },
+        {
+          "step": 2,
+          "equation": "w_i(t)=Σ_jA_{ij}g_j(t)",
+          "justification": "Acumular influencia de fonemas vecinos sobre visema i."
+        },
+        {
+          "step": 3,
+          "equation": "w'_i=w_i/Σ_kw_k",
+          "justification": "Normalizar pesos de visemas."
+        },
+        {
+          "step": 4,
+          "equation": "face(t)=Σ_iw'_i viseme_i",
+          "justification": "Evaluar pose facial coarticulada."
+        }
+      ],
+      "assumptions": [
+        "Tiempos fonéticos ordenados; σ_j>0; ventanas solapadas."
+      ],
+      "result": "La coarticulación deriva de sumar influencias temporales de fonemas vecinos.",
+      "limits": [
+        "Gauss temporal es heurística; requiere ajuste por idioma y velocidad del habla."
+      ]
+    },
+    {
+      "record_key": "D26:5",
+      "name": "Eye saccade",
+      "starting_principles": [
+        "Δt>0; ojos y objetivo en mismo marco."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=(t−t_0)/Δt",
+          "justification": "Normalizar duración de sacada."
+        },
+        {
+          "step": 2,
+          "equation": "gaze(t)=Bezier(g_0,g_1,g_2,g_3,u)",
+          "justification": "Interpolar trayectoria ocular con curva de control."
+        },
+        {
+          "step": 3,
+          "equation": "hold target after t_0+Δt",
+          "justification": "Mantener nueva fijación tras movimiento."
+        },
+        {
+          "step": 4,
+          "equation": "velocity peaks mid-trajectory",
+          "justification": "La derivada de la curva determina perfil de velocidad."
+        }
+      ],
+      "assumptions": [
+        "Δt>0; ojos y objetivo en mismo marco."
+      ],
+      "result": "Una sacada se representa como trayectoria corta y balística interpolada hacia nueva fijación.",
+      "limits": [
+        "Las sacadas reales tienen dinámica oculomotora compleja; curva es aproximación."
+      ]
+    },
+    {
+      "record_key": "D26:6",
+      "name": "Blink envelope",
+      "starting_principles": [
+        "Duraciones positivas; ventanas de cierre/apertura ordenadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=(t−t_close)/T_close",
+          "justification": "Normalizar fase de cierre."
+        },
+        {
+          "step": 2,
+          "equation": "close=1−smoothstep(0,1,u)",
+          "justification": "Cerrar párpado con transición suave."
+        },
+        {
+          "step": 3,
+          "equation": "open=smoothstep(0,1,(t−t_open)/T_open)",
+          "justification": "Reabrir con otra transición."
+        },
+        {
+          "step": 4,
+          "equation": "blink(t)=close·open",
+          "justification": "Combinar ventanas de cierre y apertura en una envolvente temporal."
+        }
+      ],
+      "assumptions": [
+        "Duraciones positivas; ventanas de cierre/apertura ordenadas."
+      ],
+      "result": "El parpadeo se construye como producto de envolventes de cierre y apertura.",
+      "limits": [
+        "Parpadeos naturales varían en duración y asimetría; esta es una forma procedural."
+      ]
+    },
+    {
+      "record_key": "D26:7",
+      "name": "Facial muscle field",
+      "starting_principles": [
+        "σ_i>0; direcciones y activaciones acotadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d_i=||p−c_i||",
+          "justification": "Medir distancia al centro del campo muscular."
+        },
+        {
+          "step": 2,
+          "equation": "a_i(p)=exp(−d_i²/σ_i²)",
+          "justification": "Calcular falloff espacial."
+        },
+        {
+          "step": 3,
+          "equation": "Δp(p)=Σ_i activation_i a_i(p) direction_i",
+          "justification": "Combinar campos de deformación."
+        },
+        {
+          "step": 4,
+          "equation": "p'=p+Δp",
+          "justification": "Aplicar desplazamiento a la superficie."
+        }
+      ],
+      "assumptions": [
+        "σ_i>0; direcciones y activaciones acotadas."
+      ],
+      "result": "El campo muscular procedural es una suma de falloffs espaciales vectoriales.",
+      "limits": [
+        "Falloff isotrópico puede ser insuficiente para músculos con dirección/anclaje complejos."
+      ]
+    },
+    {
+      "record_key": "D26:8",
+      "name": "Emotion parameter space",
+      "starting_principles": [
+        "Targets compatibles; intensidades normalizadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e=Σ_iα_i target_i",
+          "justification": "Construir expresión como combinación de targets."
+        },
+        {
+          "step": 2,
+          "equation": "Σ_iα_i≤1; α_i≥0",
+          "justification": "Mantener mezcla dentro del simplex de pesos."
+        },
+        {
+          "step": 3,
+          "equation": "expression=(1−Σα_i)neutral+e",
+          "justification": "Conservar neutral como peso residual."
+        },
+        {
+          "step": 4,
+          "equation": "intensity scales α_i",
+          "justification": "Controlar intensidad global de actuación."
+        }
+      ],
+      "assumptions": [
+        "Targets compatibles; intensidades normalizadas."
+      ],
+      "result": "El espacio emocional es una mezcla controlada de targets y neutral.",
+      "limits": [
+        "Emociones no son coordenadas universales; los targets deben diseñarse y probarse."
+      ]
+    },
+    {
+      "record_key": "D26:9",
+      "name": "Gaze coordination",
+      "starting_principles": [
+        "τ≥0; cabeza y ojos usan el mismo marco de referencia."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "headTargetDelayed(t)=headTarget(t−τ)",
+          "justification": "Retardar señal de cabeza."
+        },
+        {
+          "step": 2,
+          "equation": "eyeTarget(t)=headTargetDelayed(t)+offset(t)",
+          "justification": "Añadir offset de mirada."
+        },
+        {
+          "step": 3,
+          "equation": "gazeDir=normalize(eyeTarget−eyePosition)",
+          "justification": "Obtener dirección de mirada."
+        },
+        {
+          "step": 4,
+          "equation": "eyeRotation=lookAt(gazeDir)",
+          "justification": "Convertir dirección a rotación ocular."
+        }
+      ],
+      "assumptions": [
+        "τ≥0; cabeza y ojos usan el mismo marco de referencia."
+      ],
+      "result": "La mirada coordinada se deriva de una señal de cabeza retardada más offset ocular.",
+      "limits": [
+        "El retardo constante no captura anticipación variable ni coordinación cognitiva."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "10/10 técnicas cubiertas.",
+      "Cada derivación contiene pasos, supuestos y límites.",
+      "Se distinguen deformación geométrica, control facial, temporización fonética y mirada."
+    ],
+    "limitations": [
+      "Los modelos son herramientas de animación; la interpretación emocional y la sincronía requieren diseño/validación de actuación."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
