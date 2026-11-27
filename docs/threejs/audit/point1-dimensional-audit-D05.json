@@ -758,8 +758,8 @@
       "name": "Enjambre de insectos",
       "variables": [
         {
-          "symbol": "p_i",
-          "meaning": "posición del insecto",
+          "symbol": "p_i,p_j,p_light",
+          "meaning": "posiciones de insecto, vecinos y luz",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -770,11 +770,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "vector finito"
+          "domain": "finitas"
         },
         {
-          "symbol": "v_i",
-          "meaning": "velocidad",
+          "symbol": "v_i,v_j",
+          "meaning": "velocidades",
           "unit": "m/s",
           "dimension": {
             "L": 1,
@@ -785,26 +785,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "vector finito"
+          "domain": "finitas"
         },
         {
-          "symbol": "a_i",
-          "meaning": "aceleración de steering",
-          "unit": "m/s²",
+          "symbol": "S_i",
+          "meaning": "separación",
+          "unit": "m⁻¹",
           "dimension": {
-            "L": 1,
+            "L": -1,
             "M": 0,
-            "T": -2,
+            "T": 0,
             "I": 0,
             "Theta": 0,
             "N": 0,
             "J": 0
           },
-          "domain": "vector finito y acotado"
+          "domain": "distancias regularizadas"
         },
         {
-          "symbol": "r_n",
-          "meaning": "radio de vecindad",
+          "symbol": "C_i",
+          "meaning": "cohesión",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -815,86 +815,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "r_n>0"
+          "domain": "centroide vecinal definido"
         },
         {
-          "symbol": "p_light",
-          "meaning": "posición de fuente luminosa",
-          "unit": "m",
+          "symbol": "A_i",
+          "meaning": "alineación",
+          "unit": "m/s",
           "dimension": {
             "L": 1,
             "M": 0,
-            "T": 0,
+            "T": -1,
             "I": 0,
             "Theta": 0,
             "N": 0,
             "J": 0
           },
-          "domain": "vector finito"
+          "domain": "vecinos válidos"
         },
         {
-          "symbol": "I_light",
-          "meaning": "intensidad/iluminancia de fuente",
-          "unit": "unidad radiométrica o fotométrica declarada",
-          "dimension": "depende de la magnitud: p.ej. W·sr^-1 o lux",
-          "domain": "no negativa; no mezclar con posición"
-        }
-      ],
-      "constraints": [
-        "Cohesion, separation, noise y atracción deben producir steering homogéneo antes de sumarse.",
-        "Limitar velocidad/aceleración y tratar luz como fuente con posición e intensidad separadas."
-      ],
-      "valid_domain": [
-        "Población finita; parámetros y estados finitos; radio positivo."
-      ],
-      "boundary_conditions": [
-        "Vecindario vacío: reglas sociales nulas.",
-        "Fuente luminosa ausente: término de atracción cero; distancia cero con luz requiere dirección de respaldo."
-      ],
-      "dimensional_checks": [
-        "p_i and r_n have L; v_i has L/T; a_i has L/T².",
-        "Cohesion, separation, noise and attraction must be converted to accelerations (L/T²) before summation; scalar weights alone do not repair unit mismatches.",
-        "Light position has L; illuminance/intensity is a separate radiometric quantity with its own unit and must not be stored in the same dimensional field."
-      ],
-      "status": "REVIEWED_POINT1"
-    },
-    {
-      "record_key": "D05:12",
-      "name": "Aves en bandada",
-      "variables": [
-        {
-          "symbol": "p_i,v_i",
-          "meaning": "estado de ave",
-          "unit": "m; m/s",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "finitos"
-        },
-        {
-          "symbol": "leaderPath(t)",
-          "meaning": "trayectoria líder",
-          "unit": "m",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "continua y evaluable"
-        },
-        {
-          "symbol": "w_s,w_a,w_c",
-          "meaning": "pesos boids",
+          "symbol": "ξ_i,n_i",
+          "meaning": "ruido normalizado y dirección a la luz",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -905,11 +845,145 @@
             "N": 0,
             "J": 0
           },
-          "domain": "finitos"
+          "domain": "vectores normalizados"
+        },
+        {
+          "symbol": "w_s,w_c,w_a,w_n,w_l",
+          "meaning": "ganancias de steering",
+          "unit": "m²/s²; s⁻²; s⁻¹; m/s²; m/s² respectivamente",
+          "dimension": "w_s:L²T⁻²; w_c:T⁻²; w_a:T⁻¹; w_n:L T⁻²; w_l:L T⁻²",
+          "domain": "finitas y calibradas"
         },
         {
           "symbol": "a_i",
-          "meaning": "aceleración steering",
+          "meaning": "aceleración resultante",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "limitada"
+        },
+        {
+          "symbol": "I_light",
+          "meaning": "intensidad/iluminancia opcional",
+          "unit": "unidad radiométrica o fotométrica declarada",
+          "dimension": "depende de magnitud; no entra en la ecuación direccional sin un coeficiente adicional",
+          "domain": "no negativa"
+        }
+      ],
+      "constraints": [
+        "S_i tiene L⁻¹; C_i tiene L; A_i tiene L/T; ξ_i y n_i son adimensionales.",
+        "Para a_i=w_sS_i+w_cC_i+w_aA_i+w_nξ_i+w_ln_i, las ganancias deben tener respectivamente L²/T², T⁻², T⁻¹, L/T² y L/T².",
+        "I_light es magnitud escalar independiente; si modula w_l, la ganancia debe incorporar su unidad inversa."
+      ],
+      "valid_domain": [
+        "Población finita; parámetros y estados finitos; radio positivo."
+      ],
+      "boundary_conditions": [
+        "Vecindario vacío: reglas sociales nulas.",
+        "Fuente luminosa ausente: término de atracción cero; distancia cero con luz requiere dirección de respaldo."
+      ],
+      "dimensional_checks": [
+        "w_sS_i, w_cC_i, w_aA_i, w_nξ_i y w_ln_i tienen todos L/T².",
+        "p_i,p_light,r_n tienen L; v_i tiene L/T; a_i tiene L/T²."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:12",
+      "name": "Aves en bandada",
+      "variables": [
+        {
+          "symbol": "p_i,p_j,p_leader",
+          "meaning": "posiciones de ave, vecinos y líder",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "v_i,v_j",
+          "meaning": "velocidades",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "S_i",
+          "meaning": "separación",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "distancias regularizadas"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "alineación",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "C_i,L_i",
+          "meaning": "cohesión y vector hacia líder",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "w_s,w_a,w_c,w_l",
+          "meaning": "ganancias para aceleración",
+          "unit": "m²/s²; s⁻¹; s⁻²; s⁻² respectivamente",
+          "dimension": "w_s:L²T⁻²; w_a:T⁻¹; w_c:T⁻²; w_l:T⁻²",
+          "domain": "finitas y calibradas"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración resultante",
           "unit": "m/s²",
           "dimension": {
             "L": 1,
@@ -924,8 +998,8 @@
         }
       ],
       "constraints": [
-        "Combinar boids y seguimiento del líder en la misma magnitud cinemática.",
-        "Definir vecindad, límites de velocidad y aceleración."
+        "a_i=w_sS_i+w_aA_i+w_cC_i+w_lL_i exige que cada término sea aceleración.",
+        "Las ganancias son dimensionales: w_s L²/T², w_a T⁻¹, w_c T⁻² y w_l T⁻²; pesos adimensionales no homogeneizan por sí solos los términos."
       ],
       "valid_domain": [
         "Tiempo dentro del path; población finita y estado válido."
@@ -935,22 +1009,20 @@
         "Si el path termina, mantener último punto o loop declarado."
       ],
       "dimensional_checks": [
-        "p_i and leaderPath(t) have L; v_i has L/T; a_i has L/T².",
-        "Boids steering and leader-following terms must share acceleration units before addition.",
-        "Weights are dimensionless only after steering terms have been normalized/scaled to compatible units."
+        "w_sS_i, w_aA_i, w_cC_i y w_lL_i tienen L/T².",
+        "Las posiciones y vectores de cohesión/líder tienen L; velocidades L/T; salida a_i L/T²."
       ],
       "status": "REVIEWED_POINT1"
     }
   ],
   "validation": {
     "structural_checks": [
-      "10/13 técnicas no protegidas incluidas",
-      "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
-      "3 registros protegidos excluidos",
-      "Corregida la dimensión del dominio de muestreo Ω (L²/L³) y separada posición de luz de su intensidad"
+      "10/10 técnicas no protegidas incluidas",
+      "Cada ficha contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Se especifican unidades individuales de todas las ganancias de steering de enjambre y bandada"
     ],
     "limitations": [
-      "Revisión dimensional y estructural; las derivaciones formales y pruebas independientes corresponden a puntos posteriores."
+      "Las ganancias requieren calibración conductual; sus unidades se derivan de la salida de aceleración declarada."
     ]
   },
   "integrity": {
