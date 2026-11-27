@@ -40,11 +40,16 @@
         }
       ],
       "assumptions": [
-        "σ_t≥σ_s≥0; fase normalizada; medio y fuente definidos."
+        "σ_t≥σ_s≥0; fase normalizada; medio y fuente definidos.",
+        "ρ may be normalized dimensionless; if using physical number/mass density, fold its unit into σ_t and σ_s so extinction remains m⁻¹."
       ],
       "result": "RTE deriva del balance de radiancia a lo largo de un rayo.",
       "limits": [
         "Discretización y múltiples scattering pueden elevar coste/ruido."
+      ],
+      "dimensional_verification": [
+        "L has W·m⁻²·sr⁻¹; σ_t,σ_s have m⁻¹; ds has m; p has sr⁻¹; dω has sr.",
+        "Q has radiance per length W·m⁻³·sr⁻¹; each term of dL/ds has radiance/m."
       ]
     },
     {
@@ -81,6 +86,10 @@
       "result": "Henyey–Greenstein es una fase angular normalizada parametrizada por anisotropía.",
       "limits": [
         "HG no reproduce todas las fases reales de aerosoles."
+      ],
+      "dimensional_verification": [
+        "g and cosθ are dimensionless; p_HG has sr⁻¹.",
+        "∫p_HG dω=1 is dimensionless."
       ]
     },
     {
@@ -97,8 +106,8 @@
         },
         {
           "step": 2,
-          "equation": "β_R(λ)=K/λ⁴",
-          "justification": "En límite dipolar de partículas mucho menores que λ, la dispersión escala con λ⁻⁴."
+          "equation": "β_R(λ)=K_R/λ⁴, [K_R]=m³",
+          "justification": "La dependencia dipolar es proporcional a λ⁻⁴; la constante incorpora densidad molecular y propiedades del medio para que β_R tenga m⁻¹."
         },
         {
           "step": 3,
@@ -117,6 +126,10 @@
       "result": "Rayleigh deriva del límite dipolar y produce dependencia aproximada λ⁻⁴.",
       "limits": [
         "Rayleigh requiere K y densidad calibrados; no aplica a aerosoles grandes."
+      ],
+      "dimensional_verification": [
+        "λ has m; β_R has m⁻¹; proportionality constant K_R has m³.",
+        "The phase function is sr⁻¹ and angular integration preserves radiance."
       ]
     },
     {
@@ -148,11 +161,16 @@
         }
       ],
       "assumptions": [
-        "Distribución de radios e índices refractivos conocidos; aproximación de partículas esféricas."
+        "Distribución de radios e índices refractivos conocidos; aproximación de partículas esféricas.",
+        "En una aproximación de partículas independientes, β_M=N_p σ_scat con N_p en m⁻³ y sección eficaz en m²."
       ],
       "result": "Mie pondera sección eficaz y fase sobre distribución de tamaños de aerosoles.",
       "limits": [
         "Mie exacto requiere resolver dispersión electromagnética; approximations only in real-time."
+      ],
+      "dimensional_verification": [
+        "Particle radius and λ have m; cross-section has m²; number density has m⁻³.",
+        "β_M=N_particles·σ_scat has m⁻¹; phase function has sr⁻¹."
       ]
     },
     {
@@ -184,11 +202,16 @@
         }
       ],
       "assumptions": [
-        "Ruido y escalas definidos; densidad normalizada o calibrada."
+        "Ruido y escalas definidos; densidad normalizada o calibrada.",
+        "Los argumentos noise_i(x) se normalizan mediante frecuencias espaciales m⁻¹; ρ(x) queda normalizada y adimensional."
       ],
       "result": "Las nubes se construyen como densidad volumétrica de ruido multiescala modulada por perfiles.",
       "limits": [
         "El campo procedural no es meteorología ni microfísica de nube."
+      ],
+      "dimensional_verification": [
+        "p has m; spatial frequency has m⁻¹; noise arguments and thresholds are dimensionless.",
+        "ρ is normalized dimensionless density; σ_t has m⁻¹; ray step ds has m."
       ]
     },
     {
@@ -225,6 +248,10 @@
       "result": "Cloud self-shadowing deriva de integrar extinción solar y aplicar transmitancia.",
       "limits": [
         "Pasos grandes subestiman auto-sombra; requiere integración suficiente."
+      ],
+      "dimensional_verification": [
+        "σ_t has m⁻¹; ρ dimensionless; ds has m; optical depth is dimensionless.",
+        "T_light is dimensionless and lies in [0,1] for nonnegative extinction."
       ]
     },
     {
@@ -261,6 +288,10 @@
       "result": "MIS combina muestreo de BSDF y entorno con pesos de potencia.",
       "limits": [
         "PDFs en medidas distintas sesgan estimador si no se convierten."
+      ],
+      "dimensional_verification": [
+        "p_i are PDFs with same unit sr⁻¹; squared ratios yield dimensionless MIS weights.",
+        "w_i dimensionless and sum to 1 for the chosen heuristic."
       ]
     },
     {
@@ -297,6 +328,10 @@
       "result": "Temporal accumulation combina muestra actual e historia reproyectada.",
       "limits": [
         "Historia incorrecta produce ghosting; validación por profundidad/normal necesaria."
+      ],
+      "dimensional_verification": [
+        "C_current and C_history share color space/exposure; α is dimensionless.",
+        "Motion uses px/UV; depth uses consistent encoding; output preserves color signal."
       ]
     },
     {
@@ -333,6 +368,10 @@
       "result": "Shadow mapping compara profundidad de receptor con profundidad vista desde luz.",
       "limits": [
         "Bias incorrecto causa acne o peter-panning."
+      ],
+      "dimensional_verification": [
+        "z_receiver, z_shadowmap and bias share normalized-depth or linear-depth encoding.",
+        "Visibility and PCF weights are dimensionless; resolution/filter radius are pixels."
       ]
     },
     {
@@ -369,6 +408,10 @@
       "result": "CSM divide frustum en tramos y asigna resolución de sombra por cascada.",
       "limits": [
         "Transiciones de cascada requieren estabilización y mezcla."
+      ],
+      "dimensional_verification": [
+        "λ is dimensionless; split_i and near/far distances have m; resolution is pixels.",
+        "Uniform/logarithmic split expressions preserve distance units."
       ]
     },
     {
@@ -405,6 +448,10 @@
       "result": "GI probes interpolan coeficientes SH espaciales y evalúan irradiancia por normal.",
       "limits": [
         "SH de bajo orden no representa reflejos especulares agudos."
+      ],
+      "dimensional_verification": [
+        "SH coefficients and irradiance E have W/m²; Y_lm and weights w_i are dimensionless.",
+        "Σw_i=1; interpolation preserves irradiance units."
       ]
     },
     {
@@ -441,17 +488,24 @@
       "result": "Schlick aproxima reflectancia angular desde F0.",
       "limits": [
         "Schlick no es Fresnel espectral exacto."
+      ],
+      "dimensional_verification": [
+        "F0, cosθ and F are dimensionless reflectance values.",
+        "RGB F0 is dimensionless color reflectance in linear space."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "12/12 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen transporte radiativo, fases angulares, medios atmosféricos, acumulación temporal y probes."
+      "12/12 técnicas D39 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Radiative transfer conserva unidades de radiancia, extinción, dispersión, fase y emisión",
+      "Rayleigh/Mie producen coeficientes m⁻¹ con constantes/secciones correctamente tipadas",
+      "Cloud density y self-shadowing separan densidad relativa y coeficientes de extinción",
+      "MIS, temporal accumulation, shadow maps, CSM y SH probes mantienen pesos/unidades coherentes"
     ],
     "limitations": [
-      "Las aproximaciones de tiempo real no equivalen a solución espectral/multiscattering completa; validar según medio y escala."
+      "La derivación es de transporte radiativo aproximado; múltiples dispersión, aerosoles espectrales, nubes y validación atmosférica requieren modelos/calibración adicionales."
     ]
   },
   "integrity": {
