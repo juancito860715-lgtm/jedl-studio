@@ -59,8 +59,7 @@ export function createGableRoofGeometry({width=4,depth=4,baseY=0,pitch=.5,segmen
   }
   for(let j=0;j<segments;j++){
    const a=start+j*2,b=a+2;
-   if(side<0)indices.push(a,a+1,b,b,a+1,b+1);
-   else indices.push(a,b,a+1,b,b+1,a+1);
+   indices.push(a,b,a+1,b,b+1,a+1);
   }
  }
  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.Float32BufferAttribute(positions,3));g.setIndex(indices);g.computeVertexNormals();g.computeBoundingBox();g.computeBoundingSphere();return g;
@@ -76,7 +75,7 @@ export function createCurvedRoofGeometry({width=4,depth=4,baseY=0,curvature=.1,p
 }
 
 export function createArchGeometry({center=[0,0],radius=1,thickness=.2,depth=.4,startAngle=0,endAngle=Math.PI,segments=32,bevel=.02}={}){
- if(!Array.isArray(center)||center.length!==2||!center.every(Number.isFinite)||!(Number.isFinite(radius)&&radius>0&&Number.isFinite(thickness)&&thickness>0&&Number.isFinite(depth)&&depth>0)||!(endAngle>startAngle)||!Number.isInteger(segments)||segments<3||bevel<0)throw new RangeError("invalid arch parameters");
+ if(!Array.isArray(center)||center.length!==2||!center.every(Number.isFinite)||!(Number.isFinite(radius)&&radius>0&&Number.isFinite(thickness)&&thickness>0&&Number.isFinite(depth)&&depth>0)||!(endAngle>startAngle)||!Number.isInteger(segments)||segments<3||!Number.isFinite(bevel)||bevel<0)throw new RangeError("invalid arch parameters");
  const shape=new THREE.Shape(),outer=radius+thickness/2,inner=Math.max(EPS,radius-thickness/2);
  shape.moveTo(center[0]+outer*Math.cos(startAngle),center[1]+outer*Math.sin(startAngle));
  for(let i=1;i<=segments;i++){const a=startAngle+(endAngle-startAngle)*i/segments;shape.lineTo(center[0]+outer*Math.cos(a),center[1]+outer*Math.sin(a));}
@@ -106,14 +105,14 @@ export function createBridgeAlongCurve(points,{width=2,deckThickness=.15,railing
  if(!Array.isArray(points)||points.length<2||!(Number.isFinite(width)&&width>0&&Number.isFinite(deckThickness)&&deckThickness>0&&Number.isFinite(railingHeight)&&railingHeight>0)||!Number.isInteger(segments)||segments<2)throw new RangeError("invalid bridge parameters");
  const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...v3(p,"bridge point"))));
  const deck=createParametricSurface((u,v)=>{
-  const center=curve.getPoint(u),tangent=curve.getTangent(u).normalize(),side=new THREE.Vector3(0,1,0).cross(tangent);
+  const center=curve.getPoint(u),tangent=curve.getTangent(u).normalize(),side=tangent.clone().cross(new THREE.Vector3(0,1,0));
   if(side.lengthSq()<EPS)side.set(1,0,0);side.normalize();
   return center.addScaledVector(side,(v-.5)*width).add(new THREE.Vector3(0,-deckThickness/2,0));
  },segments,2);
  const group=new THREE.Group();group.add(new THREE.Mesh(deck,material));
  for(const sign of [-1,1]){
   const pts=[];for(let i=0;i<=segments;i++){
-   const u=i/segments,c=curve.getPoint(u),t=curve.getTangent(u).normalize(),side=new THREE.Vector3(0,1,0).cross(t);
+   const u=i/segments,c=curve.getPoint(u),t=curve.getTangent(u).normalize(),side=t.clone().cross(new THREE.Vector3(0,1,0));
    if(side.lengthSq()<EPS)side.set(1,0,0);side.normalize();
    pts.push(c.addScaledVector(side,sign*width/2).add(new THREE.Vector3(0,railingHeight,0)));
   }
@@ -124,7 +123,7 @@ export function createBridgeAlongCurve(points,{width=2,deckThickness=.15,railing
 
 export function createMasonryWall({width=6,height=3,depth=.3,columns=6,rows=4,stoneWidthJitter=.12,stoneHeightJitter=.08,bevel=.04,seed=1,material=new THREE.MeshStandardMaterial({color:0x999999})}={}){
  if(!(Number.isFinite(width)&&width>0&&Number.isFinite(height)&&height>0&&Number.isFinite(depth)&&depth>0)||!Number.isInteger(columns)||columns<1||!Number.isInteger(rows)||rows<1||
-   !Number.isFinite(stoneWidthJitter)||stoneWidthJitter<0||!Number.isFinite(stoneHeightJitter)||stoneHeightJitter<0||!Number.isFinite(bevel)||bevel<0||!Number.isInteger(seed))throw new RangeError("invalid masonry parameters");
+   !Number.isFinite(stoneWidthJitter)||stoneWidthJitter<0||stoneWidthJitter>=1||!Number.isFinite(stoneHeightJitter)||stoneHeightJitter<0||stoneHeightJitter>=1||!Number.isFinite(bevel)||bevel<0||!Number.isInteger(seed))throw new RangeError("invalid masonry parameters");
  const rand=mulberry32(seed),group=new THREE.Group(),blocks=[];
  for(let row=0;row<rows;row++){
   const nominalH=height/rows,h=nominalH*(1+(rand()*2-1)*stoneHeightJitter);
@@ -150,7 +149,7 @@ export function createProceduralFacade({width=8,height=10,bays=4,floors=5,wallDe
   const cx=-width/2+(bay+.5)*bayW,cy=(floor+.5)*floorH;
   if(floor===0&&bay===Math.floor(bays/2)){
    const w=Math.min(doorWidth,bayW*.8),h=Math.min(doorHeight,floorH*.9);
-   const path=new THREE.Path();path.moveTo(cx-w/2,0);path.lineTo(cx+w/2,0);path.lineTo(cx+w/2,h);path.lineTo(cx-w/2,h);path.closePath();holes.push(path);
+   const doorBottom=Math.min(.02,h*.05);const path=new THREE.Path();path.moveTo(cx-w/2,doorBottom);path.lineTo(cx+w/2,doorBottom);path.lineTo(cx+w/2,h);path.lineTo(cx-w/2,h);path.closePath();holes.push(path);
    openings.push({type:"door",x:cx,y:h/2,width:w,height:h});
   }else{
    const w=bayW*windowRatio,h=floorH*windowRatio;
