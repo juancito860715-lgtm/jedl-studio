@@ -133,7 +133,7 @@ export function fallingLeafStateAt({origin=[0,0,0],velocity=[0,0,0],gravity=9.81
  finite(gravity,"gravity");finite(time,"time");finite(windFrequency,"windFrequency");finite(rotationSpeed,"rotationSpeed");
  if(gravity<0||time<0||!Number.isInteger(seed))throw new RangeError("invalid falling leaf parameters");
  const ballistic=particlePositionAt({position:p,velocity:v,acceleration:[0,-gravity,0],time}),phase0=seedPhase(seed),phase=phase0+windFrequency*time;
- const drift=wind.map(a=>Math.abs(windFrequency)<EPS?.5*a*Math.sin(phase0)*time*time:a*(windFrequency*time*Math.cos(phase0)-Math.sin(phase)+Math.sin(phase0))/(windFrequency*windFrequency));
+ const drift=wind.map(a=>Math.abs(windFrequency) < EPS ? 0.5*a*Math.sin(phase0)*time*time : a*(windFrequency*time*Math.cos(phase0)-Math.sin(phase)+Math.sin(phase0))/(windFrequency*windFrequency));
  const position=ballistic.map((value,i)=>value+drift[i]);
  return {position,rotation:[rotationSpeed*time,Math.sin(phase)*.35,Math.cos(phase*.8)*.2]};
 }
