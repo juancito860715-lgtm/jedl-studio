@@ -5940,63 +5940,314 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "HERMITE_DUAL_CONTOURING_WITH_REGULARIZED_QEF",
+        "symbol_table": [
+          {
+            "symbol": "p_i",
+            "meaning": "Hermite intersection point on a sign-changing grid edge",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite point in the active cell"
+          },
+          {
+            "symbol": "n_i",
+            "meaning": "unit Hermite surface normal",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite unit vector"
+          },
+          {
+            "symbol": "x",
+            "meaning": "unknown dual vertex position in the active cell",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite 3-vector"
+          },
+          {
+            "symbol": "E(x)",
+            "meaning": "quadratic error function",
+            "unit": "m^2",
+            "dimension": {
+              "L": 2,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "nonnegative scalar"
+          },
+          {
+            "symbol": "lambda",
+            "meaning": "dimensionless ridge regularization coefficient",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "lambda>=0"
+          },
+          {
+            "symbol": "c",
+            "meaning": "cell-center regularization anchor",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite point"
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "p,x en unidades de mundo; normales adimensionales; QEF en unidades²."
+            "n_i·(x-p_i) has metres; each squared plane residual has m². lambda||x-c||² also has m² only when lambda is dimensionless."
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "Each Hermite sample defines a tangent plane n_i·(x-p_i)=0 at the edge intersection p_i.",
+            "Minimizing the sum of squared plane residuals gives E(x)=Σ[n_i·(x-p_i)]².",
+            "Stack normals as rows of A and scalar products n_i·p_i as b; the least-squares problem is ||Ax-b||².",
+            "Differentiating with respect to x and setting the gradient to zero yields AᵀAx=Aᵀb.",
+            "The CPU reference adds λ||x-c||², yielding (AᵀA+λI)x=Aᵀb+λc. This ridge term is an explicit implementation variant, not the paper's exact SVD-truncation method."
+          ]
         },
         "assumptions": [
-          "Normales unitarias consistentes; puntos Hermite interpolados sobre aristas; QEF puede ser mal condicionado."
+          "Hermite normals are finite and unit length; intersections are computed on sign-changing cell edges.",
+          "The reference solves one cell's vertex QEF only; it does not generate grid sign topology or mesh connectivity.",
+          "Positive regularization stabilizes rank-deficient systems by anchoring toward the cell center; λ is dimensionless.",
+          "The primary paper's numerically stable QR/SVD strategy is distinct from this small 3x3 ridge-regularized reference solver."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
+        "valid_domain": [
+          "At least one Hermite constraint; finite 3D points; unit normals; lambda>=0."
+        ],
+        "boundary_conditions": [
+          "If λ=0 and AᵀA is singular, the solver rejects and requires SVD/pseudoinverse or positive regularization.",
+          "The result must be clipped or constrained to the active cell by a separately declared policy; this core solver does not silently clamp.",
+          "No sign-changing edges means no dual vertex is emitted for that cell."
+        ],
+        "inputs": [
+          "Hermite point/normal pairs for one active cell",
+          "Cell center c",
+          "Nonnegative regularization λ"
+        ],
+        "outputs": [
+          "Minimizing 3D vertex position for the regularized local QEF",
+          "Singular-system error if no unique solution exists"
+        ],
         "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
         "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(K) to accumulate K Hermite planes plus O(1) fixed-size 3x3 solve",
+          "space": "O(1) accumulator per active cell"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_FULL_MESH_INTEGRATION_PENDING",
+          "details": "CPU reference in JavaScript can emit one Vector3 per active cell. Build BufferGeometry positions/indices after a separate edge-connectivity pass; preserve cell boundaries, winding, normals and chunk seams. GPU compute is optional and requires a separate parallel cell/edge pipeline."
         },
         "source_claims": [
           {
-            "url": "https://profiles.wustl.edu/en/publications/dual-contouring-of-hermite-data/",
+            "url": "https://people.eecs.berkeley.edu/~jrs/meshpapers/JuLosassoSchaeferWarren.pdf",
             "type": "PRIMARY_SIGGRAPH_PAPER",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null,
-            "formula_locator": "Exact locator pending; claim must remain incomplete."
+            "supported_claim": "Hermite tangent-plane QEF, least-squares normal equations, minimizer per sign-changing cell, and connectivity across sign-changing edges.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Ju et al. 2002, §2.2 steps 1-2 (PDF p. 341) and §2.3 Eq. (1)-(2), PDF pp. 341-342.",
+            "formula_locator": "Ju et al. 2002, §2.2 steps 1-2 (PDF p. 341) and §2.3 Eq. (1)-(2), PDF pp. 341-342."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "Non-axis-aligned orthogonal plane constraints recover (0.75,0.25,0.4) with small center regularization.",
+              "oracle": "Analytic intersection of x+y=1, x-y=0.5, z=0.4."
+            },
+            {
+              "description": "Singular unregularized one-plane system is rejected.",
+              "oracle": "Rank-deficient matrix property."
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Same non-axis-aligned plane fixture matches Python and analytic intersection.",
+              "oracle": "Cross-language parity plus exact plane intersection."
+            },
+            {
+              "description": "Singular unregularized matrix throws.",
+              "oracle": "Rank check."
+            }
+          ],
+          "edge_cases": [
+            "Nearly coplanar normals",
+            "Very small positive lambda",
+            "lambda=0 singular system",
+            "Non-unit normals",
+            "Vertex outside cell requiring explicit clipping policy"
+          ]
         },
-        "variables": [],
-        "algorithm_steps": [
-          "Detectar celdas con cambio de signo.",
-          "Interpolar intersecciones de arista.",
-          "Estimar normales del campo.",
-          "Resolver QEF por celda.",
-          "Conectar vértices vecinos según cambios de signo."
+        "variables": [
+          {
+            "symbol": "p_i",
+            "meaning": "Hermite intersection point on a sign-changing grid edge",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite point in the active cell"
+          },
+          {
+            "symbol": "n_i",
+            "meaning": "unit Hermite surface normal",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite unit vector"
+          },
+          {
+            "symbol": "x",
+            "meaning": "unknown dual vertex position in the active cell",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite 3-vector"
+          },
+          {
+            "symbol": "E(x)",
+            "meaning": "quadratic error function",
+            "unit": "m^2",
+            "dimension": {
+              "L": 2,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "nonnegative scalar"
+          },
+          {
+            "symbol": "lambda",
+            "meaning": "dimensionless ridge regularization coefficient",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "lambda>=0"
+          },
+          {
+            "symbol": "c",
+            "meaning": "cell-center regularization anchor",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite point"
+          }
         ],
-        "pseudocode": "for cell in activeCells: H=hermiteIntersections(cell); vertex=solveQEF(H); connectAdjacentCells()",
+        "algorithm_steps": [
+          "Collect Hermite point/normal constraints for the active cell.",
+          "Validate finite 3-vectors and unit normals.",
+          "Accumulate full symmetric AᵀA and Aᵀb.",
+          "Add λI and λc for the declared regularized variant.",
+          "Solve the 3x3 system using Gaussian elimination with partial pivoting.",
+          "Reject singular unregularized systems; return the vertex position otherwise.",
+          "A separate connectivity stage must connect vertices around sign-changing grid edges."
+        ],
+        "pseudocode": "function solveCellQEF(constraints, center, lambda):\n  M=lambda*I3; rhs=lambda*center\n  for (p,n) in constraints:\n    require finite(p,n) and abs(length(n)-1)<tol\n    M += outer(n,n)\n    rhs += n*dot(n,p)\n  return solve3x3WithPartialPivoting(M,rhs)  // fail if singular",
         "implementation_mapping": {
-          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
-          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
-          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
-        }
+          "threejs_api": "THREE.Vector3 for CPU output; BufferGeometry for mesh assembly; custom compute shader only after independent CPU validation.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py: regularized_plane_qef; tests/threejs/r31_kernels.mjs: regularizedPlaneQef.",
+          "gpu_strategy": "Per-cell QEF solve in a compute pipeline is optional; separate edge-based connectivity and chunk seam handling are mandatory."
+        },
+        "equations": [
+          {
+            "expression": "E(x)=sum_i (n_i·(x-p_i))^2",
+            "meaning": "Hermite plane QEF from the primary paper Eq. (1)",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "(A^T A)x=A^T b, with A rows n_i and b_i=n_i·p_i",
+            "meaning": "least-squares normal equations from the paper's §2.3",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "(A^T A+lambda I)x=A^T b+lambda c",
+            "meaning": "project-authored Tikhonov regularization toward cell center",
+            "dimensional_check": "pass",
+            "status": "derived_and_checked"
+          }
+        ]
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
