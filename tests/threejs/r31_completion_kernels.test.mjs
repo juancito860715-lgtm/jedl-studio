@@ -1,0 +1,14 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import * as k from "./r31_completion_kernels.mjs";
+const near=(a,b,e=1e-9)=>assert.ok(Math.abs(a-b)<=e,Math.abs(a-b)+" > "+e);
+test("impasto segment distance has analytic projection and endpoint cases",()=>{near(k.pointSegmentDistance2d([1,2],[0,0],[2,0]),2);near(k.pointSegmentDistance2d([3,0],[0,0],[2,0]),1);});
+test("impasto compact profile has exact center and zero outside support",()=>{const s=[[0,0,2,0,1,.75]];near(k.impastoHeight([1,0],s),.75);near(k.impastoHeight([1,1],s),0);});
+test("impasto central gradient and normal satisfy plane oracle",()=>{const h=p=>2.5*p[0]-.75*p[1]+4;const g=k.heightGradient(h,[.3,-.7]);near(g[0],2.5,1e-8);near(g[1],-.75,1e-8);near(Math.hypot(...k.impastoNormal(g,2)),1);});
+test("flow-oriented detail repeats over its along-flow wavelength",()=>{const a=k.orientedPeriodicDetail([.17,-.23],[1,0],.5,.8,.2),b=k.orientedPeriodicDetail([2.17,-.23],[1,0],.5,.8,.2);near(a,b,1e-12);});
+test("erosion amplitude is bounded and zero slope leaves base unchanged",()=>{near(k.erodedHeight(12,[.2,.7],[1,0],3,0,.4),12);for(let i=0;i<100;i++)assert.ok(Math.abs(k.erodedHeight(5,[i*.13,i*.07],[1,2],.4,1,.3)-5)<=.4+1e-12);});
+test("RK4 harmonic oscillator converges at fourth order",()=>{const f=([x,v])=>[v,-x],exact=[Math.cos(1),-Math.sin(1)],err=n=>{const a=k.integrateRk4(f,[1,0],0,1,n);return Math.hypot(a[0]-exact[0],a[1]-exact[1]);};const ratio=err(10)/err(20);assert.ok(ratio>14&&ratio<18,ratio);});
+test("RK4 constant vector field matches exact integral and reverse time",()=>{assert.deepEqual(k.integrateRk4(()=>[2,-3,4],[1,2,3],0,2,7),[5,-4,11]);near(k.integrateRk4(()=>[1],[0],1,0,10)[0],-1);});
+test("greedy voxel rectangles partition mask without changing face keys",()=>{const m=[[1,1,2],[1,1,2],[null,2,2]],r=k.greedyRectangles(m),out=new Map();for(const [x0,y0,x1,y1,key] of r)for(let y=y0;y<y1;y++)for(let x=x0;x<x1;x++){assert.equal(out.has(x+","+y),false);out.set(x+","+y,key);}const expected=new Map();for(let y=0;y<3;y++)for(let x=0;x<3;x++)if(m[y][x]!==null)expected.set(x+","+y,m[y][x]);assert.deepEqual(out,expected);});
+test("voxel face material/normal/AO key splits rectangles",()=>{const a=["stone","top",3],b=["stone","top",4],c=["wood","top",3];assert.equal(k.greedyRectangles([[a,b],[a,c]]).length,3);});
+test("invalid dimensions and degenerate directions fail closed",()=>{assert.throws(()=>k.orientedPeriodicDetail([0,0],[0,0],1),RangeError);assert.throws(()=>k.greedyRectangles([[1],[1,2]]),RangeError);assert.throws(()=>k.impastoHeight([0,0],[[0,0,1,0,0,1]]),RangeError);});
