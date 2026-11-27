@@ -84,7 +84,7 @@ class TestD35DimensionalAudit(unittest.TestCase):
             ("D35:3", "w,v"): {"w_i", "v_i"},
             ("D35:3", "P,Q,R"): {"P_ij", "Q_ij", "R_ij"},
             ("D35:7", "a,b,m"): {"a", "b", "m"},
-            ("D35:7", "f(a),f(b)": {"f(a)", "f(b)"},
+            ("D35:7", "f(a),f(b)"): {"f(a)", "f(b)"},
             ("D35:8", "t"): {"t_normalized", "t_seconds"},
         }
         for record_id, symbol, in expected:
