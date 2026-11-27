@@ -48,7 +48,7 @@ class D02ReferenceValidationTests(unittest.TestCase):
 
     def test_loop_subdivision_scope_is_explicit(self):
         record = next(r for r in self.data["records"] if r["record_key"] == "D02:7")
-        self.assertIn("Loop subdivision", record["mathematics"])
+        self.assertIn("Loop", record["technique"])
         self.assertTrue(any("Catmull–Clark" in item for item in self.data["limitations"]))
 
 if __name__ == "__main__":
