@@ -19,7 +19,7 @@ test("modular building groups repeated modules into InstancedMesh batches",()=>{
 });
 test("gable roof builds two pitched planes with correct bounds",()=>{
  const g=createGableRoofGeometry({width:4,depth:3,baseY:2,pitch:.5,segments:4});
- assert.ok(g.getAttribute("position").count>0);assert.ok(Math.abs(g.boundingBox.max.y-3)<1e-6);
+ assert.ok(g.getAttribute("position").count>0);assert.ok(Math.abs(g.boundingBox.max.y-3)<1e-6);assert.ok(g.getAttribute("normal").getY(0)>0);
 });
 test("curved roof samples a finite parabolic profile",()=>{
  const g=createCurvedRoofGeometry({width:4,depth:3,baseY:1,curvature:.2,slices:8,stacks:2});
@@ -39,7 +39,7 @@ test("parametric staircase places one instanced tread per step",()=>{
 });
 test("bridge follows a curved centerline and builds two railings",()=>{
  const group=createBridgeAlongCurve([[0,0,0],[2,1,0],[4,0,1]],{width:2,segments:12});
- assert.equal(group.children.length,3);assert.ok(group.children[0].geometry.getAttribute("position").count>0);
+ assert.equal(group.children.length,3);assert.ok(group.children[0].geometry.getAttribute("position").count>0);assert.ok(group.children[0].geometry.getAttribute("normal").getY(0)>0);
 });
 test("masonry wall generates deterministic beveled blocks",()=>{
  const a=createMasonryWall({width:4,height:2,columns:4,rows:2,seed:5,bevel:.03});
