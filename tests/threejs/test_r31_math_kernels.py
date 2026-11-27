@@ -336,17 +336,40 @@ def volume_composite(segments):
 
 
 def regularized_plane_qef(points_normals, center, regularization):
-    # Solve diagonal normal equations for a tiny deterministic reference case.
-    if regularization < 0:
-        raise ValueError("regularization must be nonnegative")
-    A=[regularization]*3
+    """Solve the full 3x3 regularized Hermite QEF normal equations."""
+    if regularization < 0 or not math.isfinite(regularization):
+        raise ValueError("regularization must be finite and nonnegative")
+    if len(center) != 3 or not all(math.isfinite(v) for v in center):
+        raise ValueError("center must be a finite 3-vector")
+    A=[[regularization if i==j else 0.0 for j in range(3)] for i in range(3)]
     b=[regularization*c for c in center]
     for point,normal in points_normals:
-        for axis in range(3):
-            A[axis]+=normal[axis]*normal[axis]
-            projection=sum(normal[k]*point[k] for k in range(3))
-            b[axis]+=normal[axis]*projection
-    return tuple(b[i]/A[i] if A[i] else center[i] for i in range(3))
+        if len(point)!=3 or len(normal)!=3 or not all(math.isfinite(v) for v in tuple(point)+tuple(normal)):
+            raise ValueError("Hermite point and normal must be finite 3-vectors")
+        norm=math.sqrt(sum(v*v for v in normal))
+        if abs(norm-1.0)>1e-6:
+            raise ValueError("Hermite normals must be unit length")
+        projection=sum(normal[k]*point[k] for k in range(3))
+        for i in range(3):
+            b[i]+=normal[i]*projection
+            for j in range(3):
+                A[i][j]+=normal[i]*normal[j]
+    # Gaussian elimination with partial pivoting; reject singular unregularized systems.
+    for col in range(3):
+        pivot=max(range(col,3),key=lambda row:abs(A[row][col]))
+        if abs(A[pivot][col])<1e-12:
+            raise ValueError("singular QEF; use positive regularization or SVD fallback")
+        A[col],A[pivot]=A[pivot],A[col]
+        b[col],b[pivot]=b[pivot],b[col]
+        scale=A[col][col]
+        for j in range(col,3): A[col][j]/=scale
+        b[col]/=scale
+        for row in range(3):
+            if row==col: continue
+            factor=A[row][col]
+            for j in range(col,3): A[row][j]-=factor*A[col][j]
+            b[row]-=factor*b[col]
+    return tuple(b)
 
 
 class TestR31NumericalKernels(unittest.TestCase):
@@ -604,6 +627,21 @@ def blend_dual_quaternions(items):
         whole=beer_lambert_transmittance(1.7, 2.4)
         subdivided=math.prod(beer_lambert_transmittance(1.7, 2.4/8) for _ in range(8))
         self.assertAlmostEqual(whole, subdivided, places=14)
+
+
+    def test_dual_contouring_full_qef_solves_non_axis_aligned_planes(self):
+        inv=1.0/math.sqrt(2.0)
+        constraints=[
+            ((0.5,0.5,0.0),(inv,inv,0.0)),   # x+y=1
+            ((0.25,-0.25,0.0),(inv,-inv,0.0)), # x-y=.5
+            ((0.0,0.0,0.4),(0.0,0.0,1.0))
+        ]
+        result=regularized_plane_qef(constraints,(0.5,0.5,0.5),1e-10)
+        self.assertVecAlmostEqual(result,(0.75,0.25,0.4),places=6)
+
+    def test_dual_contouring_qef_rejects_singular_unregularized_system(self):
+        with self.assertRaises(ValueError):
+            regularized_plane_qef([((0,0,0),(1,0,0))],(0,0,0),0.0)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
