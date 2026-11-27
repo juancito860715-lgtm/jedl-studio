@@ -1,0 +1,1837 @@
+{
+  "title": "Auditoría dimensional punto 1 — D21 Mecánica de fluidos avanzada",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D21",
+    "domain": "Mecánica de fluidos avanzada: líquidos, gases y humo",
+    "record_count": 22,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D21 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "pressure": "Pa=kg·m⁻¹·s⁻².",
+    "density": "Densidad másica kg/m³; concentración de pigmento separada.",
+    "velocity": "m/s; aceleración m/s²."
+  },
+  "records": [
+    {
+      "record_key": "D21:0",
+      "name": "Ecuación de continuidad",
+      "variables": [
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ>0"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "∂ρ/∂t y ∇·(ρu) deben tener kg·m⁻³·s⁻¹.",
+        "Fuentes/sumideros requieren término de producción con la misma unidad."
+      ],
+      "valid_domain": [
+        "Campos diferenciables y frontera definida."
+      ],
+      "boundary_conditions": [
+        "Pared impermeable: ρu·n=0.",
+        "Frontera abierta contabiliza flujo."
+      ],
+      "dimensional_checks": [
+        "Ambos términos tienen M·L⁻³·T⁻¹.",
+        "La integral de ρ sobre volumen tiene masa M."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:1",
+      "name": "Navier–Stokes incomprensible",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ>0"
+        },
+        {
+          "symbol": "p",
+          "meaning": "presión",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ν",
+          "meaning": "viscosidad cinemática",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ν≥0"
+        },
+        {
+          "symbol": "f",
+          "meaning": "aceleración externa",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Todos los términos de momento tienen L·T⁻²; f es aceleración por unidad de masa.",
+        "Incompresibilidad requiere ∇·u=0 y densidad constante."
+      ],
+      "valid_domain": [
+        "ρ>0; ν≥0; campos regulares; condiciones iniciales y de frontera."
+      ],
+      "boundary_conditions": [
+        "Pared no deslizante u=0 o condición declarada.",
+        "Presión fijada salvo constante gauge."
+      ],
+      "dimensional_checks": [
+        "∂u/∂t, (u·∇)u, ∇p/ρ y ν∇²u tienen L·T⁻².",
+        "∇·u tiene T⁻¹ y debe ser cero."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:2",
+      "name": "Euler inviscido",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ>0"
+        },
+        {
+          "symbol": "p",
+          "meaning": "presión",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "f",
+          "meaning": "aceleración externa",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada término de la ecuación tiene L·T⁻².",
+        "Si f es fuerza volumétrica, dividir por ρ para obtener aceleración."
+      ],
+      "valid_domain": [
+        "ρ>0; campos diferenciables; hipótesis inviscida declarada."
+      ],
+      "boundary_conditions": [
+        "Pared impermeable: u·n=0.",
+        "Choques requieren formulación débil/compresible."
+      ],
+      "dimensional_checks": [
+        "∇p/ρ y f tienen L·T⁻².",
+        "La omisión viscosa es una hipótesis, no un cambio de unidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:3",
+      "name": "Ecuación de energía térmica",
+      "variables": [
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ>0"
+        },
+        {
+          "symbol": "cp",
+          "meaning": "calor específico",
+          "unit": "J/(kg·K)",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": -1,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "cp>0"
+        },
+        {
+          "symbol": "T",
+          "meaning": "temperatura",
+          "unit": "K",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 1,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "absoluta"
+        },
+        {
+          "symbol": "k",
+          "meaning": "conductividad",
+          "unit": "W/(m·K)",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": -1,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "Q",
+          "meaning": "fuente volumétrica",
+          "unit": "W/m³",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Todos los términos tienen W/m³.",
+        "Declarar propiedades constantes y omisiones físicas del modelo."
+      ],
+      "valid_domain": [
+        "ρ,cp>0; k≥0; T absoluta y finita."
+      ],
+      "boundary_conditions": [
+        "Aislamiento: flujo térmico normal cero.",
+        "Frontera térmica fija o flujo impuesto declarado."
+      ],
+      "dimensional_checks": [
+        "ρcp∂T/∂t, k∇²T y Q tienen W/m³.",
+        "La temperatura aporta K y no se trata como dimensión adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:4",
+      "name": "Advección semi-Lagrangiana",
+      "variables": [
+        {
+          "symbol": "q",
+          "meaning": "campo transportado",
+          "unit": "unidad propia de q",
+          "dimension": "tipado por campo",
+          "domain": "finito"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        },
+        {
+          "symbol": "x",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "uΔt tiene L y puede restarse a x.",
+        "Interpolación conserva la unidad de q; la difusión numérica se documenta aparte."
+      ],
+      "valid_domain": [
+        "Campo y velocidad finitos; malla y paso definidos."
+      ],
+      "boundary_conditions": [
+        "Δt=0 conserva q.",
+        "Fuera de bounds aplicar condición de borde explícita."
+      ],
+      "dimensional_checks": [
+        "x_back tiene L.",
+        "q^{n+1} conserva unidad de q."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:5",
+      "name": "Proyección de presión",
+      "variables": [
+        {
+          "symbol": "u*",
+          "meaning": "velocidad provisional",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "p",
+          "meaning": "presión",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ>0"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        }
+      ],
+      "constraints": [
+        "Poisson: ∇²p y (ρ/Δt)∇·u* tienen M·L⁻³·T⁻².",
+        "Corrección (Δt/ρ)∇p tiene L/T y se resta de u*."
+      ],
+      "valid_domain": [
+        "ρ>0; Δt>0; operador y fronteras definidos."
+      ],
+      "boundary_conditions": [
+        "Fijar referencia de presión para eliminar nullspace.",
+        "Condiciones de presión y velocidad compatibles."
+      ],
+      "dimensional_checks": [
+        "Laplaciano de presión tiene M·L⁻³·T⁻².",
+        "La corrección tiene L·T⁻¹."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:6",
+      "name": "Vorticity confinement",
+      "variables": [
+        {
+          "symbol": "ω",
+          "meaning": "vorticidad",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "∇|ω|",
+          "meaning": "gradiente de magnitud",
+          "unit": "m⁻¹s⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "ε_c",
+          "meaning": "coeficiente",
+          "unit": "unidad por formulación",
+          "dimension": "condicional",
+          "domain": "definido"
+        },
+        {
+          "symbol": "f_conf",
+          "meaning": "aceleración resultante",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "La normalización N=∇|ω|/(|∇|ω||+ε) exige ε con unidad m⁻¹s⁻¹.",
+        "La expresión ε_c(N×ω) por sí sola no define aceleración lineal; falta factor espacial/escala en la ficha."
+      ],
+      "valid_domain": [
+        "Campo suave; regularizador positivo con unidad del gradiente."
+      ],
+      "boundary_conditions": [
+        "Gradiente nulo: N=0 o dirección estable.",
+        "No convertir a fuerza/acceleración sin factor dimensional."
+      ],
+      "dimensional_checks": [
+        "ω tiene T⁻¹; ∇|ω| tiene L⁻¹T⁻¹.",
+        "La ecuación de fuerza queda condicional por escala ausente."
+      ],
+      "status": "CONDITIONAL_POINT1_EQUATION_SCALE_REQUIRED"
+    },
+    {
+      "record_key": "D21:7",
+      "name": "SPH kernel density",
+      "variables": [
+        {
+          "symbol": "m_j",
+          "meaning": "masa",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m_j>0"
+        },
+        {
+          "symbol": "x_i,x_j",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "h",
+          "meaning": "radio suavizado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "h>0"
+        },
+        {
+          "symbol": "W",
+          "meaning": "kernel 3D",
+          "unit": "m⁻³",
+          "dimension": {
+            "L": -3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizado"
+        }
+      ],
+      "constraints": [
+        "ρ_i=Σm_jW_ij produce kg/m³.",
+        "Kernel normalizado espacialmente; en 3D escala como h⁻³."
+      ],
+      "valid_domain": [
+        "h>0; masas positivas; vecinos finitos."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos, ρ puede ser cero; no dividir por ella sin política.",
+        "En frontera, corregir truncamiento si se requiere conservación."
+      ],
+      "dimensional_checks": [
+        "m_j tiene M; W tiene L⁻³; producto tiene M·L⁻³.",
+        "r/h es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:8",
+      "name": "SPH pressure force",
+      "variables": [
+        {
+          "symbol": "m_j",
+          "meaning": "masa",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "p_i",
+          "meaning": "presión",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ρ_i",
+          "meaning": "densidad",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "∇W",
+          "meaning": "gradiente kernel",
+          "unit": "m⁻⁴",
+          "dimension": {
+            "L": -4,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada sumando m_j(p_i/ρ_i²)∇W tiene L·T⁻².",
+        "Densidad positiva y kernel con longitud de suavizado común."
+      ],
+      "valid_domain": [
+        "ρ_i>0; kernel diferenciable; vecinos finitos."
+      ],
+      "boundary_conditions": [
+        "Densidad casi cero requiere umbral dimensional y fallback.",
+        "Fronteras SPH deben modelarse."
+      ],
+      "dimensional_checks": [
+        "p/ρ² tiene L⁵M⁻¹T⁻²; con m_j y ∇W da L·T⁻².",
+        "La salida es aceleración."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:9",
+      "name": "PBF position constraint",
+      "variables": [
+        {
+          "symbol": "ρ_i,ρ0",
+          "meaning": "densidades",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ0>0"
+        },
+        {
+          "symbol": "C_i",
+          "meaning": "restricción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ_i/ρ0−1"
+        },
+        {
+          "symbol": "x_i",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δx_i",
+          "meaning": "corrección",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "λ_i",
+          "meaning": "multiplicador",
+          "unit": "no fijado sin fórmula completa",
+          "dimension": "condicional",
+          "domain": "depende de normalización"
+        }
+      ],
+      "constraints": [
+        "C_i es adimensional y ∇_x C_i tiene L⁻¹.",
+        "La fórmula abreviada omite factores de masa/normalización; λ no se tipa de forma única sin ecuación completa."
+      ],
+      "valid_domain": [
+        "ρ0>0; densidades y gradientes válidos."
+      ],
+      "boundary_conditions": [
+        "ρ_i=ρ0 produce C_i=0.",
+        "Densidad nula/gradiente degenerado requiere fallback."
+      ],
+      "dimensional_checks": [
+        "C_i es adimensional; gradiente tiene L⁻¹.",
+        "La dimensión de λ y la corrección completa queda condicional."
+      ],
+      "status": "CONDITIONAL_POINT1_FULL_PBF_FORMULA_REQUIRED"
+    },
+    {
+      "record_key": "D21:10",
+      "name": "Shallow water equations",
+      "variables": [
+        {
+          "symbol": "h",
+          "meaning": "profundidad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "h≥0"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocidad horizontal",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "g",
+          "meaning": "gravedad",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "g>0"
+        },
+        {
+          "symbol": "S0,Sf",
+          "meaning": "pendientes",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "definidas"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Continuidad tiene T⁻¹ en ambos términos.",
+        "La ecuación de momento conservativa tiene L²/T² tras divergencia de flujo."
+      ],
+      "valid_domain": [
+        "h≥0; g>0; campos y topografía finitos."
+      ],
+      "boundary_conditions": [
+        "En seco h=0 no dividir por profundidad.",
+        "Fronteras abiertas/cerradas fijan flujo."
+      ],
+      "dimensional_checks": [
+        "∂h/∂t y ∇·(hu) tienen T⁻¹.",
+        "∂(hu)/∂t y divergencia del flujo tienen L²/T²."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:11",
+      "name": "Lattice Boltzmann",
+      "variables": [
+        {
+          "symbol": "f_i",
+          "meaning": "distribución discreta",
+          "unit": "unidad heredada de densidad",
+          "dimension": "según variable macroscópica",
+          "domain": "no negativa según esquema"
+        },
+        {
+          "symbol": "x",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rejilla"
+        },
+        {
+          "symbol": "c_i",
+          "meaning": "velocidad lattice",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "discreta"
+        },
+        {
+          "symbol": "Δt,τ",
+          "meaning": "paso y relajación",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos"
+        }
+      ],
+      "constraints": [
+        "c_iΔt tiene L; Δt/τ es adimensional.",
+        "Unidades lattice internas pueden ser adimensionales; conversión física debe declararse."
+      ],
+      "valid_domain": [
+        "τ>0; rejilla y velocidades compatibles."
+      ],
+      "boundary_conditions": [
+        "τ fuera del rango estable del esquema invalida actualización.",
+        "Fronteras bounce-back/periódicas/abiertas declaradas."
+      ],
+      "dimensional_checks": [
+        "Streaming conserva posición L; colisión conserva unidad de f_i.",
+        "Δt/τ es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:12",
+      "name": "Level set",
+      "variables": [
+        {
+          "symbol": "φ",
+          "meaning": "función nivel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "campo con signo"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "∇φ",
+          "meaning": "gradiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "si φ es distancia firmada exacta"
+        }
+      ],
+      "constraints": [
+        "∂φ/∂t y u·∇φ tienen L/T si φ tiene L.",
+        "Reinicialización debe preservar interfaz φ=0."
+      ],
+      "valid_domain": [
+        "Campos regulares; paso temporal estable."
+      ],
+      "boundary_conditions": [
+        "φ=0 define interfaz; gradiente nulo requiere normal alternativa.",
+        "Fronteras del dominio con condición de velocidad."
+      ],
+      "dimensional_checks": [
+        "Ambos términos tienen L/T.",
+        "φ conserva L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:13",
+      "name": "Volume of Fluid",
+      "variables": [
+        {
+          "symbol": "α",
+          "meaning": "fracción volumétrica",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "ρ1,ρ2",
+          "meaning": "densidades",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        }
+      ],
+      "constraints": [
+        "∂α/∂t y ∇·(αu) tienen T⁻¹.",
+        "Propiedades de mezcla conservan unidades por ponderación."
+      ],
+      "valid_domain": [
+        "α∈[0,1]; campos finitos."
+      ],
+      "boundary_conditions": [
+        "α=0 o 1 es fase pura.",
+        "Clipping requiere control de conservación de masa."
+      ],
+      "dimensional_checks": [
+        "α adimensional; derivadas producen T⁻¹.",
+        "Densidad mezclada conserva kg/m³."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:14",
+      "name": "FLIP",
+      "variables": [
+        {
+          "symbol": "v_p,v_g",
+          "meaning": "velocidades partícula/rejilla",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "Δv_g",
+          "meaning": "incremento",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        }
+      ],
+      "constraints": [
+        "P2G/G2P preservan unidad de velocidad; pesos normalizados.",
+        "FLIP suma incremento a velocidad previa; PIC reemplaza con interpolación."
+      ],
+      "valid_domain": [
+        "Partículas y malla válidas; pesos definidos."
+      ],
+      "boundary_conditions": [
+        "Celdas sin contribución no deben dividir por peso cero.",
+        "Sin incremento, velocidad previa se conserva."
+      ],
+      "dimensional_checks": [
+        "Todas las velocidades tienen L/T.",
+        "Los pesos son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:15",
+      "name": "PIC",
+      "variables": [
+        {
+          "symbol": "v_p,v_g",
+          "meaning": "velocidades",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "pesos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        },
+        {
+          "symbol": "N",
+          "meaning": "nodos",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        }
+      ],
+      "constraints": [
+        "La interpolación G2P usa pesos adimensionales.",
+        "PIC conserva unidades de velocidad pero introduce disipación numérica."
+      ],
+      "valid_domain": [
+        "Nodos y pesos válidos; velocidades finitas."
+      ],
+      "boundary_conditions": [
+        "Sin soporte de nodos, fallback explícito.",
+        "Suma de pesos debe cumplir convención de interpolación."
+      ],
+      "dimensional_checks": [
+        "w_i es adimensional; v_p y v_g tienen L/T.",
+        "La salida conserva L/T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:16",
+      "name": "MacCormack advection",
+      "variables": [
+        {
+          "symbol": "q",
+          "meaning": "campo transportado",
+          "unit": "unidad de q",
+          "dimension": "tipado por campo",
+          "domain": "finito"
+        },
+        {
+          "symbol": "q_fwd,q_back",
+          "meaning": "predicción/corrección",
+          "unit": "unidad de q",
+          "dimension": "igual a q",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        }
+      ],
+      "constraints": [
+        "q_corr combina muestras del mismo campo/unidad.",
+        "Limitador anti-oscilación conserva tipo y restringe overshoot."
+      ],
+      "valid_domain": [
+        "Interpolador y campos finitos; paso positivo."
+      ],
+      "boundary_conditions": [
+        "Δt=0 produce identidad.",
+        "Discontinuidades requieren limitador."
+      ],
+      "dimensional_checks": [
+        "Todos los q conservan unidad original.",
+        "uΔt tiene L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:17",
+      "name": "Buoyancy force",
+      "variables": [
+        {
+          "symbol": "β",
+          "meaning": "expansión térmica",
+          "unit": "K⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": -1,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "T,Tamb",
+          "meaning": "temperaturas",
+          "unit": "K",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 1,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "absolutas"
+        },
+        {
+          "symbol": "g",
+          "meaning": "gravedad",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "a_b",
+          "meaning": "aceleración flotabilidad",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "β(T−Tamb) es adimensional; multiplicado por g produce aceleración.",
+        "Si se requiere fuerza volumétrica, introducir densidad."
+      ],
+      "valid_domain": [
+        "β y temperaturas finitos; gravedad definida."
+      ],
+      "boundary_conditions": [
+        "T=Tamb anula flotabilidad.",
+        "g=0 anula el término."
+      ],
+      "dimensional_checks": [
+        "β tiene Θ⁻¹ y ΔT tiene Θ; producto adimensional.",
+        "a_b tiene L/T²."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:18",
+      "name": "Divergence-free noise",
+      "variables": [
+        {
+          "symbol": "A",
+          "meaning": "potencial vectorial",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "suave"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "x",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "u=∇×A; derivación espacial reduce dimensión de A por L.",
+        "Divergencia de curl es cero analíticamente si A tiene regularidad suficiente."
+      ],
+      "valid_domain": [
+        "A al menos dos veces diferenciable para control de divergencia."
+      ],
+      "boundary_conditions": [
+        "En bordes, condiciones de A deben preservar continuidad.",
+        "Discretización puede introducir divergencia residual."
+      ],
+      "dimensional_checks": [
+        "A tiene L²/T; curl produce L/T.",
+        "∇·u tiene T⁻¹ y es cero en continuo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:19",
+      "name": "Kelvin–Helmholtz instability",
+      "variables": [
+        {
+          "symbol": "γ",
+          "meaning": "tasa crecimiento",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "ΔU",
+          "meaning": "salto de velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "ρ1,ρ2",
+          "meaning": "densidades",
+          "unit": "kg/m³",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "k",
+          "meaning": "número de onda",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        }
+      ],
+      "constraints": [
+        "γt es adimensional en exp(γt).",
+        "La ficha no aporta relación completa de γ con salto de velocidad, densidades y demás parámetros."
+      ],
+      "valid_domain": [
+        "Densidades positivas; k>0; interfaz definida."
+      ],
+      "boundary_conditions": [
+        "ΔU=0 elimina mecanismo básico de cizalla.",
+        "No inferir tasa numérica sin dispersión completa."
+      ],
+      "dimensional_checks": [
+        "γ tiene T⁻¹; γt adimensional.",
+        "La tasa está tipada; su fórmula constitutiva queda pendiente de derivación."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:20",
+      "name": "Rayleigh–Taylor instability",
+      "variables": [
+        {
+          "symbol": "Atwood",
+          "meaning": "número de Atwood",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "|A|≤1"
+        },
+        {
+          "symbol": "g",
+          "meaning": "gravedad",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "g≥0"
+        },
+        {
+          "symbol": "k",
+          "meaning": "número de onda",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k>0"
+        },
+        {
+          "symbol": "γ",
+          "meaning": "tasa crecimiento",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "γ≥0"
+        }
+      ],
+      "constraints": [
+        "γ²≈A g k tiene T⁻²; orientación inestable determina signo.",
+        "La expresión idealizada omite viscosidad y tensión superficial."
+      ],
+      "valid_domain": [
+        "k>0; densidades y gravedad definidas."
+      ],
+      "boundary_conditions": [
+        "A=0 o g=0 elimina crecimiento en aproximación ideal.",
+        "k→0 requiere límite de dominio."
+      ],
+      "dimensional_checks": [
+        "gk tiene T⁻²; Atwood es adimensional.",
+        "γ tiene T⁻¹."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D21:21",
+      "name": "Advección semi-Lagrangiana de pigmento",
+      "variables": [
+        {
+          "symbol": "c",
+          "meaning": "concentración pigmento",
+          "unit": "unidad declarada",
+          "dimension": "masa/área o normalizada",
+          "domain": "finita"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "D",
+          "meaning": "difusión",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "D≥0"
+        },
+        {
+          "symbol": "k",
+          "meaning": "secado",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "∂c/∂t, u·∇c, D∇²c y kc comparten unidad c/s.",
+        "Retrotraza uΔt tiene L; concentración debe conservar su unidad declarada."
+      ],
+      "valid_domain": [
+        "c finita; D,k≥0; paso positivo."
+      ],
+      "boundary_conditions": [
+        "D=0,k=0 deja solo advección.",
+        "Condición de borde de pigmento declarada."
+      ],
+      "dimensional_checks": [
+        "D tiene L²/T; k tiene T⁻¹; términos tienen c/T.",
+        "uΔt tiene L."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "22/22 técnicas incluidas",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
+      "D21:6 y D21:9 quedan condicionales por factores de escala/normalización ausentes en la ficha"
+    ],
+    "limitations": [
+      "Vorticity confinement y PBF requieren ecuación completa para cerrar las dimensiones de todos los términos; no se inventan factores faltantes."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
