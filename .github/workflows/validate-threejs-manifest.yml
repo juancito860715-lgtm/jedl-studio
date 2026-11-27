@@ -39,7 +39,7 @@ jobs:
       - name: Install pinned Three.js runtime for deterministic scene tests
         run: npm install --no-save --no-audit --no-fund three@0.180.0
       - name: Run JavaScript CPU reference/parity and Three.js scene tests
-        run: node --test tests/threejs/r31_kernels.test.mjs tests/threejs/r31_completion_kernels.test.mjs examples/threejs/r31-validation-scenes.test.mjs
+        run: node --test tests/threejs/r31_kernels.test.mjs tests/threejs/r31_completion_kernels.test.mjs examples/threejs/r31-validation-scenes.test.mjs examples/threejs/r31-core-scenes.test.mjs
       - name: Run structural and consistency audit
         run: |
           python tools/threejs_manifest_audit.py \
