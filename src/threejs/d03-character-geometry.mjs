@@ -211,7 +211,8 @@ export function computePupilPosition({eyeCenter,target,normal=[0,0,1],maxOffset=
   tangent.addScaledVector(n,-tangent.dot(n));
   if(tangent.lengthSq()<EPS){const axis=Math.abs(n.x)<0.8?new THREE.Vector3(1,0,0):new THREE.Vector3(0,1,0);tangent=axis.addScaledVector(n,-axis.dot(n));}
   tangent.normalize();
-  const displacement=Math.min(maxOffset,Math.max(0,new THREE.Vector3(...target).sub(e).length()));
+  const gazeDistance=new THREE.Vector3(...target).sub(e).length();
+  const displacement=gazeDistance<EPS?maxOffset:Math.min(maxOffset,gazeDistance);
   return {position:e.addScaledVector(tangent,displacement).toArray(),direction:tangent.toArray()};
 }
 
