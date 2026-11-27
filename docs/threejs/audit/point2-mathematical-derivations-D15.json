@@ -1,0 +1,364 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D15 Postproducción cinematográfica",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D15",
+    "record_count": 8,
+    "excluded_protected_records": 6,
+    "excluded_keys": [
+      "D15:0",
+      "D15:1",
+      "D15:3",
+      "D15:5",
+      "D15:6",
+      "D15:8"
+    ],
+    "excluded_reason": "Se preservan seis técnicas de Crimson Loong sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D15:2",
+      "name": "Screen-space AO",
+      "starting_principles": [
+        "Depth y normales pertenecen al mismo frame y cámara.",
+        "Kernel en espacio de vista o pantalla con proyección declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_view=unproject(uv,depth)",
+          "justification": "Reconstruir posición en espacio de vista a partir de UV y profundidad."
+        },
+        {
+          "step": 2,
+          "equation": "n=decodeNormal(normalBuffer)",
+          "justification": "Obtener normal de superficie en el mismo espacio."
+        },
+        {
+          "step": 3,
+          "equation": "p_i=p_view+TBN·sampleKernel_i·radius",
+          "justification": "Distribuir muestras alrededor de la superficie."
+        },
+        {
+          "step": 4,
+          "equation": "o_i=step(depth(p_i)<depth_i−bias)",
+          "justification": "Marcar muestras que indican geometría ocluyente."
+        },
+        {
+          "step": 5,
+          "equation": "AO=1−(Σw_i o_i)/(Σw_i)",
+          "justification": "Promediar oclusión y convertirla en visibilidad."
+        }
+      ],
+      "assumptions": [
+        "Depth y normales pertenecen al mismo frame y cámara.",
+        "Kernel en espacio de vista o pantalla con proyección declarada.",
+        "Bias y radio usan unidades compatibles."
+      ],
+      "result": "SSAO aproxima visibilidad ambiental integrando muestras cercanas alrededor de la superficie.",
+      "limits": [
+        "Es screen-space: no ve geometría fuera de pantalla ni oclusores ocultos por otros objetos."
+      ]
+    },
+    {
+      "record_key": "D15:4",
+      "name": "Gaussian blur",
+      "starting_principles": [
+        "σ>0 y mismo espacio/unidad que coordenada x.",
+        "Señal finita; borde usa clamp/mirror/renormalización declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "G(x)=exp(−x²/(2σ²))/(√(2π)σ)",
+          "justification": "Elegir densidad gaussiana normalizada."
+        },
+        {
+          "step": 2,
+          "equation": "B(x)=∫C(u)G(x−u)du",
+          "justification": "Convolucionar señal con el kernel."
+        },
+        {
+          "step": 3,
+          "equation": "G(x,y)=G_σ(x)G_σ(y)",
+          "justification": "La gaussiana 2D isotrópica se separa en producto de dos kernels 1D."
+        },
+        {
+          "step": 4,
+          "equation": "B≈G_y*(G_x*C)",
+          "justification": "Aplicar dos pasadas separables para reducir coste."
+        }
+      ],
+      "assumptions": [
+        "σ>0 y mismo espacio/unidad que coordenada x.",
+        "Señal finita; borde usa clamp/mirror/renormalización declarada.",
+        "Kernel discreto renormalizado para que suma de pesos sea 1."
+      ],
+      "result": "El desenfoque gaussiano es una convolución con kernel normalizado y separable.",
+      "limits": [
+        "σ=0 se trata como identidad; bordes cambian resultado según política."
+      ]
+    },
+    {
+      "record_key": "D15:7",
+      "name": "Vignette",
+      "starting_principles": [
+        "UV normalizadas; 0≤r_0<r_1.",
+        "strength finito; color lineal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d=||uv−center||",
+          "justification": "Calcular distancia desde píxel al centro normalizado."
+        },
+        {
+          "step": 2,
+          "equation": "u=clamp((d−r_0)/(r_1−r_0),0,1)",
+          "justification": "Normalizar distancia dentro del anillo de transición."
+        },
+        {
+          "step": 3,
+          "equation": "s=u²(3−2u)",
+          "justification": "Aplicar smoothstep cúbico."
+        },
+        {
+          "step": 4,
+          "equation": "v=1−strength·s; C'=vC",
+          "justification": "Crear factor de atenuación y multiplicar color."
+        }
+      ],
+      "assumptions": [
+        "UV normalizadas; 0≤r_0<r_1.",
+        "strength finito; color lineal.",
+        "Distancia y radios en el mismo espacio de coordenadas."
+      ],
+      "result": "La viñeta es un multiplicador radial construido con una transición suave.",
+      "limits": [
+        "La forma circular puede convertirse en elíptica si el aspect ratio no se compensa."
+      ]
+    },
+    {
+      "record_key": "D15:9",
+      "name": "Film grain",
+      "starting_principles": [
+        "g≥0 y amplitud acotada.",
+        "C y ruido comparten escala de señal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "η=hash(pixel,frame,seed)",
+          "justification": "Generar ruido pseudoaleatorio reproducible por píxel/frame."
+        },
+        {
+          "step": 2,
+          "equation": "ξ=2η−1",
+          "justification": "Centrar el ruido en intervalo simétrico."
+        },
+        {
+          "step": 3,
+          "equation": "C'=C+gξ",
+          "justification": "Escalar por amplitud de grano y sumar a señal."
+        },
+        {
+          "step": 4,
+          "equation": "clamp/toneMap(C')",
+          "justification": "Limitar/transformar según rango de salida."
+        }
+      ],
+      "assumptions": [
+        "g≥0 y amplitud acotada.",
+        "C y ruido comparten escala de señal.",
+        "Semilla/índice temporal controlan estabilidad o variación."
+      ],
+      "result": "El grano se modela como ruido de media aproximadamente cero añadido a la señal.",
+      "limits": [
+        "Ruido independiente por frame puede parpadear; usar correlación temporal si se desea grano estable."
+      ]
+    },
+    {
+      "record_key": "D15:10",
+      "name": "Sharpen",
+      "starting_principles": [
+        "C y B comparten espacio de color lineal y formato.",
+        "k finito; política de borde del blur declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "B=blur(C)",
+          "justification": "Obtener versión suavizada de la señal."
+        },
+        {
+          "step": 2,
+          "equation": "H=C−B",
+          "justification": "Extraer componente de altas frecuencias."
+        },
+        {
+          "step": 3,
+          "equation": "C'=C+kH=C+k(C−B)",
+          "justification": "Sumar componente de alta frecuencia con ganancia k."
+        },
+        {
+          "step": 4,
+          "equation": "clamp/gamutMap(C')",
+          "justification": "Controlar overshoot y valores fuera de rango."
+        }
+      ],
+      "assumptions": [
+        "C y B comparten espacio de color lineal y formato.",
+        "k finito; política de borde del blur declarada.",
+        "Salida puede superar rango de entrada."
+      ],
+      "result": "Unsharp mask deriva el realce como original más una fracción de su residuo respecto a un blur.",
+      "limits": [
+        "Ganancia excesiva genera halos y ruido; no recupera detalle ausente."
+      ]
+    },
+    {
+      "record_key": "D15:11",
+      "name": "Tone mapping",
+      "starting_principles": [
+        "C_HDR en RGB lineal; EV finito.",
+        "Operador y gamut de salida declarados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C_e=2^EV·C_HDR",
+          "justification": "Aplicar exposición en stops."
+        },
+        {
+          "step": 2,
+          "equation": "L=operator(C_e)",
+          "justification": "Comprimir rango HDR mediante operador monotónico elegido."
+        },
+        {
+          "step": 3,
+          "equation": "C_display=gamutMap(L)",
+          "justification": "Adaptar al gamut del dispositivo."
+        },
+        {
+          "step": 4,
+          "equation": "C_encoded=transferFunction(C_display)",
+          "justification": "Codificar señal lineal a curva de transferencia de salida."
+        }
+      ],
+      "assumptions": [
+        "C_HDR en RGB lineal; EV finito.",
+        "Operador y gamut de salida declarados.",
+        "La codificación de pantalla ocurre después del tone mapping."
+      ],
+      "result": "Tone mapping transforma valores HDR expuestos a una señal display-referred dentro del rango del dispositivo.",
+      "limits": [
+        "No existe un operador universal; distintos operadores cambian contraste, saturación y altas luces."
+      ]
+    },
+    {
+      "record_key": "D15:12",
+      "name": "Lens distortion",
+      "starting_principles": [
+        "uv y r adimensionales; k_1,k_2 adimensionales en coordenadas normalizadas.",
+        "El dominio se limita a radio calibrado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x=uv−center; r²=x·x",
+          "justification": "Centrar coordenadas normalizadas alrededor del eje óptico."
+        },
+        {
+          "step": 2,
+          "equation": "s=1+k_1r²+k_2r⁴",
+          "justification": "Construir factor de distorsión radial."
+        },
+        {
+          "step": 3,
+          "equation": "uv'=center+s·x",
+          "justification": "Desplazar cada coordenada radialmente."
+        },
+        {
+          "step": 4,
+          "equation": "sample(image,uv')",
+          "justification": "Muestrear imagen en coordenada deformada."
+        }
+      ],
+      "assumptions": [
+        "uv y r adimensionales; k_1,k_2 adimensionales en coordenadas normalizadas.",
+        "El dominio se limita a radio calibrado.",
+        "Bordes fuera de imagen usan política explícita."
+      ],
+      "result": "La distorsión radial Brown–Conrady se obtiene de una serie polinómica en r².",
+      "limits": [
+        "Para calibración real, los coeficientes deben ajustarse a lente/sensor y puede requerirse distorsión tangencial."
+      ]
+    },
+    {
+      "record_key": "D15:13",
+      "name": "Output color management",
+      "starting_principles": [
+        "Perfiles de entrada/salida definidos; matrices y blancos conocidos.",
+        "No decodificar dos veces ni aplicar operaciones lineales a datos codificados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C_linear=decodeTransfer(C_encoded)",
+          "justification": "Convertir entrada a RGB lineal antes de operaciones colorimétricas."
+        },
+        {
+          "step": 2,
+          "equation": "XYZ=M_RGB→XYZ C_linear",
+          "justification": "Transformar mediante matriz definida por primarias y blanco."
+        },
+        {
+          "step": 3,
+          "equation": "XYZ'=adaptWhite(XYZ,white_in,white_out)",
+          "justification": "Adaptar cromáticamente si los blancos difieren."
+        },
+        {
+          "step": 4,
+          "equation": "RGB_out=M_XYZ→RGBout XYZ'",
+          "justification": "Convertir a primarias del dispositivo destino."
+        },
+        {
+          "step": 5,
+          "equation": "RGB_gamut=gamutMap(RGB_out)",
+          "justification": "Resolver colores fuera de gamut."
+        },
+        {
+          "step": 6,
+          "equation": "C_encoded=encodeTransfer(RGB_gamut)",
+          "justification": "Aplicar función de transferencia del formato de salida."
+        }
+      ],
+      "assumptions": [
+        "Perfiles de entrada/salida definidos; matrices y blancos conocidos.",
+        "No decodificar dos veces ni aplicar operaciones lineales a datos codificados.",
+        "Rango/gamut y política de clipping/compression declarados."
+      ],
+      "result": "La gestión de color es una cadena de decodificación, transformación colorimétrica, adaptación, gamut mapping y codificación.",
+      "limits": [
+        "Sin perfiles/primarias conocidos, no puede garantizarse coincidencia colorimétrica exacta."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "8/8 técnicas no protegidas cubiertas.",
+      "Cada derivación contiene pasos justificados, supuestos y límites.",
+      "Las seis claves protegidas se excluyen sin modificación."
+    ],
+    "limitations": [
+      "Las derivaciones definen operadores; calibración de color, calidad visual y validación por dispositivo se realizan en puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
