@@ -70,7 +70,6 @@ def audit(manifest_path, r31_path, preservation_path, register_path):
     manifest=json.loads(Path(manifest_path).read_text(encoding="utf-8"))
     r31=json.loads(Path(r31_path).read_text(encoding="utf-8"))
     preservation=json.loads(Path(preservation_path).read_text(encoding="utf-8"))
-    register=json.loads(Path(register_path).read_text(encoding="utf-8"))
     preserved={x["record_key"] for x in preservation.get("records",[])}
     specs={x["record_key"]:x for x in r31.get("records",[])}
     records=[]
