@@ -1,0 +1,326 @@
+{
+  "document": "Investigación de referencias, matemáticas, adaptación local y validación del dominio D02",
+  "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+  "manifest_version": "3.1",
+  "domain_id": "D02",
+  "domain_name": "Modelado procedural y geometría",
+  "reference_project": {
+    "repository": "mrdoob/three.js",
+    "commit": "0de0346de82a0d01923ffeb27f33240ad8b4863f",
+    "license": "MIT",
+    "url": "https://github.com/mrdoob/three.js/tree/0de0346de82a0d01923ffeb27f33240ad8b4863f",
+    "secondary_reference": {
+      "repository": "stevinz/three-subdivide",
+      "commit": "c9aea3441f498f195eea853d1c23cc37ea74ea6e",
+      "license": "MIT",
+      "url": "https://github.com/stevinz/three-subdivide/tree/c9aea3441f498f195eea853d1c23cc37ea74ea6e"
+    }
+  },
+  "protected_records": {
+    "excluded_keys": [
+      "D02:8",
+      "D02:9",
+      "D02:10",
+      "D02:11",
+      "D02:12"
+    ],
+    "reason": "Cinco registros están protegidos por el mapa Crimson Loong; se conservan sin repetir investigación ni reescribir su contenido."
+  },
+  "records": [
+    {
+      "record_key": "D02:0",
+      "technique": "Primitivas geométricas",
+      "mathematics": "Una primitiva parametrizada P(u,v) genera una superficie; los parámetros dimensionales (radio, alto, ancho) usan longitud L; ángulos radianes adimensionales; segmentos enteros positivos.",
+      "algorithm": [
+        "Validar dimensiones y resolución",
+        "delegar generación a BoxGeometry, SphereGeometry, CylinderGeometry o TorusGeometry",
+        "verificar posiciones finitas y bounds."
+      ],
+      "pseudocode": "geometry=createPrimitiveGeometry(kind,options); assertFinite(geometry.position); computeBounds(); return geometry;",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/BoxGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "La referencia oficial confirma las primitivas y utilidades BufferGeometry/ExtrudeGeometry correspondientes; la adaptación local valida entradas y expone una interfaz de ejecución probada por pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:1",
+      "technique": "BufferGeometry manual",
+      "mathematics": "V∈R^(N×3), índices I∈{0,…,N−1}^(3F); atributos normales y UV deben compartir N vértices, con tipos/dimensiones propios.",
+      "algorithm": [
+        "Validar triples xyz finitos",
+        "validar cardinalidad de atributos",
+        "validar índices triangulares",
+        "asignar BufferAttributes",
+        "calcular normales si faltan",
+        "bounds."
+      ],
+      "pseudocode": "validate(position); N=position.length/3; validateAttributeLengths(N); validateIndices(I,N); setAttributes(); computeNormalsIfMissing(); computeBounds();",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/BoxGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "La referencia oficial confirma las primitivas y utilidades BufferGeometry/ExtrudeGeometry correspondientes; la adaptación local valida entradas y expone una interfaz de ejecución probada por pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:2",
+      "technique": "Superficie paramétrica",
+      "mathematics": "P(u,v)=(x,y,z), u∈[0,1], v∈[0,1]; normal n=normalize(P_u×P_v) donde el producto no sea degenerado.",
+      "algorithm": [
+        "Muestrear rejilla (Nu+1)(Nv+1)",
+        "evaluar P",
+        "generar UV",
+        "conectar celdas en dos triángulos con winding fijo",
+        "calcular normales y bounds."
+      ],
+      "pseudocode": "for j=0..Nv for i=0..Nu: p[i,j]=P(i/Nu,j/Nv); connect each grid cell with two triangles; computeVertexNormals();",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/jsm/geometries/ParametricGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "La referencia oficial confirma las primitivas y utilidades BufferGeometry/ExtrudeGeometry correspondientes; la adaptación local valida entradas y expone una interfaz de ejecución probada por pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:3",
+      "technique": "Superficie de revolución",
+      "mathematics": "P(u,θ)=(r(u)cosθ,y(u),r(u)sinθ), r≥0, θ∈[0,2π]; cada coordenada conserva longitud L.",
+      "algorithm": [
+        "Validar perfil [r,y]",
+        "muestrear ángulos",
+        "generar anillos",
+        "conectar anillos vecinos",
+        "conservar seam periódico",
+        "calcular normales y bounds."
+      ],
+      "pseudocode": "for each profile point and θ_k: emit (r cosθ,y,r sinθ); connect adjacent rings; validate seam and indices;",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/BoxGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "La referencia oficial confirma las primitivas y utilidades BufferGeometry/ExtrudeGeometry correspondientes; la adaptación local valida entradas y expone una interfaz de ejecución probada por pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:4",
+      "technique": "Extrusión",
+      "mathematics": "P(s,u)=C(u)+s·d, s∈[0,1]; C y d tienen longitud L si d es desplazamiento total.",
+      "algorithm": [
+        "Validar contorno 2D y profundidad",
+        "construir Shape cerrado",
+        "generar ExtrudeGeometry sin bevel",
+        "calcular bounds",
+        "rechazar contornos inválidos."
+      ],
+      "pseudocode": "shape=closeContour(C); geometry=new ExtrudeGeometry(shape,{depth,steps,bevelEnabled:false}); validateBounds(geometry);",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/BoxGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "La referencia oficial confirma las primitivas y utilidades BufferGeometry/ExtrudeGeometry correspondientes; la adaptación local valida entradas y expone una interfaz de ejecución probada por pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:5",
+      "technique": "Sweep por curva",
+      "mathematics": "P(s,θ)=C(s)+r(s)[N(s)cosθ+B(s)sinθ], con T,N,B ortonormales, r≥0 y unidades de longitud.",
+      "algorithm": [
+        "Muestrear puntos",
+        "calcular tangentes",
+        "construir marco inicial",
+        "transportar el marco entre tangentes consecutivas",
+        "generar anillos",
+        "conectar anillos y calcular normales."
+      ],
+      "pseudocode": "T[i]=normalize(C[i+1]-C[i-1]); frame[i]=parallelTransport(frame[i-1],T[i]); P[i,k]=C[i]+r*(N cosθ+B sinθ); connectRings();",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/TubeGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "TubeGeometry oficial demuestra la construcción de tubo sobre curva; la adaptación local construye explícitamente el marco paralelo y los anillos para poder probar transporte y estabilidad.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:6",
+      "technique": "Sweep con marco paralelo",
+      "mathematics": "Para tangentes unitarias T0,T1: eje a=T0×T1, ángulo φ=atan2(|a|,T0·T1); rotación mínima transporta N0 a N1 y B=T×N.",
+      "algorithm": [
+        "Normalizar tangentes",
+        "proyectar normal inicial",
+        "transportar mediante quaternion de rotación mínima",
+        "reortogonalizar",
+        "tratar tangentes paralelas y antiparalelas determinísticamente."
+      ],
+      "pseudocode": "q=rotationFromUnitVectors(Tprev,Tnext); N=normalize(q*Nprev - Tnext*dot(q*Nprev,Tnext)); B=normalize(Tnext×N);",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/TubeGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "TubeGeometry oficial demuestra la construcción de tubo sobre curva; la adaptación local construye explícitamente el marco paralelo y los anillos para poder probar transporte y estabilidad.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:7",
+      "technique": "Subdivision surfaces (Loop triangular)",
+      "mathematics": "Para vértice interior valencia n: β=3/16 si n=3, en otro caso β=3/(8n); V'= (1−nβ)V+βΣVj. Arista interior E'=3/8(A+B)+1/8(C+D); borde E'=(A+B)/2.",
+      "algorithm": [
+        "Exigir malla indexada triangular manifold",
+        "crear tabla de aristas/opuestos",
+        "actualizar vértices interiores y de borde",
+        "insertar puntos de arista",
+        "dividir cada triángulo en cuatro",
+        "recalcular normales."
+      ],
+      "pseudocode": "for each old vertex apply Loop weights; for each edge create edge point; each triangle (a,b,c) -> (a,ab,ca),(b,bc,ab),(c,ca,bc),(ab,bc,ca);",
+      "source_files": [
+        "https://github.com/stevinz/three-subdivide/blob/c9aea3441f498f195eea853d1c23cc37ea74ea6e/src/LoopSubdivision.js",
+        "https://github.com/stevinz/three-subdivide/blob/c9aea3441f498f195eea853d1c23cc37ea74ea6e/LICENSE"
+      ],
+      "verified_source_behavior": "El repositorio three-subdivide documenta y publica Loop subdivision sobre BufferGeometry triangular, no Catmull–Clark. La adaptación implementa el esquema Loop para triángulos indexados; no afirma implementar Catmull–Clark sobre n-gons.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:13",
+      "technique": "Fractales geométricos",
+      "mathematics": "Sistema de transformaciones afines P_(n+1)=A_j P_n+b_j; para árbol binario, cada nivel genera dos ramas con escala λ∈(0,1).",
+      "algorithm": [
+        "Validar profundidad, escala, dirección y semilla",
+        "crear rama",
+        "derivar dos direcciones hijas mediante rotaciones reproducibles",
+        "reducir longitud",
+        "repetir hasta profundidad cero."
+      ],
+      "pseudocode": "visit(start,dir,L,d): emit segment; if d>0: for sign in {-1,+1}: visit(end,rotate(dir,sign*angle),L*scale,d-1);",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/tree/0de0346de82a0d01923ffeb27f33240ad8b4863f",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "La referencia oficial confirma las primitivas y utilidades BufferGeometry/ExtrudeGeometry correspondientes; la adaptación local valida entradas y expone una interfaz de ejecución probada por pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:14",
+      "technique": "Marching Cubes",
+      "mathematics": "Para arista con valores fA,fB y nivel iso: t=(iso−fA)/(fB−fA); p=pA+t(pB−pA), con denominador no nulo y t∈[0,1] para cruce válido.",
+      "algorithm": [
+        "Crear campo escalar volumétrico",
+        "clasificar vértices por iso",
+        "interpolar aristas que cruzan",
+        "consultar tabla de triángulos",
+        "emitir malla",
+        "actualizar normales y rango de dibujo."
+      ],
+      "pseudocode": "for each voxel: mask=classify(corners,iso); for each crossing edge: vertex=interpolate(t); emit lookupTriangles(mask); updateGeometry();",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/jsm/objects/MarchingCubes.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "El addon oficial MarchingCubes mantiene un campo volumétrico, incorpora contribuciones mediante addBall y genera la isosuperficie en update().",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    },
+    {
+      "record_key": "D02:15",
+      "technique": "Stop-motion procedural con microjitter determinista",
+      "mathematics": "p'(i,f)=p(i)+a·h(seed,f,i), donde h∈[−1,1]^3 es hash determinista, a amplitud espacial y f índice entero de fotograma.",
+      "algorithm": [
+        "Validar geometría, amplitud, frame y seed",
+        "clonar geometría",
+        "generar desplazamiento determinista por vértice y eje",
+        "actualizar normales/bounds",
+        "mantener geometría fuente intacta."
+      ],
+      "pseudocode": "for each vertex i: p'[i]=p[i]+amplitude*hash(seed,frame,i); updateNormalsAndBounds();",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/tree/0de0346de82a0d01923ffeb27f33240ad8b4863f",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "La referencia oficial confirma las primitivas y utilidades BufferGeometry/ExtrudeGeometry correspondientes; la adaptación local valida entradas y expone una interfaz de ejecución probada por pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d02-procedural-geometry.mjs",
+        "tests/threejs/d02-procedural-geometry.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas añadidas. No se declara funcional/certificada hasta que las pruebas se ejecuten en el workflow global y se revisen los resultados."
+    }
+  ],
+  "overall_status": "D02_RESEARCH_AND_LOCAL_IMPLEMENTATION_ADDED_AWAITING_CI",
+  "summary": {
+    "records_in_scope": 11,
+    "protected_records_preserved": 5,
+    "records_with_reference_research": 11,
+    "local_adaptations_implemented": 11,
+    "local_adaptations_tested": 0,
+    "pending_local_ci": 11,
+    "certified_as_locally_operational": 0
+  },
+  "limitations": [
+    "La ficha D02:7 especifica Loop subdivision en mallas triangulares; Catmull–Clark sobre n-gons no está implementado y no se declara equivalente.",
+    "D02:8–12 están excluidas por preservación Crimson Loong.",
+    "D02:13 es un generador determinista de ramas fractales acotado, no un motor general de IFS.",
+    "D02:14 utiliza el addon oficial MarchingCubes; la calidad y coste dependen de la resolución y maxPolyCount.",
+    "D02:15 microjitter es una deformación procedural determinista de vértices, no una simulación física."
+  ]
+}
