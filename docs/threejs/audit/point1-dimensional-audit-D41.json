@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D41 Comportamiento natural, vida, ecología y sistemas complejos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -142,13 +142,28 @@
           "domain": "finita"
         },
         {
-          "symbol": "a_i",
-          "meaning": "aceleración",
-          "unit": "m/s²",
+          "symbol": "S_i",
+          "meaning": "separación Σ−(p_j−p_i)/|p_j−p_i|²",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "distancias regularizadas"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "alineación media de velocidad menos velocidad propia",
+          "unit": "m/s",
           "dimension": {
             "L": 1,
             "M": 0,
-            "T": -2,
+            "T": -1,
             "I": 0,
             "Theta": 0,
             "N": 0,
@@ -157,15 +172,8 @@
           "domain": "finita"
         },
         {
-          "symbol": "w_s,w_a,w_c",
-          "meaning": "ganancias",
-          "unit": "unidades derivadas",
-          "dimension": "según vector de conducta",
-          "domain": "finitas"
-        },
-        {
-          "symbol": "r",
-          "meaning": "radio vecinos",
+          "symbol": "C_i",
+          "meaning": "cohesión centroide menos posición",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -176,12 +184,49 @@
             "N": 0,
             "J": 0
           },
-          "domain": ">0"
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_s,w_a,w_c",
+          "meaning": "ganancias dimensionales",
+          "unit": "m²/s²; s⁻¹; s⁻² respectivamente",
+          "dimension": "w_s:L²T⁻²; w_a:T⁻¹; w_c:T⁻²",
+          "domain": "finitas y calibradas"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración resultante",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "limitada"
+        },
+        {
+          "symbol": "r",
+          "meaning": "radio de vecinos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r>0"
         }
       ],
       "constraints": [
-        "Separación, alineación y cohesión tienen unidades distintas; ganancias convierten cada término a aceleración L/T².",
-        "La actualización limita aceleración/velocidad y usa Δt en segundos."
+        "a_i=w_sS_i+w_aA_i+w_cC_i requiere que cada término tenga L/T².",
+        "Fijar w_s=L²/T², w_a=T⁻¹ y w_c=T⁻²; pesos adimensionales no son válidos en esta suma sin normalización adicional."
       ],
       "valid_domain": [
         "Posiciones y velocidades finitas; radio positivo; ganancias tipadas."
@@ -190,8 +235,8 @@
         "Sin vecinos, términos locales cero; coincidencia de posiciones requiere fallback."
       ],
       "dimensional_checks": [
-        "Cada término ponderado debe tener L/T²; la suma produce aceleración.",
-        "La integración a velocidad y posición usa Δt[T]."
+        "w_sS_i: (L²/T²)(L⁻¹)=L/T²; w_aA_i: T⁻¹·L/T=L/T².",
+        "w_cC_i: T⁻²·L=L/T²; la suma produce aceleración m/s²."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -710,9 +755,9 @@
         {
           "symbol": "k",
           "meaning": "ganancia hacia aceleración",
-          "unit": "m/s² por unidad de L",
-          "dimension": "unidad derivada",
-          "domain": "finita"
+          "unit": "m/s² por unidad de señal L",
+          "dimension": "L·T⁻² / unidad luminosa",
+          "domain": "finita; calibrada para diferencia de iluminación sin dividir por ε"
         },
         {
           "symbol": "a_light",
@@ -731,8 +776,8 @@
         }
       ],
       "constraints": [
-        "Diferencia de iluminación y gradiente deben dividirse por distancia; k debe convertir la señal resultante a aceleración.",
-        "La dirección de muestreo se normaliza y la luz usa misma escala en ambas muestras."
+        "En la ecuación escrita a_light=k[L(x+εd)−L(x)]d, k convierte directamente diferencia de señal luminosa en aceleración; su unidad es (m/s²)/unidad luminosa.",
+        "ε tiene L y controla separación de muestreo; si se divide la diferencia por ε para estimar gradiente, la unidad de k debe cambiar a m²/(s²·unidad luminosa)."
       ],
       "valid_domain": [
         "ε>0; L(x) finita; k finito."
@@ -741,8 +786,8 @@
         "Gradiente lumínico cero produce aceleración cero; k=0 desactiva fototaxis."
       ],
       "dimensional_checks": [
-        "ΔL/ε tiene unidad Luminancia/m; k se define para que k·ΔL·d produzca L/T².",
-        "d es adimensional y ε tiene L."
+        "εd tiene L y permite evaluar L(x+εd); la diferencia tiene unidad de señal luminosa.",
+        "k·ΔL·d tiene m/s²; d es adimensional. No introducir ΔL/ε sin cambiar la unidad de k."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -768,9 +813,17 @@
         {
           "symbol": "lightDir,gravityDir,obstacleGradient",
           "meaning": "direcciones/campos",
-          "unit": "1 o unidad de gradiente",
-          "dimension": "tipados",
-          "domain": "finitos"
+          "unit": "direcciones normalizadas 1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "cada vector normalizado antes de la suma; gradiente bruto requiere normalización"
         },
         {
           "symbol": "α,β,γ",
@@ -819,8 +872,8 @@
         }
       ],
       "constraints": [
-        "Los vectores sumados deben ser adimensionales y normalizados; gradiente de obstáculo se convierte a dirección.",
-        "step aporta escala L para actualizar posición."
+        "g′=normalize(g+α lightDir+β gravityDir+γ obstacleGradient) exige que los tres campos sumados sean vectores adimensionales normalizados.",
+        "Si obstacleGradient se usa sin normalizar y tiene L⁻¹, se requiere un coeficiente γ con L para homogeneizar; esta ficha fija la variante normalizada."
       ],
       "valid_domain": [
         "Direcciones válidas; step>0; pesos finitos."
@@ -829,8 +882,8 @@
         "Pesos cero conservan dirección previa; sin luz, gravedad/obstáculos aún pueden influir."
       ],
       "dimensional_checks": [
-        "g' es adimensional; step·g' tiene L y se suma a p.",
-        "Los pesos son adimensionales."
+        "g y los tres campos normalizados son adimensionales; α,β,γ también.",
+        "step·g′ tiene L y puede sumarse a p."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1073,18 +1126,19 @@
       "name": "Central pattern generator",
       "variables": [
         {
-          "symbol": "x_i",
-          "meaning": "estado oscilador",
-          "unit": "1 o rad",
-          "dimension": "tipado",
-          "domain": "finito"
-        },
-        {
-          "symbol": "w_ij",
-          "meaning": "acoplamiento",
-          "unit": "unidad derivada",
-          "dimension": "según dinámica",
-          "domain": "finito"
+          "symbol": "θ_i",
+          "meaning": "fase de oscilador",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
         },
         {
           "symbol": "ω_i",
@@ -1100,6 +1154,36 @@
             "J": 0
           },
           "domain": "finita"
+        },
+        {
+          "symbol": "w_ij",
+          "meaning": "ganancia de acoplamiento",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita para la variante de fase"
+        },
+        {
+          "symbol": "f_i,g",
+          "meaning": "dinámica local y función de acoplamiento",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "salidas compatibles"
         },
         {
           "symbol": "t",
@@ -1118,8 +1202,8 @@
         }
       ],
       "constraints": [
-        "La derivada de estado tiene unidad estado/s; cada término f_i y w_ijg(x_j) debe compartirla.",
-        "La topología de acoplamiento y condiciones iniciales se declaran."
+        "Para CPG de fase, θ_i es adimensional angular y dθ_i/dt tiene s⁻¹.",
+        "f_i(θ_i) y w_ijg(θ_j) deben tener s⁻¹; si x_i representa amplitud u otra variable, reespecificar dimensiones por estado."
       ],
       "valid_domain": [
         "Estados y pesos finitos; integración temporal definida."
@@ -1128,8 +1212,8 @@
         "Acoplamiento cero desacopla osciladores; estado inicial define fase."
       ],
       "dimensional_checks": [
-        "ω_i tiene T⁻¹; estado adimensional/angular conserva su tipo.",
-        "Los términos de la ecuación de estado comparten unidad por segundo."
+        "θ_i es adimensional; derivada temporal tiene T⁻¹.",
+        "ω_i, f_i y w_ijg comparten s⁻¹; la suma es homogénea."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1233,11 +1317,11 @@
   "validation": {
     "structural_checks": [
       "14/14 técnicas incluidas; ninguna protegida",
-      "Variables, unidades, restricciones, dominios, límites y comprobaciones específicas por técnica",
-      "Separados campos normalizados, magnitudes espaciales, tasas ecológicas, señales y parámetros estocásticos"
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Boids separa ganancias dimensionales; fototaxis distingue muestreo ε de gradiente; tropismo normaliza campos; CPG fija variante de fase"
     ],
     "limitations": [
-      "Auditoría dimensional; no certifica modelos biológicos/etológicos reales ni predicciones ecológicas."
+      "Los coeficientes ecológicos/conductuales requieren calibración y validación empírica; las unidades no garantizan comportamiento biológicamente fiel."
     ]
   },
   "integrity": {
