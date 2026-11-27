@@ -1,0 +1,687 @@
+{
+  "title": "Auditoría dimensional punto 1 — D30 Señales, audio espacial y acústica",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D30",
+    "domain": "Señales, audio espacial y acústica",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D30 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "acoustics": "Presión Pa, intensidad W/m², potencia W, velocidad m/s, frecuencia Hz.",
+    "digital_audio": "Señales normalizadas son adimensionales; sample rate Hz y tiempo s.",
+    "filters": "Coeficientes de filtro adimensionales; parámetros temporales en s."
+  },
+  "records": [
+    {
+      "record_key": "D30:0",
+      "name": "Wave equation",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "presión acústica",
+          "unit": "Pa",
+          "dimension": "M·L⁻¹·T⁻²",
+          "domain": "finita"
+        },
+        {
+          "symbol": "c",
+          "meaning": "velocidad del sonido",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "∇²p",
+          "meaning": "Laplaciano espacial",
+          "unit": "Pa/m²",
+          "dimension": "M·L⁻³·T⁻²",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "La velocidad c y coordenadas espaciales usan la misma unidad de longitud; medio homogéneo y lineal.",
+        "La ecuación ideal omite fuentes, pérdidas y condiciones de contorno; declararlas si se amplía."
+      ],
+      "valid_domain": [
+        "c>0; presión y derivadas suficientemente suaves."
+      ],
+      "boundary_conditions": [
+        "Frontera rígida/blanda requiere condición correspondiente; campo inicial y velocidad inicial deben definirse."
+      ],
+      "dimensional_checks": [
+        "∇²p tiene Pa·L⁻²; c⁻²∂²p/∂t² también Pa·L⁻².",
+        "La ecuación es dimensionalmente homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D30:1",
+      "name": "Inverse square attenuation",
+      "variables": [
+        {
+          "symbol": "P",
+          "meaning": "potencia acústica",
+          "unit": "W",
+          "dimension": "M·L²·T⁻³",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "r",
+          "meaning": "distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "I",
+          "meaning": "intensidad",
+          "unit": "W/m²",
+          "dimension": "M·T⁻³",
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "La ley supone fuente puntual isotrópica en campo libre; no incluye directividad, reflexiones ni absorción del medio.",
+        "r debe medirse desde el centro acústico de la fuente."
+      ],
+      "valid_domain": [
+        "P≥0; r>0."
+      ],
+      "boundary_conditions": [
+        "P=0 da I=0; r→0 es singular y requiere límite de fuente finita."
+      ],
+      "dimensional_checks": [
+        "P/(4πr²) produce W·m⁻².",
+        "La ley no debe aplicarse en campo cercano sin modelo adicional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D30:2",
+      "name": "Doppler effect",
+      "variables": [
+        {
+          "symbol": "f,f'",
+          "meaning": "frecuencia emitida/observada",
+          "unit": "Hz",
+          "dimension": "T⁻¹",
+          "domain": "positivas"
+        },
+        {
+          "symbol": "c",
+          "meaning": "velocidad del sonido",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "v_listener,v_source",
+          "meaning": "velocidades radiales",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "f'",
+          "meaning": "frecuencia observada",
+          "unit": "Hz",
+          "dimension": "T⁻¹",
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "Velocidades deben proyectarse sobre línea fuente-observador y usar la misma convención de signo.",
+        "Modelo clásico no relativista; denominador no nulo y velocidades físicas dentro del régimen acústico."
+      ],
+      "valid_domain": [
+        "c>0; frecuencias positivas; c−v_source≠0."
+      ],
+      "boundary_conditions": [
+        "Velocidades cero producen f'=f; aproximación de fuente/observador en reposo."
+      ],
+      "dimensional_checks": [
+        "Las razones (c±v)/ (c∓v) son adimensionales; f' conserva Hz.",
+        "c y v tienen L/T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D30:3",
+      "name": "Room impulse response",
+      "variables": [
+        {
+          "symbol": "x(t)",
+          "meaning": "señal de entrada",
+          "unit": "Pa o amplitud normalizada",
+          "dimension": "presión o señal relativa",
+          "domain": "finita"
+        },
+        {
+          "symbol": "h_room(t)",
+          "meaning": "respuesta impulsional",
+          "unit": "s⁻¹ si convolución continua conserva unidad de x",
+          "dimension": "T⁻¹",
+          "domain": "integrable"
+        },
+        {
+          "symbol": "y(t)",
+          "meaning": "señal de salida",
+          "unit": "misma unidad que x",
+          "dimension": "igual a x",
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "La convolución continua y(t)=∫x(τ)h(t−τ)dτ requiere h con unidad T⁻¹ para conservar unidad de x.",
+        "Convolución discreta usa convención de muestreo; no copiar unidades de respuesta continua sin Δt."
+      ],
+      "valid_domain": [
+        "Señales y respuesta finitas; frecuencia de muestreo positiva."
+      ],
+      "boundary_conditions": [
+        "h=δ(t) produce identidad; cola truncada requiere ventana declarada."
+      ],
+      "dimensional_checks": [
+        "x·h·dτ conserva unidad de x porque h tiene T⁻¹.",
+        "La versión discreta depende de normalización por muestras."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D30:4",
+      "name": "Schroeder reverb time",
+      "variables": [
+        {
+          "symbol": "V",
+          "meaning": "volumen recinto",
+          "unit": "m³",
+          "dimension": {
+            "L": 3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "A",
+          "meaning": "área de absorción equivalente",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "RT60",
+          "meaning": "tiempo de reverberación",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "La constante 0.161 corresponde a unidades SI y aproximación estadística de campo difuso; A es área de absorción equivalente.",
+        "No aplicar sin cautela en recintos pequeños, no difusos o con absorción muy irregular."
+      ],
+      "valid_domain": [
+        "V>0; A>0."
+      ],
+      "boundary_conditions": [
+        "A→0 implica RT60→∞; V→0 sale del dominio."
+      ],
+      "dimensional_checks": [
+        "V/A tiene m; el coeficiente empírico 0.161 incorpora conversión para dar segundos bajo convención SI.",
+        "RT60 tiene T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D30:5",
+      "name": "Binaural HRTF",
+      "variables": [
+        {
+          "symbol": "H_L,H_R",
+          "meaning": "HRTF por oído",
+          "unit": "1 en frecuencia o s⁻¹ en respuesta impulsional",
+          "dimension": "según representación",
+          "domain": "finita"
+        },
+        {
+          "symbol": "x(t)",
+          "meaning": "señal fuente",
+          "unit": "Pa o amplitud relativa",
+          "dimension": "señal",
+          "domain": "finita"
+        },
+        {
+          "symbol": "y_L,y_R",
+          "meaning": "señales binaurales",
+          "unit": "misma unidad que x",
+          "dimension": "igual a x",
+          "domain": "finita"
+        },
+        {
+          "symbol": "direction",
+          "meaning": "dirección fuente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        }
+      ],
+      "constraints": [
+        "HRTF debe asociarse a dirección, distancia y sistema de coordenadas; filtro y señal comparten frecuencia de muestreo.",
+        "La normalización depende de si H es transferencia espectral o respuesta impulsional."
+      ],
+      "valid_domain": [
+        "Dirección unitaria; filtros finitos; sample rate compatible."
+      ],
+      "boundary_conditions": [
+        "H=1 en frecuencia produce señal sin modificación; dirección inválida requiere fallback."
+      ],
+      "dimensional_checks": [
+        "Transferencia H adimensional conserva unidad de x; respuesta impulsional continua tiene T⁻¹.",
+        "La salida mantiene unidad de la señal fuente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D30:6",
+      "name": "Ambisonics encoding",
+      "variables": [
+        {
+          "symbol": "a_lm",
+          "meaning": "coeficientes de campo",
+          "unit": "unidad de señal acústica",
+          "dimension": "según presión o amplitud",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "Y_lm",
+          "meaning": "armónicos esféricos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalización fijada"
+        },
+        {
+          "symbol": "direction",
+          "meaning": "dirección",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "soundfield",
+          "meaning": "campo reconstruido",
+          "unit": "misma unidad que a_lm",
+          "dimension": "igual a coeficiente",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Orden, convención ACN/SN3D/N3D y normalización deben declararse.",
+        "No mezclar coeficientes de presión con coeficientes de potencia sin transformación."
+      ],
+      "valid_domain": [
+        "Coeficientes finitos; dirección normalizada; orden finito."
+      ],
+      "boundary_conditions": [
+        "Todos los coeficientes cero producen campo cero; orden cero da componente omnidireccional según convención."
+      ],
+      "dimensional_checks": [
+        "Y_lm es adimensional; soundfield conserva unidad de a_lm.",
+        "La normalización cambia escala, no dimensión física."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D30:7",
+      "name": "Equal-power crossfade",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "parámetro de transición",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "g_A,g_B",
+          "meaning": "ganancias",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "x_A,x_B",
+          "meaning": "señales",
+          "unit": "misma unidad",
+          "dimension": "señal acústica",
+          "domain": "finitas"
+        },
+        {
+          "symbol": "y",
+          "meaning": "señal mezclada",
+          "unit": "misma unidad que x",
+          "dimension": "igual a x",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Ambas señales deben compartir sample rate, canales, escala y alineación temporal.",
+        "Curvas cos/sin conservan potencia para señales no correlacionadas; señales correlacionadas pueden variar en nivel."
+      ],
+      "valid_domain": [
+        "u∈[0,1]; señales finitas."
+      ],
+      "boundary_conditions": [
+        "u=0 deja A; u=1 deja B; transición debe ser continua."
+      ],
+      "dimensional_checks": [
+        "u y ganancias son adimensionales; mezcla conserva unidad de señal.",
+        "g_A²+g_B²=1 para la curva equal-power ideal."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D30:8",
+      "name": "Low-pass filter",
+      "variables": [
+        {
+          "symbol": "x[n],y[n]",
+          "meaning": "muestras entrada/salida",
+          "unit": "Pa o amplitud relativa",
+          "dimension": "señal",
+          "domain": "finitas"
+        },
+        {
+          "symbol": "α",
+          "meaning": "coeficiente filtro",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "n",
+          "meaning": "índice de muestra",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "f_s",
+          "meaning": "frecuencia muestreo",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "α depende de frecuencia de corte y Δt; debe recalcularse si cambia sample rate.",
+        "Entrada/salida comparten unidad y formato; el estado previo y[n−1] se inicializa."
+      ],
+      "valid_domain": [
+        "0≤α≤1; f_s>0; muestras finitas."
+      ],
+      "boundary_conditions": [
+        "α=1 reproduce entrada; α=0 conserva estado previo; primer sample requiere estado inicial."
+      ],
+      "dimensional_checks": [
+        "α es adimensional; la combinación lineal conserva unidad de señal.",
+        "f_s tiene T⁻¹; frecuencia de corte debe estar bajo Nyquist."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D30:9",
+      "name": "Envelope follower",
+      "variables": [
+        {
+          "symbol": "x[n]",
+          "meaning": "muestra de entrada",
+          "unit": "Pa o amplitud relativa",
+          "dimension": "señal",
+          "domain": "finita"
+        },
+        {
+          "symbol": "env[n]",
+          "meaning": "envolvente",
+          "unit": "misma unidad que |x|",
+          "dimension": "señal",
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "τ_a,τ_r",
+          "meaning": "tiempos attack/release",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "f_s",
+          "meaning": "frecuencia de muestreo",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "α_a,α_r",
+          "meaning": "coeficientes de suavizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Attack/release se convierten a coeficientes usando Δt=1/f_s; mantener coherencia entre tiempo y sample rate.",
+        "La envolvente sigue magnitud o RMS según definición; no mezclar escalas sin calibrar."
+      ],
+      "valid_domain": [
+        "τ_a,τ_r>0; f_s>0; señal finita."
+      ],
+      "boundary_conditions": [
+        "Señal cero lleva envolvente hacia cero con release; tiempo cero se rechaza o usa bypass explícito."
+      ],
+      "dimensional_checks": [
+        "τ tiene T; Δt tiene T; α es adimensional; env conserva unidad de x.",
+        "El coeficiente exponencial depende de Δt/τ, que es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "10/10 técnicas incluidas; ninguna protegida",
+      "Variables, dimensiones, unidades, restricciones, dominio, límites y verificaciones específicas por técnica",
+      "Separadas presión, potencia, intensidad, señal digital, frecuencia y tiempo"
+    ],
+    "limitations": [
+      "Auditoría dimensional; no valida mezcla perceptual, respuesta acústica de una sala concreta ni calibración de altavoces/auriculares."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
