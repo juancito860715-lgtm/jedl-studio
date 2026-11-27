@@ -214,6 +214,8 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 
 ## 14. Séptimo bloque R31: tramado sinusoidal / Ben-Day (2026-11-26)
 
+- Ajuste de esquema posterior: se duplicó explícitamente la tabla de símbolos en `variables` (además de `symbol_table`) y se añadieron `evidence_status` por ecuación para satisfacer el contrato del auditor. Los estados siguen INCOMPLETE; no se ha editado manualmente el registro generado de aptitud ni se afirma un PASS de CI.
+
 - D14:16 se desarrolló como pantalla sinusoidal periódica con umbral y cobertura antialias. Se corrigió una ambigüedad importante: en sin(pi*f*x), el período es 2/f; por tanto f es inverso del semiperíodo, no ciclos por unidad. Se definió la convención del umbral H(L-m) y se fijó luminancia lineal normalizada.
 - La referencia Rao y Arce (1988), JOSA A 5(9), 1502–1511, fue verificada bibliográficamente como artículo sobre periodicidades arbitrarias de pantalla. No se le atribuyó la máscara sinusoidal: la ecuación del manifiesto queda etiquetada como convención procedural propia porque no se verificó un localizador de ecuación que la respalde.
 - Se añadieron símbolos y unidades, derivación del período, rotación de coordenadas, dominio, extremos, pseudocódigo, complejidad y contrato ShaderMaterial. Se agregó un kernel de cobertura antialias en Python/JavaScript y pruebas analíticas de umbral, rango y periodicidad.
