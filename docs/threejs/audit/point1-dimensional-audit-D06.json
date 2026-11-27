@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D06 Terrenos, montañas, rocas y erosión",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -86,9 +86,9 @@
         "Definir altura y continuidad en bordes; tiles deben coincidir en costuras."
       ],
       "dimensional_checks": [
-        "Alturas, desplazamientos y distancias tienen dimensión L.",
-        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
-        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+        "x,z,h and the coordinates of P have dimension L; P=(x,h,z) is dimensionally homogeneous.",
+        "A gradient ∂h/∂x or ∂h/∂z is dimensionless; normal construction must use derivatives in consistent length units.",
+        "A heightfield cannot represent overhangs or multiple heights for one (x,z); this is a geometric domain restriction."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -98,10 +98,10 @@
       "variables": [
         {
           "symbol": "p",
-          "meaning": "coordenada de ruido",
-          "unit": "1 o m según frecuencia declarada",
+          "meaning": "posición espacial de muestreo",
+          "unit": "m",
           "dimension": {
-            "L": 0,
+            "L": 1,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -109,7 +109,22 @@
             "N": 0,
             "J": 0
           },
-          "domain": "argumento de ruido adimensionalizado"
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "f_i",
+          "meaning": "frecuencia espacial de octava i",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "f_i>0; normalmente f_i=f_0·λ^i"
         },
         {
           "symbol": "n_i",
@@ -127,8 +142,8 @@
           "domain": "acotado según generador"
         },
         {
-          "symbol": "a",
-          "meaning": "ganancia por octava",
+          "symbol": "a,λ",
+          "meaning": "ganancia y lacunaridad",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -139,26 +154,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "0≤a<1 para amplitud decreciente"
+          "domain": "0≤a<1; λ>1"
         },
         {
-          "symbol": "λ",
-          "meaning": "lacunarity",
-          "unit": "1",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": ">1"
-        },
-        {
-          "symbol": "h",
-          "meaning": "altura",
+          "symbol": "H0,h",
+          "meaning": "amplitud base y altura final",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -169,7 +169,7 @@
             "N": 0,
             "J": 0
           },
-          "domain": "suma escalada por amplitud base"
+          "domain": "H0 finita; h finita"
         }
       ],
       "constraints": [
@@ -183,9 +183,9 @@
         "Cero octavas produce campo base definido; amplitud base cero produce relieve plano."
       ],
       "dimensional_checks": [
-        "Alturas, desplazamientos y distancias tienen dimensión L.",
-        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
-        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+        "Noise arguments f_i p are dimensionless: p has L and each spatial frequency f_i has L^-1.",
+        "Noise values n_i, ridge transforms and octave gains are dimensionless; a base amplitude H0 supplies L to the final height.",
+        "For finite octave count the sum is finite; if an infinite series is used, convergence requires a_i decay and bounded noise."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -281,9 +281,9 @@
         "Expandir bounds por |q|·max|noise| para evitar cortes."
       ],
       "dimensional_checks": [
-        "Alturas, desplazamientos y distancias tienen dimensión L.",
-        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
-        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+        "p and p′ have L; n(p) is dimensionless and q has L, so q·n(p) is a displacement of L.",
+        "If noise is sampled at scaled coordinates, its frequency has L^-1 and the argument remains dimensionless.",
+        "f(p′) retains the output units of f; warping changes coordinates, not the field's physical dimension."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -324,7 +324,7 @@
         {
           "symbol": "water",
           "meaning": "cantidad de agua por área",
-          "unit": "m",
+          "unit": "m (espesor equivalente por área)",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -334,12 +334,12 @@
             "N": 0,
             "J": 0
           },
-          "domain": "no negativa"
+          "domain": "no negativo; interpretar como profundidad equivalente, no flujo"
         },
         {
           "symbol": "sediment",
           "meaning": "sedimento por área",
-          "unit": "m",
+          "unit": "m (espesor equivalente por área)",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -349,12 +349,12 @@
             "N": 0,
             "J": 0
           },
-          "domain": "no negativo"
+          "domain": "no negativo; interpretar como profundidad equivalente, no flujo"
         },
         {
           "symbol": "capacity",
           "meaning": "capacidad transporte",
-          "unit": "m",
+          "unit": "m (espesor equivalente por área)",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -364,7 +364,7 @@
             "N": 0,
             "J": 0
           },
-          "domain": "≥0"
+          "domain": "no negativo; interpretar como profundidad equivalente, no flujo"
         },
         {
           "symbol": "Δt",
@@ -394,9 +394,9 @@
         "Evitar espesor negativo tras actualización mediante clamp conservativo."
       ],
       "dimensional_checks": [
-        "Alturas, desplazamientos y distancias tienen dimensión L.",
-        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
-        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+        "h, water depth, sediment depth and capacity-as-equivalent-depth have L; slope is dimensionless; Δt has T.",
+        "A water/sediment flux per unit width would have different units (L²/T); it must not be mixed with depth variables without area/time conversion.",
+        "Conservation is evaluated as depth×cell area (L³ equivalent volume) or mass per cell, with explicit boundary flux."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -492,9 +492,9 @@
         "Si Δh≤Δhcrit no transferir; evitar overshoot por subpaso o límite de transferencia."
       ],
       "dimensional_checks": [
-        "Alturas, desplazamientos y distancias tienen dimensión L.",
-        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
-        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+        "Δh and Δx have L; Δh_crit=Δx·tan(talusAngle) also has L because tan(angle) is dimensionless.",
+        "talusAngle is an angle; slope threshold comparison is dimensionally consistent only after converting angle to tan(angle).",
+        "Transferred material must preserve height×cell-area volume (L³) for equal-density terrain."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -575,9 +575,9 @@
         "En bordes aplicar continuidad para evitar costuras."
       ],
       "dimensional_checks": [
-        "Alturas, desplazamientos y distancias tienen dimensión L.",
-        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
-        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+        "D_i, a_i and D_total have L; their sum is dimensionally homogeneous.",
+        "f_i has L^-1; f_i p is dimensionless for procedural noise sampling.",
+        "Amplitude-frequency schedule is a model choice; decreasing amplitude alone does not guarantee convergence for an infinite number of levels."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -688,9 +688,9 @@
         "Datos fuera de rango deben saturarse o marcarse inválidos."
       ],
       "dimensional_checks": [
-        "Alturas, desplazamientos y distancias tienen dimensión L.",
-        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
-        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+        "Altitude has L; slope and normalized moisture/exposure are dimensionless inputs; seed and species are discrete.",
+        "The classifier/probability output is categorical or dimensionless; do not add it to physical environmental quantities.",
+        "Any thresholds must use the same normalization and calibration as the input features."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -786,9 +786,9 @@
         "Rugosidad límite debe seguir convención concreta del modelo, no asumir equivalencia entre implementaciones."
       ],
       "dimensional_checks": [
-        "Alturas, desplazamientos y distancias tienen dimensión L.",
-        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
-        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+        "roughness is dimensionless; cuticle_tilt is an angle; fiber_radius has L; ω_i and ω_o are unitless directions.",
+        "BRDF f_r has inverse-steradian units under radiometric convention; steradian is dimensionless in SI but retained as an angular measure label.",
+        "The current source equation is schematic; no complete dimensional proof of D(m)G F/geometryTerm is possible until every factor and convention is specified."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -796,8 +796,12 @@
   "validation": {
     "structural_checks": [
       "8/12 técnicas no protegidas incluidas",
-      "Todos los registros tienen variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
-      "4 registros protegidos excluidos"
+      "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "4 registros protegidos excluidos",
+      "Aclaradas las unidades de frecuencia espacial, amplitud fractal y variables de erosión hidráulica"
+    ],
+    "limitations": [
+      "La ficha de dispersión microfacet conserva una expresión esquemática; su verificación dimensional completa queda condicionada a disponer de la ecuación integral y definiciones de todos los términos."
     ]
   },
   "integrity": {
