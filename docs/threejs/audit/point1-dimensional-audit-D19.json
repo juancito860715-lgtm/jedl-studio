@@ -1,0 +1,1822 @@
+{
+  "title": "Auditoría dimensional punto 1 — D19 Atlas de estilos visuales v4",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D19",
+    "domain": "Estilos visuales y dirección de arte — 22 recetas explícitas visual_style_atlas_v4",
+    "record_count": 22,
+    "excluded_protected_records": 0,
+    "excluded_reason": "Las 22 recetas explícitas del atlas v4 no tienen exclusiones en el mapa Crimson Loong; no se confunden con las 13 etiquetas resumen de domains[D19].styles."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud de escena declarada; SI para magnitudes físicas.",
+    "angles": "Radianes; adimensionales en SI base.",
+    "pixels": "Unidad discreta de raster, no longitud física sin calibración.",
+    "color": "Separar RGB lineal relativo, radiancia calibrada y RGB codificado.",
+    "counts": "Índices, niveles, muestras y conteos son discretos."
+  },
+  "records": [
+    {
+      "record_key": "STYLE-CODE-01",
+      "name": "Realismo fotográfico",
+      "variables": [
+        {
+          "symbol": "scale",
+          "meaning": "escala geométrica",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "radiance",
+          "meaning": "radiancia relativa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "EV",
+          "meaning": "exposición",
+          "unit": "stop",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-02",
+      "name": "Hiperrealismo",
+      "variables": [
+        {
+          "symbol": "microAmplitude",
+          "meaning": "microgeometría",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "wavelength",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "frequency",
+          "meaning": "frecuencia espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-03",
+      "name": "Animación cinematográfica estilizada",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "parámetro spline",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "P_i",
+          "meaning": "puntos de control",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "pesos de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-04",
+      "name": "Anime 2D simulado en 3D",
+      "variables": [
+        {
+          "symbol": "NdotL",
+          "meaning": "iluminación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "bands",
+          "meaning": "bandas",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥2"
+        },
+        {
+          "symbol": "outlineWidth",
+          "meaning": "contorno",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "fps",
+          "meaning": "cadencia",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-05",
+      "name": "Cel shading",
+      "variables": [
+        {
+          "symbol": "NdotL",
+          "meaning": "iluminación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[-1,1]"
+        },
+        {
+          "symbol": "bands",
+          "meaning": "niveles",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥2"
+        },
+        {
+          "symbol": "thresholds",
+          "meaning": "umbrales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ordenados"
+        },
+        {
+          "symbol": "rimPower",
+          "meaning": "exponente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-06",
+      "name": "Cartoon clásico",
+      "variables": [
+        {
+          "symbol": "scaleXYZ",
+          "meaning": "escala deformación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "pose",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "time",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "ease",
+          "meaning": "interpolación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-07",
+      "name": "Low poly",
+      "variables": [
+        {
+          "symbol": "edgeLength",
+          "meaning": "arista",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "faceCount",
+          "meaning": "caras",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "normal",
+          "meaning": "normal de cara",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "paletteIndex",
+          "meaning": "índice paleta",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "índice válido"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-08",
+      "name": "High poly",
+      "variables": [
+        {
+          "symbol": "subdivisionLevel",
+          "meaning": "nivel subdivisión",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "vertexCount",
+          "meaning": "vértices",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "displacement",
+          "meaning": "desplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "curvature",
+          "meaning": "curvatura",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-09",
+      "name": "Stop motion",
+      "variables": [
+        {
+          "symbol": "fps",
+          "meaning": "cadencia",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "jitter",
+          "meaning": "microdesplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "frameIndex",
+          "meaning": "fotograma",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-10",
+      "name": "Claymation",
+      "variables": [
+        {
+          "symbol": "d",
+          "meaning": "campo SDF",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "k",
+          "meaning": "suavizado SDF",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "fingerprintAmplitude",
+          "meaning": "huella",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-11",
+      "name": "Acuarela procedural",
+      "variables": [
+        {
+          "symbol": "pigment",
+          "meaning": "concentración",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "water",
+          "meaning": "agua normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "D",
+          "meaning": "difusión",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "D≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-12",
+      "name": "Pintura al óleo procedural",
+      "variables": [
+        {
+          "symbol": "strokeWidth",
+          "meaning": "ancho pincelada",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "direction",
+          "meaning": "dirección trazo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "impastoHeight",
+          "meaning": "altura impasto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-13",
+      "name": "Ilustración procedural",
+      "variables": [
+        {
+          "symbol": "P",
+          "meaning": "coordenadas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "lineWidth",
+          "meaning": "ancho línea",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "paletteSize",
+          "meaning": "colores",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "alpha",
+          "meaning": "opacidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-14",
+      "name": "Cómic y tinta",
+      "variables": [
+        {
+          "symbol": "depthThreshold",
+          "meaning": "umbral profundidad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "hatchSpacing",
+          "meaning": "trama",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "lineWidth",
+          "meaning": "ancho línea",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "luma",
+          "meaning": "luminancia relativa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "señal finita"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-15",
+      "name": "Pixel art tridimensional",
+      "variables": [
+        {
+          "symbol": "virtualResolution",
+          "meaning": "resolución virtual",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": "enteros positivos"
+        },
+        {
+          "symbol": "pixelCell",
+          "meaning": "celda pixel",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "paletteSize",
+          "meaning": "colores",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "fps",
+          "meaning": "cadencia",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-16",
+      "name": "Voxel art",
+      "variables": [
+        {
+          "symbol": "voxelSize",
+          "meaning": "arista voxel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "i,j,k",
+          "meaning": "índices voxel",
+          "unit": "enteros",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "discretos"
+        },
+        {
+          "symbol": "occupancy",
+          "meaning": "ocupación",
+          "unit": "booleano",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "true/false"
+        },
+        {
+          "symbol": "materialId",
+          "meaning": "material",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ID válido"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-17",
+      "name": "Fantasía oscura",
+      "variables": [
+        {
+          "symbol": "scale",
+          "meaning": "escala",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "fogExtinction",
+          "meaning": "extinción",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "saturation",
+          "meaning": "saturación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "lightIntensity",
+          "meaning": "intensidad luminosa",
+          "unit": "unidad radiométrica/fotométrica declarada",
+          "dimension": "según magnitud",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-18",
+      "name": "Ciencia ficción",
+      "variables": [
+        {
+          "symbol": "moduleSize",
+          "meaning": "módulo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "emission",
+          "meaning": "emisión relativa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "panelCount",
+          "meaning": "paneles",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "seamWidth",
+          "meaning": "junta",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-19",
+      "name": "Biomecánico",
+      "variables": [
+        {
+          "symbol": "tubeRadius",
+          "meaning": "radio tubo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "branchAngle",
+          "meaning": "ángulo rama",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "strain",
+          "meaning": "deformación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "stiffness",
+          "meaning": "rigidez",
+          "unit": "N/m",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-20",
+      "name": "Surrealismo",
+      "variables": [
+        {
+          "symbol": "P",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "scaleRatio",
+          "meaning": "razón escala",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "A",
+          "meaning": "transformación afín",
+          "unit": "bloque lineal 1; traslación L",
+          "dimension": "tipado afín",
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-21",
+      "name": "Arte fractal",
+      "variables": [
+        {
+          "symbol": "iterations",
+          "meaning": "iteraciones",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "p",
+          "meaning": "coordenada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "frequency",
+          "meaning": "frecuencia espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "escapeRadius",
+          "meaning": "radio escape",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">1"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-22",
+      "name": "Abstracto generativo",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "posición/estado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "V",
+          "meaning": "campo velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "N_particles",
+          "meaning": "partículas",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
+        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+      ],
+      "valid_domain": [
+        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
+        "La receta debe identificar el espacio de operación y el rango de señal."
+      ],
+      "boundary_conditions": [
+        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
+        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+      ],
+      "dimensional_checks": [
+        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "22/22 recetas STYLE-CODE-01 a STYLE-CODE-22 incluidas",
+      "Cada receta tiene variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
+      "Se distingue el atlas explícito de 22 recetas de las 13 etiquetas resumen del dominio D19"
+    ],
+    "limitations": [
+      "La revisión dimensional no valida visualmente resultados ni convierte una dirección artística en ley física; derivaciones y algoritmos se tratan en puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
