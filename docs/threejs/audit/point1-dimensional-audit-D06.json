@@ -1,0 +1,807 @@
+{
+  "title": "Auditoría dimensional punto 1 — D06 Terrenos, montañas, rocas y erosión",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D06",
+    "domain": "Terrenos, montañas, rocas y erosión",
+    "record_count": 8,
+    "excluded_protected_records": 4,
+    "excluded_reason": "D06:1, D06:4, D06:7 y D06:8 están protegidos por el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud global de escena; SI solo si declarado.",
+    "field_units": "Los campos de altura y desplazamiento usan longitud; ruido y parámetros normalizados son adimensionales.",
+    "angles": "Radianes."
+  },
+  "records": [
+    {
+      "record_key": "D06:0",
+      "name": "Heightfield",
+      "variables": [
+        {
+          "symbol": "x,z",
+          "meaning": "coordenadas horizontales",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "h(x,z)",
+          "meaning": "elevación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "función escalar finita"
+        },
+        {
+          "symbol": "P",
+          "meaning": "posición 3D",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "(x,h,z)"
+        }
+      ],
+      "constraints": [
+        "x,z y h usan la misma unidad de longitud; heightfield representa una sola altura por coordenada horizontal."
+      ],
+      "valid_domain": [
+        "Dominio xz acotado o muestreable; h evaluable."
+      ],
+      "boundary_conditions": [
+        "Definir altura y continuidad en bordes; tiles deben coincidir en costuras."
+      ],
+      "dimensional_checks": [
+        "Alturas, desplazamientos y distancias tienen dimensión L.",
+        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
+        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:2",
+      "name": "Ridged multifractal",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "coordenada de ruido",
+          "unit": "1 o m según frecuencia declarada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "argumento de ruido adimensionalizado"
+        },
+        {
+          "symbol": "n_i",
+          "meaning": "ruido por octava",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado según generador"
+        },
+        {
+          "symbol": "a",
+          "meaning": "ganancia por octava",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤a<1 para amplitud decreciente"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "lacunarity",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">1"
+        },
+        {
+          "symbol": "h",
+          "meaning": "altura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "suma escalada por amplitud base"
+        }
+      ],
+      "constraints": [
+        "El argumento de noise debe ser adimensional; si p tiene longitud, multiplicar por frecuencia de dimensión L⁻¹.",
+        "Amplitud base debe aportar longitud; suma de octavas dimensionalmente homogénea."
+      ],
+      "valid_domain": [
+        "Número finito de octavas; a y λ finitos; ruido definido."
+      ],
+      "boundary_conditions": [
+        "Cero octavas produce campo base definido; amplitud base cero produce relieve plano."
+      ],
+      "dimensional_checks": [
+        "Alturas, desplazamientos y distancias tienen dimensión L.",
+        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
+        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:3",
+      "name": "Domain warping",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "punto de consulta",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "n(p)",
+          "meaning": "campo de deformación/ruido",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector adimensional"
+        },
+        {
+          "symbol": "q",
+          "meaning": "amplitud de warp",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "longitud"
+        },
+        {
+          "symbol": "p′",
+          "meaning": "punto deformado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "p+q·n(p)"
+        },
+        {
+          "symbol": "f",
+          "meaning": "campo evaluado",
+          "unit": "unidad de salida declarada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "función definida en p′"
+        }
+      ],
+      "constraints": [
+        "q·noise debe tener dimensión de longitud para sumarse a p.",
+        "Si noise devuelve campo dimensional, reformular q para evitar doble escala."
+      ],
+      "valid_domain": [
+        "f evaluable en dominio expandido por máximo warp."
+      ],
+      "boundary_conditions": [
+        "q=0 recupera f(p).",
+        "Expandir bounds por |q|·max|noise| para evitar cortes."
+      ],
+      "dimensional_checks": [
+        "Alturas, desplazamientos y distancias tienen dimensión L.",
+        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
+        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:5",
+      "name": "Erosión hidráulica simplificada",
+      "variables": [
+        {
+          "symbol": "h",
+          "meaning": "altura de terreno",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "slope",
+          "meaning": "pendiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "gradiente adimensional"
+        },
+        {
+          "symbol": "water",
+          "meaning": "cantidad de agua por área",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "sediment",
+          "meaning": "sedimento por área",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        },
+        {
+          "symbol": "capacity",
+          "meaning": "capacidad transporte",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso simulación",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Definir si agua/sedimento son espesores o masas por área; la ecuación simplificada debe mantener unidad consistente.",
+        "Conservación de masa/sedimento exige flujo entre celdas y balance explícito."
+      ],
+      "valid_domain": [
+        "Alturas finitas, agua/sedimento no negativos, paso positivo."
+      ],
+      "boundary_conditions": [
+        "Fronteras cerradas conservan material; fronteras abiertas registran flujo saliente.",
+        "Evitar espesor negativo tras actualización mediante clamp conservativo."
+      ],
+      "dimensional_checks": [
+        "Alturas, desplazamientos y distancias tienen dimensión L.",
+        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
+        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:6",
+      "name": "Erosión térmica",
+      "variables": [
+        {
+          "symbol": "h_i,h_j",
+          "meaning": "alturas vecinas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "Δh",
+          "meaning": "diferencia de altura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "h_i−h_j"
+        },
+        {
+          "symbol": "talusAngle",
+          "meaning": "ángulo de reposo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,π/2)"
+        },
+        {
+          "symbol": "Δx",
+          "meaning": "distancia entre celdas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "Δh_crit",
+          "meaning": "umbral altura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δx·tan(talusAngle)"
+        }
+      ],
+      "constraints": [
+        "Comparar diferencia de altura con Δx·tan(ángulo); no comparar altura directamente con un ángulo.",
+        "Transferencia de material debe conservar suma de alturas ponderada por área."
+      ],
+      "valid_domain": [
+        "Rejilla con espaciamiento positivo; ángulo de reposo definido."
+      ],
+      "boundary_conditions": [
+        "En bordes considerar vecinos existentes y condición de flujo.",
+        "Si Δh≤Δhcrit no transferir; evitar overshoot por subpaso o límite de transferencia."
+      ],
+      "dimensional_checks": [
+        "Alturas, desplazamientos y distancias tienen dimensión L.",
+        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
+        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:9",
+      "name": "Cascada de detalle",
+      "variables": [
+        {
+          "symbol": "D_i",
+          "meaning": "desplazamiento por escala",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "f_i",
+          "meaning": "frecuencia espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "frecuencia creciente"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "amplitud",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "decreciente con frecuencia"
+        },
+        {
+          "symbol": "D_total",
+          "meaning": "desplazamiento total",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "suma finita"
+        }
+      ],
+      "constraints": [
+        "Todos los D_i son longitudes; la frecuencia no se suma con amplitud.",
+        "Amplitud debe decrecer o acotarse para convergencia visual y numérica."
+      ],
+      "valid_domain": [
+        "Número finito de niveles y frecuencias/amplitudes finitas."
+      ],
+      "boundary_conditions": [
+        "Sin niveles de detalle, D_total=0 o base declarada.",
+        "En bordes aplicar continuidad para evitar costuras."
+      ],
+      "dimensional_checks": [
+        "Alturas, desplazamientos y distancias tienen dimensión L.",
+        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
+        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:10",
+      "name": "Vegetación por bioma",
+      "variables": [
+        {
+          "symbol": "altitude",
+          "meaning": "altitud",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "slope",
+          "meaning": "pendiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "gradiente"
+        },
+        {
+          "symbol": "moisture",
+          "meaning": "humedad",
+          "unit": "0–1 normalizada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "exposure",
+          "meaning": "exposición",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "definición normalizada"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "semilla",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fija"
+        },
+        {
+          "symbol": "species",
+          "meaning": "clase de especie",
+          "unit": "categoría discreta",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "conjunto finito"
+        }
+      ],
+      "constraints": [
+        "Variables ambientales deben normalizarse y documentarse; no mezclar escalas arbitrarias.",
+        "La salida es una clase o distribución de especies, no una magnitud física."
+      ],
+      "valid_domain": [
+        "Variables dentro de rangos calibrados; seed entero."
+      ],
+      "boundary_conditions": [
+        "En umbrales de bioma definir prioridad/desempate para evitar parpadeo.",
+        "Datos fuera de rango deben saturarse o marcarse inválidos."
+      ],
+      "dimensional_checks": [
+        "Alturas, desplazamientos y distancias tienen dimensión L.",
+        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
+        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:11",
+      "name": "Modelo de dispersión microfacet para cabello",
+      "variables": [
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad microfacet",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o convención del modelo"
+        },
+        {
+          "symbol": "cuticle_tilt",
+          "meaning": "inclinación cuticular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango físico/calibrado"
+        },
+        {
+          "symbol": "fiber_radius",
+          "meaning": "radio de fibra",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "ω_i,ω_o",
+          "meaning": "direcciones de luz y vista",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "f_r",
+          "meaning": "BRDF",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa y normalizada según convención"
+        }
+      ],
+      "constraints": [
+        "Rugosidad es adimensional; cuticle tilt angular; radio de fibra longitud.",
+        "No hay ecuación completa en ficha: parámetros requieren modelo microfacet citado y calibración; no inventar distribución."
+      ],
+      "valid_domain": [
+        "Parámetros dentro de rango del modelo de dispersión elegido; direcciones unitarias."
+      ],
+      "boundary_conditions": [
+        "Fibra de radio cero no física; rechazar.",
+        "Rugosidad límite debe seguir convención concreta del modelo, no asumir equivalencia entre implementaciones."
+      ],
+      "dimensional_checks": [
+        "Alturas, desplazamientos y distancias tienen dimensión L.",
+        "Pendientes, ruido normalizado, pesos y parámetros de control son adimensionales; frecuencias espaciales tienen L⁻¹.",
+        "No comparar magnitudes de distinta dimensión; los balances de erosión deben conservar unidad y cantidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "8/12 técnicas no protegidas incluidas",
+      "Todos los registros tienen variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
+      "4 registros protegidos excluidos"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
