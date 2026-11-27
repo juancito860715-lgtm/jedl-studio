@@ -44,7 +44,7 @@ class D03ReferenceValidationTests(unittest.TestCase):
         self.assertEqual(summary["protected_records_preserved"], 11)
         self.assertEqual(summary["local_adaptations_implemented"], 8)
         self.assertEqual(summary["local_adaptations_tested"], 8)
-        self.assertEqual(summary["pending_local_ci"], 0
+        self.assertEqual(summary["pending_local_ci"], 0)
         self.assertEqual(summary["certified_as_locally_operational"], 0))
 
 if __name__ == "__main__":
