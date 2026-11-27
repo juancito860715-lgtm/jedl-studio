@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D38 Materiales avanzados, microestructura y apariencia",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -265,11 +265,27 @@
             "J": 0
           },
           "domain": "[-1,1]"
+        },
+        {
+          "symbol": "z_r,z_v",
+          "meaning": "Profundidades efectivas de fuentes real/virtual del dipolo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas y calculadas desde coeficientes de transporte"
         }
       ],
       "constraints": [
-        "En el perfil dipolo, términos exp(−σ_tr d)/d³ se multiplican por factores de longitud para obtener perfil areal m⁻²; la formulación exacta debe seguir convención del paper.",
-        "Coeficientes ópticos y distancias deben usar misma unidad; índices de refracción son adimensionales."
+        "σ_tr·d_r y σ_tr·d_v son adimensionales.",
+        "Como R(r) se interpreta como perfil espacial m⁻² y los denominadores d³ tienen m³, los numeradores z_r,z_v deben tener m.",
+        "La fórmula es un perfil BSSRDF aproximado; no debe confundirse con BRDF sr⁻¹."
       ],
       "valid_domain": [
         "σ_a,σ_s≥0; distancias positivas; g en rango físico."
@@ -278,8 +294,8 @@
         "Albedo de dispersión cero elimina contribución subsuperficial; r=0 requiere límite/regularización del perfil."
       ],
       "dimensional_checks": [
-        "σ_tr·d es adimensional; perfil R(r) se interpreta por unidad de área m⁻².",
-        "La integral de perfil sobre área produce reflectancia adimensional."
+        "σ_tr tiene m⁻¹; distancias y z_r,z_v tienen m; exponentes son adimensionales.",
+        "z_r/d_r³ y z_v/d_v³ tienen m⁻²; R(r) integra sobre área para reflectancia adimensional."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -604,9 +620,17 @@
         {
           "symbol": "K(λ_i,λ_o)",
           "meaning": "kernel de emisión",
-          "unit": "unidad normalizada por λ_o",
-          "dimension": "densidad espectral",
-          "domain": "no negativo"
+          "unit": "m⁻¹ respecto de λ_o para kernel de emisión normalizado",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "K≥0; integral sobre λ_o igual a 1 para cada λ_i bajo convención declarada"
         },
         {
           "symbol": "L_em",
@@ -617,8 +641,8 @@
         }
       ],
       "constraints": [
-        "El kernel K debe declarar normalización sobre longitud de onda de salida; energía emitida no excede energía absorbida salvo fuente externa.",
-        "λ_i y λ_o deben usar la misma unidad; conversión entre nm y m explícita."
+        "E(λ_i) tiene W·m⁻²·m⁻¹; K tiene m⁻¹ respecto de λ_o; dλ_i aporta m, por lo que L_em(λ_o) conserva W·m⁻²·m⁻¹.",
+        "El kernel debe declarar normalización y eficiencia cuántica/energética; la emisión no puede exceder energía absorbida sin fuente externa."
       ],
       "valid_domain": [
         "Espectros finitos; A∈[0,1]; kernel integrable."
@@ -627,8 +651,8 @@
         "A=0 produce emisión nula; kernel nulo produce emisión nula."
       ],
       "dimensional_checks": [
-        "La integral espectral incorpora dλ_i con unidad L; K debe compensar su medida según definición.",
-        "La emisión conserva unidad espectral radiométrica declarada."
+        "E(λ_i)·K(λ_i,λ_o)·dλ_i tiene W·m⁻²·m⁻¹.",
+        "K tiene unidad inversa de longitud de salida; integral sobre λ_o normalizada es adimensional."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -764,9 +788,9 @@
         {
           "symbol": "∂h/∂u,∂h/∂v",
           "meaning": "pendientes",
-          "unit": "m",
-          "dimension": "L",
-          "domain": "finitas"
+          "unit": "m por UV; convertir a m/m físico mediante Jacobiano de superficie",
+          "dimension": "L respecto de UV adimensional; 1 tras conversión a coordenada tangente física",
+          "domain": "finitas; no restar directamente de normal antes de convertir por métrica/Jacobiano"
         },
         {
           "symbol": "N'",
@@ -785,8 +809,8 @@
         }
       ],
       "constraints": [
-        "Derivadas respecto de UV adimensionales tienen unidad m; si u,v son coordenadas físicas, las derivadas cambian a razón L/L.",
-        "La normal se normaliza después de combinar pendientes con la base."
+        "∂h/∂u tiene m si u es adimensional; para perturbar N se requiere pendiente física ∂h/∂x con m/m, obtenida mediante inversa del Jacobiano de superficie.",
+        "T,B,N son direcciones adimensionales; tras convertir el gradiente a coordenadas tangentes físicas, los términos restados son adimensionales."
       ],
       "valid_domain": [
         "Altura y gradientes finitos; base ortonormal."
@@ -795,8 +819,8 @@
         "h constante produce gradiente cero y normal original."
       ],
       "dimensional_checks": [
-        "∂h/∂u tiene L si u es adimensional; T/B/N son adimensionales.",
-        "N' es dirección unitaria sin unidad."
+        "Derivada respecto de UV tiene L; derivada respecto de longitud tangente física es adimensional.",
+        "N′ es dirección unitaria; la fórmula directa con ∂h/∂UV sin métrica sería dimensionalmente inválida."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -964,11 +988,11 @@
   "validation": {
     "structural_checks": [
       "12/12 técnicas incluidas; ninguna protegida",
-      "Variables, unidades, restricciones, dominios, límites y verificaciones específicas por técnica",
-      "Separadas densidades angulares, perfiles subsuperficiales, longitudes, espectros y señales de color"
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Cerradas unidades de profundidades del dipolo, kernel espectral de fluorescencia y gradiente UV del bump mapping"
     ],
     "limitations": [
-      "Auditoría dimensional; no certifica fidelidad óptica espectral ni calibración material de una escena concreta."
+      "Los modelos de subsurface y fluorescencia dependen de convenciones de transporte/normalización explícitas; la auditoría no sustituye calibración espectral."
     ]
   },
   "integrity": {
