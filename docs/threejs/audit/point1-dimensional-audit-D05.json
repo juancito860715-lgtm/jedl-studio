@@ -1,0 +1,942 @@
+{
+  "title": "Auditoría dimensional punto 1 — D05 Vegetación, hojas, árboles e insectos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D05",
+    "domain": "Vegetación, hojas, árboles e insectos",
+    "record_count": 10,
+    "excluded_protected_records": 3,
+    "excluded_reason": "D05:6, D05:7 y D05:9 están protegidos por el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud global de escena; Three.js no fija unidad.",
+    "time": "Segundos; frecuencia y velocidad angular en s⁻¹.",
+    "angles": "Radianes."
+  },
+  "records": [
+    {
+      "record_key": "D05:0",
+      "name": "Árbol recursivo",
+      "variables": [
+        {
+          "symbol": "B_n",
+          "meaning": "rama en nivel n",
+          "unit": "curva/segmento en m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "geometría finita"
+        },
+        {
+          "symbol": "T_n",
+          "meaning": "transformación recursiva",
+          "unit": "afín tipada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "bloque lineal adimensional; traslación L"
+        },
+        {
+          "symbol": "α_n",
+          "meaning": "ángulo de ramificación",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "s_n",
+          "meaning": "factor de escala",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<s_n<1 para reducción"
+        }
+      ],
+      "constraints": [
+        "Transformaciones conservan tipos y marcos; factor de escala adimensional.",
+        "Limitar profundidad y número de ramas para evitar crecimiento exponencial descontrolado."
+      ],
+      "valid_domain": [
+        "Ángulos finitos, escalas no negativas y profundidad entera finita."
+      ],
+      "boundary_conditions": [
+        "Nivel 0 corresponde al tronco/semilla.",
+        "Profundidad máxima termina recursión; escala cero genera rama degenerada y debe omitirse."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:1",
+      "name": "L-system",
+      "variables": [
+        {
+          "symbol": "axiom",
+          "meaning": "cadena inicial",
+          "unit": "símbolos discretos",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "cadena finita"
+        },
+        {
+          "symbol": "rules",
+          "meaning": "producciones",
+          "unit": "mapeo símbolo→cadena",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "reglas deterministas o probabilísticas declaradas"
+        },
+        {
+          "symbol": "n",
+          "meaning": "iteraciones",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "L_n",
+          "meaning": "cadena resultante",
+          "unit": "símbolos discretos",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "longitud finita y limitada"
+        }
+      ],
+      "constraints": [
+        "Alfabeto y reglas deben ser finitos; símbolos sin regla se preservan o eliminan según gramática.",
+        "Crecimiento de cadena puede ser exponencial; imponer límite de longitud."
+      ],
+      "valid_domain": [
+        "Axioma válido; reglas bien formadas; n entero finito."
+      ],
+      "boundary_conditions": [
+        "n=0 devuelve axioma.",
+        "Símbolo sin producción usa regla identidad o descarte declarado."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:2",
+      "name": "Distribución Poisson disk",
+      "variables": [
+        {
+          "symbol": "p_i,p_j",
+          "meaning": "posiciones muestreadas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "puntos finitos"
+        },
+        {
+          "symbol": "r_min",
+          "meaning": "distancia mínima",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "Ω",
+          "meaning": "dominio de muestreo",
+          "unit": "m³ o m²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "región acotada 2D/3D declarada"
+        }
+      ],
+      "constraints": [
+        "Todas las distancias en misma unidad y métrica euclídea.",
+        "Garantizar |p_i−p_j|≥r_min para pares distintos; algoritmo debe cubrir dominio."
+      ],
+      "valid_domain": [
+        "Dominio acotado y r_min positivo; dimensión de muestreo fijada."
+      ],
+      "boundary_conditions": [
+        "En frontera respetar bounds y política de margen.",
+        "Dominio vacío devuelve conjunto vacío."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:3",
+      "name": "Phyllotaxis",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "índice de punto",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero n≥0"
+        },
+        {
+          "symbol": "θ_n",
+          "meaning": "ángulo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n·goldenAngle"
+        },
+        {
+          "symbol": "c",
+          "meaning": "escala radial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "c≥0"
+        },
+        {
+          "symbol": "r_n",
+          "meaning": "radio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "c·sqrt(n)"
+        }
+      ],
+      "constraints": [
+        "n es adimensional; sqrt(n) válido; c aporta longitud.",
+        "goldenAngle debe expresarse en radianes."
+      ],
+      "valid_domain": [
+        "n entero finito; c≥0."
+      ],
+      "boundary_conditions": [
+        "n=0 da r=0; puntos sucesivos pueden colapsar si c=0, por lo que c>0 para distribución extendida."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:4",
+      "name": "Curva de tallo",
+      "variables": [
+        {
+          "symbol": "s",
+          "meaning": "parámetro de curva",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "C(s)",
+          "meaning": "centro de tallo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "curva finita"
+        },
+        {
+          "symbol": "r0",
+          "meaning": "radio inicial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r0≥0"
+        },
+        {
+          "symbol": "γ",
+          "meaning": "exponente taper",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "γ≥0"
+        },
+        {
+          "symbol": "r(s)",
+          "meaning": "radio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r0(1−s)^γ"
+        }
+      ],
+      "constraints": [
+        "s adimensional y acotado; radio no negativo.",
+        "Curva Bezier/Catmull-Rom debe declarar control points y parametrización."
+      ],
+      "valid_domain": [
+        "s∈[0,1]; control points finitos."
+      ],
+      "boundary_conditions": [
+        "r(0)=r0; para γ>0, r(1)=0; γ=0 conserva radio constante salvo convención 0⁰."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:5",
+      "name": "Forma de hoja",
+      "variables": [
+        {
+          "symbol": "u,v",
+          "meaning": "parámetros de hoja",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "u∈[0,1], v∈[-1,1]"
+        },
+        {
+          "symbol": "C(u)",
+          "meaning": "línea central",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "curva finita"
+        },
+        {
+          "symbol": "w(u)",
+          "meaning": "semiancho",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "w≥0"
+        },
+        {
+          "symbol": "N(u)",
+          "meaning": "dirección lateral",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "P(u,v)",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "w·v tiene dimensión de longitud; N unitario y perpendicular a tangente central según marco elegido."
+      ],
+      "valid_domain": [
+        "Funciones C,w,N continuas; parámetros dentro de rango."
+      ],
+      "boundary_conditions": [
+        "v=0 sigue la línea central; v=±1 definen bordes; ancho cero en punta si se desea hoja puntiaguda."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:8",
+      "name": "Hojas cayendo",
+      "variables": [
+        {
+          "symbol": "p0,p(t)",
+          "meaning": "posición inicial/actual",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "v0",
+          "meaning": "velocidad inicial",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "g",
+          "meaning": "aceleración gravitatoria",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        },
+        {
+          "symbol": "drift",
+          "meaning": "deriva",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "función acotada"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "velocidad angular",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "p0+v0t+0.5gt²+drift tiene unidades de longitud.",
+        "noise angular debe tener unidad rad o ser adimensional aplicado a rad."
+      ],
+      "valid_domain": [
+        "t finito; deriva y ruido acotados y reproducibles si se requiere."
+      ],
+      "boundary_conditions": [
+        "p(0)=p0+drift(0); definir drift(0)=0 si se desea anclaje exacto.",
+        "Al terminar caída, aplicar colisión/suelo o permitir salida de dominio declarada."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:10",
+      "name": "Pasto procedural",
+      "variables": [
+        {
+          "symbol": "s",
+          "meaning": "parámetro de hoja de pasto",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "base",
+          "meaning": "punto raíz",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "height",
+          "meaning": "altura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "up",
+          "meaning": "dirección vertical",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "bend(s,t)",
+          "meaning": "desplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "blade",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "s·height tiene dimensión de longitud; bend también.",
+        "La raíz debe permanecer anclada si no se modela arrancamiento."
+      ],
+      "valid_domain": [
+        "s∈[0,1]; altura positiva; deformación finita."
+      ],
+      "boundary_conditions": [
+        "s=0 coincide con base; s=1 alcanza punta deformada.",
+        "En ausencia de viento bend=0 produce hoja recta."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:11",
+      "name": "Enjambre de insectos",
+      "variables": [
+        {
+          "symbol": "p_i,v_i",
+          "meaning": "posición y velocidad",
+          "unit": "m; m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración combinada",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "r_n",
+          "meaning": "radio vecindad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "light",
+          "meaning": "posición/intensidad de fuente",
+          "unit": "m y unidad radiométrica declarada",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fuente finita"
+        }
+      ],
+      "constraints": [
+        "Cohesion, separation, noise y atracción deben producir steering homogéneo antes de sumarse.",
+        "Limitar velocidad/aceleración y tratar luz como fuente con posición e intensidad separadas."
+      ],
+      "valid_domain": [
+        "Población finita; parámetros y estados finitos; radio positivo."
+      ],
+      "boundary_conditions": [
+        "Vecindario vacío: reglas sociales nulas.",
+        "Fuente luminosa ausente: término de atracción cero; distancia cero con luz requiere dirección de respaldo."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D05:12",
+      "name": "Aves en bandada",
+      "variables": [
+        {
+          "symbol": "p_i,v_i",
+          "meaning": "estado de ave",
+          "unit": "m; m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "leaderPath(t)",
+          "meaning": "trayectoria líder",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "continua y evaluable"
+        },
+        {
+          "symbol": "w_s,w_a,w_c",
+          "meaning": "pesos boids",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración steering",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        }
+      ],
+      "constraints": [
+        "Combinar boids y seguimiento del líder en la misma magnitud cinemática.",
+        "Definir vecindad, límites de velocidad y aceleración."
+      ],
+      "valid_domain": [
+        "Tiempo dentro del path; población finita y estado válido."
+      ],
+      "boundary_conditions": [
+        "Al inicio usar posición/velocidad iniciales y objetivo del líder.",
+        "Si el path termina, mantener último punto o loop declarado."
+      ],
+      "dimensional_checks": [
+        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
+        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
+        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "10/13 técnicas no protegidas incluidas",
+      "Todos los registros incluyen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
+      "3 registros protegidos excluidos"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
