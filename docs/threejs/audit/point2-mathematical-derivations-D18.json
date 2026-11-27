@@ -48,6 +48,10 @@
       "result": "La anatomía articulada se deriva de cadenas de segmentos, IK para patas y curvas para antenas.",
       "limits": [
         "La ficha es una construcción visual; no pretende representar anatomía entomológica exacta."
+      ],
+      "dimensional_verification": [
+        "Puntos de articulación y longitudes l_i tienen L; rotaciones y ángulos son adimensionales angulares.",
+        "R(θ)l_i produce desplazamiento L; IK conserva longitudes de segmento."
       ]
     },
     {
@@ -70,8 +74,8 @@
         },
         {
           "step": 3,
-          "equation": "a_i=w_sS_i+w_cC_i+w_f food_i+w_o obstacle_i",
-          "justification": "Combinar separación, cohesión, atracción y evasión con ganancias dimensionales."
+          "equation": "a_i=w_sS_i+w_cC_i+w_f∇F(p_i)+w_oO_i",
+          "justification": "Homogeneizar cada término como aceleración mediante ganancias dimensionales explícitas antes de sumarlos."
         },
         {
           "step": 4,
@@ -82,11 +86,16 @@
       "assumptions": [
         "r>0; campo F y obstáculos definidos.",
         "Ganancias convierten términos a aceleración común.",
-        "Semillas deterministas para variación individual."
+        "Semillas deterministas para variación individual.",
+        "Con F adimensional y O unitario: w_s y w_f tienen L²/T²; w_c tiene T⁻²; w_o tiene L/T²."
       ],
       "result": "El comportamiento colectivo emerge de reglas locales y campos ambientales.",
       "limits": [
         "Los pesos requieren unidades compatibles; no es modelo ecológico validado."
+      ],
+      "dimensional_verification": [
+        "p_i y radios de vecindad tienen L; S_i tiene L⁻¹; C_i tiene L.",
+        "Si food es campo escalar adimensional, ∇F tiene L⁻¹; ganancias deben convertir separación/cohesión/alimento/evasión a aceleración L/T²."
       ]
     },
     {
@@ -126,6 +135,10 @@
       "result": "La célula se construye como volumen implícito deformable con instancias internas sujetas a condición de contención.",
       "limits": [
         "La forma procedural es conceptual y no representa procesos celulares cuantitativos."
+      ],
+      "dimensional_verification": [
+        "SDF y δ tienen L; r_i tiene L; d(center)<−r_i compara longitudes homogéneas.",
+        "Centros y superficies están en mismo marco espacial."
       ]
     },
     {
@@ -165,6 +178,10 @@
       "result": "Una red cristalina se obtiene aplicando una transformación de celda unitaria a índices enteros.",
       "limits": [
         "Una red visual no determina estructura cristalográfica ni propiedades del material."
+      ],
+      "dimensional_verification": [
+        "A contiene vectores de red con L; n entero adimensional; p_n tiene L.",
+        "R es adimensional y t tiene L; p'_n conserva L."
       ]
     },
     {
@@ -199,11 +216,16 @@
       "assumptions": [
         "R y A son funciones de visualización, no soluciones cuánticas exactas.",
         "r≥0; ángulos en rangos esféricos.",
-        "La normalización depende de la interpretación."
+        "La normalización depende de la interpretación.",
+        "Si se usa P=ρΔV como masa/probabilidad de muestra, ρ se normaliza como densidad volumétrica L⁻³; no se interpreta como densidad electrónica física exacta."
       ],
       "result": "La visualización atómica estilizada separa una envolvente radial y una distribución angular para generar volúmenes/orbitas conceptuales.",
       "limits": [
         "No debe presentarse como orbital cuántico exacto sin potencial, ecuación y normalización física definidos."
+      ],
+      "dimensional_verification": [
+        "r y coordenadas esféricas tienen L; θ,φ son adimensionales angulares.",
+        "Para densidad de muestreo normalizada, ρ tiene L⁻³; ΔV tiene L³; P=ρΔV es adimensional."
       ]
     },
     {
@@ -243,6 +265,10 @@
       "result": "La superficie planetaria es una esfera radialmente desplazada por un campo de altura.",
       "limits": [
         "Alturas grandes pueden invertir o auto-intersectar la superficie; la topografía real requiere datos/calibración."
+      ],
+      "dimensional_verification": [
+        "R y h tienen L; φ,λ son ángulos adimensionales; p tiene L.",
+        "P_φ×P_λ tiene L²; la normal normalizada es adimensional."
       ]
     },
     {
@@ -282,11 +308,16 @@
       "assumptions": [
         "H>0; h y H en misma unidad.",
         "ρ_0 no negativa; σ_t compatible con densidad.",
-        "La atmósfera es una aproximación estratificada."
+        "La atmósfera es una aproximación estratificada.",
+        "ρ(h) es densidad relativa adimensional; σ_t es coeficiente efectivo de extinción L⁻¹. Una densidad másica física requeriría coeficiente con unidad m²/kg."
       ],
       "result": "La densidad exponencial deriva de una ecuación diferencial de equilibrio vertical simplificado.",
       "limits": [
         "No representa variaciones meteorológicas, temperatura ni composición por capas completas."
+      ],
+      "dimensional_verification": [
+        "h,h0,H tienen L; k=1/H tiene L⁻¹; (h−h0)/H es adimensional.",
+        "Si ρ es densidad relativa adimensional, σ_t tiene L⁻¹ y σ_tρ ds es adimensional."
       ]
     },
     {
@@ -331,6 +362,10 @@
       "result": "La órbita elíptica se deriva de la ley de gravitación inversa al cuadrado y conservación de energía/momento angular.",
       "limits": [
         "No incluye perturbaciones de múltiples cuerpos, presión de radiación ni relatividad."
+      ],
+      "dimensional_verification": [
+        "μ=GM tiene L³/T²; a tiene L; h específico tiene L²/T; n medio tiene T⁻¹.",
+        "e, M, E, ν son adimensionales angulares; r(ν) tiene L."
       ]
     },
     {
@@ -369,6 +404,10 @@
       "result": "La espiral logarítmica resulta de imponer ángulo de paso constante.",
       "limits": [
         "Es una forma estilizada; no modela dinámica gravitatoria galáctica."
+      ],
+      "dimensional_verification": [
+        "r y r0 tienen L; r/r0 es adimensional; pitch y θ son angulares adimensionales.",
+        "El logaritmo recibe argumento positivo adimensional."
       ]
     },
     {
@@ -408,6 +447,10 @@
       "result": "La nebulosa se genera como campo de ruido multiescala con realce de filamentos.",
       "limits": [
         "No representa densidad/temperatura/plasma astrofísicos cuantitativos."
+      ],
+      "dimensional_verification": [
+        "p tiene L; frecuencias espaciales λ_i tienen L⁻¹; argumentos de noise son adimensionales.",
+        "Amplitudes a_i y ρ normalizada son adimensionales; la salida es densidad visual normalizada."
       ]
     },
     {
@@ -451,6 +494,10 @@
       "result": "El muestreo uniforme se obtiene separando dirección isotrópica y distribución radial apropiada.",
       "limits": [
         "Muestreo uniforme en ángulo y radio uniforme no es uniforme en volumen."
+      ],
+      "dimensional_verification": [
+        "R y p tienen L; u y U son adimensionales; p=c+Ru conserva L.",
+        "U^(1/3) es adimensional y genera distribución radial uniforme en volumen."
       ]
     },
     {
@@ -495,17 +542,24 @@
       "result": "Un universo procedural combina semillas jerárquicas, escalas y selección LOD por error proyectado.",
       "limits": [
         "No es simulación cosmológica; el streaming y presupuesto de memoria requieren límites explícitos."
+      ],
+      "dimensional_verification": [
+        "scale_0 y ε_world tienen L; λ y scale ratio son adimensionales; z tiene L.",
+        "f_px tiene px; ε_screen=f_px ε_world/z tiene px; τ_px también px."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "12/12 técnicas cubiertas.",
-      "Cada derivación contiene pasos matemáticos justificados, supuestos y límites.",
-      "Los modelos conceptuales microscópicos/astrofísicos se distinguen de modelos físicos cuantitativos."
+      "12/12 técnicas D18 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Colonia/enjambre convierte reglas locales a aceleración mediante ganancias con unidades explícitas",
+      "Átomo estilizado distingue densidad de muestreo L⁻³ de magnitudes cuánticas físicas",
+      "Sistema orbital tipa μ, semieje, momento angular específico y movimiento medio",
+      "Nebulosa y universo procedural normalizan coordenadas de ruido y error proyectado"
     ],
     "limitations": [
-      "Las derivaciones se orientan a visualización procedural; no certifican modelos científicos de biología, cuántica o astrofísica."
+      "Los modelos microscópicos y astronómicos se mantienen como visualizaciones conceptuales/procedurales; no se presentan como modelos científicos exactos."
     ]
   },
   "integrity": {
