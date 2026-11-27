@@ -291,3 +291,15 @@ export function edgeCoverage(score,low,high) {
   const x=Math.max(0,Math.min(1,(score-low)/(high-low)));
   return x*x*(3-2*x);
 }
+
+
+// Antialiased threshold for the periodic halftone mask. aaWidth=0 is the
+// exact binary step; positive width is a dimensionless luminance interval.
+export function halftoneCoverage(luminance,mask,aaWidth) {
+  if([luminance,mask,aaWidth].some(v=>!Number.isFinite(v))||aaWidth<0)
+    throw new RangeError("finite values and nonnegative aaWidth required");
+  const delta=luminance-mask;
+  if(aaWidth===0)return delta>=0?1:0;
+  const x=Math.max(0,Math.min(1,(delta+aaWidth)/(2*aaWidth)));
+  return x*x*(3-2*x);
+}
