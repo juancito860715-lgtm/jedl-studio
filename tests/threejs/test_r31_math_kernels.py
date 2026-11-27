@@ -156,6 +156,53 @@ def ggx_ndf(cos_theta, alpha):
 
 
 
+
+def hair_ggx_ndf(dot_h_m, beta):
+    """Huang et al. 2022 Appendix A, Eq. (41), fiber microfacet NDF."""
+    if not (0.0 < beta <= 1.0) or not math.isfinite(dot_h_m):
+        raise ValueError("beta must be in (0,1] and dot finite")
+    d = max(-1.0, min(1.0, dot_h_m))
+    b2 = beta * beta
+    return b2 / (math.pi * (1.0 + (b2 - 1.0) * d * d) ** 2)
+
+
+def hair_tilted_half_dot(theta_h, phi_h, phi_m, alpha):
+    """Huang et al. 2022 Appendix A, Eq. (42)."""
+    return (math.cos(theta_h) * math.cos(alpha) * math.cos(phi_h - phi_m)
+            + math.sin(theta_h) * math.sin(alpha))
+
+
+def prioritized_acceleration_allocation(requests, max_acceleration):
+    """Reynolds 1987 p.29: ordered acceleration requests, strengths and trim."""
+    if max_acceleration < 0 or not math.isfinite(max_acceleration):
+        raise ValueError("max_acceleration must be finite and nonnegative")
+    out = [0.0, 0.0, 0.0]
+    used = 0.0
+    for acceleration, strength in requests:
+        if len(acceleration) != 3 or not all(math.isfinite(v) for v in acceleration):
+            raise ValueError("each acceleration request must be a finite 3-vector")
+        if not (0.0 <= strength <= 1.0) or not math.isfinite(strength):
+            raise ValueError("strength must be finite and in [0,1]")
+        norm = math.sqrt(sum(v*v for v in acceleration))
+        if norm == 0.0 or strength == 0.0:
+            continue
+        # Each isolated behavior request is capped at unit magnitude.
+        scale = min(1.0, 1.0 / norm) * strength
+        req = [v * scale for v in acceleration]
+        req_norm = math.sqrt(sum(v*v for v in req))
+        remaining = max_acceleration - used
+        if remaining <= 0.0:
+            break
+        if req_norm > remaining:
+            trim = remaining / req_norm
+            req = [v * trim for v in req]
+            req_norm = remaining
+        out = [out[i] + req[i] for i in range(3)]
+        used += req_norm
+        if used >= max_acceleration:
+            break
+    return tuple(out)
+
 def anisotropic_kuwahara_mean(means, stddev_norms, q=8):
     """Kyprianidis et al. 2009 weighted sector mean: alpha_i=1/(1+||s_i||^q)."""
     if not means or len(means) != len(stddev_norms):
@@ -324,6 +371,15 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertAlmostEqual(abs(x1-x0), 1.0)
         self.assertAlmostEqual(lam, -0.5)
 
+    def test_xpbd_compliance_scaled_by_dt_matches_closed_form(self):
+        # C=1 m, sum(w)=2 kg^-1, alpha=1 s^2/kg.
+        at_dt_1 = xpbd_distance_step(0.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        at_dt_half = xpbd_distance_step(0.0, 2.0, 1.0, 1.0, 1.0, 1.0, 0.5)
+        self.assertAlmostEqual(at_dt_1[2], -1.0/3.0)
+        self.assertAlmostEqual(at_dt_half[2], -1.0/6.0)
+        self.assertAlmostEqual(at_dt_1[1]-at_dt_1[0], 4.0/3.0)
+        self.assertAlmostEqual(at_dt_half[1]-at_dt_half[0], 5.0/3.0)
+
     def test_xpbd_compliance_reduces_single_step_correction(self):
         rigid = xpbd_distance_step(0.0, 2.0, 1.0, 1.0, 1.0, 0.0, 1.0)
         soft = xpbd_distance_step(0.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0)
@@ -385,6 +441,28 @@ class TestR31NumericalKernels(unittest.TestCase):
         alpha=0.5
         self.assertAlmostEqual(ggx_ndf(1.0,alpha),1.0/(math.pi*alpha*alpha))
         self.assertGreater(ggx_ndf(1.0,alpha),ggx_ndf(0.0,alpha))
+
+    def test_hair_microfacet_ggx_matches_published_appendix_a_eq41(self):
+        self.assertAlmostEqual(hair_ggx_ndf(0.0, 0.5), 0.25/math.pi)
+        self.assertAlmostEqual(hair_ggx_ndf(1.0, 0.5), 4.0/math.pi)
+        self.assertAlmostEqual(hair_tilted_half_dot(0.0, 0.3, 0.3, 0.0), 1.0)
+        with self.assertRaises(ValueError):
+            hair_ggx_ndf(1.0, 0.0)
+
+    def test_reynolds_prioritized_acceleration_allocation_closed_form(self):
+        got = prioritized_acceleration_allocation([
+            ((0.8, 0.0, 0.0), 1.0),
+            ((0.0, 0.8, 0.0), 1.0)
+        ], 1.0)
+        self.assertVecAlmostEqual(got, (0.8, 0.2, 0.0))
+        full = prioritized_acceleration_allocation([
+            ((0.6, 0.0, 0.0), 1.0),
+            ((0.0, 0.2, 0.0), 1.0)
+        ], 1.0)
+        self.assertVecAlmostEqual(full, (0.6, 0.2, 0.0))
+        self.assertVecAlmostEqual(prioritized_acceleration_allocation([((1,0,0),0)], 2), (0,0,0))
+        with self.assertRaises(ValueError):
+            prioritized_acceleration_allocation([((1,0),1)], 1)
 
     def test_anisotropic_kuwahara_matches_published_weight_rule(self):
         # Independent closed-form fixture: s=(0,3), q=2 -> weights (1,1/10).
