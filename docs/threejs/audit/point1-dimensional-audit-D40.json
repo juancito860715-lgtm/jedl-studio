@@ -1,0 +1,1159 @@
+{
+  "title": "Auditoría dimensional punto 1 — D40 Geometría avanzada, superficies, topología y reconstrucción",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D40",
+    "domain": "Geometría avanzada, superficies, topología y reconstrucción",
+    "record_count": 14,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D40 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "geometry": "Posiciones en m; parámetros normalizados adimensionales.",
+    "curvature": "Curvatura de curva/superficie L⁻¹; Laplaciano tipado según normalización.",
+    "reconstruction": "SDF en m; QEF en m²; índices topológicos discretos."
+  },
+  "records": [
+    {
+      "record_key": "D40:0",
+      "name": "Catmull–Clark subdivision",
+      "variables": [
+        {
+          "symbol": "P_i",
+          "meaning": "puntos de control/vértices",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "F,E,V'",
+          "meaning": "puntos cara/arista/vértice",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "n",
+          "meaning": "valencia",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "iterations",
+          "meaning": "niveles",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Todos los puntos se expresan en mismo marco y unidad; promedios usan pesos adimensionales.",
+        "Reglas de borde/crease y topología se declaran por esquema."
+      ],
+      "valid_domain": [
+        "Malla finita; valencias válidas; vértices finitos."
+      ],
+      "boundary_conditions": [
+        "Cero iteraciones conserva malla original; valencia inválida se rechaza."
+      ],
+      "dimensional_checks": [
+        "Promedios ponderados de puntos L conservan L.",
+        "n y niveles son conteos discretos."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:1",
+      "name": "Loop subdivision",
+      "variables": [
+        {
+          "symbol": "v,v_i",
+          "meaning": "vértices",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "β",
+          "meaning": "peso de vecino",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "según valencia"
+        },
+        {
+          "symbol": "n",
+          "meaning": "valencia",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥3"
+        },
+        {
+          "symbol": "v'",
+          "meaning": "vértice actualizado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Pesos β son adimensionales y deben sumar según regla de esquema.",
+        "La regla se aplica a malla triangular; límites/crease alteran stencil."
+      ],
+      "valid_domain": [
+        "Malla triangular válida; vecindad definida."
+      ],
+      "boundary_conditions": [
+        "Malla sin subdivisiones conserva vértices; valencia baja requiere regla especial."
+      ],
+      "dimensional_checks": [
+        "(1−nβ)v+βΣv_i conserva L.",
+        "β y nβ son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:2",
+      "name": "NURBS surface",
+      "variables": [
+        {
+          "symbol": "P_ij",
+          "meaning": "puntos de control",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "N_i,N_j",
+          "meaning": "bases B-spline",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizadas/definidas"
+        },
+        {
+          "symbol": "w_ij",
+          "meaning": "pesos racionales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; denominador no nulo"
+        },
+        {
+          "symbol": "u,v",
+          "meaning": "parámetros",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dominio de knots"
+        },
+        {
+          "symbol": "S(u,v)",
+          "meaning": "punto superficie",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Bases y pesos son adimensionales; denominador racional no nulo.",
+        "Knot vectors y parámetros usan mismo espacio; puntos de control comparten unidad."
+      ],
+      "valid_domain": [
+        "Grado y nudos válidos; suma ponderada no singular."
+      ],
+      "boundary_conditions": [
+        "Peso unitario y base degenerada se resuelven según regla NURBS; borde evalúa curva límite."
+      ],
+      "dimensional_checks": [
+        "Numerador/denominador mantiene unidad de P_ij, por tanto S tiene L.",
+        "u,v y pesos son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:3",
+      "name": "B-spline basis Cox–de Boor",
+      "variables": [
+        {
+          "symbol": "u,u_i",
+          "meaning": "parámetro y nudos",
+          "unit": "misma unidad de parámetro",
+          "dimension": "tipado",
+          "domain": "ordenados"
+        },
+        {
+          "symbol": "N_i,p",
+          "meaning": "función base",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o rango definido"
+        },
+        {
+          "symbol": "p",
+          "meaning": "grado",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "denominator",
+          "meaning": "diferencias de nudos",
+          "unit": "unidad parámetro",
+          "dimension": "igual a u",
+          "domain": "no nulas o rama cero"
+        }
+      ],
+      "constraints": [
+        "Diferencias de nudos y numeradores deben usar misma unidad; cocientes son adimensionales.",
+        "Intervalos de longitud cero se tratan como término cero según definición."
+      ],
+      "valid_domain": [
+        "Knot vector ordenado; grado y número de nudos compatibles."
+      ],
+      "boundary_conditions": [
+        "En último nudo, usar convención de extremo cerrado; knot repetido activa rama definida."
+      ],
+      "dimensional_checks": [
+        "Cada cociente de Cox–de Boor es adimensional; N_i,p es adimensional.",
+        "La base pondera puntos y no altera unidad geométrica."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:4",
+      "name": "Bezier curve",
+      "variables": [
+        {
+          "symbol": "P_i",
+          "meaning": "puntos de control",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "t",
+          "meaning": "parámetro",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "B(t)",
+          "meaning": "punto de curva",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "n",
+          "meaning": "grado",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Coeficientes Bernstein y potencias de t son adimensionales.",
+        "Todos los puntos de control usan mismo marco y unidad."
+      ],
+      "valid_domain": [
+        "n finito; puntos finitos; t∈[0,1]."
+      ],
+      "boundary_conditions": [
+        "t=0 devuelve P_0; t=1 devuelve P_n."
+      ],
+      "dimensional_checks": [
+        "Suma de pesos adimensionales por P_i conserva L.",
+        "Grado es conteo discreto."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:5",
+      "name": "De Casteljau",
+      "variables": [
+        {
+          "symbol": "P_i^(r)",
+          "meaning": "puntos intermedios",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "t",
+          "meaning": "parámetro",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "P_i^(r+1)",
+          "meaning": "puntos interpolados",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "n",
+          "meaning": "nivel",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Interpolación lineal combina puntos del mismo marco; t es peso adimensional.",
+        "Subdivisión debe preservar continuidad en punto de corte."
+      ],
+      "valid_domain": [
+        "Lista finita de puntos; t∈[0,1]."
+      ],
+      "boundary_conditions": [
+        "t=0 y t=1 devuelven extremos de cada segmento."
+      ],
+      "dimensional_checks": [
+        "(1−t)P_i+tP_{i+1} conserva L.",
+        "El algoritmo no cambia unidades geométricas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:6",
+      "name": "Discrete differential geometry cotangent Laplacian",
+      "variables": [
+        {
+          "symbol": "x_i",
+          "meaning": "posición vértice",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "α,β",
+          "meaning": "ángulos opuestos",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "triángulos no degenerados"
+        },
+        {
+          "symbol": "cot weights",
+          "meaning": "pesos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "Lx",
+          "meaning": "resultado Laplaciano",
+          "unit": "m",
+          "dimension": "L",
+          "domain": "si combinatorio cotan sin mass normalization"
+        }
+      ],
+      "constraints": [
+        "Pesos cotangentes son adimensionales; el Laplaciano cotan discreto sin masa produce coordenadas con unidad L.",
+        "Si se aplica inversa de matriz de masa/área, el operador adquiere L⁻² y Lx pasa a L⁻¹."
+      ],
+      "valid_domain": [
+        "Malla triangular no degenerada; áreas y ángulos válidos."
+      ],
+      "boundary_conditions": [
+        "Triángulos degenerados invalidan cotangentes; bordes requieren stencil explícito."
+      ],
+      "dimensional_checks": [
+        "cot(ángulo) es adimensional; suma de diferencias de posiciones conserva L.",
+        "La normalización por masa cambia la dimensión y debe registrarse."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:7",
+      "name": "Mean curvature flow",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "posición superficie",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "H",
+          "meaning": "curvatura media",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "n",
+          "meaning": "normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "μ",
+          "meaning": "movilidad",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo físico",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "La forma ∂x/∂t=−Hn requiere coeficiente de movilidad μ[L²/T] para que RHS sea L/T; sin μ, t debe interpretarse como pseudo-tiempo con unidad L².",
+        "El paso numérico debe limitarse para evitar inversión de elementos."
+      ],
+      "valid_domain": [
+        "Superficie regular; H finita; μ≥0; paso positivo."
+      ],
+      "boundary_conditions": [
+        "H=0 no desplaza superficie; μ=0 desactiva flujo."
+      ],
+      "dimensional_checks": [
+        "μH tiene (L²/T)(L⁻¹)=L/T, unidad de ∂x/∂t.",
+        "n es adimensional y x tiene L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:8",
+      "name": "Marching Cubes",
+      "variables": [
+        {
+          "symbol": "V_a,V_b",
+          "meaning": "valores de campo",
+          "unit": "unidad del campo",
+          "dimension": "tipado",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "iso",
+          "meaning": "isovalor",
+          "unit": "misma unidad que V",
+          "dimension": "igual a campo",
+          "domain": "finito"
+        },
+        {
+          "symbol": "p_a,p_b",
+          "meaning": "posiciones arista",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "t",
+          "meaning": "interpolación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "V e iso comparten unidad; t=(iso−V_a)/(V_b−V_a) es adimensional.",
+        "Malla y tabla de casos deben compartir convención de winding."
+      ],
+      "valid_domain": [
+        "Campo finito; grid consistente; aristas no degeneradas."
+      ],
+      "boundary_conditions": [
+        "Sin cruces no se emite triángulo; V_a=V_b requiere regla de empate."
+      ],
+      "dimensional_checks": [
+        "t es adimensional; p_a+t(p_b−p_a) conserva L.",
+        "La isosuperficie mantiene el tipo del campo V=iso."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:9",
+      "name": "Dual Contouring",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "intersecciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "n_i",
+          "meaning": "normales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "x",
+          "meaning": "vértice QEF",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "QEF",
+          "meaning": "error cuadrático",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "regularización",
+          "unit": "unidad compatible con QEF",
+          "dimension": "tipada",
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Cada residual n_i·(x−p_i) tiene L; su cuadrado tiene L².",
+        "La regularización se escala con QEF y dominio de posiciones."
+      ],
+      "valid_domain": [
+        "Intersecciones y normales finitas; sistema QEF resoluble."
+      ],
+      "boundary_conditions": [
+        "Sin intersecciones la celda no emite vértice; QEF singular requiere regularización."
+      ],
+      "dimensional_checks": [
+        "QEF suma términos L²; minimizador x tiene L.",
+        "n_i es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:10",
+      "name": "Eikonal equation para SDF",
+      "variables": [
+        {
+          "symbol": "φ",
+          "meaning": "distancia firmada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "∇φ",
+          "meaning": "gradiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "norma unitaria fuera singularidades"
+        },
+        {
+          "symbol": "x",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "en dominio"
+        },
+        {
+          "symbol": "surface",
+          "meaning": "cero nivel",
+          "unit": "malla/contorno",
+          "dimension": "geometría L",
+          "domain": "definido"
+        }
+      ],
+      "constraints": [
+        "Para distancia exacta, ∇φ es adimensional y |∇φ|=1 fuera del medial axis/singularidades.",
+        "Reinicialización debe preservar φ=0 en superficie."
+      ],
+      "valid_domain": [
+        "Campo Lipschitz; superficie inicial definida."
+      ],
+      "boundary_conditions": [
+        "En superficie φ=0; en medial axis el gradiente puede no ser único."
+      ],
+      "dimensional_checks": [
+        "φ tiene L; derivada espacial ∇φ tiene L/L=1.",
+        "La ecuación Eikonal es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:11",
+      "name": "Boolean SDF operations",
+      "variables": [
+        {
+          "symbol": "a,b",
+          "meaning": "SDF de sólidos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo marco"
+        },
+        {
+          "symbol": "k",
+          "meaning": "suavizado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k>0 para smooth"
+        },
+        {
+          "symbol": "d",
+          "meaning": "SDF combinado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "p",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "min/max combinan campos de igual unidad y signo; smoothMin requiere k con unidad L.",
+        "Las transformaciones de cada primitivo mantienen coordenadas comunes."
+      ],
+      "valid_domain": [
+        "SDF finitos; k>0 para suavizado."
+      ],
+      "boundary_conditions": [
+        "Union/intersection hard min/max válidos con k=0; smooth formula requiere rama distinta si k=0."
+      ],
+      "dimensional_checks": [
+        "a,b,k,d tienen L; h=(k−|a−b|)/k es adimensional.",
+        "El SDF resultante conserva L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:12",
+      "name": "Generalized winding number",
+      "variables": [
+        {
+          "symbol": "Ω_i",
+          "meaning": "ángulo sólido orientado",
+          "unit": "sr",
+          "dimension": "ángulo sólido",
+          "domain": "finito"
+        },
+        {
+          "symbol": "w(p)",
+          "meaning": "winding number",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "p",
+          "meaning": "punto consulta",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "triangle",
+          "meaning": "triángulo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "orientado"
+        }
+      ],
+      "constraints": [
+        "El ángulo sólido de cada triángulo es adimensional en SI; la suma se normaliza por 4π.",
+        "Orientación de triángulos debe ser coherente para clasificación fiable."
+      ],
+      "valid_domain": [
+        "Malla finita; triángulos no degenerados; punto definido."
+      ],
+      "boundary_conditions": [
+        "Punto fuera de malla cerrada da winding cercano a 0; dentro orientada coherente cercano a ±1."
+      ],
+      "dimensional_checks": [
+        "Ω y w son adimensionales; posición tiene L.",
+        "La clasificación no produce magnitud física."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D40:13",
+      "name": "Dual Contouring research variant",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "intersecciones Hermite",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "n_i",
+          "meaning": "normales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "x*",
+          "meaning": "solución QEF",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ε_QEF",
+          "meaning": "regularización",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "La formulación QEF minimiza Σ[n_i·(x−p_i)]²; cada término tiene L².",
+        "El regularizador debe tener unidad compatible con la función objetivo o incorporarse con escala explícita."
+      ],
+      "valid_domain": [
+        "Celdas activas con intersecciones; QEF resoluble."
+      ],
+      "boundary_conditions": [
+        "Sin intersecciones no hay vértice; QEF mal condicionado requiere fallback."
+      ],
+      "dimensional_checks": [
+        "Residual tiene L; QEF y ε_QEF tienen L².",
+        "x* conserva unidad L."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "14/14 técnicas incluidas; la segunda ficha Dual Contouring se conserva como variante de investigación explícita del mismo método",
+      "Variables, unidades, restricciones, dominios, límites y comprobaciones específicas por técnica",
+      "Distinguidas curvaturas, operadores discretos, SDF, parámetros spline y error QEF"
+    ],
+    "limitations": [
+      "Auditoría dimensional; no valida calidad de malla, convergencia de flujos geométricos ni robustez de reconstrucción en casos degenerados."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
