@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D07 Arquitectura, edificios, puentes y ciudades",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -107,38 +107,44 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "r(x)=pitch·|x|",
-          "justification": "Definir altura relativa como distancia absoluta al eje de cumbrera multiplicada por pendiente."
+          "equation": "x∈[−W/2,W/2]; h_ridge=roofBase+pitch·W/2",
+          "justification": "Tomar roofBase como altura de alero y calcular la cota de cumbrera a partir de la semianchura y la pendiente."
         },
         {
           "step": 2,
-          "equation": "y(x)=roofBase+r(x)",
-          "justification": "Trasladar el perfil vertical a la cota base."
+          "equation": "y(x)=h_ridge−pitch·|x|=roofBase+pitch·(W/2−|x|)",
+          "justification": "La distancia horizontal desde la cumbrera es |x|; restarla con pendiente positiva produce dos planos que descienden hacia los aleros."
         },
         {
           "step": 3,
-          "equation": "dy/dx=−pitch for x<0; +pitch for x>0",
-          "justification": "La derivada muestra dos planos inclinados que se encuentran en x=0."
+          "equation": "dy/dx=+pitch para x<0; dy/dx=−pitch para x>0",
+          "justification": "Las derivadas opuestas describen las dos aguas simétricas y el cambio de signo en la cumbrera."
         },
         {
           "step": 4,
-          "equation": "ridge: x=0, y=roofBase",
-          "justification": "La cumbrera es el mínimo del perfil si pitch>0."
+          "equation": "y(0)=roofBase+pitch·W/2; y(±W/2)=roofBase",
+          "justification": "Evaluar centro y extremos confirma que la cumbrera es el máximo y ambos aleros quedan a la altura base."
         }
       ],
       "assumptions": [
-        "pitch≥0; x y y usan unidad de longitud.",
-        "La cumbrera se ubica en x=0; aleros en límites del dominio.",
-        "La fórmula produce sección 2D extruible."
+        "Se define roofBase como altura de alero; pitch=rise/run≥0.",
+        "La sección es simétrica respecto de x=0 y se extiende en el eje longitudinal del edificio."
       ],
-      "result": "El tejado se deriva de dos pendientes lineales simétricas respecto de la cumbrera.",
+      "result": "El tejado a dos aguas se deriva como dos planos simétricos que comparten una cumbrera elevada. La ecuación original del catálogo y=roofBase+pitch·|x| genera un valle; se registra como discrepancia que debe corregirse en la integración del manifiesto.",
       "limits": [
-        "El perfil ideal tiene arista en la cumbrera; para redondeo se usa spline o bevel."
+        "La sección lineal produce planos; limatesas, limahoyas y faldones múltiples requieren partición geométrica adicional.",
+        "La fórmula original del manifiesto conserva unidades pero describe un valle, no el tejado nombrado; la corrección queda registrada para el punto 6."
       ],
       "dimensional_verification": [
-        "pitch es adimensional; x tiene L; pitch·|x| tiene L y se suma a roofBase con L.",
-        "dy/dx es adimensional, como pendiente geométrica."
-      ]
+        "W,x y roofBase tienen L; pitch es adimensional; pitch·(W/2−|x|) tiene L.",
+        "La pendiente dy/dx es adimensional; el perfil corregido conserva longitud y satisface la geometría de cumbrera elevada."
+      ],
+      "catalogue_discrepancy": {
+        "original": "y=roofBase+pitch·abs(x)",
+        "issue": "con pitch≥0, x=0 es mínimo y los bordes son más altos; representa un valle",
+        "corrected": "y=roofBase+pitch·(W/2−abs(x))",
+        "pending_manifest_integration": true
+      }
     },
     {
       "record_key": "D07:3",
@@ -467,41 +473,42 @@
         {
           "step": 1,
           "equation": "w(u,v,t)=A(u,v)sin(ωt−kv+φ)",
-          "justification": "Definir desplazamiento ondulatorio de la membrana."
+          "justification": "Definir desplazamiento normal como una amplitud espacial multiplicada por una oscilación temporal-espacial."
         },
         {
           "step": 2,
           "equation": "P(u,v,t)=P_0(u,v)+w(u,v,t)N(u,v)",
-          "justification": "Desplazar cada punto sobre la normal de referencia."
+          "justification": "Desplazar cada punto de la superficie de reposo sobre su normal local unitaria."
         },
         {
           "step": 3,
           "equation": "A(0,v)=0",
-          "justification": "Imponer borde fijo mediante amplitud nula en el borde anclado."
+          "justification": "Hacer nula la amplitud sobre el borde sujeto para satisfacer la condición de frontera fija."
         },
         {
           "step": 4,
-          "equation": "constraints: P(u_fixed,v,t)=P_0(u_fixed,v)",
-          "justification": "Mantener posiciones de la frontera sujeta."
+          "equation": "P(u_fixed,v,t)=P_0(u_fixed,v)",
+          "justification": "La condición geométrica impone desplazamiento cero en todos los puntos anclados."
         },
         {
           "step": 5,
-          "equation": "N'=normalize(P_u×P_v)",
-          "justification": "Actualizar normal de superficie deformada."
+          "equation": "N′=normalize(P_u×P_v)",
+          "justification": "Obtener la normal de la superficie deformada a partir de las tangentes paramétricas."
         }
       ],
       "assumptions": [
-        "ωt y kv son adimensionales; k tiene unidad inversa de parámetro espacial.",
-        "Amplitud A tiene L; N unitario.",
-        "La condición de borde fija se aplica en cada paso."
+        "u,v∈[0,1] son parámetros adimensionales de superficie.",
+        "A(u,v) se anula en el borde fijo; ω está en rad/s y la fase en radianes."
       ],
-      "result": "La bandera se representa como superficie deformable con onda espacial-temporal y frontera anclada.",
+      "result": "La bandera se representa como superficie parametrizada con desplazamiento ondulatorio normal y una condición de frontera fija.",
       "limits": [
-        "La onda sinusoidal es una aproximación visual; telas reales requieren modelo de membrana y tensiones."
+        "La onda prescrita es una aproximación cinemática; no resuelve por sí sola la ecuación de membrana ni la interacción fluido-estructura.",
+        "La estabilidad física y la respuesta a ráfagas requieren modelo dinámico posterior."
       ],
       "dimensional_verification": [
-        "A tiene L; N es unitario adimensional; P y P0 tienen L.",
-        "ω tiene T⁻¹ y t T; k tiene unidad inversa de v para que kv sea adimensional; fase completa adimensional."
+        "A tiene L; N es adimensional; w y P−P0 tienen L.",
+        "ωt, kv y φ son adimensionales; si v∈[0,1], k es adimensional; si v tiene longitud, k debe tener L⁻¹.",
+        "P_u y P_v tienen L; su producto cruzado tiene L² y la normal normalizada es adimensional."
       ]
     },
     {
@@ -559,7 +566,9 @@
       "Cada derivación incluye pasos justificados, resultado, supuestos, límites y verificación dimensional",
       "Pendiente de tejado, parábola, arco, estrías, escalera, puente, mampostería y fachada mantienen unidades espaciales coherentes",
       "Telas/ banderas verifican fase adimensional y borde fijo",
-      "Las fórmulas son para geometría visual, no certificación estructural de edificios/puentes reales"
+      "Las fórmulas son para geometría visual, no certificación estructural de edificios/puentes reales",
+      "D07:2 corrige la geometría del tejado a dos aguas y registra la discrepancia del catálogo para el punto 6",
+      "D07:10 tipa la onda de tela y la condición de borde fijo."
     ],
     "limitations": [
       "La matemática define geometría procedural y animación visual; no sustituye cálculo estructural, normativa, ingeniería civil ni certificación de construcciones."
