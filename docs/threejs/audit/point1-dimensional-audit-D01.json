@@ -1,0 +1,741 @@
+{
+  "title": "Auditoría dimensional punto 1 — Dominio D01",
+  "version": "1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D01",
+    "domain_name": "Fundamentos de escena y arquitectura",
+    "records": 8,
+    "of_total_catalog_elements": 563
+  },
+  "conventions": {
+    "SI_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "La unidad de longitud de escena debe declararse globalmente; si se adopta SI, usar metros. Three.js no impone metros.",
+    "dimensionless": "1",
+    "counts": "integer count, dimensionless",
+    "affine_matrices": "No asignar una única dimensión a una matriz afín: su bloque lineal es adimensional y su traslación tiene dimensión de longitud."
+  },
+  "records": [
+    {
+      "record_key": "D01:0",
+      "name": "Scene graph jerárquico",
+      "variables": [
+        {
+          "symbol": "p_local",
+          "meaning": "posición local homogénea (x,y,z,1)",
+          "unit": "scene_length; homogeneous w dimensionless",
+          "dimension": "mixed affine coordinates: xyz=L, w=1",
+          "domain": "finite coordinates; w=1 for points"
+        },
+        {
+          "symbol": "R_parent,R_local",
+          "meaning": "bloques de rotación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "orthogonal 3x3 matrices; determinant +1 for proper rotations"
+        },
+        {
+          "symbol": "S_parent,S_local",
+          "meaning": "bloques de escala",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite dimensionless scale; nonzero if inverse transforms are required"
+        },
+        {
+          "symbol": "t_parent,t_local",
+          "meaning": "traslaciones",
+          "unit": "scene_length (m if SI scene)",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3-vectors"
+        },
+        {
+          "symbol": "M_local,M_world",
+          "meaning": "transformaciones afines homogéneas",
+          "unit": "block-dependent: R/S dimensionless, translation scene_length",
+          "dimension": "block-typed affine matrix; not one scalar dimension",
+          "domain": "finite affine transforms; M_world(child)=M_world(parent) M_local(child)"
+        },
+        {
+          "symbol": "p_world",
+          "meaning": "posición mundial",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3-vector"
+        }
+      ],
+      "constraints": [
+        "Usar la misma convención de vectores columna y orden de multiplicación en toda la jerarquía.",
+        "La matriz afín tiene bloques dimensionalmente tipados: la submatriz lineal es adimensional y la columna de traslación tiene longitud.",
+        "No exigir invertibilidad salvo que la operación posterior necesite matriz inversa."
+      ],
+      "valid_domain": [
+        "Jerarquía acíclica con un único padre por Object3D; raíz con transform de referencia.",
+        "Todas las componentes de transformaciones son finitas; unidades de longitud coherentes en toda la escena."
+      ],
+      "boundary_conditions": [
+        "Raíz: M_world(root)=M_local(root) respecto al marco mundo elegido; si raíz identidad, M_world(root)=I.",
+        "Hijo: M_world(child)=M_world(parent)·M_local(child).",
+        "Escala cero es válida para transformar pero hace singular la matriz; inversión debe fallar explícitamente."
+      ],
+      "dimensional_checks": [
+        "R·p y S·p conservan longitud; t+p tiene longitud; coordenada homogénea w permanece adimensional.",
+        "La multiplicación de matrices afines conserva el tipo de bloque y no suma longitud a cantidades adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D01:1",
+      "name": "Instanciación de objetos",
+      "variables": [
+        {
+          "symbol": "p_local",
+          "meaning": "vértice local",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3-vector"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "bloque lineal de la transformación de instancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3x3 matrix"
+        },
+        {
+          "symbol": "t_i",
+          "meaning": "traslación de instancia",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3-vector"
+        },
+        {
+          "symbol": "M_i",
+          "meaning": "transformación afín homogénea de instancia",
+          "unit": "block-dependent",
+          "dimension": "linear block dimensionless; translation block length",
+          "domain": "finite affine transform"
+        },
+        {
+          "symbol": "p_i",
+          "meaning": "vértice transformado",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3-vector"
+        }
+      ],
+      "constraints": [
+        "Cada instancia usa el mismo buffer geométrico local y su propia transformación.",
+        "A_i es adimensional y t_i comparte unidad con p_local.",
+        "El índice i es entero 0≤i<count; count entero no negativo."
+      ],
+      "valid_domain": [
+        "p_local y t_i finitos; matrices finitas; count≥0.",
+        "Para normales, usar transformación normal (inversa-transpuesta) cuando A_i no sea rotación uniforme."
+      ],
+      "boundary_conditions": [
+        "count=0 produce cero instancias y cero contribución geométrica.",
+        "M_i identidad reproduce p_local.",
+        "Escala singular puede colapsar geometría; la normal transformada no está definida si A_i no es invertible."
+      ],
+      "dimensional_checks": [
+        "p_i=A_i p_local+t_i: ambos términos tienen longitud; resultado longitud."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D01:2",
+      "name": "Geometría compartida",
+      "variables": [
+        {
+          "symbol": "G",
+          "meaning": "recurso geométrico compartido",
+          "unit": "attribute-dependent",
+          "dimension": "positions L; normals 1; UV 1; indices count",
+          "domain": "finite attribute arrays with consistent topology"
+        },
+        {
+          "symbol": "p_j",
+          "meaning": "posición del vértice j",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3-vector"
+        },
+        {
+          "symbol": "n_j",
+          "meaning": "normal del vértice j",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite unit vector when used for shading"
+        },
+        {
+          "symbol": "uv_j",
+          "meaning": "coordenada de textura",
+          "unit": "1 (UV coordinate)",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite pair; commonly normalized but tiling may extend outside [0,1]"
+        },
+        {
+          "symbol": "M_i",
+          "meaning": "transformación por objeto/instancia",
+          "unit": "block-dependent",
+          "dimension": "linear block 1; translation L",
+          "domain": "finite affine transform"
+        }
+      ],
+      "constraints": [
+        "G_1=...=G_n significa identidad del recurso o igualdad de atributos/topología, no igualdad de posiciones mundiales.",
+        "La geometría compartida debe tratarse como inmutable mientras varios objetos la referencien, o clonarse antes de edición independiente.",
+        "Cada atributo declara sus propias unidades; no asignar una unidad única al buffer completo."
+      ],
+      "valid_domain": [
+        "Arrays de atributos compatibles en longitud y topología; índices enteros dentro de rango.",
+        "Transformaciones por objeto finitas."
+      ],
+      "boundary_conditions": [
+        "Una única referencia: no hay ahorro por reutilización adicional.",
+        "Cero objetos referenciantes: el recurso puede liberarse cuando no tenga otros propietarios.",
+        "Edición compartida afecta a todos los consumidores; clonado crea independencia."
+      ],
+      "dimensional_checks": [
+        "Las posiciones tienen longitud; normales y UV son adimensionales; índices son conteos enteros."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D01:3",
+      "name": "LOD",
+      "variables": [
+        {
+          "symbol": "d",
+          "meaning": "distancia cámara-objeto",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0 finite"
+        },
+        {
+          "symbol": "tau_k",
+          "meaning": "umbral de cambio de nivel k",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite; strictly increasing thresholds"
+        },
+        {
+          "symbol": "k",
+          "meaning": "índice de nivel",
+          "unit": "count",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "integer 0..K"
+        },
+        {
+          "symbol": "G_k",
+          "meaning": "geometría del nivel k",
+          "unit": "not applicable",
+          "dimension": "not a physical scalar",
+          "domain": "available geometry resource"
+        }
+      ],
+      "constraints": [
+        "Definir los umbrales en la misma unidad que d.",
+        "Para umbrales ordenados 0≤tau_1<...<tau_K, fijar intervalos [tau_k,tau_(k+1)) de forma inequívoca.",
+        "Hysteresis, si se usa, requiere umbral de entrada y salida distintos; no está implícita."
+      ],
+      "valid_domain": [
+        "d finita y no negativa; conjunto de niveles no vacío; umbrales finitos y ordenados."
+      ],
+      "boundary_conditions": [
+        "d exactamente igual a tau_k se asigna al nivel más lejano según intervalos semiabiertos declarados.",
+        "d=0 selecciona el nivel más cercano.",
+        "Más allá del último umbral se selecciona el nivel más lejano o se oculta, según política explícita; no asumir ocultación."
+      ],
+      "dimensional_checks": [
+        "Comparaciones d≥tau_k son homogéneas porque ambos son longitudes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D01:4",
+      "name": "Frustum culling",
+      "variables": [
+        {
+          "symbol": "n_j",
+          "meaning": "normal unitaria hacia el interior del plano j",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite unit 3-vector"
+        },
+        {
+          "symbol": "b_j",
+          "meaning": "offset del plano j",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite scalar"
+        },
+        {
+          "symbol": "c",
+          "meaning": "centro de esfera límite del objeto",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3-vector"
+        },
+        {
+          "symbol": "r",
+          "meaning": "radio de esfera límite",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite r≥0"
+        },
+        {
+          "symbol": "s_j",
+          "meaning": "distancia firmada del centro al plano j",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "s_j=n_j·c+b_j"
+        }
+      ],
+      "constraints": [
+        "Esta especificación fija una esfera límite y planos normalizados; AABB/OBB requieren otra prueba de soporte.",
+        "Los planos deben estar orientados hacia el interior y n_j normalizada.",
+        "Todos los datos deben estar en el mismo marco y unidad."
+      ],
+      "valid_domain": [
+        "Frustum convexo representado por planos; esfera finita con r≥0; coeficientes finitos."
+      ],
+      "boundary_conditions": [
+        "La esfera intersecta o toca el frustum si s_j≥−r para todos los planos.",
+        "Si s_j=−r hay tangencia y se considera visible.",
+        "Si existe j con s_j<−r, la esfera queda completamente fuera y puede descartarse."
+      ],
+      "dimensional_checks": [
+        "n_j·c tiene longitud porque n_j es adimensional; b_j y r también longitud."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D01:5",
+      "name": "Spatial partitioning",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición consultada",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3-vector"
+        },
+        {
+          "symbol": "origin",
+          "meaning": "origen de la rejilla",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 3-vector"
+        },
+        {
+          "symbol": "cellSize",
+          "meaning": "tamaño de celda por eje",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite positive scalar or positive 3-vector"
+        },
+        {
+          "symbol": "i",
+          "meaning": "índice entero de celda",
+          "unit": "count",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "integer vector"
+        },
+        {
+          "symbol": "q",
+          "meaning": "coordenada normalizada de celda",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite vector"
+        }
+      ],
+      "constraints": [
+        "cellSize>0 en cada eje.",
+        "Usar floor, no truncamiento hacia cero, para coordenadas negativas.",
+        "La rejilla y las consultas deben compartir el mismo origen, tamaño y convención de ejes."
+      ],
+      "valid_domain": [
+        "p y origin finitos; cellSize finito y estrictamente positivo."
+      ],
+      "boundary_conditions": [
+        "i=floor((p−origin)/cellSize).",
+        "El límite inferior de celda se incluye; el límite superior pertenece a la celda siguiente.",
+        "Coordenadas negativas se asignan a índices negativos con floor; overflow entero debe detectarse."
+      ],
+      "dimensional_checks": [
+        "(p−origin) y cellSize tienen longitud; su cociente es adimensional; floor devuelve índice entero."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D01:6",
+      "name": "Render on demand",
+      "variables": [
+        {
+          "symbol": "dirty",
+          "meaning": "indicador de cambios pendientes",
+          "unit": "boolean",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "true or false"
+        },
+        {
+          "symbol": "activeAnimation",
+          "meaning": "existe animación que requiere actualización continua",
+          "unit": "boolean",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "true or false"
+        },
+        {
+          "symbol": "shouldRender",
+          "meaning": "decisión de renderizar",
+          "unit": "boolean",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dirty OR activeAnimation"
+        }
+      ],
+      "constraints": [
+        "Todo cambio visible debe marcar dirty=true o activar una fuente de actualización.",
+        "Tras render estático exitoso, dirty pasa a false.",
+        "La animación activa mantiene solicitudes de frame; evitar bucle continuo cuando no hay cambios."
+      ],
+      "valid_domain": [
+        "Estado booleano; las notificaciones de cambio deben llegar al subsistema de render."
+      ],
+      "boundary_conditions": [
+        "dirty=false y activeAnimation=false: no solicitar nuevo frame.",
+        "dirty=true: solicitar un frame y limpiar dirty tras actualizar/renderizar correctamente.",
+        "activeAnimation=true: solicitar siguiente frame hasta detenerse."
+      ],
+      "dimensional_checks": [
+        "Predicado booleano sin dimensión física; no mezclar con tiempo o distancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D01:7",
+      "name": "Render loop temporal",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "tiempo absoluto de animación",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite monotonic timestamp within one clock epoch"
+        },
+        {
+          "symbol": "dt",
+          "meaning": "intervalo entre actualizaciones",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite dt≥0"
+        },
+        {
+          "symbol": "F",
+          "meaning": "función de evaluación de estado",
+          "unit": "state-dependent",
+          "dimension": "not a physical scalar",
+          "domain": "deterministic for given t and initial state if deterministic playback is required"
+        },
+        {
+          "symbol": "state",
+          "meaning": "estado de escena evaluado",
+          "unit": "field-dependent",
+          "dimension": "component-specific",
+          "domain": "finite valid scene state"
+        },
+        {
+          "symbol": "frame",
+          "meaning": "índice de frame",
+          "unit": "count",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "nonnegative integer if frame-indexed"
+        }
+      ],
+      "constraints": [
+        "Usar una única base temporal monotónica.",
+        "Expresar todas las duraciones en segundos y convertir a unidades de simulación de forma explícita.",
+        "Si se integra dinámica, fijar timestep/estrategia de acumulador; no equiparar dt variable con paso físico fijo."
+      ],
+      "valid_domain": [
+        "t y dt finitos; dt≥0; reloj monotónico durante reproducción.",
+        "F(t) definido para todo t del intervalo de reproducción."
+      ],
+      "boundary_conditions": [
+        "Inicio: fijar t0 y estado inicial.",
+        "Pausa: dt=0 o congelar t de simulación, según contrato.",
+        "Reanudación: evitar que el tiempo de pared acumulado produzca salto no deseado.",
+        "dt=0 no avanza simulación, pero puede renderizar estado actual."
+      ],
+      "dimensional_checks": [
+        "t, dt en segundos; frame es conteo adimensional; state conserva las unidades de cada propiedad."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "record_count": 8,
+    "unique_keys": true,
+    "all_have_variables": true,
+    "all_have_constraints": true,
+    "all_have_valid_domain": true,
+    "all_have_boundary_conditions": true,
+    "all_have_dimensional_checks": true,
+    "status": "DOMAIN_D01_POINT1_REVIEWED_NOT_FULL_CATALOG_CERTIFICATION"
+  },
+  "integrity": {
+    "manifest_modified": false,
+    "crimson_loong_modified": false,
+    "engine_or_scenes_modified": false
+  }
+}
