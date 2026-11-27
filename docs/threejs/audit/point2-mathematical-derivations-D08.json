@@ -1,0 +1,728 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D08 Materiales, texturas y superficies",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D08",
+    "record_count": 17,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D08 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D08:0",
+      "name": "UV mapping",
+      "starting_principles": [
+        "UV y su convención de origen/rango se declaran.",
+        "Las costuras pueden duplicar vértices con UV diferentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P(u,v)→surface point",
+          "justification": "Una parametrización de superficie asocia coordenadas UV a puntos 3D."
+        },
+        {
+          "step": 2,
+          "equation": "(u,v)=project(P)",
+          "justification": "La proyección/parametrización convierte el punto de superficie a coordenadas de textura."
+        },
+        {
+          "step": 3,
+          "equation": "sample(Texture,u,v)",
+          "justification": "Usar UV como coordenada de consulta de la imagen."
+        },
+        {
+          "step": 4,
+          "equation": "P(u,v) and UV share vertex correspondence",
+          "justification": "La correspondencia por vértice permite interpolar UV sobre triángulos."
+        }
+      ],
+      "assumptions": [
+        "UV y su convención de origen/rango se declaran.",
+        "Las costuras pueden duplicar vértices con UV diferentes.",
+        "La textura usa wrap/clamp definido."
+      ],
+      "result": "La textura se aplica mediante una parametrización 2D asociada a la superficie 3D.",
+      "limits": [
+        "Una proyección no garantiza distorsión nula; costuras y solapamientos requieren reglas explícitas."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:1",
+      "name": "Triplanar mapping",
+      "starting_principles": [
+        "N unitaria; k≥0; proyecciones usan escala y espacio de color iguales.",
+        "Σw_raw>0; caso degenerado usa pesos uniformes/fallback."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "w_raw=(|N_x|^k,|N_y|^k,|N_z|^k)",
+          "justification": "Usar componentes de la normal para estimar contribución de cada plano."
+        },
+        {
+          "step": 2,
+          "equation": "w_i=w_raw,i/Σw_raw",
+          "justification": "Normalizar pesos para que sumen uno."
+        },
+        {
+          "step": 3,
+          "equation": "T_x=texture(P_yz); T_y=texture(P_xz); T_z=texture(P_xy)",
+          "justification": "Proyectar posición sobre los tres planos ortogonales."
+        },
+        {
+          "step": 4,
+          "equation": "C=w_xT_x+w_yT_y+w_zT_z",
+          "justification": "Combinar muestras por orientación de superficie."
+        }
+      ],
+      "assumptions": [
+        "N unitaria; k≥0; proyecciones usan escala y espacio de color iguales.",
+        "Σw_raw>0; caso degenerado usa pesos uniformes/fallback."
+      ],
+      "result": "El mapeo triplanar sustituye UV por tres proyecciones ortogonales ponderadas por orientación.",
+      "limits": [
+        "El filtrado y la escala deben evitar cambios visibles en la transición entre ejes."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:2",
+      "name": "Procedural texture",
+      "starting_principles": [
+        "Cada característica se normaliza a un rango conocido antes de mezclar.",
+        "Curvatura y coordenadas deben estar definidas en el espacio de evaluación."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n=noise(p)",
+          "justification": "Calcular característica continua a partir de coordenada de muestra."
+        },
+        {
+          "step": 2,
+          "equation": "v=voronoi(p)",
+          "justification": "Calcular característica celular o distancia a sitios."
+        },
+        {
+          "step": 3,
+          "equation": "κ=curvature(p)",
+          "justification": "Obtener característica geométrica local si está disponible."
+        },
+        {
+          "step": 4,
+          "equation": "C(p)=palette(n,v,κ)",
+          "justification": "Mapear características a color/material mediante paleta o función de transferencia."
+        }
+      ],
+      "assumptions": [
+        "Cada característica se normaliza a un rango conocido antes de mezclar.",
+        "Curvatura y coordenadas deben estar definidas en el espacio de evaluación.",
+        "La paleta opera en un espacio de color declarado."
+      ],
+      "result": "La textura se genera evaluando campos procedurales y convirtiendo sus valores a atributos de material.",
+      "limits": [
+        "Cambios de escala de p alteran frecuencia de ruido y celdas; normalizar coordenadas si se requiere escala estable."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:3",
+      "name": "Texture atlas",
+      "starting_principles": [
+        "offset y scale definidos por rectángulo; scale positiva.",
+        "Padding/gutters o mip-safe borders evitan sangrado entre regiones."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "uv∈[0,1]²",
+          "justification": "Coordenada local de la subtextura."
+        },
+        {
+          "step": 2,
+          "equation": "uv'=offset+scale·uv",
+          "justification": "Transformar UV local al rectángulo asignado en atlas."
+        },
+        {
+          "step": 3,
+          "equation": "uv'∈[offset,offset+scale]",
+          "justification": "El rango de muestreo queda contenido en la región asignada."
+        },
+        {
+          "step": 4,
+          "equation": "sample(atlas,uv')",
+          "justification": "Consultar textura compartida."
+        }
+      ],
+      "assumptions": [
+        "offset y scale definidos por rectángulo; scale positiva.",
+        "Padding/gutters o mip-safe borders evitan sangrado entre regiones.",
+        "UV local normalizada."
+      ],
+      "result": "Un atlas empaqueta subtexturas y transforma UV locales a coordenadas globales.",
+      "limits": [
+        "Mipmap y filtrado bilineal pueden mezclar texels de regiones vecinas si no hay padding."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:4",
+      "name": "Normal mapping",
+      "starting_principles": [
+        "T,B,N forman base ortonormal y handedness coherente con UV.",
+        "La textura normal se almacena con espacio de color lineal/no sRGB."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n_t=2·texture(uv)−1",
+          "justification": "Decodificar RGB de textura como vector tangente en [−1,1]."
+        },
+        {
+          "step": 2,
+          "equation": "N'=normalize(T n_x+B n_y+N n_z)",
+          "justification": "Transformar normal desde tangent space a espacio de shading mediante la base TBN."
+        },
+        {
+          "step": 3,
+          "equation": "T'=normalize(T−N(N·T)); B'=handedness·(N×T')",
+          "justification": "Ortonormalizar la base para que el mapeo conserve orientación."
+        },
+        {
+          "step": 4,
+          "equation": "lighting=BRDF(N',L,V)",
+          "justification": "Usar la normal perturbada en el cálculo de iluminación."
+        }
+      ],
+      "assumptions": [
+        "T,B,N forman base ortonormal y handedness coherente con UV.",
+        "La textura normal se almacena con espacio de color lineal/no sRGB.",
+        "n_t normalizado después de transformar."
+      ],
+      "result": "Normal mapping modifica la normal de shading sin cambiar posiciones ni silueta geométrica.",
+      "limits": [
+        "UV degeneradas o base TBN inválida producen normales inestables."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:5",
+      "name": "Bump mapping",
+      "starting_principles": [
+        "h y escala s deben tener unidades compatibles con coordenadas UV/espacio.",
+        "T y B unitarios; la pendiente se convierte al espacio de shading."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h=h(u,v)",
+          "justification": "Definir altura escalar sobre coordenadas de superficie."
+        },
+        {
+          "step": 2,
+          "equation": "∇h=(∂h/∂u,∂h/∂v)",
+          "justification": "Calcular pendiente del campo de altura."
+        },
+        {
+          "step": 3,
+          "equation": "N_raw=N−s(T·h_u+B·h_v)",
+          "justification": "Desviar normal en dirección opuesta al gradiente tangencial."
+        },
+        {
+          "step": 4,
+          "equation": "N'=normalize(N_raw)",
+          "justification": "Normalizar para usar en iluminación."
+        }
+      ],
+      "assumptions": [
+        "h y escala s deben tener unidades compatibles con coordenadas UV/espacio.",
+        "T y B unitarios; la pendiente se convierte al espacio de shading.",
+        "La amplitud se mantiene dentro de rango estable."
+      ],
+      "result": "Bump mapping aproxima microrelieve mediante la perturbación de la normal derivada de un campo de altura.",
+      "limits": [
+        "No altera geometría, silueta, sombras geométricas ni paralaje real."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:6",
+      "name": "Roughness map",
+      "starting_principles": [
+        "Roughness es adimensional y rango del modelo se declara.",
+        "Wear/wetness normalizados; funciones de material reproducibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r_dry=materialBase",
+          "justification": "Definir rugosidad base del material."
+        },
+        {
+          "step": 2,
+          "equation": "r_wear=F(wear,curvature)",
+          "justification": "Calcular variación por desgaste o geometría."
+        },
+        {
+          "step": 3,
+          "equation": "r_wet=wetnessResponse(w)",
+          "justification": "Calcular rugosidad del estado mojado."
+        },
+        {
+          "step": 4,
+          "equation": "r=clamp(F(r_dry,r_wear,r_wet),r_min,r_max)",
+          "justification": "Combinar contribuciones y limitar al dominio del BRDF."
+        }
+      ],
+      "assumptions": [
+        "Roughness es adimensional y rango del modelo se declara.",
+        "Wear/wetness normalizados; funciones de material reproducibles.",
+        "No mezclar rugosidad perceptual con longitud de microrelieve."
+      ],
+      "result": "La rugosidad se deriva de atributos base y máscaras de estado, y alimenta la distribución microfacet.",
+      "limits": [
+        "El valor no representa directamente una medida física única de rugosidad superficial."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:7",
+      "name": "Metalness workflow",
+      "starting_principles": [
+        "m y albedo normalizados; ambas BRDF usan misma medida angular.",
+        "El modelo conductor y dieléctrico conserva energía dentro de aproximación adoptada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f_d=BRDF_dielectric(F0_d,roughness)",
+          "justification": "Calcular respuesta dieléctrica con reflectancia frontal correspondiente."
+        },
+        {
+          "step": 2,
+          "equation": "f_m=BRDF_conductor(F0_m,roughness)",
+          "justification": "Calcular respuesta conductora, usando F0/color metálico."
+        },
+        {
+          "step": 3,
+          "equation": "f=(1−m)f_d+m f_m",
+          "justification": "Interpolar respuestas según metalness m∈[0,1]."
+        },
+        {
+          "step": 4,
+          "equation": "diffuse=(1−m)·albedo/π",
+          "justification": "Reducir componente difusa a cero al aproximarse a conductor ideal."
+        }
+      ],
+      "assumptions": [
+        "m y albedo normalizados; ambas BRDF usan misma medida angular.",
+        "El modelo conductor y dieléctrico conserva energía dentro de aproximación adoptada.",
+        "F0 se define por material."
+      ],
+      "result": "Metalness controla la mezcla entre respuesta dieléctrica y conductora y la disponibilidad de componente difusa.",
+      "limits": [
+        "La mezcla es una convención de workflow PBR, no una ley material universal para mezclas microscópicas."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:8",
+      "name": "Clearcoat",
+      "starting_principles": [
+        "Capa y base usan misma medida angular y espacio de color.",
+        "F_c es adimensional y coatIOR>0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f_base=BRDF_base",
+          "justification": "Calcular lóbulo del material subyacente."
+        },
+        {
+          "step": 2,
+          "equation": "F_c=Fresnel(coatIOR,cosθ)",
+          "justification": "Calcular fracción reflejada en la interfaz del barniz."
+        },
+        {
+          "step": 3,
+          "equation": "f_coat=BRDF_coat(roughness_c)",
+          "justification": "Calcular reflexión de la capa superior."
+        },
+        {
+          "step": 4,
+          "equation": "f_total=f_coat+(1−F_c)^2 f_base",
+          "justification": "Sumar reflexión de la capa y contribución base atenuada por transmisión de entrada/salida."
+        }
+      ],
+      "assumptions": [
+        "Capa y base usan misma medida angular y espacio de color.",
+        "F_c es adimensional y coatIOR>0.",
+        "La atenuación de la base representa transmisión a través de la capa."
+      ],
+      "result": "El clearcoat se modela como una capa dieléctrica superior que refleja y atenúa la respuesta inferior.",
+      "limits": [
+        "La fórmula simplificada omite interferencia multicapa y absorción espectral del barniz."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:9",
+      "name": "Subsurface approximation",
+      "starting_principles": [
+        "d y ℓ tienen unidad de longitud; ℓ>0.",
+        "El modelo es una aproximación visual de difusión; no es solución BSSRDF completa."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ℓ=meanFreePath",
+          "justification": "Definir longitud media de transporte dentro del material."
+        },
+        {
+          "step": 2,
+          "equation": "T(d)=exp(−d/ℓ)",
+          "justification": "Aplicar atenuación exponencial con distancia recorrida."
+        },
+        {
+          "step": 3,
+          "equation": "wrap=exp(−d/ℓ) or 1−exp(−d/ℓ)",
+          "justification": "Elegir convención de transmisión/iluminación envolvente según efecto visual."
+        },
+        {
+          "step": 4,
+          "equation": "C_out=C_surface+wrap·C_transmitted",
+          "justification": "Combinar contribución superficial y aproximación de luz transmitida."
+        }
+      ],
+      "assumptions": [
+        "d y ℓ tienen unidad de longitud; ℓ>0.",
+        "El modelo es una aproximación visual de difusión; no es solución BSSRDF completa.",
+        "Color y radiancia se mezclan en el mismo espacio lineal."
+      ],
+      "result": "La aproximación usa Beer–Lambert para modular luz transmitida por espesor o distancia interna.",
+      "limits": [
+        "No reproduce perfiles espaciales de difusión ni dependencia espectral completa."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:10",
+      "name": "Anisotropía",
+      "starting_principles": [
+        "α_t,α_b>0 y adimensionales.",
+        "TBN coherente con dirección de fibra/trazo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T,B,N",
+          "justification": "Construir base tangente ortonormal."
+        },
+        {
+          "step": 2,
+          "equation": "α_t,α_b=roughnessAlongDirections",
+          "justification": "Definir rugosidad distinta en tangente y bitangente."
+        },
+        {
+          "step": 3,
+          "equation": "D_aniso(h)=D(h_T/α_t,h_B/α_b,h_N)",
+          "justification": "Evaluar distribución microfacet con escalas distintas por dirección."
+        },
+        {
+          "step": 4,
+          "equation": "f_r=D_aniso·F·G/(4|N·L||N·V|)",
+          "justification": "Integrar distribución anisotrópica en el BRDF microfacet."
+        }
+      ],
+      "assumptions": [
+        "α_t,α_b>0 y adimensionales.",
+        "TBN coherente con dirección de fibra/trazo.",
+        "La NDF y los términos geométricos comparten convención."
+      ],
+      "result": "La anisotropía se obtiene al usar rugosidades diferentes en los dos ejes tangenciales.",
+      "limits": [
+        "Si TBN es inestable o la dirección tangente cambia abruptamente, aparece parpadeo."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:11",
+      "name": "Wetness blending",
+      "starting_principles": [
+        "w∈[0,1]; parámetros secos/mojados comparten espacio y unidad.",
+        "Las mezclas de color se hacen en espacio lineal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "w=clamp(wetMask,0,1)",
+          "justification": "Convertir máscara de humedad a parámetro de mezcla."
+        },
+        {
+          "step": 2,
+          "equation": "rough'=lerp(roughDry,roughWet,w)",
+          "justification": "Interpolar rugosidad entre estado seco y húmedo."
+        },
+        {
+          "step": 3,
+          "equation": "color'=lerp(colorDry,colorWet,w)",
+          "justification": "Interpolar color/reflectancia según modelo de humedad."
+        },
+        {
+          "step": 4,
+          "equation": "normal'=blend(normalDry,normalWet,w)",
+          "justification": "Mezclar perturbación de normal si el modelo la incluye."
+        }
+      ],
+      "assumptions": [
+        "w∈[0,1]; parámetros secos/mojados comparten espacio y unidad.",
+        "Las mezclas de color se hacen en espacio lineal.",
+        "La humedad puede aumentar reflectancia especular y reducir roughness según material."
+      ],
+      "result": "El estado mojado se modela como mezcla controlada por una máscara escalar.",
+      "limits": [
+        "Una máscara visual no simula drenaje, películas de agua ni capilaridad."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:12",
+      "name": "Vertex colors",
+      "starting_principles": [
+        "Colores de vértice en mismo espacio y codificación.",
+        "Pesos baricéntricos dentro del triángulo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p=(p_0,p_1,p_2)",
+          "justification": "Tomar triángulo que contiene el punto."
+        },
+        {
+          "step": 2,
+          "equation": "α+β+γ=1",
+          "justification": "Calcular pesos baricéntricos del punto."
+        },
+        {
+          "step": 3,
+          "equation": "C=αC_0+βC_1+γC_2",
+          "justification": "Interpolar colores por los pesos."
+        },
+        {
+          "step": 4,
+          "equation": "C_fragment=interpolate(C_vertex)",
+          "justification": "El rasterizador interpola el atributo a lo largo del triángulo."
+        }
+      ],
+      "assumptions": [
+        "Colores de vértice en mismo espacio y codificación.",
+        "Pesos baricéntricos dentro del triángulo.",
+        "No interpolar categorías discretas como colores continuos."
+      ],
+      "result": "El color por vértice se interpola linealmente sobre cada triángulo.",
+      "limits": [
+        "La interpolación en RGB no lineal puede producir resultados distintos a interpolación lineal de luz."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:13",
+      "name": "Baking procedural",
+      "starting_principles": [
+        "Shader/evaluador determinista para inputs iguales.",
+        "Resolución, filtrado, mipmaps y UV definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P(u,v)",
+          "justification": "Parametrizar superficie sobre coordenadas de textura."
+        },
+        {
+          "step": 2,
+          "equation": "C(u,v)=shader(P(u,v),normal,material,seed)",
+          "justification": "Evaluar el procedimiento para cada muestra UV."
+        },
+        {
+          "step": 3,
+          "equation": "Texel[i,j]=C((i+0.5)/W,(j+0.5)/H)",
+          "justification": "Muestrear en centros de texel de una textura W×H."
+        },
+        {
+          "step": 4,
+          "equation": "use(Texture_baked)",
+          "justification": "Reemplazar cálculo dinámico por lookup de textura precalculada."
+        }
+      ],
+      "assumptions": [
+        "Shader/evaluador determinista para inputs iguales.",
+        "Resolución, filtrado, mipmaps y UV definidos.",
+        "Los atributos dependientes de vista no se bakean sin fijar cámara."
+      ],
+      "result": "Baking convierte una función procedural evaluable en una textura discreta precalculada.",
+      "limits": [
+        "El bake pierde dependencia de variables no incluidas (vista, iluminación dinámica, tiempo)."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:14",
+      "name": "Tensor de estructura para orientación de pincelada",
+      "starting_principles": [
+        "I es luminancia en espacio lineal o señal consistente; gradientes finitos.",
+        "σ en píxeles; ε>0 evita división por cero."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "g=(I_x,I_y)",
+          "justification": "Calcular gradiente de luminancia."
+        },
+        {
+          "step": 2,
+          "equation": "J_0=g g^T=[[I_x²,I_xI_y],[I_xI_y,I_y²]]",
+          "justification": "Formar matriz simétrica semidefinida positiva que resume orientación local."
+        },
+        {
+          "step": 3,
+          "equation": "J=G_σ*J_0",
+          "justification": "Suavizar el tensor espacialmente para estabilizar estimación."
+        },
+        {
+          "step": 4,
+          "equation": "λ_{1,2}=(J_xx+J_yy±√((J_xx−J_yy)²+4J_xy²))/2",
+          "justification": "Obtener autovalores de matriz simétrica 2×2."
+        },
+        {
+          "step": 5,
+          "equation": "θ=0.5 atan2(2J_xy,J_xx−J_yy)",
+          "justification": "Obtener orientación del autovector principal, con convención angular declarada."
+        },
+        {
+          "step": 6,
+          "equation": "coherence=(λ_1−λ_2)/(λ_1+λ_2+ε)",
+          "justification": "Medir anisotropía local; coherencia baja indica orientación poco definida."
+        }
+      ],
+      "assumptions": [
+        "I es luminancia en espacio lineal o señal consistente; gradientes finitos.",
+        "σ en píxeles; ε>0 evita división por cero.",
+        "La matriz J es simétrica."
+      ],
+      "result": "El tensor de estructura se deriva del promedio local del producto exterior del gradiente; sus autovectores describen orientación dominante.",
+      "limits": [
+        "En regiones planas o isotrópicas λ_1≈λ_2 y θ es inestable; usar coherencia para reducir peso."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:15",
+      "name": "Kuwahara anisotrópico multiescala",
+      "starting_principles": [
+        "Sectores orientados por θ del tensor de estructura.",
+        "Todas las muestras comparten espacio de color y escala."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "μ_k=mean(C in sector_k)",
+          "justification": "Calcular media de color en cada sector orientado."
+        },
+        {
+          "step": 2,
+          "equation": "σ_k²=mean(||C−μ_k||²)",
+          "justification": "Medir variación interna de cada sector."
+        },
+        {
+          "step": 3,
+          "equation": "w_k=f(σ_k²), w_k≥0",
+          "justification": "Asignar mayor peso a sectores de menor varianza."
+        },
+        {
+          "step": 4,
+          "equation": "C_out=Σ_k w_k μ_k / Σ_k w_k",
+          "justification": "Combinar medias con pesos normalizados."
+        },
+        {
+          "step": 5,
+          "equation": "repeat over scales s; C_final=Σ_s a_s C_s",
+          "justification": "Repetir con radios distintos y mezclar resultados por escala."
+        }
+      ],
+      "assumptions": [
+        "Sectores orientados por θ del tensor de estructura.",
+        "Todas las muestras comparten espacio de color y escala.",
+        "Σ_k w_k>0; escalas y pesos declarados."
+      ],
+      "result": "El filtro selecciona regiones de baja varianza alineadas con orientación local y combina resultados a varias escalas.",
+      "limits": [
+        "El coste crece con número de sectores, muestras y escalas; variación temporal de θ puede causar flicker."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D08:16",
+      "name": "Relieve de impasto derivado de pinceladas",
+      "starting_principles": [
+        "a_i y h tienen unidad de altura; distancia usa misma unidad.",
+        "TBN ortonormal; escala s compatible con coordenadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d_i(x)=distance(x,stroke_i)",
+          "justification": "Calcular distancia desde texel/superficie al eje de cada trazo."
+        },
+        {
+          "step": 2,
+          "equation": "h(x)=Σ_i a_i φ_i(d_i(x))",
+          "justification": "Acumular perfil de altura por trazo, con amplitud a_i y perfil radial φ_i."
+        },
+        {
+          "step": 3,
+          "equation": "∇h=(∂h/∂u,∂h/∂v)",
+          "justification": "Calcular gradiente de altura."
+        },
+        {
+          "step": 4,
+          "equation": "N'=normalize(N−s(T h_u+B h_v))",
+          "justification": "Perturbar normal según pendiente del relieve."
+        },
+        {
+          "step": 5,
+          "equation": "roughness'=F(brush,pressure,paint)",
+          "justification": "Asociar microtextura y rugosidad al mismo trazo."
+        }
+      ],
+      "assumptions": [
+        "a_i y h tienen unidad de altura; distancia usa misma unidad.",
+        "TBN ortonormal; escala s compatible con coordenadas.",
+        "El perfil φ_i se define por tipo de pincelada."
+      ],
+      "result": "Los trazos generan un campo de altura que perturba normales y rugosidad para simular impasto.",
+      "limits": [
+        "Bump no cambia silueta ni paralaje; desplazamiento geométrico requiere malla o displacement mapping."
+      ],
+      "sources": []
+    }
+  ],
+  "validation": {
+    "checks": [
+      "17/17 técnicas cubiertas, incluidas tres investigaciones R31 explícitas.",
+      "Cada derivación contiene pasos matemáticos justificados, supuestos y límites.",
+      "Las derivaciones distinguen magnitudes geométricas, ópticas, colorimétricas y raster."
+    ],
+    "limitations": [
+      "Los modelos de shading son aproximaciones según sus supuestos; prototipos y validación visual/perceptual se realizan en puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
