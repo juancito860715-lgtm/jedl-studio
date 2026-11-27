@@ -16,6 +16,7 @@ test("dual quaternion normalization matches Python reference",()=>{const [r,d]=k
 test("FABRIK preserves lengths and reaches target",()=>{const p=k.fabrik([[0,0],[1,0],[2,0]],[1,1],[1,1],[0,0]);near(Math.hypot(p[2][0]-1,p[2][1]-1),0,1e-7);near(Math.hypot(p[1][0]-p[0][0],p[1][1]-p[0][1]),1);});
 test("stop-motion jitter deterministic and bounded",()=>{const v=k.deterministicJitter(12,77,0,.1);near(v,.03660585642792285,1e-15);assert.ok(v>=-.1&&v<.1);});
 test("GGX NDF reference values",()=>{near(k.ggxNdf(1,.5),1.2732395447351628);near(k.ggxNdf(0,.5),.07957747154594767);});
+test("anisotropic Kuwahara matches published weight equation and Python oracle",()=>{near(k.anisotropicKuwaharaMean([0,10],[0,3],2),10/11);near(k.anisotropicKuwaharaMean([0,10],[0,3]),10/6563);near(k.anisotropicKuwaharaMean([2,4],[0,0]),3);assert.throws(()=>k.anisotropicKuwaharaMean([1],[-.1]),RangeError);});
 test("weighted sector mean matches reference convention",()=>near(k.weightedSectorMean([0,10],[0,9]),10/11));
 test("impasto plane gradient matches coefficients",()=>vec(k.linearHeightGradient(2.5,-.75,3,4),[2.5,-.75],1e-8));
 test("flow-oriented noise periodicity",()=>near(k.orientedPeriodicNoise([.2+Math.PI,.3],[1,0],2),k.orientedPeriodicNoise([.2,.3],[1,0],2),1e-12));
