@@ -718,5 +718,9 @@ def blend_dual_quaternions(items):
         self.assertAlmostEqual(iso[4],0)
         self.assertAlmostEqual(iso[3],math.pi/2)
 
+    def test_structure_tensor_rejects_non_positive_semidefinite_input(self):
+        with self.assertRaises(ValueError):
+            structure_tensor_features(1.0, 2.0, 1.0)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
