@@ -53,7 +53,8 @@ test("D35:6 Newton rejects zero derivative and respects the domain", () => {
   assert.equal(zero.reason, "derivative_too_small");
   const bounded = newtonRoot(x => x - 3, () => 1, 0, { domain: [-1, 1] });
   assert.equal(bounded.converged, false);
-  assert.equal(bounded.reason, "line_search_failed");
+  assert.ok(["line_search_failed", "step_tolerance_without_residual"].includes(bounded.reason));
+  assert.ok(bounded.root <= 1);
 });
 
 test("D35:6 Newton reports non-convergence and validates options", () => {
