@@ -954,7 +954,8 @@
       ],
       "constraints": [
         "κ_i y τ_i tienen m⁻¹; para que cada término a_iκ_i² y b_iτ_i² sea energía J, los coeficientes discretos tienen kg·m⁴/s².",
-        "Si se parte de rigidez continua EI (N·m²), multiplicar por longitud de segmento ds antes de usar el sumatorio discreto."
+        "Si se parte de rigidez continua EI (N·m²), multiplicar por longitud de segmento ds antes de usar el sumatorio discreto.",
+        "La ficha adopta explícitamente la energía discreta E=Σ(a_iκ_i²+b_iτ_i²); por ello a_i,b_i incluyen la longitud de segmento y tienen kg·m⁴/s². No son directamente la rigidez continua EI."
       ],
       "valid_domain": [
         "Curva regular; marco material válido; discretización sin segmentos nulos."
@@ -967,7 +968,7 @@
         "κ² y τ² tienen m⁻²; a_i,b_i kg·m⁴/s² producen kg·m²/s² = J.",
         "Los coeficientes discretos dependen de la discretización; no copiar unidades de EI sin incluir ds."
       ],
-      "status": "CONDITIONAL_POINT1_DISCRETE_ENERGY_DEFINITION_REQUIRED"
+      "status": "REVIEWED_POINT1"
     },
     {
       "record_key": "D22:10",
@@ -1218,24 +1219,35 @@
           "unit": "sr⁻¹",
           "dimension": "inversa de ángulo sólido",
           "domain": "no negativa"
+        },
+        {
+          "symbol": "M(θ_i,θ_o), N(φ_i,φ_o)",
+          "meaning": "lóbulos longitudinal y azimutal normalizados por sus respectivas medidas angulares",
+          "unit": "rad⁻¹ cada uno",
+          "dimension": "densidades angulares inversas; rad adimensional SI",
+          "domain": "no negativos e integrales finitas normalizadas"
         }
       ],
       "constraints": [
         "Lóbulos longitudinal/azimutal deben definirse con distribución y medida angular; no sumar lóbulo con unidades incompatibles.",
-        "La expresión multiplicativa esquemática no fija normalización ni jacobiano."
+        "La expresión multiplicativa esquemática no fija normalización ni jacobiano.",
+        "La aproximación separable se interpreta como producto de una densidad longitudinal M [rad⁻¹] y una azimutal N [rad⁻¹]; el producto tiene unidad sr⁻¹ bajo medida angular producto. Si las funciones no están normalizadas como densidades, no se puede atribuir esta unidad sin revisar sus definiciones."
       ],
       "valid_domain": [
-        "Direcciones unitarias; fibra con marco tangente válido; parámetros calibrados."
+        "Direcciones unitarias; fibra con marco tangente válido; parámetros calibrados.",
+        "La unidad BRDF sr⁻¹ solo es válida bajo la convención explícita de normalización angular indicada; los parámetros de roughness y tilt permanecen adimensionales/angulares."
       ],
       "boundary_conditions": [
         "Dirección rasante y denominadores nulos requieren límite analítico.",
-        "Con reflectancia nula, salida reflejada cero."
+        "Con reflectancia nula, salida reflejada cero.",
+        "Si cualquiera de los lóbulos normalizados tiende a cero fuera de su soporte, el producto se anula; los casos rasantes requieren límite o regularización documentada."
       ],
       "dimensional_checks": [
         "BRDF tiene sr⁻¹ bajo convención de ángulo sólido; factores angulares adimensionales salvo distribución normalizada.",
-        "La fórmula abreviada queda condicionada a la definición exacta de lóbulos."
+        "La fórmula abreviada queda condicionada a la definición exacta de lóbulos.",
+        "M·N tiene rad⁻², equivalente a sr⁻¹ para las dos coordenadas angulares de la parametrización de fibra; no confundir esta aproximación separable con la BCSDF microfacet no separable."
       ],
-      "status": "CONDITIONAL_POINT1_FULL_HAIR_BRDF_REQUIRED"
+      "status": "REVIEWED_POINT1_WITH_EXPLICIT_NORMALIZATION"
     },
     {
       "record_key": "D22:13",
@@ -1421,7 +1433,8 @@
     "structural_checks": [
       "15/15 técnicas incluidas; ninguna protegida",
       "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
-      "Corregida la separación entre compliance α y compliance escalada α̃ en XPBD; cerrado el multiplicador angular y los coeficientes discretos de rods"
+      "Corregida la separación entre compliance α y compliance escalada α̃ en XPBD; cerrado el multiplicador angular y los coeficientes discretos de rods",
+      "D22:9 cierra la unidad de energía discreta mediante coeficientes que absorben ds; D22:12 explicita la normalización de ambos lóbulos angulares para justificar sr⁻¹."
     ],
     "limitations": [
       "Las unidades de multiplicadores se derivan de las formas de corrección escritas; una implementación con otra formulación debe rehacer el análisis de λ."
