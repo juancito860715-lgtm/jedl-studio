@@ -128,12 +128,13 @@ export function createLeafGeometry(controlPoints,{width=.25,shapeExponent=.8,vei
 }
 
 function seedPhase(seed){const x=Math.sin(seed*127.1+311.7)*43758.5453123;return(x-Math.floor(x))*Math.PI*2;}
-export function fallingLeafStateAt({origin=[0,0,0],velocity=[0,0,0],gravity=9.81,time=0,driftAmplitude=[.2,0,.15],windFrequency=1.2,rotationSpeed=2,seed=1}={}){
- const p=vector(origin,"origin"),v=vector(velocity,"velocity"),drift=vector(driftAmplitude,"driftAmplitude");
+export function fallingLeafStateAt({origin=[0,0,0],velocity=[0,0,0],gravity=9.81,time=0,windAcceleration=[.2,0,.15],windFrequency=1.2,rotationSpeed=2,seed=1}={}){
+ const p=vector(origin,"origin"),v=vector(velocity,"velocity"),wind=vector(windAcceleration,"windAcceleration");
  finite(gravity,"gravity");finite(time,"time");finite(windFrequency,"windFrequency");finite(rotationSpeed,"rotationSpeed");
  if(gravity<0||time<0||!Number.isInteger(seed))throw new RangeError("invalid falling leaf parameters");
- const ballistic=particlePositionAt({position:p,velocity:v,acceleration:[0,-gravity,0],time}),phase=seedPhase(seed)+windFrequency*time;
- const position=[ballistic[0]+drift[0]*Math.sin(phase),ballistic[1]+drift[1]*Math.sin(phase*.7),ballistic[2]+drift[2]*Math.cos(phase)];
+ const ballistic=particlePositionAt({position:p,velocity:v,acceleration:[0,-gravity,0],time}),phase0=seedPhase(seed),phase=phase0+windFrequency*time;
+ const drift=wind.map(a=>Math.abs(windFrequency)<EPS?.5*a*Math.sin(phase0)*time*time:a*(windFrequency*time*Math.cos(phase0)-Math.sin(phase)+Math.sin(phase0))/(windFrequency*windFrequency));
+ const position=ballistic.map((value,i)=>value+drift[i]);
  return {position,rotation:[rotationSpeed*time,Math.sin(phase)*.35,Math.cos(phase*.8)*.2]};
 }
 
@@ -178,7 +179,7 @@ export function stepBirdFlock({agents,leaderPosition,dt,stepIndex=0,leaderWeight
   const position=vector(agent.position,"bird position"),velocity=vector(agent.velocity,"bird velocity");
   const neighbors=agents.filter((_,j)=>j!==i).map(a=>({position:a.position,velocity:a.velocity}));
   const boids=computeBoidsAcceleration({position,velocity,neighbors,separationWeight,alignmentWeight,cohesionWeight,separationRadius:neighborRadius*.4,alignmentRadius:neighborRadius,cohesionRadius:neighborRadius});
-  const toward=leader.map((v,k)=>v-position[k]),dist=Math.hypot(...toward),follow=dist>EPS?toward.map(v=>v/dist*leaderWeight):[0,0,0];
+  const toward=leader.map((v,k)=>v-position[k]),follow=toward.map(v=>v*leaderWeight);
   const acceleration=boids.acceleration.map((v,k)=>v+follow[k]);
   const next=semiImplicitEulerStep({position,velocity,acceleration,dt});
   return {position:next.position,velocity:limitSpeed(next.velocity,maxSpeed)};
