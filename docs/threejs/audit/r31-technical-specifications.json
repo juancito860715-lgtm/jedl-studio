@@ -4048,63 +4048,324 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "ROTATION_MINIMIZING_FRAME_BY_DOUBLE_REFLECTION",
+        "symbol_table": [
+          {
+            "symbol": "x_i",
+            "meaning": "sampled spine/camera path position",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite 3D point; consecutive samples distinct"
+          },
+          {
+            "symbol": "t_i",
+            "meaning": "unit tangent at sample i",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite unit 3-vector"
+          },
+          {
+            "symbol": "r_i",
+            "meaning": "unit reference normal of moving frame",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit and orthogonal to t_i"
+          },
+          {
+            "symbol": "s_i",
+            "meaning": "second normal axis, t_i cross r_i",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit and orthogonal to both frame axes"
+          },
+          {
+            "symbol": "v_1=x_(i+1)-x_i",
+            "meaning": "first reflection vector",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "nonzero displacement"
+          },
+          {
+            "symbol": "v_2=t_(i+1)-t_i^L",
+            "meaning": "second reflection vector",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "nonzero for the standard double-reflection step"
+          },
+          {
+            "symbol": "c_1=v_1·v_1; c_2=v_2·v_2",
+            "meaning": "squared reflection-vector norms",
+            "unit": "m² and 1 respectively",
+            "dimension": "mixed per term; each denominator matches its own numerator"
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "C y derivadas según parámetro u; normal/tangente unitarias."
+            "Each Householder factor 2(v·a)/(v·v) is dimensionless. R1 uses v1 in metres; R2 uses v2 dimensionless because tangents are unit vectors. Frame vectors remain dimensionless."
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "The RMF is an orthonormal frame attached to a regular curve that has no instantaneous twist about its tangent.",
+            "A reflection R(v)=I-2vvᵀ/(vᵀv) is orthogonal and preserves vector lengths and dot products.",
+            "The first reflection uses the chord v1=x_(i+1)-x_i to map the old frame and old tangent into the intermediate frame.",
+            "The second reflection vector v2=t_(i+1)-t_i^L maps the intermediate tangent to the next tangent while carrying the reference normal with the minimal-twist double-reflection construction.",
+            "The second normal s_(i+1)=t_(i+1)×r_(i+1) restores a right-handed orthonormal frame.",
+            "The published double-reflection method has fourth-order global approximation error for sampled smooth curves; it remains an approximation to the continuous RMF."
+          ]
         },
         "assumptions": [
-          "C' no nulo; muestreo suficientemente denso; evitar saltos de signo de quaternion."
+          "Curve is C1 regular and sampled with nonzero consecutive point displacement.",
+          "Tangents are finite unit vectors; initial r0 is unit and perpendicular to t0.",
+          "Frame handedness is fixed by s=t×r.",
+          "This solver computes orientation frames only; camera look direction, roll offsets and arc-length timing are separate policies."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
+        "valid_domain": [
+          "Finite x_i in R³; nonzero x_(i+1)-x_i; unit t_i,t_(i+1); unit r_i orthogonal to t_i."
+        ],
+        "boundary_conditions": [
+          "If v1=0, the first reflection is undefined: resample/merge duplicate points.",
+          "If v2=0, the second reflection is undefined: use a mathematically justified limiting branch or resample; do not divide by zero.",
+          "Near-degenerate v2 requires scale-aware tolerance and continuity tests.",
+          "At curve inflection or zero curvature, RMF remains defined when the curve remains regular; Frenet normal may not."
+        ],
+        "inputs": [
+          "Consecutive path positions x_i,x_(i+1)",
+          "Unit tangents t_i,t_(i+1)",
+          "Initial unit reference normal r_i"
+        ],
+        "outputs": [
+          "Next orthonormal RMF basis (r_(i+1),s_(i+1),t_(i+1))"
+        ],
         "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
         "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(1) per adjacent sample pair; O(N) for N curve samples",
+          "space": "O(1) streaming state or O(N) to retain all frames"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_CAMERA_RIG_INTEGRATION_PENDING",
+          "details": "Sample a THREE.Curve using getPointAt/getTangentAt for arc-length-spaced positions/tangents. Apply the double-reflection step on CPU, construct a basis Matrix4 and quaternion for the camera's declared local forward/up axes. Test quaternion sign continuity and camera roll offsets separately."
         },
         "source_claims": [
           {
-            "url": "https://hdl.handle.net/2022/34260",
-            "type": "PRIMARY_TECHNICAL_REPORT",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null,
-            "formula_locator": "Exact locator pending; claim must remain incomplete."
+            "url": "https://i.cs.hku.hk/GraphicsGroup/publications/pdf/Computation%20of%20rotation%20minimizing%20frames.pdf",
+            "type": "PRIMARY_ACM_TO_G_PAPER",
+            "supported_claim": "Double-reflection construction, two Householder reflections, degeneracy conditions and fourth-order global approximation error.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Wang, Jüttler, Zheng & Liu 2008, §4.1 Eqs. (13)-(14), Table I (Double Reflection); §4.4 for degeneracy/stability.",
+            "formula_locator": "Wang, Jüttler, Zheng & Liu 2008, §4.1 Eqs. (13)-(14), Table I (Double Reflection); §4.4 for degeneracy/stability."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "A curved two-point sample produces a unit, mutually orthogonal right-handed frame.",
+              "oracle": "Python vector dot/cross and norm identities."
+            },
+            {
+              "description": "Straight-line path preserves the initial reference normal and binormal.",
+              "oracle": "Exact Householder reflection fixture."
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Same curved and straight-line frame fixtures as Python.",
+              "oracle": "Cross-language parity."
+            }
+          ],
+          "edge_cases": [
+            "Duplicate consecutive points",
+            "Nearly zero second reflection vector",
+            "Unit tangent validation",
+            "Inflection with nonzero curve derivative",
+            "Quaternion sign continuity across adjacent frames"
+          ]
         },
-        "variables": [],
-        "algorithm_steps": [
-          "Definir spline de posición.",
-          "Evaluar posición y tangente.",
-          "Transportar marco local entre muestras.",
-          "Resolver objetivo/look-at con amortiguación.",
-          "Controlar velocidad por curva de arco."
+        "variables": [
+          {
+            "symbol": "x_i",
+            "meaning": "sampled spine/camera path position",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite 3D point; consecutive samples distinct"
+          },
+          {
+            "symbol": "t_i",
+            "meaning": "unit tangent at sample i",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite unit 3-vector"
+          },
+          {
+            "symbol": "r_i",
+            "meaning": "unit reference normal of moving frame",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit and orthogonal to t_i"
+          },
+          {
+            "symbol": "s_i",
+            "meaning": "second normal axis, t_i cross r_i",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit and orthogonal to both frame axes"
+          },
+          {
+            "symbol": "v_1=x_(i+1)-x_i",
+            "meaning": "first reflection vector",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "nonzero displacement"
+          },
+          {
+            "symbol": "v_2=t_(i+1)-t_i^L",
+            "meaning": "second reflection vector",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "nonzero for the standard double-reflection step"
+          },
+          {
+            "symbol": "c_1=v_1·v_1; c_2=v_2·v_2",
+            "meaning": "squared reflection-vector norms",
+            "unit": "m² and 1 respectively",
+            "dimension": "mixed per term; each denominator matches its own numerator",
+            "domain": "see valid_domain"
+          }
         ],
-        "pseudocode": "p=C(u); tangent=normalize(C'(u)); frame=parallelTransport(previousFrame,tangent); camera.quaternion=lookRotation(tangent,frame.normal)",
+        "algorithm_steps": [
+          "Validate finite positions and unit tangents/frame normal.",
+          "Compute first reflection vector v1=x_(i+1)-x_i and reject zero displacement.",
+          "Reflect r_i and t_i with Householder reflection R(v1).",
+          "Compute second reflection vector v2=t_(i+1)-t_i^L and reject or handle the declared degenerate limit.",
+          "Reflect r_i^L with R(v2) to obtain r_(i+1).",
+          "Normalize against numerical drift and compute s_(i+1)=t_(i+1)×r_(i+1).",
+          "Convert the orthonormal frame basis into camera quaternion using the chosen local-axis convention."
+        ],
+        "pseudocode": "function nextRMF(x0,x1,t0,t1,r0):\n  v1=x1-x0; require dot(v1,v1)>eps\n  rL=reflect(r0,v1); tL=reflect(t0,v1)\n  v2=t1-tL; require dot(v2,v2)>eps\n  r1=reflect(rL,v2)\n  r1=normalize(r1 - t1*dot(r1,t1))\n  s1=normalize(cross(t1,r1))\n  return (r1,s1,t1)",
         "implementation_mapping": {
-          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
-          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
-          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
-        }
+          "threejs_api": "THREE.Curve.getPointAt/getTangentAt, Matrix4.makeBasis and Quaternion.setFromRotationMatrix.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py: double_reflection_frame; tests/threejs/r31_kernels.mjs: doubleReflectionFrame.",
+          "gpu_strategy": "CPU frame generation is appropriate for a camera path; GPU use is unnecessary unless the same path frames drive very large particle/sweep populations."
+        },
+        "equations": [
+          {
+            "expression": "R(v)=I-2 vv^T/(v^T v)",
+            "meaning": "Householder reflection for nonzero reflection vector v",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "v1=x_(i+1)-x_i; r_i^L=R(v1)r_i; t_i^L=R(v1)t_i",
+            "meaning": "first reflection across the bisecting plane of consecutive path points",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "v2=t_(i+1)-t_i^L; r_(i+1)=R(v2)r_i^L; s_(i+1)=t_(i+1)×r_(i+1)",
+            "meaning": "second reflection and reconstruction of the right-handed frame",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          }
+        ]
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
