@@ -80,3 +80,9 @@ test("double-reflection camera frame preserves straight-line orientation",()=>{
   const [r,s,t]=k.doubleReflectionFrame([0,0,0],[0,0,1],[0,0,1],[0,0,1],[1,0,0]);
   vec(r,[1,0,0]);vec(s,[0,1,0]);vec(t,[0,0,1]);
 });
+
+test("structure tensor separates gradient normal from brush tangent",()=>{
+  const [lmax,lmin,grad,tangent,coh]=k.structureTensorFeatures(4,0,1);
+  near(lmax,4);near(lmin,1);near(grad,0);near(tangent,Math.PI/2);near(coh,3/5);
+  near(k.structureTensorFeatures(2,0,2)[4],0);
+});
