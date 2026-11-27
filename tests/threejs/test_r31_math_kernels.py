@@ -13,6 +13,27 @@ def quantized_time(t, sample_rate):
     return math.floor(t * sample_rate) / sample_rate
 
 
+def evaluate_quantized_channel(keys, t, sample_rate, mode="hold"):
+    """Evaluate scalar keyframes at quantized time using hold or linear policy."""
+    if not keys or any(len(k)!=2 or not all(math.isfinite(v) for v in k) for k in keys):
+        raise ValueError("keys must be nonempty finite (time,value) pairs")
+    if any(keys[i][0] >= keys[i+1][0] for i in range(len(keys)-1)):
+        raise ValueError("key times must be strictly increasing")
+    if mode not in ("hold","linear"):
+        raise ValueError("mode must be hold or linear")
+    tq=quantized_time(t,sample_rate)
+    if tq <= keys[0][0]:
+        return keys[0][1]
+    for i in range(1,len(keys)):
+        if tq <= keys[i][0]:
+            t0,v0=keys[i-1];t1,v1=keys[i]
+            if mode=="hold":
+                return v0
+            u=(tq-t0)/(t1-t0)
+            return v0+(v1-v0)*u
+    return keys[-1][1]
+
+
 def smooth_min(a, b, k):
     if k < 0:
         raise ValueError("k must be >= 0")
@@ -432,6 +453,15 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertAlmostEqual(quantized_time(1.13, 12), 13/12)
         self.assertAlmostEqual(quantized_time(-0.01, 12), -1/12)
 
+    def test_temporal_channel_hold_and_linear_policies(self):
+        keys=[(0.0,0.0),(1.0,10.0),(2.0,20.0)]
+        self.assertEqual(evaluate_quantized_channel(keys,1.09,10,"hold"),10.0)
+        self.assertAlmostEqual(evaluate_quantized_channel(keys,1.19,10,"linear"),11.0)
+        self.assertEqual(evaluate_quantized_channel(keys,-1.0,10,"linear"),0.0)
+        self.assertEqual(evaluate_quantized_channel(keys,3.0,10,"hold"),20.0)
+        with self.assertRaises(ValueError): evaluate_quantized_channel(keys,1.0,10,"cubic")
+        with self.assertRaises(ValueError): evaluate_quantized_channel([(0,1),(0,2)],1,10)
+
     def test_smooth_min_disjoint_and_midpoint(self):
         self.assertAlmostEqual(smooth_min(0.0, 2.0, 0.5), 0.0)
         self.assertAlmostEqual(smooth_min(0.0, 0.0, 0.5), -0.125)
@@ -509,6 +539,15 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertGreaterEqual(a,-0.1)
         self.assertLess(a,0.1)
         self.assertNotEqual(a,deterministic_jitter(12,77,1,0.1))
+
+    def test_stop_motion_jitter_long_sequence_statistics(self):
+        amplitude=0.2
+        values=[deterministic_jitter(i,913,0,amplitude) for i in range(12000)]
+        mean=sum(values)/len(values)
+        variance=sum((v-mean)**2 for v in values)/len(values)
+        self.assertLess(abs(mean),0.004)
+        self.assertAlmostEqual(variance,amplitude*amplitude/3.0,delta=0.0015)
+        self.assertEqual(values,[deterministic_jitter(i,913,0,amplitude) for i in range(12000)])
 
     def test_hair_ggx_normal_distribution_reference(self):
         alpha=0.5
