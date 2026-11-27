@@ -1619,7 +1619,7 @@
       "variables": [
         {
           "symbol": "x,y",
-          "meaning": "coordenadas de patrón",
+          "meaning": "coordinates in the chosen screen or UV plane",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1629,12 +1629,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "pixel or UV coordinate",
-          "domain": "finite values in stated coordinate space"
+          "unit": "px or UV",
+          "domain": "finite coordinates; x and y use the same coordinate system"
         },
         {
           "symbol": "f",
-          "meaning": "frecuencia espacial",
+          "meaning": "inverse half-period parameter in the manifest's pi*f sinusoid",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1644,12 +1644,27 @@
             "N": 0,
             "J": 0
           },
-          "unit": "cycles per coordinate unit",
-          "domain": "finite values in stated coordinate space"
+          "unit": "coordinate_unit^-1",
+          "domain": "finite and >0; actual full period is 2/f, so cycles per coordinate unit are f/2"
+        },
+        {
+          "symbol": "theta",
+          "meaning": "screen rotation angle",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "rad",
+          "domain": "finite angle; coordinate rotation occurs before evaluating the pattern"
         },
         {
           "symbol": "L",
-          "meaning": "luminancia lineal normalizada",
+          "meaning": "linear normalized luminance",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1659,12 +1674,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless",
-          "domain": "finite values in stated coordinate space"
+          "unit": "1",
+          "domain": "finite [0,1]; derive from linear RGB, not gamma-encoded display RGB"
         },
         {
           "symbol": "m",
-          "meaning": "máscara periódica",
+          "meaning": "sinusoidal threshold mask",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1674,12 +1689,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless",
-          "domain": "finite values in stated coordinate space"
+          "unit": "1",
+          "domain": "[0,1] for finite coordinates and f"
         },
         {
-          "symbol": "ink",
-          "meaning": "salida de umbral",
+          "symbol": "w",
+          "meaning": "antialias transition half-width",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1689,15 +1704,32 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless",
-          "domain": "finite values in stated coordinate space"
+          "unit": "1 (luminance difference)",
+          "domain": "finite and >=0; shader estimate from derivatives of L-m"
+        },
+        {
+          "symbol": "a",
+          "meaning": "ink coverage",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1",
+          "domain": "clamped to [0,1]"
         }
       ],
       "dimensional_findings": [
-        "f debe tener unidad inversa a x,y; la luminancia y máscara se comparan en espacio normalizado lineal."
+        "f*x and f*y are dimensionless; trigonometric arguments are therefore valid.",
+        "L, m, w and a are normalized dimensionless scalar quantities and may be compared/interpolated.",
+        "The parameter f is not cycles per unit for the written sin(pi*f*x) expression: the period is 2/f and the cycles-per-unit value is f/2."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
-      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+      "scope": "Dimensional audit of the project-authored sinusoidal screen mask and threshold; not a source-equation or renderer certification."
     },
     {
       "record_key": "D14:17",
