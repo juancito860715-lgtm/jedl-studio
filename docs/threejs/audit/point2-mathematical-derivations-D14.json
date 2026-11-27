@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D14 Shaders, GPU y renderizado avanzado",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -540,28 +540,28 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "T_measured=GPU/CPU frame time",
-          "justification": "Medir tiempo de frame relevante."
+          "equation": "T_measured≈K·scale²",
+          "justification": "Bajo fill-rate dominante, el tiempo de GPU es aproximadamente proporcional al número de píxeles; el número de píxeles escala con el cuadrado de la escala lineal."
         },
         {
           "step": 2,
-          "equation": "pixelCost∝resolutionScale²",
-          "justification": "Aproximar coste como proporcional al número de píxeles."
+          "equation": "T_target≈K·scale_next²",
+          "justification": "Imponer el presupuesto de tiempo deseado bajo el mismo coste por píxel."
         },
         {
           "step": 3,
           "equation": "scale_next=scale·sqrt(T_target/T_measured)",
-          "justification": "Resolver factor de escala que ajusta coste al objetivo bajo modelo cuadrático."
+          "justification": "Dividir las dos expresiones elimina K y despejar la escala positiva produce la raíz cuadrada del cociente temporal."
         },
         {
           "step": 4,
           "equation": "scale_next=clamp(scale_next,min,max)",
-          "justification": "Limitar resolución a rango permitido."
+          "justification": "Restringir el resultado a los límites de resolución admitidos."
         },
         {
           "step": 5,
-          "equation": "smooth scale changes",
-          "justification": "Filtrar variación para evitar oscilación."
+          "equation": "scale_filtered←lerp(scale_filtered,scale_next,α)",
+          "justification": "Suavizar la transición para evitar oscilaciones por ruido de medición; α es adimensional."
         }
       ],
       "assumptions": [
@@ -569,14 +569,20 @@
         "El coste no está dominado por geometría/CPU fija.",
         "Mínimos/máximos de resolución definidos."
       ],
-      "result": "La resolución adaptativa deriva del escalado de coste por área de píxeles.",
+      "result": "La actualización adaptativa se deriva del modelo de coste cuadrático en escala lineal; la fórmula del catálogo omite el factor de escala actual y la raíz cuadrada.",
       "limits": [
         "Si el cuello de botella no es fill-rate, la regla cuadrática no predice el tiempo real."
       ],
       "dimensional_verification": [
-        "T_target y T_measured tienen T; razón y resolutionScale son adimensionales.",
-        "Coste de píxeles escala con resolutionScale²."
-      ]
+        "T_target/T_measured es adimensional; sqrt conserva adimensionalidad; scale_next es adimensional.",
+        "La regla requiere T∝scale²; si el cuello de botella es CPU o fijo, la relación puede no cumplirse."
+      ],
+      "catalogue_discrepancy": {
+        "original": "resolutionScale_next=clamp(targetFrameTime/measuredFrameTime)",
+        "issue": "omite scale actual y la raíz cuadrada que se deducen de coste proporcional a píxeles",
+        "corrected": "scale_next=clamp(scale·sqrt(targetFrameTime/measuredFrameTime),min,max)",
+        "pending_manifest_integration": true
+      }
     },
     {
       "record_key": "D14:13",
@@ -674,43 +680,41 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "E_z=|z(p)−z(p+δ)|",
-          "justification": "Medir salto de profundidad entre píxeles vecinos."
+          "equation": "E_z=|z(p)−z(p+δ)|/g_ref",
+          "justification": "La diferencia de profundidad tiene metros; dividir por un gradiente de referencia g_ref [m/px] normaliza la respuesta al desplazamiento de vecino en espacio raster."
         },
         {
           "step": 2,
           "equation": "E_n=1−n(p)·n(p+δ)",
-          "justification": "Medir cambio angular de normal."
+          "justification": "El producto escalar de normales unitarias es adimensional y mide discontinuidad angular."
         },
         {
           "step": 3,
-          "equation": "E=E_z+λE_n, [λ]=[E_z]",
-          "justification": "Escalar el cambio angular adimensional para que comparta unidad con la discontinuidad de profundidad antes de sumarlos."
+          "equation": "E=E_z+λE_n",
+          "justification": "Ambos términos son adimensionales; λ regula el peso relativo de discontinuidad normal."
         },
         {
           "step": 4,
           "equation": "outline=smoothstep(τ_0,τ_1,E)",
-          "justification": "Convertir señal de borde en máscara suave."
+          "justification": "Los umbrales adimensionales convierten la respuesta en una máscara suave."
         },
         {
           "step": 5,
           "equation": "C_out=lerp(C,ink,outline)",
-          "justification": "Componer tinta sobre color original."
+          "justification": "Componer tinta usando la máscara como peso adimensional."
         }
       ],
       "assumptions": [
-        "Depth linealizado o normalizado de forma consistente.",
-        "Normales unitarias; λ adapta unidades de depth a término angular.",
-        "Umbrales adaptados a cámara/resolución.",
-        "Si z es lineal, λ tiene L; si z está normalizado, λ es adimensional."
+        "Profundidad lineal en el mismo marco de cámara y normales unitarias en el mismo espacio.",
+        "g_ref>0 se calibra según escala de escena, cámara y resolución."
       ],
-      "result": "El contorno se deriva de gradientes discretos de profundidad y normal entre vecinos.",
+      "result": "El contorno combina un salto de profundidad normalizado con una discontinuidad de orientación; la normalización permite sumar ambos términos.",
       "limits": [
         "Umbral fijo puede marcar bordes internos/ruido; usar escala y antialiasing."
       ],
       "dimensional_verification": [
-        "E_z es L con profundidad lineal o 1 con depth normalizado; E_n adimensional.",
-        "λ compensa unidad de E_z; umbrales τ comparten unidad de E."
+        "z tiene m y δ un paso raster; g_ref tiene m/px, por lo que E_z es adimensional.",
+        "E_n, λ, E y τ son adimensionales; outline es una máscara."
       ]
     },
     {
@@ -723,23 +727,23 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "q=R(−θ)·uv·frequency",
-          "justification": "Rotar coordenadas de pantalla y escalar frecuencia de trama."
+          "equation": "p_screen=(x,y) px; q=R(−θ)·p_screen·f",
+          "justification": "Rotar coordenadas raster y multiplicar por frecuencia espacial f [px⁻¹] para obtener fase de patrón adimensional."
         },
         {
           "step": 2,
           "equation": "m(q)=0.5+0.5 sin(πq_x)sin(πq_y)",
-          "justification": "Construir patrón periódico de puntos."
+          "justification": "Construir una celda periódica de puntos acotada entre cero y uno."
         },
         {
           "step": 3,
           "equation": "ink=step(m(q),luma(C))",
-          "justification": "Comparar patrón con luminancia para modular cobertura de tinta."
+          "justification": "Comparar patrón con luminancia normalizada para modular cobertura de tinta."
         },
         {
           "step": 4,
           "equation": "C_out=lerp(paper,inkColor,coverage)",
-          "justification": "Componer color de impresión."
+          "justification": "Componer papel y tinta en el mismo espacio de color lineal."
         }
       ],
       "assumptions": [
@@ -752,8 +756,8 @@
         "Frecuencia alta sin filtrado produce moiré y aliasing."
       ],
       "dimensional_verification": [
-        "UV y q adimensionales si frequency es ciclos/UV; con screen px, frequency px⁻¹.",
-        "Luminancia y patrón son adimensionales; color conserva espacio/escala."
+        "p_screen tiene px; f tiene px⁻¹; q y los argumentos de seno son adimensionales.",
+        "m, luminancia y coverage son adimensionales; color conserva el tipo RGB declarado."
       ]
     },
     {
@@ -800,8 +804,8 @@
         "En UV deformadas puede estirarse; usar espacio de pantalla o triplanar según necesidad."
       ],
       "dimensional_verification": [
-        "p y spacing comparten unidad; fase dot(p,dir)/spacing adimensional.",
-        "width y aa son anchos de fase adimensionales; máscara adimensional."
+        "p y spacing comparten unidad; phase=fract(dot(p,dir)/spacing) es adimensional.",
+        "width y aa son anchuras adimensionales de fase; line y density son máscaras adimensionales."
       ]
     }
   ],
@@ -812,7 +816,10 @@
       "La animación por uniform distingue desplazamiento L de velocidad L/T",
       "La reconstrucción de profundidad distingue depth buffer normalizado de profundidad lineal",
       "El contorno compensa la unidad de discontinuidad de profundidad y cambio de normal",
-      "MRT, ping-pong, compute, temporal accumulation y dithering mantienen tipado por canal"
+      "MRT, ping-pong, compute, temporal accumulation y dithering mantienen tipado por canal",
+      "D14:12 deriva escala adaptativa por raíz del cociente de tiempos y documenta la discrepancia del catálogo",
+      "D14:15 normaliza el salto de profundidad por g_ref antes de combinarlo con discontinuidad de normal",
+      "D14:16 formula halftone en píxeles con frecuencia px⁻¹; D14:17 usa anchuras de fase adimensionales"
     ],
     "limitations": [
       "La auditoría no certifica rendimiento de GPU, compatibilidad de backend ni exactitud visual; esos aspectos requieren pruebas posteriores en cada renderer/dispositivo."
