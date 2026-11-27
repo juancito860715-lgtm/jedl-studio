@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D22 Telas, tejidos, cuerdas, cabello y materiales deformables",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -396,11 +396,27 @@
             "J": 0
           },
           "domain": "finito"
+        },
+        {
+          "symbol": "α̃",
+          "meaning": "Compliance escalada α/Δt²",
+          "unit": "kg⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "α̃≥0; igual unidad que Σw_i|∇C_i|²"
         }
       ],
       "constraints": [
-        "Para C de longitud, α/Δt² debe ser kg⁻¹; por tanto α tiene s²/kg.",
-        "Si C usa ángulo u otra unidad, compliance y λ cambian dimensionalmente; no reutilizar valores sin conversión."
+        "Para restricción de longitud C [m], ∇C es adimensional y w_i tiene kg⁻¹.",
+        "α̃=α/Δt² debe tener kg⁻¹ para sumarse al denominador; por tanto α tiene s²/kg.",
+        "α̃λ tiene m si λ tiene kg·m; Δλ tiene kg·m y w_i∇CΔλ tiene m."
       ],
       "valid_domain": [
         "Δt>0; compliance no negativa; constraint diferenciable."
@@ -410,8 +426,8 @@
         "Denominador nulo requiere constraint degenerada/fallback."
       ],
       "dimensional_checks": [
-        "C y αλ tienen L; denominador tiene kg⁻¹; Δλ tiene kg·m.",
-        "Δx=w∇CΔλ tiene L."
+        "C y α̃λ tienen m; Σw_i|∇C|² y α̃ tienen kg⁻¹.",
+        "Δλ tiene kg·m; w_i∇CΔλ tiene m. α sin tilde tiene s²/kg, no longitud."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -478,11 +494,27 @@
             "J": 0
           },
           "domain": "≥0"
+        },
+        {
+          "symbol": "λ_b",
+          "meaning": "Multiplicador para corrección posicional angular",
+          "unit": "kg·m²",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "según corrección Δx=−w_i λ_b ∇_i C"
         }
       ],
       "constraints": [
-        "C=θ−θ0 es adimensional angular; gradientes respecto a posición tienen L⁻¹.",
-        "Multiplicadores y compliance deben tiparse para restricción angular, no reutilizar dimensión de distancia."
+        "C=θ−θ0 es adimensional angular; ∇_i C tiene m⁻¹.",
+        "Para corrección Δx=−w_i λ_b ∇_i C, con w_i kg⁻¹, λ_b debe tener kg·m² para que Δx tenga m.",
+        "El multiplicador depende del solver angular exacto; esta asignación corresponde a la corrección posicional escrita."
       ],
       "valid_domain": [
         "Triángulos no degenerados; normales válidas; pesos definidos."
@@ -492,8 +524,8 @@
         "Ángulo debe envolverse con convención continua para evitar salto ±π."
       ],
       "dimensional_checks": [
-        "θ y C son adimensionales angulares; ∇C tiene L⁻¹.",
-        "La dimensión del multiplicador depende de la formulación solver angular."
+        "θ,θ0,C son adimensionales; ∇C tiene L⁻¹.",
+        "w_i kg⁻¹·λ_b kg·L²·∇C L⁻¹ produce corrección L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -892,9 +924,17 @@
         {
           "symbol": "a_i,b_i",
           "meaning": "rigideces efectivas",
-          "unit": "unidades según energía discreta",
-          "dimension": "dependen de discretización",
-          "domain": "no negativas"
+          "unit": "kg·m⁴/s² para suma discreta E=Σ(a_iκ_i²+b_iτ_i²)",
+          "dimension": {
+            "L": 4,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "coeficientes discretos no negativos; absorben rigidez EI y longitud de segmento según discretización"
         },
         {
           "symbol": "E",
@@ -913,8 +953,8 @@
         }
       ],
       "constraints": [
-        "La suma a_iκ_i²+b_iτ_i² debe tener unidad de energía por segmento; a_i,b_i dependen de longitud de arista y rigidez material.",
-        "No asignar unidades a coeficientes sin saber si energía es por longitud, por vértice o total."
+        "κ_i y τ_i tienen m⁻¹; para que cada término a_iκ_i² y b_iτ_i² sea energía J, los coeficientes discretos tienen kg·m⁴/s².",
+        "Si se parte de rigidez continua EI (N·m²), multiplicar por longitud de segmento ds antes de usar el sumatorio discreto."
       ],
       "valid_domain": [
         "Curva regular; marco material válido; discretización sin segmentos nulos."
@@ -924,8 +964,8 @@
         "Extremos libres/fijos requieren condición de borde."
       ],
       "dimensional_checks": [
-        "κ y τ tienen L⁻¹; energía final debe ser J.",
-        "Coeficientes a_i,b_i quedan tipados por la definición discreta elegida."
+        "κ² y τ² tienen m⁻²; a_i,b_i kg·m⁴/s² producen kg·m²/s² = J.",
+        "Los coeficientes discretos dependen de la discretización; no copiar unidades de EI sin incluir ds."
       ],
       "status": "CONDITIONAL_POINT1_DISCRETE_ENERGY_DEFINITION_REQUIRED"
     },
@@ -1379,12 +1419,12 @@
   ],
   "validation": {
     "structural_checks": [
-      "15/15 técnicas incluidas",
-      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
-      "D22:9, D22:12 quedan condicionales por definición discreta de energía y ecuación completa de BRDF ausentes"
+      "15/15 técnicas incluidas; ninguna protegida",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Corregida la separación entre compliance α y compliance escalada α̃ en XPBD; cerrado el multiplicador angular y los coeficientes discretos de rods"
     ],
     "limitations": [
-      "La dimensión de multiplicadores y energías discretas depende de la definición exacta de restricción/energía. Las fichas esquemáticas no se completan con constantes inventadas."
+      "Las unidades de multiplicadores se derivan de las formas de corrección escritas; una implementación con otra formulación debe rehacer el análisis de λ."
     ]
   },
   "integrity": {
