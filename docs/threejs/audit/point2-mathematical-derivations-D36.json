@@ -1,0 +1,663 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D36 Matemáticas profundas de simulación y métodos numéricos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D36",
+    "record_count": 15,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D36 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D36:0",
+      "name": "Derivada material",
+      "starting_principles": [
+        "Campo diferenciable; trayectoria x(t) y velocidad u definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ=φ(x(t),t)",
+          "justification": "Evaluar campo siguiendo una trayectoria."
+        },
+        {
+          "step": 2,
+          "equation": "dφ/dt=∂φ/∂t+∇φ·dx/dt",
+          "justification": "Aplicar regla de la cadena."
+        },
+        {
+          "step": 3,
+          "equation": "dx/dt=u",
+          "justification": "Sustituir velocidad de la partícula."
+        },
+        {
+          "step": 4,
+          "equation": "Dφ/Dt=∂φ/∂t+u·∇φ",
+          "justification": "Obtener derivada material."
+        }
+      ],
+      "assumptions": [
+        "Campo diferenciable; trayectoria x(t) y velocidad u definidas."
+      ],
+      "result": "La derivada material deriva de la regla de la cadena siguiendo una partícula.",
+      "limits": [
+        "La derivada material no fija constitutiva ni cierre del modelo."
+      ],
+      "dimensional_verification": [
+        "φ tiene unidad X; ∂φ/∂t tiene X/T; ∇φ tiene X/L; u tiene L/T.",
+        "u·∇φ y Dφ/Dt tienen X/T."
+      ]
+    },
+    {
+      "record_key": "D36:1",
+      "name": "Euler explícito",
+      "starting_principles": [
+        "f suficientemente regular; Δt pequeño para precisión deseada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "y(t+Δt)=y(t)+Δt y'(t)+O(Δt²)",
+          "justification": "Expandir Taylor."
+        },
+        {
+          "step": 2,
+          "equation": "y'=f(t,y)",
+          "justification": "Usar EDO."
+        },
+        {
+          "step": 3,
+          "equation": "y_{n+1}=y_n+Δt f(t_n,y_n)",
+          "justification": "Descartar términos de orden dos y superior."
+        }
+      ],
+      "assumptions": [
+        "f suficientemente regular; Δt pequeño para precisión deseada."
+      ],
+      "result": "Euler explícito deriva del truncamiento de Taylor de primer orden.",
+      "limits": [
+        "Euler explícito puede ser inestable con Δt grande."
+      ],
+      "dimensional_verification": [
+        "y tiene unidad Y; f tiene Y/T; Δt tiene T.",
+        "Δt·f tiene Y y se suma a y."
+      ]
+    },
+    {
+      "record_key": "D36:2",
+      "name": "Runge–Kutta de cuarto orden",
+      "starting_principles": [
+        "f suave; etapas dentro del dominio; Δt controlado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "k_1=f(t_n,y_n)",
+          "justification": "Pendiente inicial."
+        },
+        {
+          "step": 2,
+          "equation": "k_2=f(t_n+Δt/2,y_n+Δt k_1/2)",
+          "justification": "Pendiente en primer punto medio."
+        },
+        {
+          "step": 3,
+          "equation": "k_3=f(t_n+Δt/2,y_n+Δt k_2/2); k_4=f(t_n+Δt,y_n+Δt k_3)",
+          "justification": "Refinar punto medio y extremo."
+        },
+        {
+          "step": 4,
+          "equation": "y_{n+1}=y_n+(Δt/6)(k_1+2k_2+2k_3+k_4)",
+          "justification": "Combinar pendientes con pesos de cuarto orden."
+        }
+      ],
+      "assumptions": [
+        "f suave; etapas dentro del dominio; Δt controlado."
+      ],
+      "result": "RK4 combina cuatro pendientes para integrar una EDO con error local de orden cinco.",
+      "limits": [
+        "Mayor coste por paso; no garantiza estabilidad para cualquier Δt."
+      ],
+      "dimensional_verification": [
+        "Cada k_i tiene unidad de estado/T; Δt·k_i tiene unidad de estado.",
+        "La combinación ponderada RK4 conserva la unidad del estado."
+      ]
+    },
+    {
+      "record_key": "D36:3",
+      "name": "Integrador Verlet",
+      "starting_principles": [
+        "Paso fijo; aceleración conocida; condiciones iniciales x_0,x_1."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x(t±Δt)=x±vΔt+½aΔt²+O(Δt³)",
+          "justification": "Expandir Taylor hacia delante y atrás."
+        },
+        {
+          "step": 2,
+          "equation": "x_{n+1}+x_{n−1}=2x_n+a_nΔt²+O(Δt⁴)",
+          "justification": "Sumar expansiones cancela términos impares."
+        },
+        {
+          "step": 3,
+          "equation": "x_{n+1}=2x_n−x_{n−1}+a_nΔt²",
+          "justification": "Despejar posición siguiente."
+        },
+        {
+          "step": 4,
+          "equation": "v_n≈(x_{n+1}−x_{n−1})/(2Δt)",
+          "justification": "Reconstruir velocidad centrada."
+        }
+      ],
+      "assumptions": [
+        "Paso fijo; aceleración conocida; condiciones iniciales x_0,x_1."
+      ],
+      "result": "Verlet deriva de sumar expansiones de Taylor simétricas y cancelar términos impares.",
+      "limits": [
+        "Paso fijo y tratamiento de restricciones/colisiones afectan conservación."
+      ],
+      "dimensional_verification": [
+        "x tiene L; v L/T; a L/T²; Δt T.",
+        "aΔt² tiene L y la velocidad reconstruida tiene L/T."
+      ]
+    },
+    {
+      "record_key": "D36:4",
+      "name": "CFL condition",
+      "starting_principles": [
+        "Δx>0; velocidad máxima y esquema declarados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "wave travels |u|Δt in one step",
+          "justification": "Calcular distancia de propagación en Δt."
+        },
+        {
+          "step": 2,
+          "equation": "C=|u|Δt/Δx",
+          "justification": "Dividir por tamaño de celda."
+        },
+        {
+          "step": 3,
+          "equation": "C≤C_max",
+          "justification": "Exigir que dominio numérico cubra dependencia física."
+        },
+        {
+          "step": 4,
+          "equation": "Δt≤C_maxΔx/|u|",
+          "justification": "Despejar paso temporal admisible."
+        }
+      ],
+      "assumptions": [
+        "Δx>0; velocidad máxima y esquema declarados."
+      ],
+      "result": "CFL relaciona distancia de propagación por paso con tamaño de celda.",
+      "limits": [
+        "C_max depende del esquema y dimensión; no es constante universal."
+      ],
+      "dimensional_verification": [
+        "u tiene L/T; Δt T; Δx L; C=|u|Δt/Δx es adimensional.",
+        "C_max es adimensional; el paso límite tiene T."
+      ]
+    },
+    {
+      "record_key": "D36:5",
+      "name": "Poisson equation",
+      "starting_principles": [
+        "Dominio y condiciones Dirichlet/Neumann definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "q=∇φ",
+          "justification": "Definir gradiente."
+        },
+        {
+          "step": 2,
+          "equation": "∇·q=∇·∇φ",
+          "justification": "Tomar divergencia."
+        },
+        {
+          "step": 3,
+          "equation": "∇²φ=f",
+          "justification": "Igualar fuente/condición de campo."
+        },
+        {
+          "step": 4,
+          "equation": "discretize Laplacian and boundary values",
+          "justification": "Convertir PDE en sistema algebraico."
+        }
+      ],
+      "assumptions": [
+        "Dominio y condiciones Dirichlet/Neumann definidos."
+      ],
+      "result": "Poisson relaciona Laplaciano de potencial con una fuente.",
+      "limits": [
+        "Resolver Poisson requiere condiciones de contorno y control de nullspace."
+      ],
+      "dimensional_verification": [
+        "Si φ tiene unidad X, ∇²φ tiene X/L²; f debe tener X/L².",
+        "Condiciones de contorno y solución conservan unidad X."
+      ]
+    },
+    {
+      "record_key": "D36:6",
+      "name": "Conjugate gradient",
+      "starting_principles": [
+        "A simétrica definida positiva; tolerancia y precondicionador declarados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E(x)=½xᵀAx−bᵀx",
+          "justification": "Definir forma cuadrática para A simétrica definida positiva."
+        },
+        {
+          "step": 2,
+          "equation": "∇E=Ax−b=−r",
+          "justification": "El residuo es negativo del gradiente."
+        },
+        {
+          "step": 3,
+          "equation": "choose p conjugate to prior directions",
+          "justification": "Elegir direcciones A-ortogonales."
+        },
+        {
+          "step": 4,
+          "equation": "α=(rᵀr)/(pᵀAp); x←x+αp",
+          "justification": "Minimizar E sobre línea en dirección p."
+        },
+        {
+          "step": 5,
+          "equation": "β=(r_newᵀr_new)/(rᵀr); p←r_new+βp",
+          "justification": "Construir siguiente dirección conjugada."
+        }
+      ],
+      "assumptions": [
+        "A simétrica definida positiva; tolerancia y precondicionador declarados.",
+        "La fórmula α=(rᵀr)/(pᵀAp) se refiere a CG no precondicionado; en PCG los vectores precondicionados y productos internos se tipan según el precondicionador."
+      ],
+      "result": "CG minimiza forma cuadrática en direcciones conjugadas.",
+      "limits": [
+        "CG requiere SPD; matrices mal condicionadas ralentizan convergencia."
+      ],
+      "dimensional_verification": [
+        "Para Ax=b, si x tiene X y b tiene B, A tiene B/X; residuo r y p del CG no precondicionado tienen B.",
+        "α=(rᵀr)/(pᵀAp) tiene X/B; αp tiene X; β es adimensional."
+      ]
+    },
+    {
+      "record_key": "D36:7",
+      "name": "Multigrid",
+      "starting_principles": [
+        "Jerarquía de mallas y operadores restriction/prolongation compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e_h=u−u_h",
+          "justification": "Definir error de aproximación."
+        },
+        {
+          "step": 2,
+          "equation": "smoothing removes high-frequency error",
+          "justification": "Los suavizadores reducen modos oscilatorios."
+        },
+        {
+          "step": 3,
+          "equation": "restrict residual to coarse grid",
+          "justification": "Los modos suaves en malla fina se vuelven resolubles en malla gruesa."
+        },
+        {
+          "step": 4,
+          "equation": "solve coarse correction; prolongate",
+          "justification": "Resolver y devolver corrección."
+        },
+        {
+          "step": 5,
+          "equation": "pre/post smooth",
+          "justification": "Reducir error restante."
+        }
+      ],
+      "assumptions": [
+        "Jerarquía de mallas y operadores restriction/prolongation compatibles."
+      ],
+      "result": "Multigrid separa error de alta y baja frecuencia entre niveles.",
+      "limits": [
+        "Multigrid necesita coarsening y suavizador adecuados al operador."
+      ],
+      "dimensional_verification": [
+        "Error, residuo y corrección tienen la unidad del campo solución.",
+        "Restriction/prolongation normalizados son adimensionales y conservan unidad del campo."
+      ]
+    },
+    {
+      "record_key": "D36:8",
+      "name": "Método de volúmenes finitos",
+      "starting_principles": [
+        "Flujos numéricos conservativos; volúmenes y caras definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "∂U/∂t+∇·F(U)=S",
+          "justification": "Partir de ley local de conservación."
+        },
+        {
+          "step": 2,
+          "equation": "integrate over control volume V",
+          "justification": "Integrar en celda."
+        },
+        {
+          "step": 3,
+          "equation": "d/dt∫_VU dV+∮∂VF·n dA=∫_VS dV",
+          "justification": "Aplicar teorema de divergencia."
+        },
+        {
+          "step": 4,
+          "equation": "sum face fluxes between cells",
+          "justification": "Conservar flujo interno al ensamblar celdas."
+        }
+      ],
+      "assumptions": [
+        "Flujos numéricos conservativos; volúmenes y caras definidos."
+      ],
+      "result": "Volúmenes finitos deriva de integrar conservación en volúmenes de control.",
+      "limits": [
+        "Flujos numéricos incorrectos rompen conservación o estabilidad."
+      ],
+      "dimensional_verification": [
+        "U tiene unidad U; flujo F tiene U·L/T; fuente S U/T.",
+        "Términos integrados d/dt∫U dV, ∮F·n dA y ∫S dV tienen U·L³/T."
+      ]
+    },
+    {
+      "record_key": "D36:9",
+      "name": "Método de elementos finitos",
+      "starting_principles": [
+        "Malla válida; funciones de forma y constitutiva definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "strong form: −∇·σ=b",
+          "justification": "Partir de equilibrio local."
+        },
+        {
+          "step": 2,
+          "equation": "multiply by test function v and integrate",
+          "justification": "Construir forma débil."
+        },
+        {
+          "step": 3,
+          "equation": "integrate by parts: ∫ε(v):σ dΩ=∫v·b dΩ+boundary",
+          "justification": "Trasladar derivadas al test function."
+        },
+        {
+          "step": 4,
+          "equation": "u_h=ΣN_ad_a; ε=Bd",
+          "justification": "Aproximar campo y deformación."
+        },
+        {
+          "step": 5,
+          "equation": "K=∫BᵀDBdΩ; Kd=f",
+          "justification": "Ensamblar sistema discreto."
+        }
+      ],
+      "assumptions": [
+        "Malla válida; funciones de forma y constitutiva definidas.",
+        "En elasticidad lineal 3D, B tiene m⁻¹, D Pa, K N/m y d m; las cargas se expresan en N."
+      ],
+      "result": "FEM deriva de forma débil y aproximación por funciones de forma.",
+      "limits": [
+        "Elementos de baja calidad causan error/locking; solver debe ser adecuado."
+      ],
+      "dimensional_verification": [
+        "B tiene L⁻¹; D Pa; dV L³; K tiene N/m; desplazamiento d L; Kd N.",
+        "Fuerzas de volumen b tienen N/m³; al integrar sobre volumen dan N."
+      ]
+    },
+    {
+      "record_key": "D36:10",
+      "name": "Smoothed Particle Hydrodynamics completo",
+      "starting_principles": [
+        "Kernel normalizado, soporte compacto; vecinos suficientes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "A(r)=∫A(r')W(r−r',h)dr'",
+          "justification": "Aproximar campo continuo por convolución kernel."
+        },
+        {
+          "step": 2,
+          "equation": "replace integral by particle sum",
+          "justification": "Discretizar dominio en partículas."
+        },
+        {
+          "step": 3,
+          "equation": "A_i≈Σ_jm_jA_j/ρ_j W_ij",
+          "justification": "Obtener aproximación SPH."
+        },
+        {
+          "step": 4,
+          "equation": "ρ_i=Σ_jm_jW_ij",
+          "justification": "Aplicar a densidad."
+        },
+        {
+          "step": 5,
+          "equation": "∇A_i≈Σ_jm_jA_j/ρ_j∇W_ij",
+          "justification": "Derivar kernel para gradiente."
+        }
+      ],
+      "assumptions": [
+        "Kernel normalizado, soporte compacto; vecinos suficientes."
+      ],
+      "result": "SPH aproxima integrales continuas por sumas kernel sobre partículas.",
+      "limits": [
+        "SPH sufre errores de frontera y distribución irregular."
+      ],
+      "dimensional_verification": [
+        "W tiene L⁻³; m_j kg; ρ_j kg/m³; m_j/ρ_j tiene L³.",
+        "(m_j/ρ_j)W es adimensional; gradiente kernel tiene L⁻⁴ y gradiente de campo tiene unidad(A)/L."
+      ]
+    },
+    {
+      "record_key": "D36:11",
+      "name": "Ecuación de elasticidad de Cauchy",
+      "starting_principles": [
+        "Pequeñas deformaciones; σ constitutiva; densidad positiva."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ρü=∇·σ+ρb",
+          "justification": "Aplicar conservación de momento a continuo."
+        },
+        {
+          "step": 2,
+          "equation": "σ=C:ε",
+          "justification": "Relacionar tensión y deformación por ley constitutiva."
+        },
+        {
+          "step": 3,
+          "equation": "ε=½(∇u+∇uᵀ)",
+          "justification": "Definir deformación infinitesimal."
+        },
+        {
+          "step": 4,
+          "equation": "substitute σ and ε",
+          "justification": "Obtener PDE para desplazamiento u."
+        }
+      ],
+      "assumptions": [
+        "Pequeñas deformaciones; σ constitutiva; densidad positiva."
+      ],
+      "result": "Cauchy deriva del balance de momento con tensor de tensión.",
+      "limits": [
+        "Forma lineal no aplica a grandes deformaciones."
+      ],
+      "dimensional_verification": [
+        "ρ tiene kg/m³; u L; ü L/T²; σ Pa; ∇·σ N/m³.",
+        "ρb tiene N/m³; todos los términos de Cauchy son fuerza por volumen."
+      ]
+    },
+    {
+      "record_key": "D36:12",
+      "name": "Viscoelasticidad Kelvin–Voigt",
+      "starting_principles": [
+        "E≥0; η≥0; deformación y tasa compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "σ_spring=Eε",
+          "justification": "Resorte paralelo produce tensión proporcional a deformación."
+        },
+        {
+          "step": 2,
+          "equation": "σ_dashpot=η ε̇",
+          "justification": "Amortiguador produce tensión proporcional a tasa."
+        },
+        {
+          "step": 3,
+          "equation": "σ=σ_spring+σ_dashpot",
+          "justification": "En paralelo, deformación común y tensiones se suman."
+        },
+        {
+          "step": 4,
+          "equation": "σ=Eε+ηε̇",
+          "justification": "Obtener Kelvin–Voigt."
+        }
+      ],
+      "assumptions": [
+        "E≥0; η≥0; deformación y tasa compatibles."
+      ],
+      "result": "Kelvin–Voigt suma tensión elástica y viscosa bajo deformación común.",
+      "limits": [
+        "Kelvin–Voigt no captura relajación instantánea de Maxwell ni histéresis general."
+      ],
+      "dimensional_verification": [
+        "E tiene Pa; ε es adimensional; η tiene Pa·s; ε̇ T⁻¹.",
+        "Eε y ηε̇ tienen Pa."
+      ]
+    },
+    {
+      "record_key": "D36:13",
+      "name": "Plasticidad J2 von Mises",
+      "starting_principles": [
+        "Tensor de tensión simétrico; σ_y>0; modelo elastoplástico definido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p(t)=clamp((t−t_0)/(t_1−t_0),0,1)",
+          "justification": "Definir progreso visual normalizado dentro de una ventana temporal."
+        },
+        {
+          "step": 2,
+          "equation": "M(x)=smoothMask(field(x),threshold,width)",
+          "justification": "Construir máscara artística adimensional a partir de un campo de control visual, no de tensión física."
+        },
+        {
+          "step": 3,
+          "equation": "Δx(x,t)=A·p(t)·M(x)·d(x)",
+          "justification": "Multiplicar amplitud física A por progreso y máscara adimensional y dirección unitaria."
+        },
+        {
+          "step": 4,
+          "equation": "x'(t)=x+Δx(x,t)",
+          "justification": "Aplicar deformación visual con desplazamiento de longitud."
+        }
+      ],
+      "assumptions": [
+        "A tiene L; progreso y máscara son adimensionales; d(x) es dirección unitaria.",
+        "La deformación se controla por parámetros artísticos y se limita para evitar inversión de malla."
+      ],
+      "result": "La técnica se representa como deformación plástica estilizada controlada por máscara y curvas de animación; no calcula fluencia ni fallo físico de materiales.",
+      "limits": [
+        "No incluye tensión equivalente, límite de fluencia, retorno plástico ni predicción de daño real.",
+        "La apariencia no debe interpretarse como simulación constitutiva certificada."
+      ],
+      "dimensional_verification": [
+        "A tiene L; p(t), M(x) y direction son adimensionales; Δx=A·p·M·direction tiene L.",
+        "x y x' tienen L; no se usa tensión, energía de fractura ni criterio físico de fluencia."
+      ],
+      "status": "VISUAL_ONLY_SAFE_REFORMULATION"
+    },
+    {
+      "record_key": "D36:14",
+      "name": "Difusión anisotrópica",
+      "starting_principles": [
+        "D simétrico semidefinido positivo; fronteras definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "J=−D∇u",
+          "justification": "Generalizar ley de Fick con tensor de difusión."
+        },
+        {
+          "step": 2,
+          "equation": "∂u/∂t=−∇·J",
+          "justification": "Conservar cantidad transportada."
+        },
+        {
+          "step": 3,
+          "equation": "∂u/∂t=∇·(D∇u)",
+          "justification": "Sustituir flujo en conservación."
+        },
+        {
+          "step": 4,
+          "equation": "D=D(x) positive semidefinite",
+          "justification": "Permitir anisotropía espacial con disipación no negativa."
+        }
+      ],
+      "assumptions": [
+        "D simétrico semidefinido positivo; fronteras definidas."
+      ],
+      "result": "Difusión anisotrópica deriva de ley de Fick con tensor D.",
+      "limits": [
+        "D variable y malla irregular requieren discretización conservativa."
+      ],
+      "dimensional_verification": [
+        "u tiene unidad U; D tiene L²/T; ∇u tiene U/L; D∇u tiene U·L/T.",
+        "La divergencia tiene U/T, igual que ∂u/∂t."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "15/15 técnicas D36 cubiertas mediante derivaciones matemáticas o proxy visual seguro",
+      "Cada registro contiene pasos, resultado, supuestos, límites y verificación dimensional",
+      "Euler, RK4, Verlet y CFL conservan unidades temporales y espaciales",
+      "Poisson, CG, multigrid, volúmenes finitos y FEM tipan operador, residuo, solución y carga",
+      "SPH, Cauchy y Kelvin–Voigt conservan densidad, tensión, fuerza y viscosidad",
+      "Plasticidad se sustituye por deformación visual art-directed sin criterio de fallo físico",
+      "Difusión anisotrópica mantiene flujo y tasa de cambio dimensionalmente compatibles"
+    ],
+    "limitations": [
+      "La ficha D36:13 no modela fluencia ni daño físico; es una alternativa visual. Los solvers restantes requieren pruebas numéricas, estabilidad y convergencia en puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  },
+  "safety_scope": {
+    "record": "D36:13",
+    "mode": "VISUAL_ONLY_NONPHYSICAL",
+    "excluded_physical_content": [
+      "criterio de fluencia J2/von Mises",
+      "return mapping constitutivo",
+      "predicción de deformación/daño físico bajo cargas"
+    ],
+    "replacement": "deformación artística por máscara, progreso y amplitud controlada"
+  }
+}

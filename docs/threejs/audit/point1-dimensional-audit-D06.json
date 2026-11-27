@@ -1,0 +1,962 @@
+{
+  "title": "Auditoría dimensional punto 1 — D06 Terrenos, montañas, rocas y erosión",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D06",
+    "domain": "Terrenos, montañas, rocas y erosión",
+    "record_count": 8,
+    "excluded_protected_records": 4,
+    "excluded_reason": "D06:1, D06:4, D06:7 y D06:8 están protegidos por el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud global de escena; SI solo si declarado.",
+    "field_units": "Los campos de altura y desplazamiento usan longitud; ruido y parámetros normalizados son adimensionales.",
+    "angles": "Radianes."
+  },
+  "records": [
+    {
+      "record_key": "D06:0",
+      "name": "Heightfield",
+      "variables": [
+        {
+          "symbol": "x,z",
+          "meaning": "coordenadas horizontales",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "h(x,z)",
+          "meaning": "elevación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "función escalar finita"
+        },
+        {
+          "symbol": "P",
+          "meaning": "posición 3D",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "(x,h,z)"
+        }
+      ],
+      "constraints": [
+        "x,z y h usan la misma unidad de longitud; heightfield representa una sola altura por coordenada horizontal."
+      ],
+      "valid_domain": [
+        "Dominio xz acotado o muestreable; h evaluable."
+      ],
+      "boundary_conditions": [
+        "Definir altura y continuidad en bordes; tiles deben coincidir en costuras."
+      ],
+      "dimensional_checks": [
+        "x,z,h and the coordinates of P have dimension L; P=(x,h,z) is dimensionally homogeneous.",
+        "A gradient ∂h/∂x or ∂h/∂z is dimensionless; normal construction must use derivatives in consistent length units.",
+        "A heightfield cannot represent overhangs or multiple heights for one (x,z); this is a geometric domain restriction."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:2",
+      "name": "Ridged multifractal",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición espacial de muestreo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "f_i",
+          "meaning": "frecuencia espacial de octava i",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "f_i>0; normalmente f_i=f_0·λ^i"
+        },
+        {
+          "symbol": "n_i",
+          "meaning": "ruido por octava",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado según generador"
+        },
+        {
+          "symbol": "a,λ",
+          "meaning": "ganancia y lacunaridad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤a<1; λ>1"
+        },
+        {
+          "symbol": "H0,h",
+          "meaning": "amplitud base y altura final",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "H0 finita; h finita"
+        }
+      ],
+      "constraints": [
+        "El argumento de noise debe ser adimensional; si p tiene longitud, multiplicar por frecuencia de dimensión L⁻¹.",
+        "Amplitud base debe aportar longitud; suma de octavas dimensionalmente homogénea."
+      ],
+      "valid_domain": [
+        "Número finito de octavas; a y λ finitos; ruido definido."
+      ],
+      "boundary_conditions": [
+        "Cero octavas produce campo base definido; amplitud base cero produce relieve plano."
+      ],
+      "dimensional_checks": [
+        "Noise arguments f_i p are dimensionless: p has L and each spatial frequency f_i has L^-1.",
+        "Noise values n_i, ridge transforms and octave gains are dimensionless; a base amplitude H0 supplies L to the final height.",
+        "For finite octave count the sum is finite; if an infinite series is used, convergence requires a_i decay and bounded noise."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:3",
+      "name": "Domain warping",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "punto de consulta",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "n(p)",
+          "meaning": "campo de deformación/ruido",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector adimensional"
+        },
+        {
+          "symbol": "q",
+          "meaning": "amplitud de warp",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "longitud"
+        },
+        {
+          "symbol": "p′",
+          "meaning": "punto deformado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "p+q·n(p)"
+        },
+        {
+          "symbol": "f",
+          "meaning": "campo evaluado",
+          "unit": "unidad de salida declarada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "función definida en p′"
+        }
+      ],
+      "constraints": [
+        "q·noise debe tener dimensión de longitud para sumarse a p.",
+        "Si noise devuelve campo dimensional, reformular q para evitar doble escala."
+      ],
+      "valid_domain": [
+        "f evaluable en dominio expandido por máximo warp."
+      ],
+      "boundary_conditions": [
+        "q=0 recupera f(p).",
+        "Expandir bounds por |q|·max|noise| para evitar cortes."
+      ],
+      "dimensional_checks": [
+        "p and p′ have L; n(p) is dimensionless and q has L, so q·n(p) is a displacement of L.",
+        "If noise is sampled at scaled coordinates, its frequency has L^-1 and the argument remains dimensionless.",
+        "f(p′) retains the output units of f; warping changes coordinates, not the field's physical dimension."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:5",
+      "name": "Erosión hidráulica simplificada",
+      "variables": [
+        {
+          "symbol": "h",
+          "meaning": "altura de terreno",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "slope",
+          "meaning": "pendiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "gradiente adimensional"
+        },
+        {
+          "symbol": "water",
+          "meaning": "cantidad de agua por área",
+          "unit": "m (espesor equivalente por área)",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo; interpretar como profundidad equivalente, no flujo"
+        },
+        {
+          "symbol": "sediment",
+          "meaning": "sedimento por área",
+          "unit": "m (espesor equivalente por área)",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo; interpretar como profundidad equivalente, no flujo"
+        },
+        {
+          "symbol": "capacity",
+          "meaning": "capacidad de transporte de sedimento por unidad de ancho y tiempo",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0; caudal de sedimento por unidad de ancho"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso simulación",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "q_w,q_s",
+          "meaning": "caudal de agua y flujo de sedimento por unidad de ancho",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; flujo orientado entre celdas"
+        }
+      ],
+      "constraints": [
+        "water es profundidad (m), sediment es espesor equivalente de sedimento (m), slope es adimensional y Δt está en segundos.",
+        "q_w y q_s son caudales/transportes por unidad de ancho (m²/s); capacity=K_c·|q_w|·slope solo es homogénea si K_c es adimensional bajo esta parametrización.",
+        "El balance local de sedimento usa ∂sediment/∂t=−∇·q_s+depositionRate; ambos términos tienen m/s. La variación por paso es Δsediment=Δt(−∇·q_s+depositionRate).",
+        "La conservación exige que el flujo que sale de una celda entre en la vecina o se registre como salida por frontera; no basta con actualizar cada celda independientemente."
+      ],
+      "valid_domain": [
+        "Alturas, agua y sedimento finitos; agua/sedimento no negativos; paso temporal positivo.",
+        "q_w y q_s finitos en m²/s; pendiente adimensional; celdas con dimensiones y áreas declaradas."
+      ],
+      "boundary_conditions": [
+        "Fronteras cerradas tienen flujo normal nulo; fronteras abiertas registran explícitamente flujo saliente/entrante.",
+        "El balance limita erosión para no producir espesor negativo; la masa/volumen perdido se deposita o sale por frontera según el flujo.",
+        "Δt=0 no cambia el estado."
+      ],
+      "dimensional_checks": [
+        "q_w y q_s tienen L²/T; su divergencia espacial tiene L/T, igual que la tasa de cambio de espesor.",
+        "Δt·∇·q_s tiene L; se suma/resta a sediment, que tiene L.",
+        "K_c y slope son adimensionales; capacity hereda L²/T de q_w."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:6",
+      "name": "Erosión térmica",
+      "variables": [
+        {
+          "symbol": "h_i,h_j",
+          "meaning": "alturas vecinas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "Δh",
+          "meaning": "diferencia de altura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "h_i−h_j"
+        },
+        {
+          "symbol": "talusAngle",
+          "meaning": "ángulo de reposo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,π/2)"
+        },
+        {
+          "symbol": "Δx",
+          "meaning": "distancia entre celdas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "Δh_crit",
+          "meaning": "umbral altura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δx·tan(talusAngle)"
+        }
+      ],
+      "constraints": [
+        "Comparar diferencia de altura con Δx·tan(ángulo); no comparar altura directamente con un ángulo.",
+        "Transferencia de material debe conservar suma de alturas ponderada por área."
+      ],
+      "valid_domain": [
+        "Rejilla con espaciamiento positivo; ángulo de reposo definido."
+      ],
+      "boundary_conditions": [
+        "En bordes considerar vecinos existentes y condición de flujo.",
+        "Si Δh≤Δhcrit no transferir; evitar overshoot por subpaso o límite de transferencia."
+      ],
+      "dimensional_checks": [
+        "Δh and Δx have L; Δh_crit=Δx·tan(talusAngle) also has L because tan(angle) is dimensionless.",
+        "talusAngle is an angle; slope threshold comparison is dimensionally consistent only after converting angle to tan(angle).",
+        "Transferred material must preserve height×cell-area volume (L³) for equal-density terrain."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:9",
+      "name": "Cascada de detalle",
+      "variables": [
+        {
+          "symbol": "D_i",
+          "meaning": "desplazamiento por escala",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "f_i",
+          "meaning": "frecuencia espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "frecuencia creciente"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "amplitud",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "decreciente con frecuencia"
+        },
+        {
+          "symbol": "D_total",
+          "meaning": "desplazamiento total",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "suma finita"
+        }
+      ],
+      "constraints": [
+        "Todos los D_i son longitudes; la frecuencia no se suma con amplitud.",
+        "Amplitud debe decrecer o acotarse para convergencia visual y numérica."
+      ],
+      "valid_domain": [
+        "Número finito de niveles y frecuencias/amplitudes finitas."
+      ],
+      "boundary_conditions": [
+        "Sin niveles de detalle, D_total=0 o base declarada.",
+        "En bordes aplicar continuidad para evitar costuras."
+      ],
+      "dimensional_checks": [
+        "D_i, a_i and D_total have L; their sum is dimensionally homogeneous.",
+        "f_i has L^-1; f_i p is dimensionless for procedural noise sampling.",
+        "Amplitude-frequency schedule is a model choice; decreasing amplitude alone does not guarantee convergence for an infinite number of levels."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:10",
+      "name": "Vegetación por bioma",
+      "variables": [
+        {
+          "symbol": "altitude",
+          "meaning": "altitud",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "slope",
+          "meaning": "pendiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "gradiente"
+        },
+        {
+          "symbol": "moisture",
+          "meaning": "humedad",
+          "unit": "0–1 normalizada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "exposure",
+          "meaning": "exposición",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "definición normalizada"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "semilla",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fija"
+        },
+        {
+          "symbol": "species",
+          "meaning": "clase de especie",
+          "unit": "categoría discreta",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "conjunto finito"
+        }
+      ],
+      "constraints": [
+        "Variables ambientales deben normalizarse y documentarse; no mezclar escalas arbitrarias.",
+        "La salida es una clase o distribución de especies, no una magnitud física."
+      ],
+      "valid_domain": [
+        "Variables dentro de rangos calibrados; seed entero."
+      ],
+      "boundary_conditions": [
+        "En umbrales de bioma definir prioridad/desempate para evitar parpadeo.",
+        "Datos fuera de rango deben saturarse o marcarse inválidos."
+      ],
+      "dimensional_checks": [
+        "Altitude has L; slope and normalized moisture/exposure are dimensionless inputs; seed and species are discrete.",
+        "The classifier/probability output is categorical or dimensionless; do not add it to physical environmental quantities.",
+        "Any thresholds must use the same normalization and calibration as the input features."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D06:11",
+      "name": "Modelo de dispersión microfacet para cabello",
+      "variables": [
+        {
+          "symbol": "ω_i,ω_o,ω_h,ω_m",
+          "meaning": "direcciones incidente/saliente, micronormal y macronormal/mesonormal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vectores unitarios; marco longitudinal-azimutal declarado"
+        },
+        {
+          "symbol": "D(ω_h,ω_m)",
+          "meaning": "distribución de micronormales",
+          "unit": "sr⁻¹",
+          "dimension": "inversa de ángulo sólido (sr⁻¹; ángulo sólido adimensional en SI base)",
+          "domain": "D≥0 y normalizada: ∫ D |ω_h·ω_m| dω_h=1"
+        },
+        {
+          "symbol": "R,T,G",
+          "meaning": "reflectancia Fresnel, transmitancia y enmascaramiento/sombreado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤R,T,G≤1; T=1−R por interfaz dieléctrica"
+        },
+        {
+          "symbol": "α,θ_i,θ_o,φ",
+          "meaning": "inclinación de cutícula y ángulos longitudinales/azimutales",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; convención angular del artículo"
+        },
+        {
+          "symbol": "r_f,ds,ℓ_path",
+          "meaning": "radio de fibra, diferencial longitudinal y recorrido interno",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_f>0; ds≥0; ℓ_path≥0"
+        },
+        {
+          "symbol": "σ_a,σ_s",
+          "meaning": "coeficientes de absorción y dispersión internos",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos; definidos por longitud de recorrido"
+        },
+        {
+          "symbol": "ρ_e,ρ_p",
+          "meaning": "concentraciones normalizadas de pigmentos eumelanina/pheomelanina",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativas; escala de concentración declarada"
+        },
+        {
+          "symbol": "A_t,A_tr",
+          "meaning": "atenuación a lo largo de recorridos transmitidos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "A=exp(−σ_a ℓ_path); 0≤A≤1"
+        },
+        {
+          "symbol": "S_R,S_TT,S_TRT,S",
+          "meaning": "BCSDF de reflexión, transmisión y transmisión-reflexión",
+          "unit": "sr⁻¹",
+          "dimension": "inversa de ángulo sólido",
+          "domain": "no negativa e integrable respecto de dω_i; S=S_R+S_TT+S_TRT"
+        },
+        {
+          "symbol": "σ_{a,e},σ_{a,p}",
+          "meaning": "coeficientes de absorción específicos de pigmentos",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos"
+        },
+        {
+          "symbol": "e",
+          "meaning": "excentricidad de sección elíptica",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤e<1"
+        },
+        {
+          "symbol": "γ_m,γ_t,φ_o",
+          "meaning": "parámetros angulares de sección y dirección",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; convención de artículo"
+        }
+      ],
+      "constraints": [
+        "La relación radiométrica del artículo es L_o(ω_o)=∫L_i(ω_i)S(ω_i,ω_o)cosθ_i dω_i; por tanto S tiene unidad sr⁻¹ bajo la medida angular sólida.",
+        "Para el lóbulo R, S_R=R/(8 cosθ_o cosθ_i) ∫D(ω_h,ω_m)G(ω_i,ω_o)dφ_m; D tiene sr⁻¹ y el resto de factores/variable angular de integración son adimensionales, por lo que S_R conserva sr⁻¹.",
+        "Para los lóbulos TT/TRT, productos de distribuciones D_i, medidas angulares y jacobianos de refracción deben conservar sr⁻¹; índices refractivos, cosenos, Fresnel y G son adimensionales.",
+        "La absorción interna A_t=exp(−σ_a ℓ_path) requiere σ_a en m⁻¹ y recorrido ℓ_path en m; el exponente es adimensional.",
+        "El artículo normaliza el radio del cilindro a 1 durante la derivación; al usar radio físico r_f, los elementos de área/proyección deben incorporar la misma escala y su cociente geométrico permanece adimensional.",
+        "σ_a=ρ_eσ_{a,e}+ρ_pσ_{a,p}; las concentraciones normalizadas son adimensionales y los coeficientes específicos aportan m⁻¹.",
+        "La sección elíptica usa excentricidad e adimensional; sus factores métricos son adimensionales y r_f aporta la escala de longitud."
+      ],
+      "valid_domain": [
+        "Fibra cilíndrica o elíptica suave, radio positivo, marco local regular y direcciones incidentes/salientes válidas.",
+        "Distribución microfacet Beckmann o GGX no negativa y normalizada; parámetro de rugosidad y tilt dentro del dominio de la distribución.",
+        "σ_a,σ_s≥0; recorridos internos no negativos; índice refractivo relativo positivo.",
+        "El modelo del artículo limita lobos principales a R, TT y TRT; los lóbulos de orden superior se omiten como aproximación."
+      ],
+      "boundary_conditions": [
+        "R=0 anula contribución reflejada; T=0 anula transmisión correspondiente.",
+        "Recorrido interno cero da A=1; σ_a=0 también da A=1.",
+        "En dirección rasante, límites y denominadores deben evaluarse con las condiciones del artículo; no introducir epsilon sin escala.",
+        "Radio físico r_f=0 es degenerado; cross-section circular se obtiene como caso particular de la formulación elíptica."
+      ],
+      "dimensional_checks": [
+        "Eq. (2): L_o y L_i son radiancias; dω_i aporta medida sr y cosθ es adimensional; S debe tener sr⁻¹ para que la integral conserve radiancia.",
+        "Eq. (5): ∫D|ω_h·ω_m|dω_h=1 implica D en sr⁻¹ bajo normalización angular.",
+        "Eq. (12): R,G y cosenos son adimensionales; ∫D dφ mantiene sr⁻¹; S_R queda sr⁻¹.",
+        "Absorción: σ_aℓ_path tiene (m⁻¹)(m)=1; A_t y A_tr son adimensionales.",
+        "Geometría de fibra: r_f, ds y ℓ_path tienen L; direcciones, índices relativos, ángulos y excentricidad son adimensionales.",
+        "ρ_eσ_{a,e} y ρ_pσ_{a,p} tienen m⁻¹; al multiplicar por recorrido interno m, la atenuación exponencial es adimensional.",
+        "e y los ángulos son adimensionales; el elemento de área de sección mantiene m² tras incluir r_f."
+      ],
+      "status": "REVIEWED_POINT1",
+      "domain": [
+        "Direcciones incidentes/salientes válidas y marcos locales de fibra definidos; evitar semivectores nulos y configuraciones fuera de los dominios de integración.",
+        "Distribución D no negativa, integrable y normalizada; roughness/β dentro del dominio GGX o Beckmann empleado.",
+        "σ_a≥0, longitudes internas ℓ≥0, η>0, radio de fibra r_f>0; para sección elíptica 0≤e<1.",
+        "BCSDF definida por las integrales R (Eq. 12), TT (Eq. 23) y TRT (Eq. 24) del artículo; extensión elíptica mediante Eqs. (28)–(30)."
+      ],
+      "boundary": [
+        "Radio físico r_f=0 es degenerado y se rechaza; radio normalizado del artículo se fija en 1.",
+        "Cuando σ_a=0 o ℓ=0, A=exp(−σ_aℓ)=1; para σ_aℓ→∞, A→0.",
+        "En α=0 desaparece el tilt de cutícula; el modelo recupera la orientación no inclinada.",
+        "En e=0 la sección elíptica se reduce al círculo; e→1 es degeneración y queda excluido.",
+        "En cosθ→0 o denominadores angulares próximos a cero, evaluar límites/soporte del modelo y no introducir epsilons arbitrarios."
+      ],
+      "source_reference": {
+        "authors": "W. Huang, M. B. Hullin, J. Hanika",
+        "year": 2022,
+        "title": "A Microfacet-based Hair Scattering Model",
+        "journal": "Computer Graphics Forum 41(4), 79–91",
+        "doi": "10.1111/cgf.14588",
+        "url": "https://doi.org/10.1111/cgf.14588",
+        "equation_locations": [
+          "Eq. (2) BCSDF radiometric definition",
+          "Eq. (5) microfacet normal distribution normalization",
+          "Eq. (12) reflected R-lobe BCSDF",
+          "Eqs. (17), (23), (24) absorption and transmitted lobes",
+          "Eqs. (28)–(30) elliptical fibers"
+        ]
+      }
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "8/12 técnicas no protegidas incluidas",
+      "Todos los registros tienen variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
+      "D06:5 corregida: capacidad de transporte y flujos de sedimento tipados como m²/s; balance local conserva espesor/volumen",
+      "Cuatro registros protegidos excluidos",
+      "D06:11 incorpora coeficientes espectrales de absorción de pigmento y parámetros de sección elíptica tipados."
+    ],
+    "limitations": [
+      "La formulación hidráulica es una aproximación discreta; coeficientes de transporte y deposición requieren calibración, pero sus unidades y balance local quedan definidos."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

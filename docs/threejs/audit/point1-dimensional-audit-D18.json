@@ -1,0 +1,1368 @@
+{
+  "title": "Auditoría dimensional punto 1 — D18 Escalas microscópicas y macroscópicas",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D18",
+    "domain": "Escalas microscópicas y macroscópicas",
+    "catalog_records": 12,
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D18 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "SI_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Unidad global de longitud de escena; Three.js no impone metros.",
+    "dimensionless": "1",
+    "probability": "Una densidad espacial de probabilidad normalizada tiene dimensión L^-3; un campo artístico se marca adimensional.",
+    "scale": "Cambiar de escala debe convertir longitudes explícitamente; seeds/LOD son discretos."
+  },
+  "records": [
+    {
+      "record_key": "D18:0",
+      "name": "Hormiga / insecto",
+      "variables": [
+        {
+          "symbol": "L_body",
+          "meaning": "Escala corporal y segmentos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dimensiones positivas"
+        },
+        {
+          "symbol": "p_i",
+          "meaning": "Posiciones de articulaciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vectores finitos"
+        },
+        {
+          "symbol": "l_j",
+          "meaning": "Longitudes de huesos/segmentos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "l_j>0"
+        },
+        {
+          "symbol": "θ_j",
+          "meaning": "Ángulos articulares",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "límites anatómicos"
+        },
+        {
+          "symbol": "s",
+          "meaning": "Escala de criatura",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "s>0"
+        }
+      ],
+      "constraints": [
+        "Las cadenas IK conservan longitudes de segmento; posiciones, longitudes y escala deben usar la misma unidad.",
+        "Antenna curves y patas deben anclarse al marco corporal y usar jerarquía consistente."
+      ],
+      "valid_domain": [
+        "Escala positiva; articulaciones y segmentos finitos; longitudes positivas."
+      ],
+      "boundary_conditions": [
+        "Objetivo fuera de alcance usa extensión/pose límite explícita.",
+        "En articulación singular, conservar orientación anterior o usar pole vector estable."
+      ],
+      "dimensional_checks": [
+        "p_i, l_j y L_body tienen L; ángulos y escala son adimensionales.",
+        "Las transformaciones de rig tienen bloque lineal adimensional y traslación L."
+      ]
+    },
+    {
+      "record_key": "D18:1",
+      "name": "Colonia / enjambre",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "Posición de agente",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "v_i",
+          "meaning": "Velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "r_n",
+          "meaning": "Radio de vecinos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_n>0"
+        },
+        {
+          "symbol": "food",
+          "meaning": "Campo de alimento",
+          "unit": "unidad normalizada o concentración declarada",
+          "dimension": "adimensional o unidad de concentración",
+          "domain": "finito"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "Semilla aleatoria",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fija para reproducibilidad"
+        },
+        {
+          "symbol": "S_i",
+          "meaning": "vector de separación",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vecindario y distancia mínima definidos"
+        },
+        {
+          "symbol": "C_i",
+          "meaning": "vector de cohesión hacia centroide",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "centroide de vecinos válidos"
+        },
+        {
+          "symbol": "F_food",
+          "meaning": "campo de alimento normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito y diferenciable"
+        },
+        {
+          "symbol": "∇F_food",
+          "meaning": "gradiente espacial del alimento",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "O_i",
+          "meaning": "dirección de evasión normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria o nula"
+        },
+        {
+          "symbol": "w_s,w_c,w_f,w_o",
+          "meaning": "ganancias para salida de aceleración",
+          "unit": "m²/s²; s⁻²; m²/s²; m/s²",
+          "dimension": "w_s:L²T⁻²; w_c:T⁻²; w_f:L²T⁻²; w_o:LT⁻²",
+          "domain": "finitas y calibradas"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración resultante",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        }
+      ],
+      "constraints": [
+        "a_i=w_sS_i+w_cC_i+w_f∇F_food+w_oO_i; cada término debe tener L/T².",
+        "F_food es adimensional: ∇F_food tiene L⁻¹; O_i es dirección adimensional. Las ganancias son respectivamente L²/T², T⁻², L²/T² y L/T².",
+        "v_i′=clamp(v_i+a_iΔt) conserva L/T; p_i′=p_i+v_i′Δt conserva L."
+      ],
+      "valid_domain": [
+        "Población finita; estados y parámetros finitos; radio de vecindad positivo."
+      ],
+      "boundary_conditions": [
+        "Vecindario vacío usa regla de comportamiento individual definida.",
+        "Campo food ausente o inválido debe tener fallback determinista."
+      ],
+      "dimensional_checks": [
+        "w_sS_i, w_cC_i, w_f∇F_food y w_oO_i tienen L/T².",
+        "a_iΔt tiene L/T; v_i′Δt tiene L; todas las actualizaciones son homogéneas."
+      ]
+    },
+    {
+      "record_key": "D18:2",
+      "name": "Célula",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "Punto de evaluación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "d_membrane",
+          "meaning": "Campo SDF de membrana",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "signo interior/exterior coherente"
+        },
+        {
+          "symbol": "r_org",
+          "meaning": "Escala/radio de orgánulo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_org>0"
+        },
+        {
+          "symbol": "p_org",
+          "meaning": "Posición de orgánulo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dentro de región permitida"
+        },
+        {
+          "symbol": "k",
+          "meaning": "Suavizado de membrana",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        }
+      ],
+      "constraints": [
+        "SDF de membrana y orgánulos deben usar mismo marco y unidad; unión suave requiere parámetro k con L.",
+        "La membrana define frontera cerrada; las instancias internas deben respetar volumen interior o regla de penetración."
+      ],
+      "valid_domain": [
+        "Radios y escalas positivas; SDF finito; geometría orgánica sin autointersecciones críticas."
+      ],
+      "boundary_conditions": [
+        "d_membrane=0 define membrana; gradiente nulo requiere normal alternativa.",
+        "Orgánulos que tocan membrana deben clamp/reubicar o permitir contacto explícito."
+      ],
+      "dimensional_checks": [
+        "p, d_membrane, r_org, p_org y k tienen L.",
+        "Operaciones smooth-min usan cocientes adimensionales y devuelven distancia L."
+      ]
+    },
+    {
+      "record_key": "D18:3",
+      "name": "Cristal",
+      "variables": [
+        {
+          "symbol": "A",
+          "meaning": "Matriz de vectores de red",
+          "unit": "columnas en m",
+          "dimension": "cada vector base tiene L",
+          "domain": "no degenerada"
+        },
+        {
+          "symbol": "n",
+          "meaning": "Vector entero de índices de celda",
+          "unit": "conteo entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "componentes enteras"
+        },
+        {
+          "symbol": "p",
+          "meaning": "Punto de red",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "basis",
+          "meaning": "Parámetros de celda",
+          "unit": "m y rad",
+          "dimension": "longitudes L; ángulos adimensionales",
+          "domain": "celda válida"
+        }
+      ],
+      "constraints": [
+        "p=A·n; A aporta L y n es adimensional, por lo que p tiene L.",
+        "La matriz de red debe ser no singular; parámetros cristalográficos deben satisfacer desigualdades geométricas."
+      ],
+      "valid_domain": [
+        "Vectores base finitos y linealmente independientes; índices enteros dentro de rango."
+      ],
+      "boundary_conditions": [
+        "n=(0,0,0) devuelve origen de red.",
+        "Celda degenerada (volumen cero) debe rechazarse; límites de índices se manejan explícitamente."
+      ],
+      "dimensional_checks": [
+        "A tiene dimensión L por columna; n es adimensional; p tiene L.",
+        "Volumen de celda tiene L³; ángulos de red son adimensionales (radianes)."
+      ]
+    },
+    {
+      "record_key": "D18:4",
+      "name": "Átomo estilizado",
+      "variables": [
+        {
+          "symbol": "r",
+          "meaning": "Distancia radial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r≥0"
+        },
+        {
+          "symbol": "θ,φ",
+          "meaning": "Coordenadas angulares",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dominio angular definido"
+        },
+        {
+          "symbol": "ψ",
+          "meaning": "Campo orbital visual",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizado para visualización"
+        },
+        {
+          "symbol": "ρ_prob",
+          "meaning": "Densidad de probabilidad conceptual opcional",
+          "unit": "m⁻³",
+          "dimension": {
+            "L": -3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "si se interpreta como densidad espacial normalizada"
+        },
+        {
+          "symbol": "R(r)",
+          "meaning": "perfil radial de densidad de probabilidad conceptual",
+          "unit": "m⁻³",
+          "dimension": {
+            "L": -3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizable si se usa interpretación probabilística"
+        },
+        {
+          "symbol": "A(θ,φ)",
+          "meaning": "perfil angular normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "ΔV",
+          "meaning": "volumen de celda de muestreo",
+          "unit": "m³",
+          "dimension": {
+            "L": 3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        }
+      ],
+      "constraints": [
+        "ψ se mantiene como campo visual adimensional; no se interpreta como función de onda física.",
+        "Si ρ_prob=R(r)A(θ,φ) representa densidad espacial normalizada, R y ρ_prob tienen m⁻³, A es adimensional y ∫ρ_prob dV=1.",
+        "La intensidad de muestra P=ρ_probΔV es adimensional."
+      ],
+      "valid_domain": [
+        "r finito; ángulos válidos; singularidades del origen tratadas por el modelo elegido."
+      ],
+      "boundary_conditions": [
+        "En r=0 aplicar límite analítico o valor regularizado.",
+        "En infinito truncar dominio con error/umbral declarado; no confundir recorte visual con normalización física."
+      ],
+      "dimensional_checks": [
+        "R y ρ_prob tienen L⁻³; A es adimensional; ΔV tiene L³.",
+        "ρ_probΔV y la integral volumétrica son adimensionales; el modelo sigue siendo conceptual/visual."
+      ]
+    },
+    {
+      "record_key": "D18:5",
+      "name": "Planeta",
+      "variables": [
+        {
+          "symbol": "R",
+          "meaning": "Radio planetario",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "R>0"
+        },
+        {
+          "symbol": "lat,lon",
+          "meaning": "Latitud y longitud",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "lat∈[−π/2,π/2], lon en intervalo periódico"
+        },
+        {
+          "symbol": "h(lat,lon)",
+          "meaning": "Altura de terreno",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y acotada"
+        },
+        {
+          "symbol": "p",
+          "meaning": "Posición de superficie",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "R+h>0"
+        }
+      ],
+      "constraints": [
+        "La altura h se suma al radio R; ambos tienen L y deben compartir unidad.",
+        "Conversión lat/lon a cartesiano usa senos/cosenos adimensionales; definir datum y origen."
+      ],
+      "valid_domain": [
+        "R>0; h acotada; R+h>0; coordenadas angulares válidas."
+      ],
+      "boundary_conditions": [
+        "Longitud cruza ±π con continuidad periódica.",
+        "En polos, longitud es singular como coordenada; usar vector cartesiano para continuidad."
+      ],
+      "dimensional_checks": [
+        "R,h y p tienen L; lat/lon son ángulos adimensionales.",
+        "El radio local R+h conserva L."
+      ]
+    },
+    {
+      "record_key": "D18:6",
+      "name": "Atmósfera planetaria",
+      "variables": [
+        {
+          "symbol": "h",
+          "meaning": "Altura sobre superficie",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "h≥0"
+        },
+        {
+          "symbol": "H",
+          "meaning": "Altura de escala",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "H>0"
+        },
+        {
+          "symbol": "ρ0",
+          "meaning": "Coeficiente base de extinción",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ0≥0"
+        },
+        {
+          "symbol": "ρ(h)",
+          "meaning": "Extinción atmosférica",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        }
+      ],
+      "constraints": [
+        "ρ(h)=ρ0exp(−(h−h0)/H) es el coeficiente de extinción efectivo; ρ0 y ρ tienen m⁻¹.",
+        "T=exp(−∫ρ(h(s))ds); no multiplicar por un segundo σ_t si ρ ya representa extinción."
+      ],
+      "valid_domain": [
+        "h≥0; H>0; ρ0≥0; valores finitos."
+      ],
+      "boundary_conditions": [
+        "h=0 devuelve ρ0.",
+        "Para h≫H la densidad tiende a cero; evitar underflow numérico."
+      ],
+      "dimensional_checks": [
+        "(h−h0)/H es adimensional; ρ conserva m⁻¹.",
+        "∫ρds es adimensional y la transmitancia T no tiene unidad."
+      ]
+    },
+    {
+      "record_key": "D18:7",
+      "name": "Sistema orbital",
+      "variables": [
+        {
+          "symbol": "a",
+          "meaning": "Semieje mayor",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "a>0"
+        },
+        {
+          "symbol": "e",
+          "meaning": "Excentricidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤e<1 para órbita elíptica"
+        },
+        {
+          "symbol": "ν,E,M",
+          "meaning": "Anomalías verdadera, excéntrica y media",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ángulos definidos"
+        },
+        {
+          "symbol": "r",
+          "meaning": "Radio orbital",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "n",
+          "meaning": "Movimiento medio",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "si se calcula evolución temporal"
+        },
+        {
+          "symbol": "μ=GM",
+          "meaning": "parámetro gravitacional",
+          "unit": "m³/s²",
+          "dimension": {
+            "L": 3,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "μ>0"
+        },
+        {
+          "symbol": "h_spec",
+          "meaning": "momento angular específico",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito; h_spec=√(μa(1−e²))"
+        }
+      ],
+      "constraints": [
+        "r(ν)=a(1−e²)/(1+e cosν) usa a en m y e/ν adimensionales.",
+        "h_spec=√(μa(1−e²)) tiene m²/s; n=√(μ/a³) tiene s⁻¹; M=n(t−t0) es adimensional angular."
+      ],
+      "valid_domain": [
+        "a>0; 0≤e<1 para elipse; denominador positivo; anomalías finitas."
+      ],
+      "boundary_conditions": [
+        "e=0 produce órbita circular r=a.",
+        "e→1 es límite parabólico; no usar fórmula elíptica como órbita cerrada en e≥1."
+      ],
+      "dimensional_checks": [
+        "μa tiene L⁴/T²; su raíz tiene L²/T; n tiene T⁻¹.",
+        "M,E,ν,e son adimensionales angulares/excentricidad; r tiene L."
+      ]
+    },
+    {
+      "record_key": "D18:8",
+      "name": "Galaxia espiral",
+      "variables": [
+        {
+          "symbol": "r,r0",
+          "meaning": "Radio actual y referencia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r,r0>0"
+        },
+        {
+          "symbol": "θ0,θ",
+          "meaning": "Ángulos espirales",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "pitch",
+          "meaning": "Ángulo de paso",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "pitch≠0"
+        },
+        {
+          "symbol": "N_arm",
+          "meaning": "Número de brazos",
+          "unit": "conteo entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "N_arm≥1"
+        }
+      ],
+      "constraints": [
+        "ln(r/r0) requiere razón adimensional; tan(pitch) es adimensional.",
+        "Pitch cero hace singular la forma logarítmica; definir límite/otra parametrización."
+      ],
+      "valid_domain": [
+        "r>0; r0>0; pitch distinto de cero; ángulos finitos."
+      ],
+      "boundary_conditions": [
+        "En r=r0, θ=θ0.",
+        "Cerca de r=0 el logaritmo diverge; truncar radio interior o usar núcleo."
+      ],
+      "dimensional_checks": [
+        "r/r0 es adimensional; logaritmo válido.",
+        "θ y pitch son ángulos adimensionales; coordenadas cartesianas resultantes tienen L."
+      ]
+    },
+    {
+      "record_key": "D18:9",
+      "name": "Nebulosa",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "Posición de evaluación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "f_i",
+          "meaning": "Frecuencias espaciales",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "n_fbm,n_filament",
+          "meaning": "Campos de ruido",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados/acotados"
+        },
+        {
+          "symbol": "ρ0",
+          "meaning": "escala base de coeficiente de extinción volumétrica",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "coeficiente de extinción visual resultante",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "ρ(p)=ρ0·clamp(F(p)+β·filament(p),0,ρ_max); F y filament son adimensionales y ρ0 tiene m⁻¹.",
+        "Las frecuencias f_i tienen m⁻¹ para que f_i·p sea adimensional."
+      ],
+      "valid_domain": [
+        "p y frecuencias finitos; ruido acotado; escala no negativa."
+      ],
+      "boundary_conditions": [
+        "En regiones fuera de bounds, definir densidad cero o continuidad de tile.",
+        "Campo debe limitarse a valores no negativos si representa densidad/extinción."
+      ],
+      "dimensional_checks": [
+        "f_i·p es adimensional; campos de ruido y filament son adimensionales.",
+        "ρ0 y ρ tienen m⁻¹; la transmitancia usa exp(−∫ρds)."
+      ]
+    },
+    {
+      "record_key": "D18:10",
+      "name": "Campo de estrellas",
+      "variables": [
+        {
+          "symbol": "R",
+          "meaning": "Radio de esfera de muestreo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "R>0"
+        },
+        {
+          "symbol": "u_i",
+          "meaning": "Dirección aleatoria",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria uniforme en esfera"
+        },
+        {
+          "symbol": "p_i",
+          "meaning": "Posición estelar",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "p_i=R·u_i"
+        },
+        {
+          "symbol": "seed_i",
+          "meaning": "Semilla por estrella",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "estable"
+        },
+        {
+          "symbol": "N_star",
+          "meaning": "Cantidad de estrellas",
+          "unit": "conteo entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "N_star≥0"
+        },
+        {
+          "symbol": "c",
+          "meaning": "centro de la esfera de muestreo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "U",
+          "meaning": "variable radial uniforme opcional para muestreo volumétrico",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "U∈[0,1]"
+        }
+      ],
+      "constraints": [
+        "Para campo celeste sobre una esfera, p_i=c+R·u_i con u_i uniforme en dirección y ||u_i||=1.",
+        "Para muestreo uniforme dentro del volumen de la esfera, usar r=R·U^(1/3); no usar r=R, que solo muestrea la superficie."
+      ],
+      "valid_domain": [
+        "R>0; N_star entero no negativo; generador pseudoaleatorio definido."
+      ],
+      "boundary_conditions": [
+        "N_star=0 devuelve conjunto vacío.",
+        "Reutilizar misma semilla reproduce las mismas posiciones; cambiar R escala todas las posiciones linealmente."
+      ],
+      "dimensional_checks": [
+        "R,c,p_i tienen L; u_i y U son adimensionales.",
+        "R·U^(1/3) tiene L; dirección uniforme y radio radial se muestrean por separado."
+      ]
+    },
+    {
+      "record_key": "D18:11",
+      "name": "Universo procedural",
+      "variables": [
+        {
+          "symbol": "scale_level",
+          "meaning": "Nivel de escala jerárquica",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero/discreto"
+        },
+        {
+          "symbol": "L_level",
+          "meaning": "Longitud característica por nivel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "Semilla jerárquica",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "estable"
+        },
+        {
+          "symbol": "LOD",
+          "meaning": "Nivel de detalle",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango finito"
+        },
+        {
+          "symbol": "bounds",
+          "meaning": "Límites espaciales",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "razón entre escalas jerárquicas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ>0"
+        },
+        {
+          "symbol": "ε_world,k",
+          "meaning": "error geométrico de nivel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        },
+        {
+          "symbol": "f_px",
+          "meaning": "focal en píxeles",
+          "unit": "px",
+          "dimension": "conteo raster",
+          "domain": "positiva"
+        },
+        {
+          "symbol": "z",
+          "meaning": "profundidad de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "z>0"
+        },
+        {
+          "symbol": "τ_px",
+          "meaning": "tolerancia de error en pantalla",
+          "unit": "px",
+          "dimension": "conteo raster",
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "scale_k=scale_0·λ^k mantiene dimensión de longitud si λ es adimensional.",
+        "ε_screen,k=f_px·ε_world,k/z tiene px; comparar con τ_px para seleccionar LOD."
+      ],
+      "valid_domain": [
+        "Escalas positivas; jerarquía finita o generable bajo demanda; bounds finitos; LOD con niveles discretos."
+      ],
+      "boundary_conditions": [
+        "En transición de LOD conservar continuidad visual/geométrica o morph definido.",
+        "Fuera de bounds, generar streaming/tiles o devolver ausencia explícita; no asignar datos indefinidos."
+      ],
+      "dimensional_checks": [
+        "scale_0 y ε_world,k tienen L; λ es adimensional; z tiene L.",
+        "f_px tiene px; ε_world,k/z es adimensional; ε_screen,k y τ_px tienen px."
+      ]
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "12/12 técnicas incluidas",
+      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "D18:1 especifica ganancias de enjambre para salida de aceleración",
+      "D18:4 separa campo visual adimensional de densidad conceptual m⁻³",
+      "D18:6 usa extinción m⁻¹ sin doble coeficiente",
+      "D18:7 incorpora μ y momento angular específico",
+      "D18:9 fija densidad de nebulosa como extinción m⁻¹",
+      "D18:10 distingue muestreo de esfera superficial y volumétrica",
+      "D18:11 incorpora error geométrico y proyección LOD"
+    ],
+    "limitations": [
+      "Átomo estilizado y universo procedural son modelos de visualización; no constituyen por sí mismos simulaciones físicas rigurosas."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

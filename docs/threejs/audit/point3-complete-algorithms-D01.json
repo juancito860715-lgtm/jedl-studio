@@ -1,0 +1,344 @@
+{
+  "title": "Algoritmos completos derivados de matemáticas — D01 Fundamentos de escena y arquitectura",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D01",
+    "record_count": 7,
+    "excluded_protected_records": 1,
+    "excluded_keys": [
+      "D01:1"
+    ],
+    "excluded_reason": "La técnica protegida se conserva sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D01:0",
+      "name": "Scene graph jerárquico",
+      "inputs": [
+        "Árbol de nodos con parent/children",
+        "Transformación local M_local por nodo",
+        "Transformación mundo de raíz M_root",
+        "Marca dirty por nodo"
+      ],
+      "outputs": [
+        "M_world por nodo",
+        "Bounds mundo actualizados",
+        "Orden topológico padre→hijo"
+      ],
+      "preconditions": [
+        "La estructura no contiene ciclos; cada nodo salvo raíz tiene un único padre.",
+        "Matrices afines válidas y convención de multiplicación declarada."
+      ],
+      "algorithm_steps": [
+        "Validar referencias parent/children y detectar ciclos mediante DFS con estados UNVISITED/VISITING/DONE.",
+        "Iniciar traversal desde raíz con M_parent=M_root.",
+        "Para cada nodo, si está dirty o el padre cambió, calcular M_world=M_parent·M_local; si no, reutilizar M_world almacenada.",
+        "Transformar bounds locales a bounds mundo usando M_world y actualizar la versión del nodo.",
+        "Propagar la marca parentChanged a los hijos cuando M_world cambie.",
+        "Visitar hijos en orden estable; registrar el nodo como DONE al finalizar su subárbol.",
+        "Al terminar, comprobar que todos los nodos alcanzables están DONE y que ningún ciclo existe."
+      ],
+      "pseudocode": "function updateWorld(root):\n  assert acyclic(root)\n  stack = [(root, M_root, false)]\n  while stack not empty:\n    (node, parentWorld, parentChanged) = pop(stack)\n    changed = parentChanged or node.dirty or not node.worldValid\n    if changed:\n      node.world = parentWorld * node.local\n      node.worldBounds = transformBounds(node.localBounds, node.world)\n      node.worldVersion += 1\n    node.dirty = false\n    for child in reverse(node.children):\n      push(stack, (child, node.world, changed))\n  assert allReachableNodesUpdatedOrCached()",
+      "invariants": [
+        "Cada hijo usa la transformación mundo de su padre ya calculada.",
+        "La composición respeta el orden M_parent·M_local.",
+        "Un nodo sin cambios conserva su matriz mundo y bounds cacheados."
+      ],
+      "edge_cases": [
+        "Nodo raíz: usar M_root o identidad según contrato.",
+        "Ciclo o referencia inválida: rechazar actualización y reportar ruta de nodos.",
+        "Escala no uniforme: transformar bounds de forma conservadora; no transformar normales como posiciones."
+      ],
+      "complexity": "O(N) en actualización completa; O(K) para subárboles dirty con K nodos afectados.",
+      "failure_conditions": [
+        "Ciclos; matrices no finitas; referencias de padre/hijo inconsistentes."
+      ],
+      "derived_from": [
+        "M_world(child)=M_world(parent)·M_local(child)"
+      ]
+    },
+    {
+      "record_key": "D01:2",
+      "name": "Geometría compartida",
+      "inputs": [
+        "Descriptores inmutables de geometría",
+        "Clave canónica geometryKey",
+        "Material/estado de render por Mesh",
+        "Transformación local por instancia"
+      ],
+      "outputs": [
+        "Una geometría cacheada por clave",
+        "N instancias Mesh/Object3D con matrices independientes",
+        "Contadores de referencias"
+      ],
+      "preconditions": [
+        "La geometría compartida se trata como inmutable mientras existan consumidores.",
+        "La clave canónica incluye todos los parámetros que alteran vértices, índices o atributos."
+      ],
+      "algorithm_steps": [
+        "Normalizar el descriptor y generar geometryKey determinista.",
+        "Consultar GeometryCache[geometryKey].",
+        "Si existe, incrementar refCount y devolver referencia compartida.",
+        "Si no existe, validar parámetros, generar buffers de vértices/índices/atributos, validar rangos y almacenar geometría con refCount=1.",
+        "Crear una instancia de objeto por consumidor; asignar la geometría compartida y su material/estado.",
+        "Aplicar M_i exclusivamente al objeto/instancia, sin modificar el buffer geométrico común.",
+        "Al retirar consumidor, decrementar refCount; cuando llegue a cero y no esté fijada en caché, liberar buffers y eliminar entrada."
+      ],
+      "pseudocode": "function acquireGeometry(descriptor):\n  key = canonicalKey(descriptor)\n  if cache.has(key):\n    cache[key].refCount += 1\n    return cache[key].geometry\n  geometry = buildGeometry(descriptor)\n  validateGeometry(geometry)\n  cache[key] = {geometry, refCount: 1}\n  return geometry\n\nfunction createInstance(geometry, material, M_i):\n  obj = Mesh(geometry, material)\n  obj.matrix = M_i\n  return obj\n\nfunction releaseGeometry(key):\n  entry = cache[key]\n  entry.refCount -= 1\n  if entry.refCount == 0 and not entry.pinned:\n    dispose(entry.geometry)\n    delete cache[key]",
+      "invariants": [
+        "G_1=G_2=…=G_n para instancias con la misma geometryKey.",
+        "Cada instancia mantiene su propia M_i; la matriz no se hornea en la geometría compartida.",
+        "Los recursos se liberan solo cuando refCount=0 y no están fijados."
+      ],
+      "edge_cases": [
+        "Dos descriptores con distinto atributo, índice, UV o skin data no comparten clave.",
+        "Geometría deformada por vértice debe clonarse o pasar a buffers de instancia separados.",
+        "Liberación doble: detectar refCount negativo y rechazar."
+      ],
+      "complexity": "Promedio O(1) por lookup/retain/release; construcción O(V+I) una sola vez por clave.",
+      "failure_conditions": [
+        "Clave incompleta que colisiona geometrías distintas; buffers inválidos; liberación prematura."
+      ],
+      "derived_from": [
+        "G_1=G_2=...=G_n; cada instancia tiene M_i"
+      ]
+    },
+    {
+      "record_key": "D01:3",
+      "name": "LOD",
+      "inputs": [
+        "Distancia o tamaño proyectado del objeto",
+        "Lista ordenada de niveles G_k",
+        "Umbrales de transición y tolerancia",
+        "Nivel actual y cámara"
+      ],
+      "outputs": [
+        "Nivel de geometría activo",
+        "Índice LOD estable por objeto"
+      ],
+      "preconditions": [
+        "Los niveles están ordenados de mayor a menor detalle y cada umbral tiene unidad declarada.",
+        "Bounds mundo y cámara están actualizados."
+      ],
+      "algorithm_steps": [
+        "Calcular distancia conservadora desde cámara al bounds del objeto o calcular tamaño/error proyectado.",
+        "Evaluar los umbrales de LOD en orden, eligiendo el nivel más simple que cumple la tolerancia visual.",
+        "Aplicar histéresis: usar umbral de entrada distinto del de salida para evitar cambios repetidos cerca de frontera.",
+        "Si el nivel elegido difiere del actual, cambiar geometría/material asociado o iniciar cross-fade si está soportado.",
+        "Guardar nivel actual y umbral cruzado; no recalcular si cámara, objeto y configuración no cambiaron."
+      ],
+      "pseudocode": "function chooseLOD(object, camera):\n  metric = projectedError(object.bounds, camera)\n  candidate = coarsestLevelMeetingTolerance(metric, object.lodLevels)\n  current = object.currentLOD\n  if candidate != current:\n    if crossesHysteresisBoundary(metric, current, candidate):\n      object.currentLOD = candidate\n  return object.lodLevels[object.currentLOD]",
+      "invariants": [
+        "Solo un nivel discreto activo por objeto, salvo transición cross-fade explícita.",
+        "El nivel seleccionado cumple la tolerancia configurada.",
+        "Los umbrales de entrada/salida mantienen orden y no se solapan de forma contradictoria."
+      ],
+      "edge_cases": [
+        "Objeto detrás de cámara: resolver visibilidad antes de selección LOD.",
+        "Distancia casi cero: evitar división por cero en tamaño proyectado.",
+        "Nivel ausente: usar fallback más cercano disponible."
+      ],
+      "complexity": "O(K) por objeto con K niveles; O(1) si los umbrales están indexados/búsqueda binaria.",
+      "failure_conditions": [
+        "Umbrales no ordenados; bounds inválidos; geometrías LOD incompatibles en topología/material."
+      ],
+      "derived_from": [
+        "LOD(d)=G_k donde d pertenece al intervalo de nivel k"
+      ]
+    },
+    {
+      "record_key": "D01:4",
+      "name": "Frustum culling",
+      "inputs": [
+        "Matriz view-projection actualizada",
+        "Seis planos normalizados del frustum",
+        "Bounding sphere mundo por objeto"
+      ],
+      "outputs": [
+        "visible=true/false por objeto",
+        "Lista compacta de objetos visibles"
+      ],
+      "preconditions": [
+        "El frustum y bounds están en el mismo espacio de coordenadas.",
+        "La esfera mundo contiene toda la geometría del objeto."
+      ],
+      "algorithm_steps": [
+        "Calcular VP=P·V y extraer los seis planos del frustum según convención de clip space del backend.",
+        "Normalizar cada plano (n,d), de modo que ||n||=1.",
+        "Para cada objeto, actualizar centro y radio de bounding sphere en mundo; usar escala máxima para mantener esfera conservadora.",
+        "Para cada plano, calcular signedDistance=n·center+d.",
+        "Si signedDistance<−radius para cualquier plano, marcar objeto como fuera y detener pruebas restantes.",
+        "Si ningún plano lo excluye, marcar objeto como candidato visible; opcionalmente ejecutar oclusión separada."
+      ],
+      "pseudocode": "function sphereInFrustum(center, radius, planes):\n  for plane in planes:\n    if dot(plane.normal, center) + plane.d < -radius:\n      return false\n  return true\n\nfor object in objects:\n  sphere = updateWorldSphere(object.localSphere, object.worldMatrix)\n  object.visibleCandidate = sphereInFrustum(sphere.center, sphere.radius, planes)",
+      "invariants": [
+        "Una esfera separada por al menos un plano no puede intersectar el frustum.",
+        "La prueba es conservadora: puede dejar pasar objetos parcialmente fuera, pero no debe eliminar objetos que intersectan."
+      ],
+      "edge_cases": [
+        "Radio cero: prueba como punto.",
+        "Escala no uniforme: multiplicar radio por escala máxima o transformar bounds conservadores.",
+        "Convención WebGPU/WebGL de profundidad: extraer near/far con la matriz correcta."
+      ],
+      "complexity": "O(6N)=O(N) para N objetos con esferas.",
+      "failure_conditions": [
+        "Planes no normalizados; matriz VP obsoleta; bounding sphere demasiado pequeña."
+      ],
+      "derived_from": [
+        "objeto visible si su volumen intersecta el frustum de cámara"
+      ]
+    },
+    {
+      "record_key": "D01:5",
+      "name": "Spatial partitioning",
+      "inputs": [
+        "Bounds mundo de objetos",
+        "Origen y cellSize>0",
+        "Índices de celda discretos",
+        "AABB o esfera de consulta"
+      ],
+      "outputs": [
+        "Grid espacial con referencias objeto-celda",
+        "Conjunto sin duplicados de candidatos de consulta"
+      ],
+      "preconditions": [
+        "Todas las coordenadas usan la misma unidad de longitud.",
+        "El tamaño de celda es positivo y la política de frontera está definida."
+      ],
+      "algorithm_steps": [
+        "Para cada AABB, convertir mínimo y máximo a índices enteros con floor((p−origin)/cellSize).",
+        "Enumerar todas las celdas cubiertas por el rango 3D [i_min,i_max].",
+        "Insertar referencia del objeto en cada bucket; guardar las celdas previas para poder actualizarlo.",
+        "Al mover objeto, retirar referencias de celdas anteriores y reinsertar con nuevos bounds.",
+        "Para una consulta, calcular rango de celdas del volumen consultado y reunir referencias.",
+        "Deduplicar por stableObjectId, ya que un objeto puede ocupar varias celdas.",
+        "Ejecutar prueba exacta AABB/esfera contra candidatos antes de devolver resultado."
+      ],
+      "pseudocode": "function cellIndex(p):\n  return floor((p - origin) / cellSize)\n\nfunction insert(object):\n  range = cellsCoveredBy(object.worldAABB)\n  for cell in range:\n    grid[cell].add(object.id)\n  object.cells = range\n\nfunction query(queryAABB):\n  ids = set()\n  for cell in cellsCoveredBy(queryAABB):\n    ids.addAll(grid[cell])\n  return [id for id in ids if exactOverlap(object[id].bounds, queryAABB)]",
+      "invariants": [
+        "Cada objeto aparece en todas las celdas que cubren su AABB.",
+        "Consulta devuelve candidatos sin duplicados y luego aplica narrow phase exacta.",
+        "cellIndex usa el mismo origin/cellSize en inserción, actualización y consulta."
+      ],
+      "edge_cases": [
+        "AABB que cruza frontera: insertar en todas las celdas cubiertas.",
+        "Coordenada exactamente en límite: usar intervalos half-open y floor consistente.",
+        "Objeto muy grande: usar lista global/árbol secundario para evitar miles de celdas."
+      ],
+      "complexity": "Inserción O(C) por objeto con C celdas cubiertas; consulta O(Q+K) para Q celdas visitadas y K candidatos.",
+      "failure_conditions": [
+        "cellSize≤0; bounds no finitos; referencias huérfanas tras movimiento; no deduplicar candidatos."
+      ],
+      "derived_from": [
+        "celdas=floor((p-origin)/cellSize)"
+      ]
+    },
+    {
+      "record_key": "D01:6",
+      "name": "Render on demand",
+      "inputs": [
+        "Dirty flags de escena/cámara/materiales",
+        "Indicador animationActive",
+        "Eventos de input/resize/resource load",
+        "Estado renderer"
+      ],
+      "outputs": [
+        "Render solo cuando hay cambios o animación",
+        "Dirty flag reiniciado tras render correcto"
+      ],
+      "preconditions": [
+        "Todo cambio visual relevante invalida la escena/cámara/material correspondiente.",
+        "Las animaciones activas solicitan frames continuamente mientras avanzan."
+      ],
+      "algorithm_steps": [
+        "Inicializar dirty=true para el primer frame y animationActive según timeline/simulaciones.",
+        "En cada evento visual (transform, cámara, material, viewport, asset load), marcar dirty=true.",
+        "Si animationActive, solicitar siguiente frame; si no, esperar evento y solicitar frame solo cuando dirty=true.",
+        "Al recibir frame, verificar si dirty o animationActive; si ninguno, salir sin render.",
+        "Actualizar estado temporal solo si la animación está activa; recalcular matrices/bounds necesarios.",
+        "Renderizar escena/cámara; solo después de render exitoso limpiar dirty.",
+        "Si quedan animaciones o simulaciones activas, programar siguiente frame; si no, quedar inactivo."
+      ],
+      "pseudocode": "function invalidate(): dirty = true; requestFrameIfNeeded()\n\nfunction frame(now):\n  if not dirty and not animationActive: return\n  if animationActive: updateAnimatedState(now)\n  updateDirtySceneState()\n  renderer.render(scene, camera)\n  dirty = false\n  if animationActive: requestAnimationFrame(frame)\n  else: sleeping = true",
+      "invariants": [
+        "Ningún cambio visual queda sin invalidar.",
+        "No se renderiza en reposo si dirty=false y animationActive=false.",
+        "No limpiar dirty antes de completar el render."
+      ],
+      "edge_cases": [
+        "Carga asíncrona: invalidar al completar asset.",
+        "Resize/DPR change: actualizar targets y cámara, luego invalidar.",
+        "Error de render: conservar dirty para reintento o informar fallo."
+      ],
+      "complexity": "O(1) control por evento; coste de render depende de escena y pipeline.",
+      "failure_conditions": [
+        "Cambios no conectados a invalidate; animación activa sin solicitar frames; dirty limpiado prematuramente."
+      ],
+      "derived_from": [
+        "render si dirty=true o existe animación activa"
+      ]
+    },
+    {
+      "record_key": "D01:7",
+      "name": "Render loop temporal",
+      "inputs": [
+        "Clock monotónico",
+        "Función simulate(state, fixedDt)",
+        "Función render(stateInterpolated)",
+        "fixedDt, maxSubSteps y delta clamp"
+      ],
+      "outputs": [
+        "Estado de simulación determinista por pasos",
+        "Frame renderizado interpolado"
+      ],
+      "preconditions": [
+        "La simulación puede avanzar en pasos fijos.",
+        "El reloj es monotónico y las unidades temporales están definidas."
+      ],
+      "algorithm_steps": [
+        "Al comenzar frame, obtener now del reloj monotónico y calcular frameDelta=max(0,now−previousNow).",
+        "Limitar frameDelta a maxFrameDelta para evitar espiral de substeps tras pausas.",
+        "Acumular frameDelta en accumulator.",
+        "Mientras accumulator≥fixedDt y substeps<maxSubSteps: copiar previousState=currentState; ejecutar simulate(currentState,fixedDt); restar fixedDt.",
+        "Si se alcanza maxSubSteps con deuda excesiva, aplicar política explícita: conservar deuda limitada o descartarla con diagnóstico.",
+        "Calcular alpha=accumulator/fixedDt y crear estado visual interpolando previousState/currentState.",
+        "Renderizar estado interpolado y guardar previousNow=now."
+      ],
+      "pseudocode": "function frame(now):\n  dt = clamp((now - previousNow) / 1000, 0, maxFrameDelta)\n  previousNow = now\n  accumulator += dt\n  steps = 0\n  while accumulator >= fixedDt and steps < maxSubSteps:\n    previousState = copy(currentState)\n    simulate(currentState, fixedDt)\n    accumulator -= fixedDt\n    steps += 1\n  if accumulator >= fixedDt: applyDebtPolicy(accumulator)\n  alpha = accumulator / fixedDt\n  render(interpolate(previousState, currentState, alpha))",
+      "invariants": [
+        "simulate siempre recibe fixedDt; el resultado no depende directamente del frame rate de render.",
+        "0≤alpha<1 después de procesar deuda según política.",
+        "previousNow y accumulator se actualizan en orden determinista."
+      ],
+      "edge_cases": [
+        "Primera frame: inicializar previousNow sin delta gigante.",
+        "Pausa/reanudación: reiniciar reloj o limitar delta.",
+        "Animación de rotación: interpolar cuaterniones con slerp, no componentes lineales."
+      ],
+      "complexity": "O(S) simulaciones por frame, S≤maxSubSteps; render O(scene).",
+      "failure_conditions": [
+        "fixedDt≤0; reloj no monotónico; deuda de tiempo ilimitada; estado no interpolable."
+      ],
+      "derived_from": [
+        "t=clock; state=F(t); render(scene,camera)"
+      ]
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "7/7 técnicas no protegidas tienen algoritmo completo, pseudocódigo, precondiciones, invariantes, casos límite, complejidad y fallos.",
+      "Los algoritmos se derivan de las ecuaciones registradas en D01 y de sus restricciones dimensionales.",
+      "El documento no integra todavía estos algoritmos en el manifiesto principal; esa integración corresponde al punto 6."
+    ],
+    "limitations": [
+      "La corrección matemática y rendimiento se someterán a pruebas independientes en el punto 5; este documento especifica el procedimiento ejecutable sin decisiones arbitrarias no declaradas."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

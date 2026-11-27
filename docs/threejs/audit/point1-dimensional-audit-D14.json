@@ -1,0 +1,1296 @@
+{
+  "title": "Auditoría dimensional punto 1 — D14 Shaders, GPU y renderizado avanzado",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D14",
+    "domain": "Shaders, GPU y renderizado avanzado",
+    "catalog_records": 18,
+    "record_count": 18,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D14 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "SI_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Unidad global de longitud de escena; Three.js no impone metros.",
+    "dimensionless": "1",
+    "pixels": "Píxel es unidad discreta de imagen, no longitud SI; px/m convierte plano físico a raster.",
+    "gpu_types": "Cada atributo, varying, uniform y attachment conserva su tipo dimensional; los buffers heterogéneos no tienen una dimensión única."
+  },
+  "records": [
+    {
+      "record_key": "D14:0",
+      "name": "Vertex shader",
+      "variables": [
+        {
+          "symbol": "position",
+          "meaning": "Posición local de vértice",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "M,V,P",
+          "meaning": "Matrices model/view/projection",
+          "unit": "matriz afín/proyectiva tipada",
+          "dimension": "bloques lineales adimensionales; traslaciones L; proyección normalizada",
+          "domain": "compatibles con convención de espacios"
+        },
+        {
+          "symbol": "clipPosition",
+          "meaning": "Posición homogénea clip-space",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "coordenadas homogéneas tras proyección"
+        }
+      ],
+      "constraints": [
+        "Model transforma posición local a mundo; View a cámara; Projection a clip-space; respetar orden P·V·M·p.",
+        "La entrada position tiene L; después de dividir por w, NDC es adimensional."
+      ],
+      "valid_domain": [
+        "Matrices finitas y convenciones de mano/ejes declaradas; posición homogénea válida."
+      ],
+      "boundary_conditions": [
+        "Si clip w≈0, clipping/guardado antes de división perspectiva.",
+        "Vértices fuera de frustum se recortan; no forzar coordenadas NDC inválidas."
+      ],
+      "dimensional_checks": [
+        "M/V conservan dimensión L en coordenadas espaciales; la proyección convierte a coordenadas homogéneas adimensionales.",
+        "clipPosition/NDC son adimensionales; matrices afines tienen bloques tipados, no dimensión escalar única."
+      ]
+    },
+    {
+      "record_key": "D14:1",
+      "name": "Fragment shader",
+      "variables": [
+        {
+          "symbol": "varyings",
+          "meaning": "Atributos interpolados",
+          "unit": "tipo dimensional por atributo",
+          "dimension": "dimensión heredada de atributo",
+          "domain": "interpolación compatible"
+        },
+        {
+          "symbol": "uniforms",
+          "meaning": "Parámetros globales",
+          "unit": "tipado por uniforme",
+          "dimension": "dimensión declarada por variable",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "color",
+          "meaning": "Salida de fragmento",
+          "unit": "RGB lineal / radiancia declarada",
+          "dimension": "tipo color/radiométrico",
+          "domain": "finita y dentro de rango de formato"
+        }
+      ],
+      "constraints": [
+        "Cada operación del shader debe combinar magnitudes dimensionalmente compatibles.",
+        "Color de salida debe seguir formato de attachment, espacio lineal y convención HDR/normalized."
+      ],
+      "valid_domain": [
+        "Varyings/uniforms definidos y finitos; coordenadas de fragmento dentro del viewport."
+      ],
+      "boundary_conditions": [
+        "Fuera de primitive coverage no hay fragmento; discard y alpha test tienen semántica explícita.",
+        "Clamping/tonemapping se realiza en etapa declarada, no accidentalmente en shader."
+      ],
+      "dimensional_checks": [
+        "Interpolación conserva dimensión de cada atributo.",
+        "RGB y alpha son tipos de salida declarados; no se mezclan magnitudes de longitud/tiempo con color sin mapeo."
+      ]
+    },
+    {
+      "record_key": "D14:2",
+      "name": "Custom ShaderMaterial",
+      "variables": [
+        {
+          "symbol": "vertexSource,fragmentSource",
+          "meaning": "Programas shader",
+          "unit": "código",
+          "dimension": "no dimensional",
+          "domain": "compilables para backend objetivo"
+        },
+        {
+          "symbol": "uniforms",
+          "meaning": "Uniformes",
+          "unit": "tipo por uniforme",
+          "dimension": "dimensión declarada por uniforme",
+          "domain": "valores finitos"
+        },
+        {
+          "symbol": "attributes",
+          "meaning": "Atributos de vértice",
+          "unit": "tipo por atributo",
+          "dimension": "dimensión heredada",
+          "domain": "layout y stride compatibles"
+        },
+        {
+          "symbol": "defines",
+          "meaning": "Macros de compilación",
+          "unit": "discreto",
+          "dimension": "adimensional",
+          "domain": "combinaciones válidas"
+        }
+      ],
+      "constraints": [
+        "Los atributos/uniformes deben declarar tipos y unidades; la API de material no infiere dimensiones.",
+        "ShaderMaterial y RawShaderMaterial pueden tener contratos distintos respecto a shaders built-in; no asumir variables implícitas."
+      ],
+      "valid_domain": [
+        "GLSL y versión compatibles con backend; layouts, precision y bindings válidos."
+      ],
+      "boundary_conditions": [
+        "Compilación fallida debe impedir uso del programa y reportar log.",
+        "Uniform opcional ausente debe tener default o bloquear render."
+      ],
+      "dimensional_checks": [
+        "El código no tiene dimensión; cada dato que consume sí debe tener tipo dimensional declarado.",
+        "Transformaciones de posición y color mantienen sus convenciones entre CPU y GPU."
+      ]
+    },
+    {
+      "record_key": "D14:3",
+      "name": "Varyings",
+      "variables": [
+        {
+          "symbol": "attribute",
+          "meaning": "Atributo de vértice",
+          "unit": "tipo dimensional del atributo",
+          "dimension": "heredada",
+          "domain": "válido por vértice"
+        },
+        {
+          "symbol": "varying",
+          "meaning": "Valor interpolado",
+          "unit": "mismo tipo que atributo",
+          "dimension": "heredada",
+          "domain": "interpolación lineal/perspectiva declarada"
+        },
+        {
+          "symbol": "barycentric",
+          "meaning": "Peso de interpolación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "pesos suman 1"
+        }
+      ],
+      "constraints": [
+        "Varying debe tener tipo compatible entre vertex y fragment shader.",
+        "La interpolación conserva unidades solo si todos los vértices representan la misma magnitud/unidad."
+      ],
+      "valid_domain": [
+        "Atributos presentes para todos los vértices de primitive; valores finitos."
+      ],
+      "boundary_conditions": [
+        "En discontinuidades de normales/UV, usar seam o flat interpolation según intención.",
+        "Atributo faltante debe tener default explícito o producir error de validación."
+      ],
+      "dimensional_checks": [
+        "Pesos barycentric son adimensionales y suman uno; la interpolación conserva dimensión del atributo.",
+        "No interpolar atributos heterogéneos en un único varying sin codificación definida."
+      ]
+    },
+    {
+      "record_key": "D14:4",
+      "name": "Uniform animation",
+      "variables": [
+        {
+          "symbol": "time",
+          "meaning": "Tiempo absoluto",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "Frecuencia temporal",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "phase",
+          "meaning": "Fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "output",
+          "meaning": "Salida animada",
+          "unit": "tipo de canal",
+          "dimension": "dimensión del canal",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Argumentos trigonométricos deben ser adimensionales: ω·time+phase.",
+        "Uniform time usa segundos consistentes; convertir desde milisegundos si la API entrega ms."
+      ],
+      "valid_domain": [
+        "time finito; frecuencia y fase declaradas; uniforme actualizado antes del draw."
+      ],
+      "boundary_conditions": [
+        "Mismo time y parámetros producen mismo resultado si shader es determinista.",
+        "Al reiniciar timeline, actualizar uniform con tiempo absoluto de proyecto."
+      ],
+      "dimensional_checks": [
+        "ω tiene T^-1 y time tiene T; su producto es adimensional.",
+        "output conserva dimensión del canal animado."
+      ]
+    },
+    {
+      "record_key": "D14:5",
+      "name": "Displacement in vertex shader",
+      "variables": [
+        {
+          "symbol": "P",
+          "meaning": "Posición base",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "N",
+          "meaning": "Normal unitaria",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "‖N‖=1"
+        },
+        {
+          "symbol": "D(P,t)",
+          "meaning": "Desplazamiento escalar",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "P′",
+          "meaning": "Posición desplazada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "P′=P+N·D; N debe ser unitario y D tener L.",
+        "Si displacement depende del tiempo, t tiene T y los argumentos de funciones temporales deben normalizarse."
+      ],
+      "valid_domain": [
+        "P,N,D finitos; normal válida; amplitud acotada."
+      ],
+      "boundary_conditions": [
+        "D=0 recupera P.",
+        "En normales degeneradas, usar normal reconstruida o no desplazar."
+      ],
+      "dimensional_checks": [
+        "N es adimensional y N·D tiene L; puede sumarse a P.",
+        "P′ conserva L."
+      ]
+    },
+    {
+      "record_key": "D14:6",
+      "name": "Ray marching",
+      "variables": [
+        {
+          "symbol": "ro",
+          "meaning": "Origen del rayo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "rd",
+          "meaning": "Dirección del rayo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "t",
+          "meaning": "Distancia recorrida",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        },
+        {
+          "symbol": "d(p)",
+          "meaning": "Distancia firmada/conservadora",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válida como bound de paso"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "Tolerancia de impacto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ε>0"
+        }
+      ],
+      "constraints": [
+        "p=ro+t·rd tiene L; cada paso t_next=t+d(p) requiere d en L.",
+        "Para seguridad, d debe ser SDF exacto o cota inferior conservadora; escala no uniforme requiere corregir distancia."
+      ],
+      "valid_domain": [
+        "rd unitario; SDF finito; máximo de pasos y distancia de marcha definidos."
+      ],
+      "boundary_conditions": [
+        "Terminar al d≤ε, al salir de bounds o alcanzar maxDistance/maxSteps.",
+        "Si d≤0 o NaN, aplicar política de superficie/escape para evitar bucle."
+      ],
+      "dimensional_checks": [
+        "ro,t·rd,p,d y ε tienen L; rd es adimensional.",
+        "t+d suma longitudes; umbral de impacto compara longitudes."
+      ]
+    },
+    {
+      "record_key": "D14:7",
+      "name": "Depth reconstruction",
+      "variables": [
+        {
+          "symbol": "depthBuffer",
+          "meaning": "Profundidad almacenada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o formato declarado"
+        },
+        {
+          "symbol": "near,far",
+          "meaning": "Planos de recorte",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<near<far"
+        },
+        {
+          "symbol": "viewZ",
+          "meaning": "Profundidad reconstruida",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "projection",
+          "meaning": "Matriz de proyección",
+          "unit": "proyectiva",
+          "dimension": "coeficientes según near/far",
+          "domain": "invertible"
+        }
+      ],
+      "constraints": [
+        "La reconstrucción debe invertir exactamente la convención de proyección y el mapeo depth-buffer (incluido reversed-Z si aplica).",
+        "No tratar depthBuffer normalizado como metros antes de linearizar."
+      ],
+      "valid_domain": [
+        "near>0; far>near; depth dentro del rango del formato; matriz válida."
+      ],
+      "boundary_conditions": [
+        "Depth en near/far debe reconstruir esos planos dentro de tolerancia.",
+        "Clear depth/background debe identificarse y no interpretarse como geometría finita."
+      ],
+      "dimensional_checks": [
+        "depthBuffer es adimensional; near/far tienen L; viewZ reconstruido tiene L.",
+        "La fórmula usa coeficientes de proyección consistentes; el resultado final es longitud."
+      ]
+    },
+    {
+      "record_key": "D14:8",
+      "name": "Screen-space effects",
+      "variables": [
+        {
+          "symbol": "uv",
+          "meaning": "Coordenada pantalla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada [0,1]²"
+        },
+        {
+          "symbol": "colorBuffer",
+          "meaning": "Color",
+          "unit": "RGB lineal",
+          "dimension": "tipo color/radiancia",
+          "domain": "finito"
+        },
+        {
+          "symbol": "depthBuffer",
+          "meaning": "Profundidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "codificación declarada"
+        },
+        {
+          "symbol": "normalBuffer",
+          "meaning": "Normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria o codificada"
+        },
+        {
+          "symbol": "outputPixel",
+          "meaning": "Salida",
+          "unit": "mismo tipo color",
+          "dimension": "color/radiancia",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada buffer debe compartir resolución, viewport, jitter y convención de coordenadas.",
+        "Depth y normal deben decodificarse antes de operaciones geométricas; color debe estar en espacio lineal."
+      ],
+      "valid_domain": [
+        "Buffers inicializados; UV dentro del viewport; formatos y muestras compatibles."
+      ],
+      "boundary_conditions": [
+        "Vecinos fuera de pantalla requieren clamp, mirror o descarte declarado.",
+        "Buffers ausentes deben desactivar el efecto o activar fallback explícito."
+      ],
+      "dimensional_checks": [
+        "uv y normales son adimensionales; depth buffer normalizado es adimensional.",
+        "Output conserva tipo/unidad del colorBuffer; depth linearizado se usa como L."
+      ]
+    },
+    {
+      "record_key": "D14:9",
+      "name": "Multiple render targets",
+      "variables": [
+        {
+          "symbol": "G-buffer",
+          "meaning": "Conjunto de attachments",
+          "unit": "tipado por attachment",
+          "dimension": "albedo color; normal 1; depth 1 o L; roughness 1",
+          "domain": "formatos compatibles"
+        },
+        {
+          "symbol": "resolution",
+          "meaning": "Dimensiones raster",
+          "unit": "px",
+          "dimension": "conteos enteros",
+          "domain": "positivos"
+        },
+        {
+          "symbol": "sampleCount",
+          "meaning": "Muestras MSAA",
+          "unit": "conteo",
+          "dimension": "adimensional",
+          "domain": "compatible backend"
+        }
+      ],
+      "constraints": [
+        "Cada attachment tiene formato y semántica propios; no combinar unidades diferentes en un mismo canal sin codificación.",
+        "Todos los MRT deben coincidir en dimensiones, sample count y sincronización de frame."
+      ],
+      "valid_domain": [
+        "Límites de attachments y formatos soportados por GPU; memoria suficiente."
+      ],
+      "boundary_conditions": [
+        "Attachment no disponible debe impedir pass o seleccionar fallback.",
+        "Clear values deben ser distinguibles de datos válidos."
+      ],
+      "dimensional_checks": [
+        "Albedo/color, normal, depth y roughness mantienen tipos distintos.",
+        "Resolution/sampleCount son conteos; depth normalizado no es longitud hasta reconstrucción."
+      ]
+    },
+    {
+      "record_key": "D14:10",
+      "name": "Ping-pong buffers",
+      "variables": [
+        {
+          "symbol": "A,B",
+          "meaning": "Buffers de estado alternos",
+          "unit": "estado tipado",
+          "dimension": "dimensión por componente",
+          "domain": "misma estructura/formato"
+        },
+        {
+          "symbol": "n",
+          "meaning": "Índice de iteración",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n≥0"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "Paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt≥0"
+        },
+        {
+          "symbol": "F",
+          "meaning": "Operador de actualización",
+          "unit": "función",
+          "dimension": "conserva tipo de estado",
+          "domain": "determinista según contrato"
+        }
+      ],
+      "constraints": [
+        "Lectura y escritura deben apuntar a buffers distintos durante un paso para evitar feedback indefinido.",
+        "A y B deben tener formatos, dimensiones y unidades compatibles."
+      ],
+      "valid_domain": [
+        "Buffers asignados; estado inicial válido; paso y número de iteraciones declarados."
+      ],
+      "boundary_conditions": [
+        "En cero iteraciones, el estado es el inicial.",
+        "Tras cada paso, swap A/B; el estado final debe apuntar al buffer más reciente."
+      ],
+      "dimensional_checks": [
+        "F(A) produce el mismo tipo dimensional de estado que B.",
+        "Δt solo entra en F mediante ecuaciones dimensionalmente consistentes."
+      ]
+    },
+    {
+      "record_key": "D14:11",
+      "name": "Compute-style simulation",
+      "variables": [
+        {
+          "symbol": "state_n,state_n+1",
+          "meaning": "Estado de simulación",
+          "unit": "tipado por componente",
+          "dimension": "posición L; velocidad L/T; aceleración L/T² etc.",
+          "domain": "finito"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "Paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "i",
+          "meaning": "Índice de elemento",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango válido"
+        },
+        {
+          "symbol": "F",
+          "meaning": "Operador compute",
+          "unit": "función",
+          "dimension": "salida compatible con estado",
+          "domain": "determinista según diseño"
+        }
+      ],
+      "constraints": [
+        "Cada componente del estado conserva unidades durante la actualización; buffers CPU/GPU usan misma escala y layout.",
+        "Dependencias entre invocaciones requieren barreras/sincronización; no asumir orden global de workgroups."
+      ],
+      "valid_domain": [
+        "Backend compute disponible o fallback; dispatch dimensions y límites de buffer válidos."
+      ],
+      "boundary_conditions": [
+        "Índices fuera de rango deben retornar sin escribir.",
+        "Δt=0 no cambia estado salvo operación explícita; substeps deben sumar tiempo de simulación previsto."
+      ],
+      "dimensional_checks": [
+        "Posición, velocidad y aceleración mantienen L, L/T y L/T²; integradores deben multiplicar por Δt adecuadamente.",
+        "Índices y tamaños son conteos adimensionales."
+      ]
+    },
+    {
+      "record_key": "D14:12",
+      "name": "Adaptive resolution",
+      "variables": [
+        {
+          "symbol": "targetFrameTime,measuredFrameTime",
+          "meaning": "Tiempos de frame",
+          "unit": "ms o s, misma unidad",
+          "dimension": "T",
+          "domain": "positivos"
+        },
+        {
+          "symbol": "resolutionScale",
+          "meaning": "Escala de resolución",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "min≤scale≤max"
+        },
+        {
+          "symbol": "scale_next",
+          "meaning": "Escala siguiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "hysteresis",
+          "meaning": "Banda de estabilidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "T_target,T_measured",
+          "meaning": "tiempos objetivo y medido del frame",
+          "unit": "ms o s, misma unidad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos"
+        }
+      ],
+      "constraints": [
+        "Si el coste dominante escala con el número de píxeles y pixelCount∝resolutionScale², entonces T∝scale².",
+        "La actualización proporcional derivada es scale_next=clamp(scale·sqrt(T_target/T_measured),min,max); el cociente y la raíz son adimensionales.",
+        "La ecuación resumida del catálogo omite el factor scale actual y la raíz; la corrección se registra para integración posterior."
+      ],
+      "valid_domain": [
+        "T_target>0; T_measured>0; 0<min≤max≤1; scale actual dentro de límites."
+      ],
+      "boundary_conditions": [
+        "Si T_measured=T_target, scale_next=scale.",
+        "Si el frame excede objetivo, la escala disminuye; si queda por debajo, aumenta, siempre acotada."
+      ],
+      "dimensional_checks": [
+        "T_target/T_measured es adimensional; resolutionScale y scale_next son adimensionales.",
+        "El modelo cuadrático de coste produce la raíz cuadrada del cociente temporal, no el cociente directo."
+      ]
+    },
+    {
+      "record_key": "D14:13",
+      "name": "Temporal accumulation",
+      "variables": [
+        {
+          "symbol": "C_t,C_prev",
+          "meaning": "Muestras de color actual e histórica",
+          "unit": "RGB lineal",
+          "dimension": "tipo color/radiancia",
+          "domain": "mismo espacio y exposición"
+        },
+        {
+          "symbol": "α",
+          "meaning": "Peso temporal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "C_out",
+          "meaning": "Color acumulado",
+          "unit": "mismo tipo que C_t",
+          "dimension": "color/radiancia",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "C_t y C_prev deben estar reproyectados al mismo píxel/superficie y compartir exposición/color space.",
+        "α debe ponderar historial y muestra actual con convención explícita; rechazo por movimiento/disocclusion."
+      ],
+      "valid_domain": [
+        "Buffers históricos válidos; α∈[0,1]; jitter y matrices de cámara disponibles."
+      ],
+      "boundary_conditions": [
+        "α=1 devuelve C_t; α=0 devuelve C_prev.",
+        "En primer frame o disocclusion, invalidar historia y usar muestra actual."
+      ],
+      "dimensional_checks": [
+        "α es adimensional; la combinación lineal conserva unidad de color/radiancia.",
+        "No acumular muestras con exposición o espacio de color incompatible sin conversión."
+      ]
+    },
+    {
+      "record_key": "D14:14",
+      "name": "Dithering",
+      "variables": [
+        {
+          "symbol": "C",
+          "meaning": "Color de entrada",
+          "unit": "RGB lineal",
+          "dimension": "color/radiancia declarada",
+          "domain": "finito"
+        },
+        {
+          "symbol": "noise",
+          "meaning": "Ruido de dithering",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "media controlada, amplitud acotada"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "Amplitud de dithering",
+          "unit": "unidad de color de salida",
+          "dimension": "misma que C cuantizado",
+          "domain": "pequeña"
+        },
+        {
+          "symbol": "C′",
+          "meaning": "Color perturbado",
+          "unit": "mismo tipo que C",
+          "dimension": "color/radiancia",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "El ruido se escala en unidades de cuantización de la salida; ε no es un valor universal independiente de bit depth.",
+        "Aplicar dithering en etapa de color declarada; si se hace antes de gamma, convertir amplitud adecuadamente."
+      ],
+      "valid_domain": [
+        "Ruido acotado; amplitud menor o igual a rango de cuantización configurado."
+      ],
+      "boundary_conditions": [
+        "ε=0 devuelve C.",
+        "En límites de gamut, clamping debe evitar overflow/underflow."
+      ],
+      "dimensional_checks": [
+        "noise es adimensional; ε tiene unidad de canal de color; ε·noise puede sumarse a C.",
+        "C′ conserva unidad/encoding de C antes de cuantización."
+      ]
+    },
+    {
+      "record_key": "D14:15",
+      "name": "Contorno por discontinuidad de profundidad y normal",
+      "variables": [
+        {
+          "symbol": "z,z_neighbor",
+          "meaning": "Profundidad lineal",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio cámara"
+        },
+        {
+          "symbol": "n,n_neighbor",
+          "meaning": "Normales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "Peso normalizado de borde",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0 tras normalización de profundidad"
+        },
+        {
+          "symbol": "τ",
+          "meaning": "Umbral de borde",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "E",
+          "meaning": "Respuesta de borde",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "g_ref",
+          "meaning": "escala de referencia de gradiente de profundidad",
+          "unit": "m/px",
+          "dimension": "length per raster step",
+          "domain": "g_ref>0"
+        }
+      ],
+      "constraints": [
+        "E_z=|∇_px z|/g_ref normaliza la discontinuidad de profundidad a adimensional.",
+        "E_n=1−n·n′ es adimensional; E=E_z+λE_n exige λ adimensional; τ y E comparten unidad 1."
+      ],
+      "valid_domain": [
+        "Profundidades lineales finitas; normales unitarias; L_ref>0; vecinos válidos."
+      ],
+      "boundary_conditions": [
+        "En borde de pantalla usar política de vecino definida.",
+        "Si normal no está disponible, desactivar término normal o usar fallback; no sustituir con cero silenciosamente."
+      ],
+      "dimensional_checks": [
+        "∇_px z tiene m/px; g_ref tiene m/px; E_z es adimensional.",
+        "E_n, λ, E y τ son adimensionales; outline es una máscara adimensional."
+      ]
+    },
+    {
+      "record_key": "D14:16",
+      "name": "Halftone / Ben-Day procedural",
+      "variables": [
+        {
+          "symbol": "x,y",
+          "meaning": "Coordenadas de pantalla",
+          "unit": "px",
+          "dimension": "unidades raster discretas",
+          "domain": "finitas"
+        },
+        {
+          "symbol": "f",
+          "meaning": "Frecuencia del patrón",
+          "unit": "px⁻¹",
+          "dimension": "inversa de pixel",
+          "domain": "positiva"
+        },
+        {
+          "symbol": "L",
+          "meaning": "Luminancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada [0,1]"
+        },
+        {
+          "symbol": "m",
+          "meaning": "Patrón periódico",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "ink",
+          "meaning": "Máscara de tinta",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "binaria o suavizada"
+        }
+      ],
+      "constraints": [
+        "f·x y f·y deben ser adimensionales; patrón seno no admite argumento con unidad.",
+        "L y m deben estar normalizados al mismo rango para umbralizar."
+      ],
+      "valid_domain": [
+        "f>0; coordenadas dentro del viewport; luminancia finita."
+      ],
+      "boundary_conditions": [
+        "Frecuencia cero desactiva patrón o se rechaza.",
+        "Antialiasing debe considerar derivadas/fwidth para evitar aliasing y moiré."
+      ],
+      "dimensional_checks": [
+        "x,y están en px; f en px^-1; argumentos del seno son adimensionales.",
+        "m,L,ink son adimensionales; la máscara no cambia unidades de color al componer."
+      ]
+    },
+    {
+      "record_key": "D14:17",
+      "name": "Hachurado orientado por campo vectorial",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "Coordenada de evaluación",
+          "unit": "px o m según espacio",
+          "dimension": "unidad del espacio elegido",
+          "domain": "finita"
+        },
+        {
+          "symbol": "dir",
+          "meaning": "Dirección de hachurado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "spacing",
+          "meaning": "Separación de líneas",
+          "unit": "misma unidad que p",
+          "dimension": "tipo espacial",
+          "domain": "spacing>0"
+        },
+        {
+          "symbol": "width",
+          "meaning": "Ancho de línea",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<width<0.5 en fase fract"
+        },
+        {
+          "symbol": "phase",
+          "meaning": "Fase repetida",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fract en [0,1)"
+        },
+        {
+          "symbol": "aa",
+          "meaning": "ancho de antialias en fase",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "aa>0"
+        }
+      ],
+      "constraints": [
+        "phase=fract(dot(p,dir)/spacing) es adimensional; abs(phase−0.5) también.",
+        "width y aa son anchuras adimensionales de fase, no longitudes físicas; si se desea ancho en píxeles, convertir por spacing."
+      ],
+      "valid_domain": [
+        "dir unitario; spacing>0; width>0; coordenadas y campo vectorial finitos."
+      ],
+      "boundary_conditions": [
+        "Si dir≈0, usar dirección de respaldo o desactivar hatch.",
+        "En costuras UV, cambiar a espacio triplanar/pantalla o corregir distorsión."
+      ],
+      "dimensional_checks": [
+        "p y spacing comparten unidad; phase es adimensional.",
+        "width, aa, d_line y máscara line son adimensionales."
+      ]
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "18/18 técnicas incluidas",
+      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "D14:12 deriva actualización adaptativa con raíz cuadrada del cociente de tiempos",
+      "D14:15 normaliza gradiente de profundidad por g_ref antes de mezclarlo con cambio de normal",
+      "D14:17 tipa ancho y antialias como anchuras de fase adimensionales"
+    ],
+    "limitations": [
+      "Revisión dimensional y estructural; la validación de compilación/backend, algoritmos GPU y pruebas numéricas corresponden a puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

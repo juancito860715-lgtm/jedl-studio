@@ -1,0 +1,886 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D04 Animación, movimiento y simulación",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D04",
+    "record_count": 19,
+    "excluded_protected_records": 1,
+    "excluded_keys": [
+      "D04:2"
+    ],
+    "excluded_reason": "Spline monotónica preservada sin reauditoría conforme al mapa Crimson Loong."
+  },
+  "records": [
+    {
+      "record_key": "D04:0",
+      "name": "Keyframes",
+      "starting_principles": [
+        "t_i<t_{i+1}; claves ordenadas.",
+        "Canales con unidades compatibles; rotaciones normalizadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=(t−t_i)/(t_{i+1}−t_i)",
+          "justification": "Normalizar el tiempo entre dos claves consecutivas."
+        },
+        {
+          "step": 2,
+          "equation": "x(t)=(1−u)x_i+u x_{i+1}",
+          "justification": "Interpolación afín entre valores; para posición conserva unidad y para escala/atributos conserva su tipo."
+        },
+        {
+          "step": 3,
+          "equation": "q(t)=slerp(q_i,q_{i+1},u)",
+          "justification": "Para orientación, interpolar sobre la esfera unitaria de cuaterniones en lugar de interpolar componentes sin normalizar."
+        },
+        {
+          "step": 4,
+          "equation": "t≤t_i / t≥t_{i+1}",
+          "justification": "Aplicar política de extrapolación o clamp fuera del intervalo."
+        }
+      ],
+      "assumptions": [
+        "t_i<t_{i+1}; claves ordenadas.",
+        "Canales con unidades compatibles; rotaciones normalizadas.",
+        "Interpolación angular/canal declarada."
+      ],
+      "result": "La curva temporal queda determinada por claves, parámetro u y método de interpolación por canal.",
+      "limits": [
+        "No mezclar interpolación de posición, escala y orientación con la misma fórmula si sus espacios son distintos."
+      ],
+      "dimensional_verification": [
+        "u=(t−t_i)/(t_{i+1}−t_i) es adimensional; x(t) conserva la unidad del canal.",
+        "La interpolación quaternion conserva orientación unitaria; no se asigna longitud a sus componentes."
+      ]
+    },
+    {
+      "record_key": "D04:1",
+      "name": "Curvas easing",
+      "starting_principles": [
+        "t_1>t_0; u limitado a [0,1].",
+        "Los extremos x_0,x_1 comparten unidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=(t−t_0)/(t_1−t_0)",
+          "justification": "Convertir el tiempo del intervalo a [0,1]."
+        },
+        {
+          "step": 2,
+          "equation": "e(u)=3u²−2u³",
+          "justification": "Elegir un polinomio cúbico con extremos e(0)=0 y e(1)=1."
+        },
+        {
+          "step": 3,
+          "equation": "e'(u)=6u(1−u)",
+          "justification": "La derivada se anula en ambos extremos y es no negativa en [0,1], por lo que el movimiento arranca y termina suavemente."
+        },
+        {
+          "step": 4,
+          "equation": "x(t)=x_0+(x_1−x_0)e(u)",
+          "justification": "Usar e como peso adimensional para interpolar el canal."
+        }
+      ],
+      "assumptions": [
+        "t_1>t_0; u limitado a [0,1].",
+        "Los extremos x_0,x_1 comparten unidad.",
+        "El easing se aplica al parámetro, no altera las unidades del canal."
+      ],
+      "result": "Smoothstep cúbico produce transición C¹ con velocidad cero en extremos.",
+      "limits": [
+        "No garantiza aceleración nula en extremos; para continuidad C² se requiere otro polinomio."
+      ],
+      "dimensional_verification": [
+        "u y e(u) son adimensionales; e'(u) es derivada respecto de parámetro adimensional.",
+        "x_0+(x_1−x_0)e(u) conserva la unidad de x."
+      ]
+    },
+    {
+      "record_key": "D04:3",
+      "name": "Movimiento armónico",
+      "starting_principles": [
+        "ω>0; A y x_0 tienen la unidad del canal.",
+        "La oscilación ideal no incluye amortiguamiento."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ(t)=ωt+φ_0",
+          "justification": "Construir fase a partir de frecuencia angular y fase inicial."
+        },
+        {
+          "step": 2,
+          "equation": "x(t)=x_0+A sinφ(t)",
+          "justification": "Escalar la señal periódica por amplitud y trasladarla al centro x_0."
+        },
+        {
+          "step": 3,
+          "equation": "T=2π/ω",
+          "justification": "Derivar periodo de la condición de repetición de fase de 2π."
+        },
+        {
+          "step": 4,
+          "equation": "v(t)=Aω cos(ωt+φ_0)",
+          "justification": "Derivar respecto al tiempo para obtener velocidad."
+        }
+      ],
+      "assumptions": [
+        "ω>0; A y x_0 tienen la unidad del canal.",
+        "La oscilación ideal no incluye amortiguamiento.",
+        "Fase en radianes."
+      ],
+      "result": "El movimiento periódico se obtiene de una fase lineal y una función seno.",
+      "limits": [
+        "Para movimiento físico amortiguado, la amplitud constante no es suficiente; usar modelo de disipación."
+      ],
+      "dimensional_verification": [
+        "ω tiene T⁻¹; ωt y φ son adimensionales angulares.",
+        "A y x_0 tienen unidad del canal; v=Aω cos(...) tiene unidad canal/T."
+      ]
+    },
+    {
+      "record_key": "D04:4",
+      "name": "Péndulo simple",
+      "starting_principles": [
+        "Ángulos pequeños para aproximación lineal.",
+        "g>0, L>0; pivote fijo y sin amortiguamiento."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "τ=−mgL sinθ",
+          "justification": "El peso genera torque restaurador respecto al pivote con brazo L."
+        },
+        {
+          "step": 2,
+          "equation": "I=mL²",
+          "justification": "Para una masa puntual a distancia L, el momento de inercia es mL²."
+        },
+        {
+          "step": 3,
+          "equation": "Iθ''=τ ⇒ θ''+(g/L)sinθ=0",
+          "justification": "Sustituir torque e inercia y dividir por mL²."
+        },
+        {
+          "step": 4,
+          "equation": "sinθ≈θ ⇒ θ''+(g/L)θ=0",
+          "justification": "Para oscilaciones pequeñas, linealizar seno alrededor de θ=0."
+        },
+        {
+          "step": 5,
+          "equation": "ω_0=√(g/L); θ(t)=A cos(ω_0t+φ)",
+          "justification": "La ecuación lineal es armónica con frecuencia natural ω_0."
+        }
+      ],
+      "assumptions": [
+        "Ángulos pequeños para aproximación lineal.",
+        "g>0, L>0; pivote fijo y sin amortiguamiento.",
+        "θ en radianes."
+      ],
+      "result": "La ecuación no lineal deriva del balance de torque; el límite de ángulo pequeño da oscilación armónica.",
+      "limits": [
+        "Para amplitudes grandes el periodo depende de amplitud y la aproximación seno≈θ pierde precisión."
+      ],
+      "dimensional_verification": [
+        "g/L tiene T⁻²; √(g/L) tiene T⁻¹; multiplicar por t produce fase adimensional.",
+        "θ y sus amplitudes son angulares adimensionales."
+      ]
+    },
+    {
+      "record_key": "D04:5",
+      "name": "Resorte amortiguado",
+      "starting_principles": [
+        "m>0; k≥0; c≥0.",
+        "x,x_0 en longitud; F en fuerza."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_s=−k(x−x_0)",
+          "justification": "Ley de Hooke: fuerza restauradora proporcional a elongación."
+        },
+        {
+          "step": 2,
+          "equation": "F_d=−c x'",
+          "justification": "Amortiguamiento viscoso proporcional a velocidad."
+        },
+        {
+          "step": 3,
+          "equation": "m x''=F(t)+F_s+F_d",
+          "justification": "Aplicar segunda ley de Newton."
+        },
+        {
+          "step": 4,
+          "equation": "m x''+c x'+k(x−x_0)=F(t)",
+          "justification": "Reordenar para obtener la ecuación diferencial del sistema."
+        },
+        {
+          "step": 5,
+          "equation": "ω_n=√(k/m); ζ=c/(2√(km))",
+          "justification": "Definir frecuencia natural y razón de amortiguamiento para clasificar respuesta."
+        }
+      ],
+      "assumptions": [
+        "m>0; k≥0; c≥0.",
+        "x,x_0 en longitud; F en fuerza.",
+        "F(t) y condiciones iniciales declaradas."
+      ],
+      "result": "La dinámica resulta de sumar fuerzas elástica, viscosa y externa.",
+      "limits": [
+        "La estabilidad y respuesta dependen de c,k,m y del integrador; no sustituir parámetros sin conservar unidades."
+      ],
+      "dimensional_verification": [
+        "m x'' tiene N; c x' tiene N si c es kg/s; k(x−x_0) tiene N si k es N/m.",
+        "ω_n tiene T⁻¹ y ζ es adimensional."
+      ]
+    },
+    {
+      "record_key": "D04:6",
+      "name": "Integración Verlet",
+      "starting_principles": [
+        "Δt fijo y positivo.",
+        "Aceleración evaluada en instante n."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a_n≈(x_{n+1}−2x_n+x_{n−1})/Δt²",
+          "justification": "Aproximar segunda derivada por diferencia central."
+        },
+        {
+          "step": 2,
+          "equation": "x_{n+1}=2x_n−x_{n−1}+a_nΔt²",
+          "justification": "Despejar posición futura."
+        },
+        {
+          "step": 3,
+          "equation": "v_n≈(x_{n+1}−x_{n−1})/(2Δt)",
+          "justification": "Reconstruir velocidad centrada si se necesita."
+        },
+        {
+          "step": 4,
+          "equation": "Actualizar fuerzas en x_n y repetir",
+          "justification": "La aceleración se recalcula desde el estado y fuerzas del nuevo paso."
+        }
+      ],
+      "assumptions": [
+        "Δt fijo y positivo.",
+        "Aceleración evaluada en instante n.",
+        "Posiciones iniciales x_0,x_1 disponibles."
+      ],
+      "result": "Verlet deriva de una aproximación centrada de la segunda derivada.",
+      "limits": [
+        "El método es sensible a paso temporal; colisiones y restricciones requieren proyección adicional."
+      ],
+      "dimensional_verification": [
+        "a_nΔt² tiene L y se suma a posiciones.",
+        "La diferencia segunda dividida por Δt² tiene L/T²."
+      ]
+    },
+    {
+      "record_key": "D04:7",
+      "name": "Euler semiimplícito",
+      "starting_principles": [
+        "m>0; Δt>0.",
+        "F y estados finitos; unidades coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a_n=F(x_n,v_n,t_n)/m",
+          "justification": "Obtener aceleración de la fuerza neta."
+        },
+        {
+          "step": 2,
+          "equation": "v_{n+1}=v_n+a_nΔt",
+          "justification": "Actualizar primero velocidad."
+        },
+        {
+          "step": 3,
+          "equation": "x_{n+1}=x_n+v_{n+1}Δt",
+          "justification": "Usar velocidad nueva para actualizar posición."
+        },
+        {
+          "step": 4,
+          "equation": "t_{n+1}=t_n+Δt",
+          "justification": "Avanzar reloj de simulación."
+        }
+      ],
+      "assumptions": [
+        "m>0; Δt>0.",
+        "F y estados finitos; unidades coherentes.",
+        "El orden velocidad→posición forma parte del método."
+      ],
+      "result": "La actualización semiimplícita usa Euler en velocidad y luego posición con la velocidad actualizada.",
+      "limits": [
+        "No equivale a Euler explícito; cambiar el orden cambia estabilidad y trayectoria."
+      ],
+      "dimensional_verification": [
+        "F/m tiene L/T²; aΔt tiene L/T y se suma a velocidad.",
+        "v_{n+1}Δt tiene L y se suma a posición."
+      ]
+    },
+    {
+      "record_key": "D04:8",
+      "name": "RK4",
+      "starting_principles": [
+        "f suficientemente suave; Δt finito.",
+        "Todas las k_i tienen unidad y/T."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "k_1=f(t_n,y_n)",
+          "justification": "Evaluar pendiente al inicio."
+        },
+        {
+          "step": 2,
+          "equation": "k_2=f(t_n+Δt/2,y_n+Δt k_1/2)",
+          "justification": "Evaluar pendiente en punto medio predicho por k_1."
+        },
+        {
+          "step": 3,
+          "equation": "k_3=f(t_n+Δt/2,y_n+Δt k_2/2)",
+          "justification": "Refinar pendiente en punto medio."
+        },
+        {
+          "step": 4,
+          "equation": "k_4=f(t_n+Δt,y_n+Δt k_3)",
+          "justification": "Evaluar pendiente al final predicho."
+        },
+        {
+          "step": 5,
+          "equation": "y_{n+1}=y_n+Δt(k_1+2k_2+2k_3+k_4)/6",
+          "justification": "Combinar pendientes con pesos que integran polinomio de Taylor hasta orden cuatro."
+        }
+      ],
+      "assumptions": [
+        "f suficientemente suave; Δt finito.",
+        "Todas las k_i tienen unidad y/T.",
+        "Etapas intermedias dentro del dominio de f."
+      ],
+      "result": "RK4 aproxima la integral de dy/dt=f(t,y) con error local O(Δt⁵) bajo regularidad.",
+      "limits": [
+        "El mayor orden no garantiza estabilidad para pasos arbitrariamente grandes."
+      ],
+      "dimensional_verification": [
+        "Cada k_i tiene unidad de estado/T; Δt k_i tiene unidad de estado.",
+        "La combinación ponderada conserva la unidad del estado."
+      ]
+    },
+    {
+      "record_key": "D04:9",
+      "name": "Boids",
+      "starting_principles": [
+        "Vecindad y radio declarados; posiciones/velocidades finitas.",
+        "Para salida aceleración: w_s L²/T², w_a T⁻¹, w_c T⁻²."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_i=−Σ_j (p_j−p_i)/||p_j−p_i||²",
+          "justification": "El término de separación pondera más a vecinos cercanos y su dimensión es L⁻¹."
+        },
+        {
+          "step": 2,
+          "equation": "A_i=mean(v_j)−v_i",
+          "justification": "La alineación es una diferencia de velocidades y tiene dimensión L/T."
+        },
+        {
+          "step": 3,
+          "equation": "C_i=mean(p_j)−p_i",
+          "justification": "La cohesión apunta desde el agente hacia el centroide local y tiene dimensión L."
+        },
+        {
+          "step": 4,
+          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i",
+          "justification": "Las ganancias con unidades explícitas convierten separación, alineación y cohesión en aceleraciones L/T² antes de sumarlas."
+        },
+        {
+          "step": 5,
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt,v_max); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar la aceleración en velocidad y la velocidad actualizada en posición."
+        }
+      ],
+      "assumptions": [
+        "Vecindad y radio declarados; posiciones/velocidades finitas.",
+        "Para salida aceleración: w_s L²/T², w_a T⁻¹, w_c T⁻².",
+        "Pares coincidentes requieren tratamiento para evitar división por cero.",
+        "S_i tiene L⁻¹, A_i L/T y C_i L; w_s L²/T², w_a T⁻¹ y w_c T⁻²; a_i tiene L/T²."
+      ],
+      "result": "La conducta emergente se calcula como aceleración resultante de tres reglas locales dimensionalmente compatibles, seguida de integración semiimplícita.",
+      "limits": [
+        "Los pesos no son adimensionales en esta forma abreviada; usar unidades de D27 para que la suma sea homogénea.",
+        "El clamp de velocidad no sustituye el límite de aceleración; si se requiere, aplicar a_max antes de integrar."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; A_i tiene L/T; C_i tiene L.",
+        "w_s debe tener L²/T, w_a es adimensional y w_c T⁻¹ para que cada término de v_des tenga L/T; v_desΔt tiene L."
+      ]
+    },
+    {
+      "record_key": "D04:10",
+      "name": "Partículas",
+      "starting_principles": [
+        "Aceleración constante entre pasos.",
+        "m_i>0 si se deriva desde fuerza."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a_i=F_i/m_i",
+          "justification": "Convertir fuerza neta en aceleración."
+        },
+        {
+          "step": 2,
+          "equation": "v_i(t)=v_{0,i}+a_i t",
+          "justification": "Integrar aceleración constante."
+        },
+        {
+          "step": 3,
+          "equation": "p_i(t)=p_{0,i}+v_{0,i}t+0.5a_i t²",
+          "justification": "Integrar velocidad para obtener posición."
+        },
+        {
+          "step": 4,
+          "equation": "Render(p_i(t),size_i,color_i)",
+          "justification": "Convertir el estado físico/procedural en atributos visuales."
+        }
+      ],
+      "assumptions": [
+        "Aceleración constante entre pasos.",
+        "m_i>0 si se deriva desde fuerza.",
+        "Parámetros de partícula y tiempo finitos."
+      ],
+      "result": "La trayectoria balística es la solución cerrada de p''(t)=a constante.",
+      "limits": [
+        "Fuerzas variables requieren integración numérica; nacimiento y muerte de partículas requieren condiciones de ciclo de vida."
+      ],
+      "dimensional_verification": [
+        "v_0t tiene L; at² tiene L; p(t) conserva L.",
+        "La derivación supone aceleración constante en el tramo."
+      ]
+    },
+    {
+      "record_key": "D04:11",
+      "name": "Movimiento browniano",
+      "starting_principles": [
+        "D≥0; Δt≥0; semilla reproducible si se requiere determinismo.",
+        "D tiene L²/T para posición espacial."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ΔW∼N(0,Δt)",
+          "justification": "El incremento Wiener tiene media cero y varianza Δt."
+        },
+        {
+          "step": 2,
+          "equation": "Δp=√(2DΔt)ξ, ξ∼N(0,1)",
+          "justification": "Escalar una normal estándar para que Var(Δp)=2DΔt."
+        },
+        {
+          "step": 3,
+          "equation": "p_{n+1}=p_n+Δp",
+          "justification": "Sumar el incremento aleatorio al estado de posición; la fórmula de catálogo no incluye deriva determinista."
+        },
+        {
+          "step": 4,
+          "equation": "Var(p(t)−p(0))=2Dt",
+          "justification": "La varianza acumulada crece linealmente con tiempo para incrementos independientes."
+        }
+      ],
+      "assumptions": [
+        "D≥0; Δt≥0; semilla reproducible si se requiere determinismo.",
+        "D tiene L²/T para posición espacial.",
+        "ξ independiente por paso/canal según modelo."
+      ],
+      "result": "La difusión browniana sin deriva se obtiene de incrementos gaussianos independientes cuya varianza es proporcional al paso temporal.",
+      "limits": [
+        "El movimiento browniano no es diferenciable; no tratar su velocidad instantánea como finita."
+      ],
+      "dimensional_verification": [
+        "D tiene L²/T; DΔt tiene L² y √(2DΔt) tiene L.",
+        "ξ es adimensional; Δp y p tienen L; la varianza acumulada 2Dt tiene L²."
+      ]
+    },
+    {
+      "record_key": "D04:12",
+      "name": "Colisión esfera-esfera",
+      "starting_principles": [
+        "Radios positivos; centros en mismo marco/unidad.",
+        "δ=0 requiere normal de respaldo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d=c_2−c_1; δ=||d||",
+          "justification": "Calcular vector y distancia entre centros."
+        },
+        {
+          "step": 2,
+          "equation": "R=r_1+r_2",
+          "justification": "La suma de radios es la distancia límite de contacto."
+        },
+        {
+          "step": 3,
+          "equation": "δ<R ⇔ overlap",
+          "justification": "Si la distancia entre centros es menor que R, los interiores se solapan."
+        },
+        {
+          "step": 4,
+          "equation": "penetration=R−δ; n=d/δ",
+          "justification": "Obtener profundidad y normal de contacto para resolver penetración."
+        }
+      ],
+      "assumptions": [
+        "Radios positivos; centros en mismo marco/unidad.",
+        "δ=0 requiere normal de respaldo.",
+        "La prueba es geométrica; respuesta dinámica es una etapa aparte."
+      ],
+      "result": "La condición de intersección se deriva de la distancia mínima entre centros.",
+      "limits": [
+        "La prueba de solape no determina por sí sola impulso, fricción ni restitución."
+      ],
+      "dimensional_verification": [
+        "d, r_1, r_2 y penetration tienen L; normal n es adimensional.",
+        "La comparación d<r_1+r_2 es dimensionalmente homogénea."
+      ]
+    },
+    {
+      "record_key": "D04:13",
+      "name": "Colisión plano",
+      "starting_principles": [
+        "n unitaria y orientada hacia el lado permitido.",
+        "p y c usan misma unidad espacial; r>0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d=n·p+c",
+          "justification": "Distancia firmada al plano si n es unitario."
+        },
+        {
+          "step": 2,
+          "equation": "d<r",
+          "justification": "Una esfera de radio r cruza el semiespacio del plano cuando su centro está a menos de r de la superficie."
+        },
+        {
+          "step": 3,
+          "equation": "penetration=r−d",
+          "justification": "Cuantificar la profundidad de penetración."
+        },
+        {
+          "step": 4,
+          "equation": "p_corrected=p+penetration·n",
+          "justification": "Proyectar centro hacia el lado permitido del plano."
+        }
+      ],
+      "assumptions": [
+        "n unitaria y orientada hacia el lado permitido.",
+        "p y c usan misma unidad espacial; r>0.",
+        "La fórmula supone plano infinito y esfera."
+      ],
+      "result": "El contacto se reduce a comparar distancia firmada con radio de esfera.",
+      "limits": [
+        "Para cajas/cápsulas o planos finitos se necesita otra prueba de contacto."
+      ],
+      "dimensional_verification": [
+        "n es unitario/adimensional; n·p y c tienen L; d y r tienen L.",
+        "penetration·n tiene L y puede sumarse a p."
+      ]
+    },
+    {
+      "record_key": "D04:14",
+      "name": "Sistema masa-resorte en cadena",
+      "starting_principles": [
+        "k tiene N/m; c N·s/m; m_i>0.",
+        "Vecinos y nodos comparten unidad; extremos requieren anclaje o condición de borde."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_i=k(x_{i+1}−2x_i+x_{i−1})",
+          "justification": "La diferencia segunda discreta aproxima curvatura/desplazamiento respecto a vecinos."
+        },
+        {
+          "step": 2,
+          "equation": "F_{d,i}=−c v_i",
+          "justification": "Añadir amortiguamiento proporcional a velocidad."
+        },
+        {
+          "step": 3,
+          "equation": "m_i x_i''=F_i+F_{d,i}",
+          "justification": "Aplicar segunda ley de Newton a cada nodo."
+        },
+        {
+          "step": 4,
+          "equation": "Integrar {x_i,v_i} en el tiempo",
+          "justification": "Actualizar toda la cadena con el mismo paso temporal y condiciones de extremos."
+        }
+      ],
+      "assumptions": [
+        "k tiene N/m; c N·s/m; m_i>0.",
+        "Vecinos y nodos comparten unidad; extremos requieren anclaje o condición de borde.",
+        "El paso temporal se mantiene coherente."
+      ],
+      "result": "La cadena discreta surge de conectar masas vecinas con resortes y amortiguadores.",
+      "limits": [
+        "Un paso excesivo puede generar oscilación numérica; constraints y colisiones se resuelven aparte."
+      ],
+      "dimensional_verification": [
+        "k tiene N/m; diferencia de posiciones tiene L y produce fuerza N.",
+        "c tiene kg/s; c v tiene N; m x'' también tiene N."
+      ]
+    },
+    {
+      "record_key": "D04:15",
+      "name": "Animación determinista",
+      "starting_principles": [
+        "PRNG y orden de eventos deterministas.",
+        "Mismos recursos, seed y entradas producen el mismo estado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "state(t)=F(t,seed,events)",
+          "justification": "Definir estado como función del tiempo absoluto, semilla y eventos."
+        },
+        {
+          "step": 2,
+          "equation": "random_k=PRNG(seed,eventId,channel)",
+          "justification": "Generar variación pseudoaleatoria indexada, no dependiente del orden de render."
+        },
+        {
+          "step": 3,
+          "equation": "state(t)=compose(base(t),eventEffects(t),random_k)",
+          "justification": "Componer trayectoria base y eventos con reglas deterministas."
+        },
+        {
+          "step": 4,
+          "equation": "render(state(t))",
+          "justification": "El frame se calcula desde t, no desde el frame previo."
+        }
+      ],
+      "assumptions": [
+        "PRNG y orden de eventos deterministas.",
+        "Mismos recursos, seed y entradas producen el mismo estado.",
+        "Eventos ordenados y con política de solapamiento."
+      ],
+      "result": "La evaluación por tiempo absoluto permite renderizar frames en cualquier orden sin acumular error de estado.",
+      "limits": [
+        "Sistemas que dependen de historial deben almacenar estado/eventos suficientes o precalcular la trayectoria."
+      ],
+      "dimensional_verification": [
+        "El tiempo t tiene T; seed/eventId son discretos; estado conserva unidad por canal.",
+        "La misma tupla de entradas debe producir el mismo resultado sin depender de orden de frames."
+      ]
+    },
+    {
+      "record_key": "D04:16",
+      "name": "Eventos con memoria precalculada",
+      "starting_principles": [
+        "Tiempos ordenados; estados compatibles.",
+        "Interpolación por canal respeta unidades y topología."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E={(t_i,s_i)}",
+          "justification": "Registrar estados o respuestas en tiempos de evento."
+        },
+        {
+          "step": 2,
+          "equation": "i=max{j:t_j≤t}",
+          "justification": "Localizar intervalo que contiene t."
+        },
+        {
+          "step": 3,
+          "equation": "u=(t−t_i)/(t_{i+1}−t_i)",
+          "justification": "Normalizar tiempo entre muestras."
+        },
+        {
+          "step": 4,
+          "equation": "s(t)=interpolate(s_i,s_{i+1},u)",
+          "justification": "Reconstruir estado por interpolación o lookup."
+        }
+      ],
+      "assumptions": [
+        "Tiempos ordenados; estados compatibles.",
+        "Interpolación por canal respeta unidades y topología.",
+        "Intervalos sin muestras requieren fallback."
+      ],
+      "result": "Una tabla de eventos convierte una simulación costosa en consulta temporal y reconstrucción.",
+      "limits": [
+        "La interpolación puede suavizar o alterar picos; almacenar muestras densas o usar interpolador apropiado."
+      ],
+      "dimensional_verification": [
+        "t_i y Δt tienen T; u es adimensional.",
+        "La interpolación solo es válida entre estados con tipos y unidades compatibles."
+      ]
+    },
+    {
+      "record_key": "D04:17",
+      "name": "Cuantización temporal de animación",
+      "starting_principles": [
+        "f_s>0; tiempos finitos.",
+        "La cuantización se aplica a canales seleccionados; cámara/FX pueden conservar tiempo continuo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "k=floor(t f_s)",
+          "justification": "Convertir tiempo a índice entero de muestra."
+        },
+        {
+          "step": 2,
+          "equation": "t_q=k/f_s",
+          "justification": "Obtener tiempo cuantizado al inicio de la muestra."
+        },
+        {
+          "step": 3,
+          "equation": "pose(t)=F(t_q)",
+          "justification": "Evaluar rig en tiempo discreto."
+        },
+        {
+          "step": 4,
+          "equation": "f_render≥f_s si se exige presentar cada muestra de pose",
+          "justification": "Para que cada intervalo de pose de duración 1/f_s contenga al menos una oportunidad de presentación; si la frecuencia de render es menor, algunas poses pueden omitirse."
+        }
+      ],
+      "assumptions": [
+        "f_s>0; tiempos finitos.",
+        "La cuantización se aplica a canales seleccionados; cámara/FX pueden conservar tiempo continuo.",
+        "La función F(t) es determinista."
+      ],
+      "result": "La pose queda constante por intervalos de duración 1/f_s, emulando muestreo en doses/treses.",
+      "limits": [
+        "El salto temporal es intencional; interpolar canales no cuantizados puede romper el estilo si se aplica globalmente."
+      ],
+      "dimensional_verification": [
+        "f_s tiene T⁻¹; t f_s es adimensional; k es índice entero; t_q tiene T.",
+        "f_render≥f_s solo es requisito si se pretende presentar cada muestra de pose; si no, algunas poses cuantizadas pueden no aparecer."
+      ]
+    },
+    {
+      "record_key": "D04:18",
+      "name": "XPBD: restricciones con compliance",
+      "starting_principles": [
+        "Para restricción de distancia: C tiene L, ∇C adimensional, w_i=1/m_i y α̃ tiene kg⁻¹; α tiene T²/kg.",
+        "Δt>0; masas positivas; compliance α≥0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(x)=||x_1−x_0||−L_0",
+          "justification": "Definir restricción de distancia con error C en longitud."
+        },
+        {
+          "step": 2,
+          "equation": "α̃=α/Δt²",
+          "justification": "Escalar compliance por paso temporal para reducir dependencia de Δt."
+        },
+        {
+          "step": 3,
+          "equation": "Δλ=−(C(x)+α̃λ)/(Σ_i w_i||∇_iC||²+α̃)",
+          "justification": "Resolver incremento del multiplicador de Lagrange regularizado."
+        },
+        {
+          "step": 4,
+          "equation": "Δx_i=w_i∇_iC Δλ",
+          "justification": "Aplicar corrección de posición ponderada por inversa de masa."
+        },
+        {
+          "step": 5,
+          "equation": "repeat constraints for iterations",
+          "justification": "Repetir proyección hasta tolerancia o iteraciones máximas."
+        }
+      ],
+      "assumptions": [
+        "Para restricción de distancia: C tiene L, ∇C adimensional, w_i=1/m_i y α̃ tiene kg⁻¹; α tiene T²/kg.",
+        "Δt>0; masas positivas; compliance α≥0.",
+        "Restricciones y posiciones en mismo marco."
+      ],
+      "result": "XPBD deriva de la proyección de restricciones de PBD con un multiplicador persistente y compliance escalada por Δt².",
+      "limits": [
+        "La convergencia depende de orden/iteraciones; colisiones y restricciones acopladas pueden requerir substeps."
+      ],
+      "dimensional_verification": [
+        "C tiene L; ∇C es adimensional; w_i tiene M⁻¹; αtilde tiene M⁻¹.",
+        "α tiene T²/M; λ tiene M·L; Δλ tiene M·L; w_i∇CΔλ tiene L."
+      ]
+    },
+    {
+      "record_key": "D04:19",
+      "name": "Hash espacial uniforme para vecinos",
+      "starting_principles": [
+        "h>0 y r≥0; p y origin comparten unidad.",
+        "Hash collisions requieren conservar/verificar coordenada original de celda."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "cell(p)=floor((p−origin)/h)",
+          "justification": "Convertir posición a coordenadas enteras de celda."
+        },
+        {
+          "step": 2,
+          "equation": "key=hash(cell)",
+          "justification": "Mapear coordenadas de celda a bucket hash."
+        },
+        {
+          "step": 3,
+          "equation": "insert(key,index)",
+          "justification": "Almacenar cada agente/partícula en su bucket."
+        },
+        {
+          "step": 4,
+          "equation": "queryCells=neighborCells(cell(p),ceil(r/h))",
+          "justification": "Buscar celdas cuyo volumen pueda intersectar la esfera de radio r."
+        },
+        {
+          "step": 5,
+          "equation": "filter ||p_j−p_i||≤r",
+          "justification": "Filtrar por distancia real para eliminar falsos positivos de celdas cercanas."
+        }
+      ],
+      "assumptions": [
+        "h>0 y r≥0; p y origin comparten unidad.",
+        "Hash collisions requieren conservar/verificar coordenada original de celda.",
+        "El grid y el radio usan la misma métrica."
+      ],
+      "result": "La partición reduce el conjunto de candidatos de vecinos; el filtrado geométrico conserva exactitud de la consulta.",
+      "limits": [
+        "Complejidad esperada depende de ocupación; celdas muy densas pueden degradar a búsqueda casi cuadrática."
+      ],
+      "dimensional_verification": [
+        "p−origin y h tienen L; cell es índice entero adimensional.",
+        "r/h es adimensional; ceil produce número entero de celdas; filtro final compara distancias L."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "19/19 técnicas no protegidas cubiertas; D04:2 protegida excluida",
+      "Cada derivación incluye pasos y justificación matemática",
+      "Todas las derivaciones tienen verificación dimensional específica",
+      "Boids usa ganancias con unidades explícitas para homogeneizar separación, alineación y cohesión",
+      "XPBD tipa compliance, multiplicador y corrección para restricción de longitud",
+      "Cuantización temporal distingue frecuencia de pose y frecuencia de presentación",
+      "Boids se alinea con la ecuación de catálogo v′ y produce velocidad deseada con ganancias L²/T, 1 y T⁻¹",
+      "Movimiento browniano mantiene la variante sin deriva declarada en el manifiesto"
+    ],
+    "limitations": [
+      "La derivación matemática no sustituye análisis de estabilidad, pseudocódigo portable ni pruebas numéricas, que pertenecen a los puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

@@ -1,0 +1,581 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D07 Arquitectura, edificios, puentes y ciudades",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D07",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D07 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D07:0",
+      "name": "Gramática de formas",
+      "starting_principles": [
+        "Reglas finitas y tipadas; parámetros geométricos en unidades declaradas.",
+        "Orden de aplicación y prioridad deterministas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_0=axiom",
+          "justification": "Definir una forma inicial o módulo base."
+        },
+        {
+          "step": 2,
+          "equation": "S_{n+1}=R(S_n,parameters)",
+          "justification": "Aplicar reglas de producción para sustituir/expandir partes de la forma."
+        },
+        {
+          "step": 3,
+          "equation": "G_{n+1}=interpret(S_{n+1})",
+          "justification": "Interpretar símbolos/reglas como operaciones geométricas."
+        },
+        {
+          "step": 4,
+          "equation": "stop if depth=n_max or budget",
+          "justification": "Detener expansión para limitar complejidad."
+        }
+      ],
+      "assumptions": [
+        "Reglas finitas y tipadas; parámetros geométricos en unidades declaradas.",
+        "Orden de aplicación y prioridad deterministas.",
+        "Profundidad máxima definida."
+      ],
+      "result": "La arquitectura procedural se obtiene de reglas recursivas que transforman una forma base.",
+      "limits": [
+        "Una gramática sin límite de profundidad puede crecer exponencialmente."
+      ],
+      "dimensional_verification": [
+        "Las transformaciones afines tienen bloque lineal adimensional y traslación L; la composición conserva coordenadas L.",
+        "La profundidad y cantidad de reglas son conteos discretos; parámetros geométricos conservan su unidad por tipo."
+      ]
+    },
+    {
+      "record_key": "D07:1",
+      "name": "Módulos arquitectónicos",
+      "starting_principles": [
+        "Módulos comparten sistema de coordenadas y unidades.",
+        "Pivotes locales y puntos de conexión definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "M_i=T_i R_i S_i",
+          "justification": "Construir transformación afín de cada módulo."
+        },
+        {
+          "step": 2,
+          "equation": "M_world,i=M_parent M_i",
+          "justification": "Componer transformación local con el marco del edificio."
+        },
+        {
+          "step": 3,
+          "equation": "Building=⋃_i M_world,i·Module_i",
+          "justification": "Instanciar módulos en sus ubicaciones."
+        },
+        {
+          "step": 4,
+          "equation": "Module_i=Module_j for repeated type",
+          "justification": "Reutilizar la misma geometría para módulos del mismo tipo."
+        }
+      ],
+      "assumptions": [
+        "Módulos comparten sistema de coordenadas y unidades.",
+        "Pivotes locales y puntos de conexión definidos.",
+        "Transformaciones compatibles con geometría."
+      ],
+      "result": "Un edificio se construye como unión de módulos transformados en un marco común.",
+      "limits": [
+        "La unión visual no comprueba interferencias ni propiedades estructurales reales."
+      ],
+      "dimensional_verification": [
+        "M_i compone rotación/escala adimensional con traslación L; M_world,i conserva el marco/unidad.",
+        "La unión de módulos compara geometrías en el mismo sistema de coordenadas y unidad L."
+      ]
+    },
+    {
+      "record_key": "D07:2",
+      "name": "Tejado a dos aguas",
+      "starting_principles": [
+        "pitch≥0; x y y usan unidad de longitud.",
+        "La cumbrera se ubica en x=0; aleros en límites del dominio."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x∈[−W/2,W/2]; h_ridge=roofBase+pitch·W/2",
+          "justification": "Tomar roofBase como altura de alero y calcular la cota de cumbrera a partir de la semianchura y la pendiente."
+        },
+        {
+          "step": 2,
+          "equation": "y(x)=h_ridge−pitch·|x|=roofBase+pitch·(W/2−|x|)",
+          "justification": "La distancia horizontal desde la cumbrera es |x|; restarla con pendiente positiva produce dos planos que descienden hacia los aleros."
+        },
+        {
+          "step": 3,
+          "equation": "dy/dx=+pitch para x<0; dy/dx=−pitch para x>0",
+          "justification": "Las derivadas opuestas describen las dos aguas simétricas y el cambio de signo en la cumbrera."
+        },
+        {
+          "step": 4,
+          "equation": "y(0)=roofBase+pitch·W/2; y(±W/2)=roofBase",
+          "justification": "Evaluar centro y extremos confirma que la cumbrera es el máximo y ambos aleros quedan a la altura base."
+        }
+      ],
+      "assumptions": [
+        "Se define roofBase como altura de alero; pitch=rise/run≥0.",
+        "La sección es simétrica respecto de x=0 y se extiende en el eje longitudinal del edificio."
+      ],
+      "result": "El tejado a dos aguas se deriva como dos planos simétricos que comparten una cumbrera elevada. La ecuación original del catálogo y=roofBase+pitch·|x| genera un valle; se registra como discrepancia que debe corregirse en la integración del manifiesto.",
+      "limits": [
+        "La sección lineal produce planos; limatesas, limahoyas y faldones múltiples requieren partición geométrica adicional.",
+        "La fórmula original del manifiesto conserva unidades pero describe un valle, no el tejado nombrado; la corrección queda registrada para el punto 6."
+      ],
+      "dimensional_verification": [
+        "W,x y roofBase tienen L; pitch es adimensional; pitch·(W/2−|x|) tiene L.",
+        "La pendiente dy/dx es adimensional; el perfil corregido conserva longitud y satisface la geometría de cumbrera elevada."
+      ],
+      "catalogue_discrepancy": {
+        "original": "y=roofBase+pitch·abs(x)",
+        "issue": "con pitch≥0, x=0 es mínimo y los bordes son más altos; representa un valle",
+        "corrected": "y=roofBase+pitch·(W/2−abs(x))",
+        "pending_manifest_integration": true
+      }
+    },
+    {
+      "record_key": "D07:3",
+      "name": "Tejado curvo",
+      "starting_principles": [
+        "a tiene unidad L⁻¹ si x,z tienen L.",
+        "Dominio de x limitado por anchura de cubierta."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "z(x)=z_0+a x²",
+          "justification": "Elegir perfil parabólico con vértice en x=0."
+        },
+        {
+          "step": 2,
+          "equation": "z'(x)=2ax",
+          "justification": "Derivar para obtener pendiente local."
+        },
+        {
+          "step": 3,
+          "equation": "z''(x)=2a",
+          "justification": "La segunda derivada controla curvatura del perfil."
+        },
+        {
+          "step": 4,
+          "equation": "P(x,s)=(x,y(s),z(x))",
+          "justification": "Extender perfil a lo largo de la dirección longitudinal s."
+        }
+      ],
+      "assumptions": [
+        "a tiene unidad L⁻¹ si x,z tienen L.",
+        "Dominio de x limitado por anchura de cubierta.",
+        "Perfil spline sustituye parábola si se requieren condiciones de borde arbitrarias."
+      ],
+      "result": "Una parábola o spline de perfil genera una cubierta curva al extruirse longitudinalmente.",
+      "limits": [
+        "El signo de a determina concavidad; no representa por sí mismo comportamiento estructural."
+      ],
+      "dimensional_verification": [
+        "x,z,z0 tienen L; a tiene L⁻¹; a x² tiene L.",
+        "z'(x) es adimensional; z''(x) tiene L⁻¹."
+      ]
+    },
+    {
+      "record_key": "D07:4",
+      "name": "Arco",
+      "starting_principles": [
+        "r>0; ángulo en radianes; centros y coordenadas comparten unidad.",
+        "El rango angular determina si el arco es semicircular, segmentario u otro."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x(θ)=c_x+r cosθ; y(θ)=c_y+r sinθ",
+          "justification": "Parametrizar una circunferencia de radio r."
+        },
+        {
+          "step": 2,
+          "equation": "(x−c_x)²+(y−c_y)²=r²",
+          "justification": "Eliminar θ usando sin²θ+cos²θ=1."
+        },
+        {
+          "step": 3,
+          "equation": "θ∈[θ_0,θ_1]",
+          "justification": "Seleccionar el tramo de arco deseado."
+        },
+        {
+          "step": 4,
+          "equation": "P(θ,z)=(x(θ),y(θ),z)",
+          "justification": "Extruir el perfil circular a lo largo de z para obtener un arco 3D."
+        }
+      ],
+      "assumptions": [
+        "r>0; ángulo en radianes; centros y coordenadas comparten unidad.",
+        "El rango angular determina si el arco es semicircular, segmentario u otro.",
+        "Espesor y sección se añaden por sweep/extrusión."
+      ],
+      "result": "El arco es un segmento de circunferencia parametrizado por ángulo y extruido para darle profundidad.",
+      "limits": [
+        "El arco geométrico no define sección ni dimensiones constructivas reales."
+      ],
+      "dimensional_verification": [
+        "r,c_x,c_y,x,y tienen L; sinθ y cosθ son adimensionales.",
+        "La extrusión añade z con L y conserva dimensión espacial."
+      ]
+    },
+    {
+      "record_key": "D07:5",
+      "name": "Columna estriada",
+      "starting_principles": [
+        "r_0>|A| para mantener radio positivo.",
+        "n entero positivo; amplitud A en unidad de longitud."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r(θ)=r_0+A cos(nθ)",
+          "justification": "Modular el radio base con una oscilación angular."
+        },
+        {
+          "step": 2,
+          "equation": "x(θ)=r(θ)cosθ; z(θ)=r(θ)sinθ",
+          "justification": "Convertir radio polar variable a sección cartesiana."
+        },
+        {
+          "step": 3,
+          "equation": "θ∈[0,2π); n∈N",
+          "justification": "La periodicidad cierra la sección y n determina número de estrías."
+        },
+        {
+          "step": 4,
+          "equation": "P(θ,y)=(x(θ),y,z(θ))",
+          "justification": "Extruir sección a lo largo del eje de columna."
+        }
+      ],
+      "assumptions": [
+        "r_0>|A| para mantener radio positivo.",
+        "n entero positivo; amplitud A en unidad de longitud.",
+        "La orientación angular y costura UV se declaran."
+      ],
+      "result": "La sección radial oscilante produce estrías longitudinales al extruirse.",
+      "limits": [
+        "A grande puede autointersectar o colapsar la sección."
+      ],
+      "dimensional_verification": [
+        "r0 y A tienen L; cos(nθ) es adimensional; r(θ) conserva L.",
+        "n es entero adimensional; la sección cartesiana x,z tiene L."
+      ]
+    },
+    {
+      "record_key": "D07:6",
+      "name": "Escalera paramétrica",
+      "starting_principles": [
+        "rise>0; run>0 para escalera ascendente convencional.",
+        "n entero no negativo; unidades iguales para rise/run."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "y_n=y_0+n·rise",
+          "justification": "Acumular elevación por peldaño."
+        },
+        {
+          "step": 2,
+          "equation": "z_n=z_0+n·run",
+          "justification": "Acumular avance horizontal por peldaño."
+        },
+        {
+          "step": 3,
+          "equation": "P_n=(x_0,y_n,z_n)",
+          "justification": "Ubicar cada peldaño en la secuencia."
+        },
+        {
+          "step": 4,
+          "equation": "slope=rise/run",
+          "justification": "Derivar pendiente global de la sucesión si run>0."
+        }
+      ],
+      "assumptions": [
+        "rise>0; run>0 para escalera ascendente convencional.",
+        "n entero no negativo; unidades iguales para rise/run.",
+        "Ancho del peldaño se define aparte."
+      ],
+      "result": "Una escalera se construye como repetición discreta de peldaños con incrementos constantes.",
+      "limits": [
+        "No determina comodidad, normativa ni seguridad de una escalera real; es geometría visual."
+      ],
+      "dimensional_verification": [
+        "rise y run tienen L; n es conteo entero adimensional; y_n,z_n conservan L.",
+        "rise/run es adimensional y representa pendiente."
+      ]
+    },
+    {
+      "record_key": "D07:7",
+      "name": "Puente por curva",
+      "starting_principles": [
+        "C diferenciable y marco local estable.",
+        "offset, height y width usan unidad L; direcciones unitarias."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(s)",
+          "justification": "Definir línea central del tablero."
+        },
+        {
+          "step": 2,
+          "equation": "T=normalize(C'(s))",
+          "justification": "Obtener tangente de trayectoria."
+        },
+        {
+          "step": 3,
+          "equation": "deck(s)=C(s)+offset·N(s)",
+          "justification": "Desplazar el tablero en dirección transversal/vertical según marco local."
+        },
+        {
+          "step": 4,
+          "equation": "rail(s)=deck(s)+height·up(s)",
+          "justification": "Construir barandilla a altura constante en el marco local."
+        },
+        {
+          "step": 5,
+          "equation": "P(s,u)=deck(s)+u·width·B(s)",
+          "justification": "Generar superficie del tablero a partir de ancho y marco."
+        }
+      ],
+      "assumptions": [
+        "C diferenciable y marco local estable.",
+        "offset, height y width usan unidad L; direcciones unitarias.",
+        "La curva central no presenta tangente nula."
+      ],
+      "result": "La curva central define el trazado y un marco local permite construir tablero y elementos laterales.",
+      "limits": [
+        "Una curva con curvatura abrupta puede torcer el marco; usar transporte paralelo."
+      ],
+      "dimensional_verification": [
+        "C(s), offset, height y width tienen L; T,N,B son direcciones adimensionales.",
+        "deck, railing y P(s,u) conservan L; parámetros u normalizados son adimensionales."
+      ]
+    },
+    {
+      "record_key": "D07:8",
+      "name": "Piedra de mampostería",
+      "starting_principles": [
+        "Jitter acotado; semillas y bounds en mismo marco.",
+        "b tiene unidad L; la geometría de celda no es física."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "site_i=cellCenter_i+jitter_i",
+          "justification": "Generar semilla por celda con desplazamiento determinista."
+        },
+        {
+          "step": 2,
+          "equation": "cell_i={p:||p−site_i||≤||p−site_j|| ∀j}",
+          "justification": "Construir celdas de Voronoi como regiones más cercanas a cada semilla."
+        },
+        {
+          "step": 3,
+          "equation": "polygon_i=clip(cell_i,bounds)",
+          "justification": "Recortar la celda al dominio de muro/pavimento."
+        },
+        {
+          "step": 4,
+          "equation": "bevel(polygon_i,b)",
+          "justification": "Desplazar aristas o extruir bisel para suavizar bordes visuales."
+        },
+        {
+          "step": 5,
+          "equation": "material_i=hash(seed,i)",
+          "justification": "Asignar variación reproducible de tono/escala."
+        }
+      ],
+      "assumptions": [
+        "Jitter acotado; semillas y bounds en mismo marco.",
+        "b tiene unidad L; la geometría de celda no es física.",
+        "Hash determinista para reproducibilidad."
+      ],
+      "result": "La mampostería se genera como partición celular con variación por semilla y bisel geométrico.",
+      "limits": [
+        "El patrón no simula mortero ni estabilidad de mampostería real."
+      ],
+      "dimensional_verification": [
+        "cellCenter, jitter, bounds y bevel b tienen L; distancias Voronoi comparadas tienen L.",
+        "seed, cellId y hash son discretos; no se suman a coordenadas físicas."
+      ]
+    },
+    {
+      "record_key": "D07:9",
+      "name": "Fachada procedural",
+      "starting_principles": [
+        "bayWidth>0; floorHeight>0; rejilla finita.",
+        "Huecos quedan dentro de límites de celda."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x_i=x_0+i·bayWidth; y_j=y_0+j·floorHeight",
+          "justification": "Definir rejilla de ejes por crujías y niveles."
+        },
+        {
+          "step": 2,
+          "equation": "cell_{ij}=[x_i,x_{i+1}]×[y_j,y_{j+1}]",
+          "justification": "Construir cada módulo de fachada."
+        },
+        {
+          "step": 3,
+          "equation": "opening_{ij}=rule(i,j,seed,style)",
+          "justification": "Decidir hueco/ventana/puerta según gramática y parámetros."
+        },
+        {
+          "step": 4,
+          "equation": "facade=union(solidCells)−union(openings)",
+          "justification": "Componer macizos y restar huecos en representación geométrica."
+        },
+        {
+          "step": 5,
+          "equation": "material=style(cell,orientation)",
+          "justification": "Asignar materiales por regla de estilo."
+        }
+      ],
+      "assumptions": [
+        "bayWidth>0; floorHeight>0; rejilla finita.",
+        "Huecos quedan dentro de límites de celda.",
+        "Las operaciones booleanas son geométricas y se evalúan con tolerancia."
+      ],
+      "result": "La fachada se obtiene discretizando un plano en celdas y aplicando reglas para módulos sólidos y huecos.",
+      "limits": [
+        "El patrón visual no constituye cálculo estructural ni diseño constructivo."
+      ],
+      "dimensional_verification": [
+        "bayWidth y floorHeight tienen L; i,j son índices enteros; x_i,y_j conservan L.",
+        "Las operaciones de unión/resta booleana actúan sobre sólidos con el mismo marco y unidad."
+      ]
+    },
+    {
+      "record_key": "D07:10",
+      "name": "Telas y banderas",
+      "starting_principles": [
+        "ωt y kv son adimensionales; k tiene unidad inversa de parámetro espacial.",
+        "Amplitud A tiene L; N unitario."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "w(u,v,t)=A(u,v)sin(ωt−kv+φ)",
+          "justification": "Definir desplazamiento normal como una amplitud espacial multiplicada por una oscilación temporal-espacial."
+        },
+        {
+          "step": 2,
+          "equation": "P(u,v,t)=P_0(u,v)+w(u,v,t)N(u,v)",
+          "justification": "Desplazar cada punto de la superficie de reposo sobre su normal local unitaria."
+        },
+        {
+          "step": 3,
+          "equation": "A(0,v)=0",
+          "justification": "Hacer nula la amplitud sobre el borde sujeto para satisfacer la condición de frontera fija."
+        },
+        {
+          "step": 4,
+          "equation": "P(u_fixed,v,t)=P_0(u_fixed,v)",
+          "justification": "La condición geométrica impone desplazamiento cero en todos los puntos anclados."
+        },
+        {
+          "step": 5,
+          "equation": "N′=normalize(P_u×P_v)",
+          "justification": "Obtener la normal de la superficie deformada a partir de las tangentes paramétricas."
+        }
+      ],
+      "assumptions": [
+        "u,v∈[0,1] son parámetros adimensionales de superficie.",
+        "A(u,v) se anula en el borde fijo; ω está en rad/s y la fase en radianes."
+      ],
+      "result": "La bandera se representa como superficie parametrizada con desplazamiento ondulatorio normal y una condición de frontera fija.",
+      "limits": [
+        "La onda prescrita es una aproximación cinemática; no resuelve por sí sola la ecuación de membrana ni la interacción fluido-estructura.",
+        "La estabilidad física y la respuesta a ráfagas requieren modelo dinámico posterior."
+      ],
+      "dimensional_verification": [
+        "A tiene L; N es adimensional; w y P−P0 tienen L.",
+        "ωt, kv y φ son adimensionales; si v∈[0,1], k es adimensional; si v tiene longitud, k debe tener L⁻¹.",
+        "P_u y P_v tienen L; su producto cruzado tiene L² y la normal normalizada es adimensional."
+      ]
+    },
+    {
+      "record_key": "D07:11",
+      "name": "Faroles pendulares",
+      "starting_principles": [
+        "Ángulos pequeños para la aproximación lineal.",
+        "L>0, g>0; pivote fijo; amortiguamiento omitido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "τ=−mgL sinθ",
+          "justification": "El peso genera torque restaurador alrededor del punto de suspensión."
+        },
+        {
+          "step": 2,
+          "equation": "I=mL²",
+          "justification": "Para masa puntual a distancia L, momento de inercia."
+        },
+        {
+          "step": 3,
+          "equation": "θ''+(g/L)sinθ=0",
+          "justification": "Aplicar balance de torque y dividir por I."
+        },
+        {
+          "step": 4,
+          "equation": "sinθ≈θ ⇒ ω_0=√(g/L)",
+          "justification": "Linealizar para oscilación pequeña."
+        },
+        {
+          "step": 5,
+          "equation": "θ(t)=A cos(ω_0t+φ)",
+          "justification": "Solución armónica del sistema linealizado."
+        }
+      ],
+      "assumptions": [
+        "Ángulos pequeños para la aproximación lineal.",
+        "L>0, g>0; pivote fijo; amortiguamiento omitido.",
+        "La longitud es del punto de suspensión al centro de masa."
+      ],
+      "result": "La oscilación del farol se deriva del péndulo simple y su aproximación de ángulo pequeño.",
+      "limits": [
+        "Para amplitud grande, el periodo no es exactamente 2π√(L/g); amortiguamiento requiere término adicional."
+      ],
+      "dimensional_verification": [
+        "g/L tiene T⁻²; √(g/L) tiene T⁻¹; ω0t y φ son ángulos adimensionales.",
+        "θ y amplitud angular son adimensionales en SI; L es longitud positiva."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "12/12 técnicas D07 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, resultado, supuestos, límites y verificación dimensional",
+      "Pendiente de tejado, parábola, arco, estrías, escalera, puente, mampostería y fachada mantienen unidades espaciales coherentes",
+      "Telas/ banderas verifican fase adimensional y borde fijo",
+      "Las fórmulas son para geometría visual, no certificación estructural de edificios/puentes reales",
+      "D07:2 corrige la geometría del tejado a dos aguas y registra la discrepancia del catálogo para el punto 6",
+      "D07:10 tipa la onda de tela y la condición de borde fijo."
+    ],
+    "limitations": [
+      "La matemática define geometría procedural y animación visual; no sustituye cálculo estructural, normativa, ingeniería civil ni certificación de construcciones."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

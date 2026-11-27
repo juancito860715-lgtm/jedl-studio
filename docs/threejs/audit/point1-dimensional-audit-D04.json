@@ -1,0 +1,1727 @@
+{
+  "title": "Auditoría dimensional punto 1 — D04 Animación, movimiento y simulación",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D04",
+    "domain": "Animación, movimiento y simulación",
+    "record_count": 19,
+    "excluded_protected_records": 1,
+    "excluded_reason": "D04:2 está protegido por el mapa Crimson Loong y no se reaudita."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud de escena; usar metros si SI declarado.",
+    "time": "Segundos; frecuencia Hz=s⁻¹.",
+    "typed_channels": "Los canales vectoriales, angulares, booleanos y transformaciones requieren tipos y unidades por canal."
+  },
+  "records": [
+    {
+      "record_key": "D04:0",
+      "name": "Keyframes",
+      "variables": [
+        {
+          "symbol": "t,t_i,t_{i+1}",
+          "meaning": "tiempos",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t_i≤t≤t_{i+1}"
+        },
+        {
+          "symbol": "u",
+          "meaning": "tiempo normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "x_i,x_{i+1},x(t)",
+          "meaning": "valores de canal",
+          "unit": "tipo de canal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo tipo"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "duración del segmento",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        }
+      ],
+      "constraints": [
+        "t_i y t_(i+1) deben estar estrictamente ordenados; Δt=t_(i+1)−t_i>0.",
+        "u=(t−t_i)/Δt debe limitarse a [0,1] o declarar extrapolación; ambos valores del canal deben tener el mismo tipo y espacio."
+      ],
+      "valid_domain": [
+        "Tiempo finito y segmento con Δt>0; claves sin duplicados salvo política explícita de step/discontinuidad.",
+        "La interpolación debe ser compatible con el tipo: escalar/vector, quaternion con slerp, color en espacio declarado."
+      ],
+      "boundary_conditions": [
+        "En u=0 y u=1 reproducir exactamente x_i y x_(i+1).",
+        "En extremos de secuencia aplicar clamp, loop o extrapolación declarada; no dejarlo implícito."
+      ],
+      "dimensional_checks": [
+        "t, t_i, Δt tienen dimensión T; u es adimensional.",
+        "La interpolación opera sobre valores del mismo tipo dimensional; no interpolar directamente ángulos/quaterniones como escalares sin método específico."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:1",
+      "name": "Curvas easing",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "progreso normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "e(u)",
+          "meaning": "factor easing",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "3u²−2u³"
+        },
+        {
+          "symbol": "t0,t1,t",
+          "meaning": "tiempos",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t1>t0"
+        }
+      ],
+      "constraints": [
+        "u debe ser adimensional y acotado a [0,1] para el easing cúbico estándar.",
+        "e(u)=3u²−2u³ es adimensional; aplicar el resultado como peso entre dos valores del mismo tipo."
+      ],
+      "valid_domain": [
+        "u∈[0,1]; e(u)∈[0,1]; t1>t0."
+      ],
+      "boundary_conditions": [
+        "e(0)=0, e(1)=1 y e'(0)=e'(1)=0.",
+        "Fuera del intervalo aplicar clamp o extensión expresamente definida."
+      ],
+      "dimensional_checks": [
+        "u y e(u) son adimensionales; los tiempos tienen dimensión T.",
+        "x(t)=x0+(x1−x0)e(u) conserva la dimensión del canal x."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:3",
+      "name": "Movimiento armónico",
+      "variables": [
+        {
+          "symbol": "x0,A,x(t)",
+          "meaning": "posición base, amplitud y posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "frecuencia angular",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ω≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "φ",
+          "meaning": "fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "A y x0 tienen la misma dimensión que x; ω debe tener dimensión T^-1 y φ es adimensional (radianes).",
+        "La fase ωt+φ debe ser adimensional; ω≥0."
+      ],
+      "valid_domain": [
+        "x0,A,t,ω,φ finitos; ω≥0; unidades de tiempo consistentes."
+      ],
+      "boundary_conditions": [
+        "A=0 produce posición constante x0.",
+        "En ω=0 el valor es x0+A sinφ; no dividir por ω."
+      ],
+      "dimensional_checks": [
+        "ωt y φ son adimensionales; sin() recibe argumento adimensional.",
+        "x0 y A tienen la misma dimensión de longitud (o la dimensión del canal), por lo que x(t) conserva esa dimensión."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:4",
+      "name": "Péndulo simple",
+      "variables": [
+        {
+          "symbol": "θ",
+          "meaning": "ángulo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "g",
+          "meaning": "gravedad",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "g>0"
+        },
+        {
+          "symbol": "ℓ",
+          "meaning": "longitud",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ℓ>0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "A,φ",
+          "meaning": "amplitud y fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ángulo pequeño para aproximación lineal"
+        }
+      ],
+      "constraints": [
+        "La ecuación exacta θ''+(g/ℓ)sinθ=0 exige g/ℓ con dimensión T^-2; θ es adimensional.",
+        "La aproximación θ≈A cos(√(g/ℓ)t+φ) solo es válida para oscilaciones pequeñas; no sustituye la ecuación no lineal para amplitudes grandes."
+      ],
+      "valid_domain": [
+        "g>0, ℓ>0, θ y velocidades angulares finitas; A pequeño en radianes para la aproximación lineal."
+      ],
+      "boundary_conditions": [
+        "Definir θ(0) y θ'(0) para problema dinámico; la fórmula armónica usa A y φ equivalentes.",
+        "En ℓ→0 no evaluar frecuencia; longitud física debe ser estrictamente positiva."
+      ],
+      "dimensional_checks": [
+        "g/ℓ tiene dimensión T^-2; √(g/ℓ) tiene T^-1; multiplicar por t da dimensión 1.",
+        "θ, A y φ son adimensionales; radianes se usan como unidad angular coherente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:5",
+      "name": "Resorte amortiguado",
+      "variables": [
+        {
+          "symbol": "x,x0",
+          "meaning": "posición y equilibrio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "a",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "m,c,k",
+          "meaning": "masa, amortiguamiento, rigidez",
+          "unit": "kg; kg/s; kg/s²",
+          "dimension": "m: M; c: M·T^-1; k: M·T^-2",
+          "domain": "m>0; c,k≥0"
+        },
+        {
+          "symbol": "F",
+          "meaning": "fuerza externa",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "m x'' + c x' + k(x−x0)=F(t): cada término tiene dimensión de fuerza M·L·T^-2.",
+        "m>0; c,k≥0 para amortiguamiento y rigidez pasivos; F y condiciones iniciales deben ser finitos."
+      ],
+      "valid_domain": [
+        "Sistema de segundo orden con parámetros constantes por tramo o con variación temporal declarada.",
+        "x y x0 en longitud; c en kg/s; k en kg/s²; t en segundos."
+      ],
+      "boundary_conditions": [
+        "Especificar x(0), v(0); sin condiciones iniciales no hay solución única.",
+        "Para k=0 o c=0 permitir los casos límite; evitar división por esos parámetros en fórmulas especializadas."
+      ],
+      "dimensional_checks": [
+        "m·a, c·v y k·(x−x0) tienen unidad N; F también N.",
+        "c/m tiene T^-1 y k/m tiene T^-2, como requiere la ecuación normalizada."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:6",
+      "name": "Integración Verlet",
+      "variables": [
+        {
+          "symbol": "x_n,x_{n−1},x_{n+1}",
+          "meaning": "posiciones discretas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "a_n",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        }
+      ],
+      "constraints": [
+        "Verlet x_(n+1)=2x_n−x_(n−1)+a_nΔt² requiere aceleración evaluada en el estado n y paso fijo o controlado explícitamente.",
+        "Δt>0; condiciones iniciales x_0 y x_1 o x_0 y velocidad inicial más esquema de arranque."
+      ],
+      "valid_domain": [
+        "Posiciones finitas; a_n finita; Δt positivo; sistema suficientemente resuelto temporalmente."
+      ],
+      "boundary_conditions": [
+        "Primer paso requiere inicialización coherente; no inventar x_(−1).",
+        "Ante aceleraciones discontinuas o colisiones, segmentar el paso o aplicar tratamiento de evento."
+      ],
+      "dimensional_checks": [
+        "a_nΔt² tiene dimensión L y puede sumarse a posiciones.",
+        "Los coeficientes 2 y 1 son adimensionales; x_(n+1) conserva L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:7",
+      "name": "Euler semiimplícito",
+      "variables": [
+        {
+          "symbol": "x,v",
+          "meaning": "posición y velocidad",
+          "unit": "m; m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "a",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        }
+      ],
+      "constraints": [
+        "Actualizar primero v_(n+1)=v_n+a_nΔt y después x_(n+1)=x_n+v_(n+1)Δt.",
+        "Δt>0; evaluar a_n con el estado y fuerzas definidos para el paso n."
+      ],
+      "valid_domain": [
+        "x,v,a finitos y unidades coherentes; paso temporal positivo.",
+        "Para sistemas rígidos o fuerzas fuertes, elegir Δt mediante análisis de estabilidad/substepping."
+      ],
+      "boundary_conditions": [
+        "Δt=0 no avanza estado y debe rechazarse o tratarse como no-op explícito.",
+        "Si la fuerza cambia bruscamente, resolver el evento en el instante correspondiente o subdividir el paso."
+      ],
+      "dimensional_checks": [
+        "aΔt tiene L·T^-1 y se suma a v; v_(n+1)Δt tiene L y se suma a x.",
+        "No confundir Euler semiimplícito con Euler explícito: x usa v actualizada."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:8",
+      "name": "RK4",
+      "variables": [
+        {
+          "symbol": "y",
+          "meaning": "vector de estado",
+          "unit": "tipo dimensional por componente",
+          "dimension": "dim(y_j) definida por componente",
+          "domain": "componentes finitas"
+        },
+        {
+          "symbol": "f(t,y)",
+          "meaning": "derivada temporal del estado",
+          "unit": "dim(y)/s",
+          "dimension": "dim(y_j)·T^-1 por componente",
+          "domain": "función evaluable en subpasos"
+        },
+        {
+          "symbol": "k1…k4",
+          "meaning": "pendientes de Butcher",
+          "unit": "dim(y)/s",
+          "dimension": "dim(y_j)·T^-1 por componente",
+          "domain": "finitas"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        }
+      ],
+      "constraints": [
+        "Cada k_i es una derivada de estado y tiene dimensión dim(y)/T; Δt·k_i tiene la dimensión de y.",
+        "La función f debe ser suficientemente regular en el intervalo y las evaluaciones intermedias deben permanecer en su dominio."
+      ],
+      "valid_domain": [
+        "Sistema expresado como y'=f(t,y), estado y con unidades declaradas por componente.",
+        "Paso finito positivo; estados y derivadas finitos."
+      ],
+      "boundary_conditions": [
+        "Si Δt→0, el incremento tiende a cero y y_next→y.",
+        "Ante discontinuidades o eventos, dividir el intervalo en el instante del evento; RK4 clásico no debe cruzarlos sin tratamiento."
+      ],
+      "dimensional_checks": [
+        "k_i tienen dimensión estado/T; Δt k_i tiene dimensión estado.",
+        "La suma ponderada de pendientes solo es válida si las componentes de k_i comparten unidades."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:9",
+      "name": "Boids",
+      "variables": [
+        {
+          "symbol": "p_i,p_j",
+          "meaning": "posiciones de agentes",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "v_i,v_neighbors",
+          "meaning": "velocidades de agentes",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "S_i",
+          "meaning": "separación −Σ(p_j−p_i)/|p_j−p_i|²",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "distancias regularizadas; vecindario definido"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "alineación media de velocidades",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "C_i",
+          "meaning": "cohesión centroide−posición propia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_s,w_a,w_c",
+          "meaning": "ganancias para salida de velocidad",
+          "unit": "m²/s; 1; s⁻¹ respectivamente",
+          "dimension": "w_s:L²T⁻¹; w_a:1; w_c:T⁻¹",
+          "domain": "finitas y calibradas"
+        },
+        {
+          "symbol": "v′",
+          "meaning": "velocidad deseada resultante",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada por velocidad máxima"
+        },
+        {
+          "symbol": "r_n",
+          "meaning": "radio de vecindad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_n>0"
+        }
+      ],
+      "constraints": [
+        "Para la ecuación de catálogo v′=w_sS_i+w_aA_i+w_cC_i, se define salida como velocidad deseada (m/s).",
+        "S_i tiene m⁻¹, A_i m/s y C_i m; por tanto w_s debe ser m²/s, w_a adimensional y w_c s⁻¹.",
+        "Si la salida se implementa como aceleración, debe cambiarse la ecuación y derivarse otro conjunto de unidades; no reutilizar estos pesos."
+      ],
+      "valid_domain": [
+        "Posiciones L, velocidades L/T, radio L>0; vecinos seleccionados por distancia finita.",
+        "Agentes y parámetros finitos; pesos definidos y límites cinemáticos no negativos."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos, alineación/cohesión deben producir cero o conservar velocidad previa según política declarada.",
+        "Si dos agentes coinciden, la separación usa dirección de respaldo determinista para evitar división por cero."
+      ],
+      "dimensional_checks": [
+        "w_sS_i: (m²/s)(m⁻¹)=m/s; w_aA_i: 1·m/s=m/s.",
+        "w_cC_i: s⁻¹·m=m/s; todos los términos suman homogéneamente como velocidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:10",
+      "name": "Partículas",
+      "variables": [
+        {
+          "symbol": "p0,p(t)",
+          "meaning": "posición inicial y actual",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "constante por tramo"
+        },
+        {
+          "symbol": "a",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "constante por tramo"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        }
+      ],
+      "constraints": [
+        "La ecuación p(t)=p0+vt+½at² supone v y a constantes durante el tramo.",
+        "Cada partícula debe tener tiempo de nacimiento/muerte o intervalo de validez para evitar extrapolación ilimitada."
+      ],
+      "valid_domain": [
+        "t≥0 relativo al nacimiento; p0 L, v L/T, a L/T²; todos finitos."
+      ],
+      "boundary_conditions": [
+        "En t=0, p(0)=p0.",
+        "Al finalizar la vida, ocultar/reciclar según política explícita; no evaluar tiempos negativos salvo retroceso definido."
+      ],
+      "dimensional_checks": [
+        "vt y at² tienen dimensión L y se suman a p0.",
+        "El factor 1/2 es adimensional; p(t) conserva L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:11",
+      "name": "Movimiento browniano",
+      "variables": [
+        {
+          "symbol": "p,Δp",
+          "meaning": "posición e incremento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "D",
+          "meaning": "difusión",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "D≥0"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt≥0"
+        },
+        {
+          "symbol": "ξ",
+          "meaning": "normal estándar",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "media 0, varianza 1"
+        }
+      ],
+      "constraints": [
+        "Para movimiento browniano, cada componente de Δp=√(2DΔt)ξ requiere D≥0, Δt≥0 y ξ normal estándar independiente por dimensión/paso.",
+        "Usar semilla y secuencia reproducibles si se necesita determinismo de render; el incremento tiene media cero y varianza 2DΔt por componente."
+      ],
+      "valid_domain": [
+        "D con dimensión L²/T; Δt≥0; ξ adimensional con distribución N(0,1).",
+        "D=0 o Δt=0 produce incremento nulo."
+      ],
+      "boundary_conditions": [
+        "En Δt=0, Δp=0.",
+        "No reutilizar una misma muestra correlacionada entre pasos salvo que se quiera ruido correlacionado explícitamente."
+      ],
+      "dimensional_checks": [
+        "DΔt tiene L²; su raíz tiene L; ξ es adimensional y Δp tiene L.",
+        "La suma p+Δp conserva dimensión L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:12",
+      "name": "Colisión esfera-esfera",
+      "variables": [
+        {
+          "symbol": "c1,c2",
+          "meaning": "centros",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "r1,r2",
+          "meaning": "radios",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia centros",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "|c1−c2|"
+        },
+        {
+          "symbol": "δ",
+          "meaning": "penetración",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "max(0,r1+r2−d)"
+        }
+      ],
+      "constraints": [
+        "La condición de contacto es d≤r1+r2; el solapamiento δ=max(0,r1+r2−d) tiene dimensión L.",
+        "La detección geométrica no define por sí sola respuesta física, restitución ni fricción."
+      ],
+      "valid_domain": [
+        "Centros finitos; radios r1,r2≥0; d=‖c1−c2‖≥0."
+      ],
+      "boundary_conditions": [
+        "d=r1+r2 es contacto tangencial con δ=0.",
+        "Si d=0, la normal de contacto es indefinida; usar eje relativo previo o fallback determinista."
+      ],
+      "dimensional_checks": [
+        "d, r1, r2 y δ tienen dimensión L; la comparación d<r1+r2 es homogénea.",
+        "La normal derivada de c1−c2 es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:13",
+      "name": "Colisión plano",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "normal plano",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "p",
+          "meaning": "punto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "c",
+          "meaning": "offset plano",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "longitud"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia firmada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n·p+c"
+        },
+        {
+          "symbol": "r",
+          "meaning": "radio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Para d=n·p+c, n debe ser unitario y c tener dimensión L; si n no está normalizado, d no es distancia física.",
+        "Contacto esfera-plano: d≤r; definir el lado positivo y orientación del plano."
+      ],
+      "valid_domain": [
+        "‖n‖=1; p finito; c L; radio r≥0."
+      ],
+      "boundary_conditions": [
+        "d=r representa tangencia; d<r representa penetración bajo la convención elegida.",
+        "Si la normal es nula, rechazar plano inválido; no normalizar dividiendo por cero."
+      ],
+      "dimensional_checks": [
+        "n·p tiene L porque n es adimensional y p tiene L; c y d también L.",
+        "r y d son comparables; el test de contacto es dimensionalmente consistente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:14",
+      "name": "Sistema masa-resorte en cadena",
+      "variables": [
+        {
+          "symbol": "x_i",
+          "meaning": "posición masa i",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "v_i",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "m_i",
+          "meaning": "masa",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "k",
+          "meaning": "rigidez",
+          "unit": "kg/s²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "c",
+          "meaning": "amortiguamiento",
+          "unit": "kg/s",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "m_i x_i'' = k(x_(i+1)−2x_i+x_(i−1))−c v_i requiere k en kg/s² y c en kg/s para amortiguamiento proporcional a velocidad.",
+        "Para cadena no uniforme, las fuerzas deben derivarse de resortes entre vecinos y usar sus longitudes de reposo; la forma discreta mostrada es una aproximación de diferencias."
+      ],
+      "valid_domain": [
+        "m_i>0; k,c≥0; posiciones y velocidades finitas; topología de vecinos definida.",
+        "Declarar condiciones de extremos (fijo, libre o conectado a resorte)."
+      ],
+      "boundary_conditions": [
+        "En extremos, definir fuerzas de frontera; no acceder a vecinos inexistentes.",
+        "Con k=0 desaparece acoplamiento elástico; con c=0 desaparece amortiguamiento."
+      ],
+      "dimensional_checks": [
+        "k·(x_(i+1)−2x_i+x_(i−1)) y c·v_i tienen N; m_i·x_i'' también N.",
+        "Los coeficientes numéricos son adimensionales; las posiciones tienen L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:15",
+      "name": "Animación determinista",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "tiempo absoluto",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "semilla",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fija"
+        },
+        {
+          "symbol": "events",
+          "meaning": "eventos",
+          "unit": "tiempos y payload tipado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "orden estable"
+        },
+        {
+          "symbol": "state",
+          "meaning": "estado",
+          "unit": "tipo por canal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "F determinista"
+        }
+      ],
+      "constraints": [
+        "state(t)=F(t,seed,events) solo es determinista si F es pura respecto del tiempo absoluto, semilla, eventos y configuración versionada.",
+        "La generación aleatoria debe usar PRNG con semilla fija; no depender de reloj real, orden de frames ni estado global mutable."
+      ],
+      "valid_domain": [
+        "t finito; seed entero; eventos ordenados con desempate estable; parámetros serializables."
+      ],
+      "boundary_conditions": [
+        "Evaluar dos veces el mismo (t,seed,events,config) debe producir el mismo estado.",
+        "El orden de evaluación de frames no debe alterar el resultado; definir comportamiento antes del primer evento y después del último."
+      ],
+      "dimensional_checks": [
+        "El tiempo de eventos tiene dimensión T; seed e índices son adimensionales/discretos.",
+        "Cada canal de state conserva sus propias unidades; no asignar una dimensión única al estado heterogéneo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:16",
+      "name": "Eventos con memoria precalculada",
+      "variables": [
+        {
+          "symbol": "t,t_i",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "eventTable",
+          "meaning": "tabla temporal",
+          "unit": "s y valores tipados",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ordenada"
+        },
+        {
+          "symbol": "u",
+          "meaning": "fracción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "state(t)",
+          "meaning": "estado interpolado",
+          "unit": "tipo por canal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "interpolador adecuado"
+        }
+      ],
+      "constraints": [
+        "eventTable debe ordenarse por tiempo; tiempos duplicados requieren regla de prioridad/desempate.",
+        "La interpolación entre payloads solo se aplica a campos interpolables; eventos discretos usan step/hold y no interpolación lineal."
+      ],
+      "valid_domain": [
+        "Tabla finita y ordenada; t_i en segundos; payloads con tipos y unidades declarados.",
+        "u=(t−t_i)/(t_(i+1)−t_i) solo si el intervalo es positivo."
+      ],
+      "boundary_conditions": [
+        "Antes del primer evento y después del último aplicar estado base/hold/clamp explícito.",
+        "En tiempo exacto de evento, resolver prioridad determinista y preservar discontinuidades intencionales."
+      ],
+      "dimensional_checks": [
+        "t_i y Δt tienen T; u es adimensional.",
+        "Cada campo interpolado mantiene su dimensión; no interpolar entre tipos incompatibles."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:17",
+      "name": "Cuantización temporal de animación",
+      "variables": [
+        {
+          "symbol": "f_pose,f_render",
+          "meaning": "frecuencias de muestreo",
+          "unit": "Hz = s^-1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "Δt_pose,Δt_render",
+          "meaning": "periodos de muestreo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt=1/f"
+        },
+        {
+          "symbol": "mask",
+          "meaning": "máscara discreta de canales",
+          "unit": "entero/booleano",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "canales definidos"
+        },
+        {
+          "symbol": "t,t_q",
+          "meaning": "tiempo absoluto y cuantizado",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        }
+      ],
+      "constraints": [
+        "t_q=floor(t·f_pose)/f_pose exige f_pose>0 y t·f_pose adimensional.",
+        "La pose se evalúa en t_q; cámara/FX pueden usar tiempo continuo solo si se declara la máscara de canales."
+      ],
+      "valid_domain": [
+        "f_pose>0 y f_render>0; tiempos finitos; índices discretos representables.",
+        "Pose FPS debe ser menor o igual que el límite de muestreo de la secuencia deseada, sin asumir equivalencia con FPS de render."
+      ],
+      "boundary_conditions": [
+        "Para t<0, definir clamp a cero o cuantización con floor matemático (no truncamiento hacia cero).",
+        "En t exactamente múltiplo de 1/f_pose, t_q=t."
+      ],
+      "dimensional_checks": [
+        "f_pose y f_render tienen T^-1; sus recíprocos tienen T.",
+        "t·f_pose es adimensional; t_q conserva T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:18",
+      "name": "XPBD: restricciones con compliance",
+      "variables": [
+        {
+          "symbol": "C(x)",
+          "meaning": "restricción de distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "C=0 ideal; variante de longitud"
+        },
+        {
+          "symbol": "∇_i C",
+          "meaning": "gradiente respecto a posición i",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "para C de longitud"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "peso inverso de masa",
+          "unit": "kg⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m_i>0; w_i=1/m_i"
+        },
+        {
+          "symbol": "α",
+          "meaning": "compliance física de restricción de longitud",
+          "unit": "s²/kg",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "α≥0"
+        },
+        {
+          "symbol": "α̃",
+          "meaning": "compliance escalada α/Δt²",
+          "unit": "kg⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "misma unidad que Σw_i|∇_iC|²"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "multiplicador de restricción",
+          "unit": "kg·m",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "según formulación XPBD de distancia"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        },
+        {
+          "symbol": "Δx_i",
+          "meaning": "corrección de posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Para una restricción de distancia C [m], ∇C es adimensional; w_i=1/m_i tiene kg⁻¹.",
+        "α̃=α/Δt² debe tener kg⁻¹; por ello α tiene s²/kg y λ tiene kg·m.",
+        "El numerador C+α̃λ tiene m; el denominador Σw_i|∇C|²+α̃ tiene kg⁻¹; Δλ tiene kg·m y w_i∇CΔλ produce corrección m.",
+        "Otras restricciones (ángulo, área, volumen) requieren volver a derivar unidades de C, gradiente, compliance y multiplicador."
+      ],
+      "valid_domain": [
+        "C(x) diferenciable al menos localmente; masas positivas (o inversas no negativas), compliance α≥0 y paso fijo positivo.",
+        "Iteraciones enteras positivas; gradientes y denominador finitos."
+      ],
+      "boundary_conditions": [
+        "α=0 recupera constraint rígida en el límite del solver; compliance alta permite mayor desviación.",
+        "Si el denominador es cero o casi cero, no dividir: marcar constraint degenerada o aplicar regularización declarada."
+      ],
+      "dimensional_checks": [
+        "C y α̃λ tienen m; Σw_i|∇C|² y α̃ tienen kg⁻¹.",
+        "Δλ tiene kg·m; w_i∇CΔλ tiene m; Δx_i conserva longitud."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D04:19",
+      "name": "Hash espacial uniforme para vecinos",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "h",
+          "meaning": "tamaño celda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "r_n",
+          "meaning": "radio vecinos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "g",
+          "meaning": "índice celda",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "floor((p−origin)/h)"
+        },
+        {
+          "symbol": "N_cell",
+          "meaning": "dimensiones rejilla",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        }
+      ],
+      "constraints": [
+        "cell=floor((p−origin)/h) requiere p y origin en L y h>0 en L; cada componente de cell es entero adimensional.",
+        "El hash puede colisionar: almacenar/verificar coordenada de celda original antes de aceptar vecinos.",
+        "Para consultar todos los vecinos dentro de r_n, recorrer suficientes celdas; con celda h, radio de búsqueda determina el rango de offsets."
+      ],
+      "valid_domain": [
+        "h>0; posiciones y origin finitos; dimensiones de rejilla enteras positivas si se usa rejilla acotada.",
+        "Índices enteros deben evitar overflow; política de coordenadas negativas definida mediante floor."
+      ],
+      "boundary_conditions": [
+        "En límites de rejilla, clamp, wrap o expansión deben estar especificados.",
+        "Celda vacía devuelve lista vacía; colisión hash no equivale a vecindad geométrica."
+      ],
+      "dimensional_checks": [
+        "(p−origin)/h es adimensional; floor produce índice entero adimensional.",
+        "r_n y h tienen L; el radio de búsqueda se convierte en número entero de celdas mediante ceil(r_n/h)."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "19/19 técnicas no protegidas incluidas",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "D04:9 fija Boids como velocidad deseada con ganancias homogéneas; D04:18 fija XPBD para restricción de distancia con α, α̃ y λ tipados"
+    ],
+    "limitations": [
+      "Las unidades de Boids y XPBD corresponden a las variantes declaradas; otras salidas o restricciones requieren rederivación explícita."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

@@ -1,0 +1,503 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D41 Comportamiento natural, vida, ecología y sistemas complejos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D41",
+    "record_count": 14,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D41 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D41:0",
+      "name": "Reaction–diffusion Gray–Scott",
+      "starting_principles": "D_u,D_v,F,k≥0; campos y Δt definidos.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u_t=D_u∇²u−uv²+F(1−u)",
+          "justification": "Difusión, reacción y reposición de u."
+        },
+        {
+          "step": 2,
+          "equation": "v_t=D_v∇²v+uv²−(F+k)v",
+          "justification": "Difusión, producción y eliminación de v."
+        },
+        {
+          "step": 3,
+          "equation": "discretize ∇²; integrate u,v",
+          "justification": "Resolver campos acoplados."
+        }
+      ],
+      "assumptions": [
+        "D_u,D_v,F,k≥0; campos y Δt definidos."
+      ],
+      "result": "Gray–Scott combina difusión y reacción no lineal.",
+      "limits": [
+        "Patrones dependen de F,k,D y resolución."
+      ],
+      "dimensional_verification": [
+        "u,v are dimensionless normalized concentrations; D_u,D_v have L²/T; F,k have T⁻¹.",
+        "∂u/∂t, D∇²u and reaction terms all have T⁻¹."
+      ]
+    },
+    {
+      "record_key": "D41:1",
+      "name": "Flocking de Reynolds",
+      "starting_principles": "Vecindad definida; pesos homogéneos a aceleración.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_i=−Σ_j(p_j−p_i)/||p_j−p_i||²",
+          "justification": "Separación."
+        },
+        {
+          "step": 2,
+          "equation": "A_i=mean(v_j)−v_i; C_i=mean(p_j)−p_i",
+          "justification": "Alineación y cohesión."
+        },
+        {
+          "step": 3,
+          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i; v'=limit(v+aΔt)",
+          "justification": "Combinar reglas e integrar."
+        }
+      ],
+      "assumptions": [
+        "Vecindad definida; pesos homogéneos a aceleración."
+      ],
+      "result": "Reynolds combina separación, alineación y cohesión.",
+      "limits": [
+        "Pesos mal tipados producen aceleraciones incoherentes."
+      ],
+      "dimensional_verification": [
+        "p_i have L; v_i L/T; a_i L/T²; neighbor radius r L.",
+        "S_i L⁻¹, A_i L/T, C_i L; weights w_s L²/T², w_a T⁻¹, w_c T⁻² convert each to acceleration."
+      ]
+    },
+    {
+      "record_key": "D41:2",
+      "name": "Brownian motion",
+      "starting_principles": "Incrementos gaussianos independientes; Δt≥0.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ΔW∼N(0,Δt)",
+          "justification": "Incremento Wiener."
+        },
+        {
+          "step": 2,
+          "equation": "ΔX=μΔt+σΔW",
+          "justification": "Deriva más difusión."
+        },
+        {
+          "step": 3,
+          "equation": "X_{n+1}=X_n+μΔt+σ√Δt ξ",
+          "justification": "Muestrear ξ normal estándar."
+        }
+      ],
+      "assumptions": [
+        "Incrementos gaussianos independientes; Δt≥0."
+      ],
+      "result": "Brownian motion suma deriva e incremento Wiener.",
+      "limits": [
+        "Trayectorias no diferenciables; no inferir velocidad instantánea clásica."
+      ],
+      "dimensional_verification": [
+        "X has L; μ has L/T; dW has √T; σ has L/√T.",
+        "μdt and σdW both have L."
+      ]
+    },
+    {
+      "record_key": "D41:3",
+      "name": "Ornstein–Uhlenbeck process",
+      "starting_principles": "θ>0; unidades temporales coherentes.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dX=θ(μ−X)dt+σdW",
+          "justification": "Retorno a media y ruido."
+        },
+        {
+          "step": 2,
+          "equation": "mean=μ+(X_n−μ)e^(−θΔt)",
+          "justification": "Resolver parte determinista."
+        },
+        {
+          "step": 3,
+          "equation": "variance=σ²(1−e^(−2θΔt))/(2θ)",
+          "justification": "Integrar varianza."
+        },
+        {
+          "step": 4,
+          "equation": "X_{n+1}=mean+√variance·ξ",
+          "justification": "Actualización exacta."
+        }
+      ],
+      "assumptions": [
+        "θ>0; unidades temporales coherentes."
+      ],
+      "result": "OU incorpora retorno a media con actualización exponencial.",
+      "limits": [
+        "Euler puede sesgar OU; usar actualización exacta."
+      ],
+      "dimensional_verification": [
+        "X and μ have L; θ has T⁻¹; dt T; σ has L/√T.",
+        "θ(μ−X)dt and σdW both have L."
+      ]
+    },
+    {
+      "record_key": "D41:4",
+      "name": "Worley cellular noise",
+      "starting_principles": "Semillas deterministas y métrica declarada.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_1=min_i||x−p_i||",
+          "justification": "Distancia a semilla cercana."
+        },
+        {
+          "step": 2,
+          "equation": "F_2=secondMin_i||x−p_i||",
+          "justification": "Segunda distancia."
+        },
+        {
+          "step": 3,
+          "equation": "edge≈F_2−F_1",
+          "justification": "Resaltar fronteras."
+        }
+      ],
+      "assumptions": [
+        "Semillas deterministas y métrica declarada."
+      ],
+      "result": "Worley usa distancias a semillas y F2−F1.",
+      "limits": [
+        "Métrica y jitter cambian celdas y bordes."
+      ],
+      "dimensional_verification": [
+        "x and seed points p_i have L; F1,F2 and cell distances have L.",
+        "Jitter is dimensionless or scaled by L; metric comparisons share units."
+      ]
+    },
+    {
+      "record_key": "D41:5",
+      "name": "Fractal Brownian Motion",
+      "starting_principles": "λ>1; 0≤a<1; octavas finitas.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n_i(x)=noise(f_0 λ^i x), [f_0]=L⁻¹, λ>1",
+          "justification": "Convertir la coordenada física en argumento adimensional y aumentar la frecuencia por octava."
+        },
+        {
+          "step": 2,
+          "equation": "a_i=a^i",
+          "justification": "Amplitud decreciente."
+        },
+        {
+          "step": 3,
+          "equation": "fBm(x)=A_0Σ_{i=0}^{N−1}a^i n_i(x)",
+          "justification": "Escalar la suma adimensional por amplitud base A_0, que aporta la unidad de salida."
+        }
+      ],
+      "assumptions": [
+        "λ>1; 0≤a<1; octavas finitas.",
+        "A_0 tiene la unidad del campo final; para heightfield A_0 tiene L."
+      ],
+      "result": "fBm combina ruido multiescala.",
+      "limits": [
+        "Octavas sobre Nyquist producen aliasing."
+      ],
+      "dimensional_verification": [
+        "x has L; base frequency f0 has L⁻¹; f0λ^i x is dimensionless; λ,a dimensionless.",
+        "A0 supplies output unit (e.g. L for height); fBm preserves that unit."
+      ]
+    },
+    {
+      "record_key": "D41:6",
+      "name": "Insect flight path",
+      "starting_principles": "Ruido OU y amplitudes acotados.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x_base=x_0+v_0t",
+          "justification": "Trayectoria media."
+        },
+        {
+          "step": 2,
+          "equation": "x_osc=A sin(ωt+φ)",
+          "justification": "Oscilación."
+        },
+        {
+          "step": 3,
+          "equation": "x=x_base+x_osc+OU(seed)",
+          "justification": "Añadir ruido correlacionado."
+        }
+      ],
+      "assumptions": [
+        "Ruido OU y amplitudes acotados."
+      ],
+      "result": "Vuelo suma trayectoria, oscilación y ruido correlacionado.",
+      "limits": [
+        "Es animación procedural, no aerodinámica."
+      ],
+      "dimensional_verification": [
+        "x0 and A have L; v0 has L/T; ω has T⁻¹; t has T; η has L.",
+        "Each trajectory term has L."
+      ]
+    },
+    {
+      "record_key": "D41:7",
+      "name": "Phototaxis",
+      "starting_principles": "Campo de luz muestreable; ε>0.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "∇_dL≈[L(x+εd)−L(x)]/ε",
+          "justification": "Estimar gradiente direccional."
+        },
+        {
+          "step": 2,
+          "equation": "a_light=k∇_dL·d",
+          "justification": "Convertir gradiente en preferencia."
+        },
+        {
+          "step": 3,
+          "equation": "combine with obstacle avoidance",
+          "justification": "Añadir restricciones locales."
+        }
+      ],
+      "assumptions": [
+        "Campo de luz muestreable; ε>0.",
+        "ε es longitud; d es unitario; k se calibra según la unidad del campo luminoso para producir aceleración L/T²."
+      ],
+      "result": "Phototaxis usa gradiente de luz como preferencia.",
+      "limits": [
+        "Puede quedar en máximos locales de luz."
+      ],
+      "dimensional_verification": [
+        "ε has L; d is unitless; L(x+εd)−L(x) has light-signal unit.",
+        "For acceleration output L/T², k has L/(T²·unit(LightSignal))."
+      ]
+    },
+    {
+      "record_key": "D41:8",
+      "name": "Vegetation tropism",
+      "starting_principles": "Campos ambientales compatibles; step>0.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "g=normalize(growthDir); l=normalize(lightField)",
+          "justification": "Definir crecimiento y luz."
+        },
+        {
+          "step": 2,
+          "equation": "g'=normalize(g+αl+βgravity+γavoidance)",
+          "justification": "Combinar tropismos."
+        },
+        {
+          "step": 3,
+          "equation": "x_new=x+step·g'",
+          "justification": "Extender rama."
+        }
+      ],
+      "assumptions": [
+        "Campos ambientales compatibles; step>0.",
+        "obstacleGradient se normaliza a dirección adimensional antes de combinarse con lightDir y gravityDir."
+      ],
+      "result": "Tropismo combina crecimiento y campos ambientales.",
+      "limits": [
+        "Aproximación inspirada en biología."
+      ],
+      "dimensional_verification": [
+        "g, lightDir, gravityDir and normalized obstacle direction are dimensionless; α,β,γ dimensionless.",
+        "Growth step has L; updated branch position retains L."
+      ]
+    },
+    {
+      "record_key": "D41:9",
+      "name": "Predator–prey Lotka–Volterra",
+      "starting_principles": "Parámetros positivos; poblaciones no negativas.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dx/dt=αx−βxy",
+          "justification": "Presa: crecimiento menos encuentros."
+        },
+        {
+          "step": 2,
+          "equation": "dy/dt=δxy−γy",
+          "justification": "Depredador: alimento menos mortalidad."
+        },
+        {
+          "step": 3,
+          "equation": "integrate coupled ODE",
+          "justification": "Resolver poblaciones."
+        }
+      ],
+      "assumptions": [
+        "Parámetros positivos; poblaciones no negativas.",
+        "x,y son conteos normalizados adimensionales; si representan densidades espaciales, β y δ deben reescalarse por el área/volumen."
+      ],
+      "result": "Lotka–Volterra acopla poblaciones presa/depredador.",
+      "limits": [
+        "No incluye todos los factores ecológicos."
+      ],
+      "dimensional_verification": [
+        "x,y are population counts (dimensionless); dx/dt and dy/dt have T⁻¹.",
+        "α,γ have T⁻¹; β,δ have T⁻¹ per normalized individual-count unit."
+      ]
+    },
+    {
+      "record_key": "D41:10",
+      "name": "Optimal foraging",
+      "starting_principles": "Ganancia y tiempos positivos.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "U_i=G_i/(T_search,i+T_handle,i)",
+          "justification": "Tasa de ganancia esperada."
+        },
+        {
+          "step": 2,
+          "equation": "i*=argmax_i U_i",
+          "justification": "Elegir utilidad máxima."
+        },
+        {
+          "step": 3,
+          "equation": "update estimates and repeat",
+          "justification": "Actualizar y repetir."
+        }
+      ],
+      "assumptions": [
+        "Ganancia y tiempos positivos."
+      ],
+      "result": "Foraging elige la mayor tasa de ganancia.",
+      "limits": [
+        "No representa memoria/competencia compleja."
+      ],
+      "dimensional_verification": [
+        "energyGain has J; searchTime and handlingTime have s; utility has W (J/s).",
+        "All candidate utilities share the same energy/time convention."
+      ]
+    },
+    {
+      "record_key": "D41:11",
+      "name": "Gait oscillator",
+      "starting_principles": "Frecuencia, amplitud y fases definidas; IK disponible.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "θ_i=A_i sin(ωt+φ_i)",
+          "justification": "Oscilador articular."
+        },
+        {
+          "step": 2,
+          "equation": "joint_i=rest_i+θ_i",
+          "justification": "Mapear fase a ángulo."
+        },
+        {
+          "step": 3,
+          "equation": "footContact→IK",
+          "justification": "Resolver contacto en apoyo."
+        }
+      ],
+      "assumptions": [
+        "Frecuencia, amplitud y fases definidas; IK disponible."
+      ],
+      "result": "Gait oscillator asigna fases a articulaciones.",
+      "limits": [
+        "Sin IK los pies pueden deslizar."
+      ],
+      "dimensional_verification": [
+        "A_i and φ_i are angular amplitudes/phases, dimensionless radians; ω has T⁻¹; t T.",
+        "θ_i remains angular and dimensionless."
+      ]
+    },
+    {
+      "record_key": "D41:12",
+      "name": "Central pattern generator",
+      "starting_principles": "Osciladores y acoplamiento definidos.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ẋ_i=f_i(x_i)+Σ_jw_ijg(x_j)",
+          "justification": "Dinámica individual más acoplamiento."
+        },
+        {
+          "step": 2,
+          "equation": "y_i=h_i(x_i)",
+          "justification": "Extraer salida."
+        },
+        {
+          "step": 3,
+          "equation": "map y_i to joint controls",
+          "justification": "Convertir a controles de rig."
+        }
+      ],
+      "assumptions": [
+        "Osciladores y acoplamiento definidos."
+      ],
+      "result": "CPG es una red de osciladores que produce ritmo motor.",
+      "limits": [
+        "Acoplamiento excesivo bloquea fase; insuficiente no sincroniza."
+      ],
+      "dimensional_verification": [
+        "If oscillator state x_i is dimensionless, dot x_i has T⁻¹; f_i and coupling outputs have T⁻¹.",
+        "w_ij dimensionless if coupling functions output the same state/time unit."
+      ]
+    },
+    {
+      "record_key": "D41:13",
+      "name": "Kuramoto synchronization",
+      "starting_principles": "N>0; fases y frecuencias naturales declaradas.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "θ̇_i=ω_i+(K/N)Σ_j sin(θ_j−θ_i)",
+          "justification": "Frecuencia natural y acoplamiento."
+        },
+        {
+          "step": 2,
+          "equation": "re^{iψ}=(1/N)Σ_je^{iθ_j}",
+          "justification": "Parámetro de orden."
+        },
+        {
+          "step": 3,
+          "equation": "integrate phases",
+          "justification": "Evolucionar y medir sincronía."
+        }
+      ],
+      "assumptions": [
+        "N>0; fases y frecuencias naturales declaradas."
+      ],
+      "result": "Kuramoto sincroniza fases por acoplamiento sinusoidal.",
+      "limits": [
+        "Umbral depende de red y frecuencias."
+      ],
+      "dimensional_verification": [
+        "θ_i is angular dimensionless; dθ_i/dt and ω_i have T⁻¹; K has T⁻¹.",
+        "N is a dimensionless oscillator count; sine terms are dimensionless."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "14/14 técnicas D41 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Gray–Scott y fBm tipan difusión, reacción, frecuencia espacial y amplitud",
+      "Brownian/OU distinguen deriva L/T y difusión L/√T",
+      "Flocking y phototaxis convierten señales locales a aceleraciones con ganancias tipadas",
+      "Lotka–Volterra, foraging, gait, CPG y Kuramoto distinguen conteos, energía, fase y frecuencia"
+    ],
+    "limitations": [
+      "Los modelos ecológicos y de comportamiento son simplificaciones para animación; no son predicciones biológicas o ecológicas validadas."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

@@ -1,0 +1,1016 @@
+{
+  "title": "Auditoría dimensional punto 1 — D34 Técnicas de render y visibilidad adicionales",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D34",
+    "domain": "Técnicas de render y visibilidad adicionales",
+    "record_count": 14,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D34 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "rendering": "Separar radiancia, color normalizado, profundidad física y depth normalizado.",
+    "raster": "Píxeles y tiles son unidades discretas de pantalla.",
+    "gpu": "Draw calls, muestras, niveles y queries son conteos/estados discretos."
+  },
+  "records": [
+    {
+      "record_key": "D34:0",
+      "name": "Forward rendering",
+      "variables": [
+        {
+          "symbol": "position",
+          "meaning": "geometría visible",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "L_i",
+          "meaning": "radiancia/luz incidente",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": "radiancia",
+          "domain": "finita"
+        },
+        {
+          "symbol": "material",
+          "meaning": "parámetros shader",
+          "unit": "tipados por material",
+          "dimension": "unidades declaradas",
+          "domain": "válidos"
+        },
+        {
+          "symbol": "drawCalls",
+          "meaning": "llamadas de dibujo",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Geometría, cámara, materiales y luces comparten marcos/unidades; shader separa magnitudes físicas y señales normalizadas.",
+        "La contribución de cada luz se acumula en el espacio de color y exposición declarados."
+      ],
+      "valid_domain": [
+        "Buffers y materiales válidos; luces y cámara finitas."
+      ],
+      "boundary_conditions": [
+        "Sin objetos visibles no hay draw geométrico; material inválido usa fallback o falla explícita."
+      ],
+      "dimensional_checks": [
+        "Posición tiene L; radiancia tiene W·m⁻²·sr⁻¹; drawCalls es conteo.",
+        "Los parámetros de material conservan sus unidades propias."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:1",
+      "name": "Forward+",
+      "variables": [
+        {
+          "symbol": "tile",
+          "meaning": "bloque de pantalla",
+          "unit": "px",
+          "dimension": "raster discreto",
+          "domain": "dimensión positiva"
+        },
+        {
+          "symbol": "frustum",
+          "meaning": "volumen de tile",
+          "unit": "geometría en m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válido"
+        },
+        {
+          "symbol": "lights_tile",
+          "meaning": "luces asignadas",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "N_lights",
+          "meaning": "luces totales",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Intersección de luces con frustum se evalúa en mismo espacio de cámara; límites de tile en píxeles.",
+        "La lista por tile debe respetar capacidad de buffer y overflow."
+      ],
+      "valid_domain": [
+        "Viewport positivo; frusta válidos; límites GPU consultados."
+      ],
+      "boundary_conditions": [
+        "Tile sin luces recibe lista vacía; overflow activa fallback o buffer extendido."
+      ],
+      "dimensional_checks": [
+        "Tile es raster; frustum usa L; conteos son discretos.",
+        "La clasificación no suma píxeles con distancias físicas sin proyección."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:2",
+      "name": "Deferred shading",
+      "variables": [
+        {
+          "symbol": "G-buffer",
+          "meaning": "albedo/normal/depth/material",
+          "unit": "señales y depth tipados",
+          "dimension": "normal 1; depth L; color 1 o HDR",
+          "domain": "válido"
+        },
+        {
+          "symbol": "N",
+          "meaning": "normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "L_i",
+          "meaning": "radiancia",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": "radiancia",
+          "domain": "finita"
+        },
+        {
+          "symbol": "pixel",
+          "meaning": "índice raster",
+          "unit": "px",
+          "dimension": "discreto",
+          "domain": "dentro viewport"
+        }
+      ],
+      "constraints": [
+        "G-buffer debe conservar espacio de color, profundidad y convención de normales; iluminación lee mismos formatos.",
+        "Materiales transparentes requieren ruta separada si G-buffer opaco."
+      ],
+      "valid_domain": [
+        "Resolución positiva; attachments compatibles; normales normalizadas."
+      ],
+      "boundary_conditions": [
+        "Pixel sin geometría tiene depth/background sentinel; sample inválido no ilumina."
+      ],
+      "dimensional_checks": [
+        "Normal es adimensional; depth tiene L; radiancia conserva unidad.",
+        "Albedo es señal adimensional salvo calibración explícita."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:3",
+      "name": "Clustered shading",
+      "variables": [
+        {
+          "symbol": "cluster",
+          "meaning": "celda 3D",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "en grid"
+        },
+        {
+          "symbol": "bounds",
+          "meaning": "volumen cluster",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válido"
+        },
+        {
+          "symbol": "lightList",
+          "meaning": "índices de luz",
+          "unit": "conteo/índices",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válidos"
+        },
+        {
+          "symbol": "depthSlice",
+          "meaning": "capa profundidad",
+          "unit": "índice",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango finito"
+        }
+      ],
+      "constraints": [
+        "Clusters se construyen en espacio de vista; profundidad y bounds comparten unidad.",
+        "Cada luz asignada debe intersectar bounds; overflow se trata explícitamente."
+      ],
+      "valid_domain": [
+        "Grid finito; cámara y proyección válidas; listas dentro de memoria."
+      ],
+      "boundary_conditions": [
+        "Cluster vacío tiene lista vacía; fuera de volumen no se consulta."
+      ],
+      "dimensional_checks": [
+        "Bounds y depth tienen L; índices y listas son discretos.",
+        "El volumen de cluster puede medirse en L³; índice no es distancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:4",
+      "name": "Tiled deferred",
+      "variables": [
+        {
+          "symbol": "tileSize",
+          "meaning": "tamaño tile",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "depth",
+          "meaning": "profundidad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válida"
+        },
+        {
+          "symbol": "lightCount",
+          "meaning": "luces por tile",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "G-buffer",
+          "meaning": "datos material",
+          "unit": "señales tipadas",
+          "dimension": "por canal",
+          "domain": "válidos"
+        }
+      ],
+      "constraints": [
+        "Tiles y G-buffer usan misma resolución; luces se clasifican usando depth bounds.",
+        "Las luces transparentes o fuera de tile requieren ruta específica."
+      ],
+      "valid_domain": [
+        "Tile size y viewport positivos; depth válido."
+      ],
+      "boundary_conditions": [
+        "Tile sin superficies opacas no requiere iluminación deferred."
+      ],
+      "dimensional_checks": [
+        "tileSize es raster; depth tiene L; lightCount es conteo.",
+        "G-buffer conserva unidades/tipos por atributo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:5",
+      "name": "Order-independent transparency",
+      "variables": [
+        {
+          "symbol": "C_acc",
+          "meaning": "color acumulado",
+          "unit": "señal HDR",
+          "dimension": "adimensional si relativo",
+          "domain": "finito"
+        },
+        {
+          "symbol": "α",
+          "meaning": "opacidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "w",
+          "meaning": "peso de acumulación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "reveal",
+          "meaning": "revelación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Acumulación y revealage deben usar misma convención de premultiplicación y color lineal.",
+        "El método aproximado no reproduce orden exacto para todos los materiales; documentar límites."
+      ],
+      "valid_domain": [
+        "Color y pesos finitos; alpha en [0,1]."
+      ],
+      "boundary_conditions": [
+        "α=0 no altera revealage ni acumulación; α=1 oculta contribuciones posteriores según convención."
+      ],
+      "dimensional_checks": [
+        "α, w y reveal son adimensionales; C_acc conserva unidad del canal.",
+        "Mezclar en RGB lineal evita operaciones no lineales incorrectas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:6",
+      "name": "Weighted blended OIT",
+      "variables": [
+        {
+          "symbol": "C",
+          "meaning": "color fragmento",
+          "unit": "señal lineal",
+          "dimension": "adimensional si normalizado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "α",
+          "meaning": "opacidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "w",
+          "meaning": "peso",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo/acotado"
+        },
+        {
+          "symbol": "A_acc",
+          "meaning": "suma de pesos alfa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "reveal",
+          "meaning": "producto de transparencia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "C_acc y A_acc deben seguir misma fórmula de ponderación; alpha y color premultiplicado coherentes.",
+        "El peso w es adimensional y su función de profundidad debe usar escala normalizada."
+      ],
+      "valid_domain": [
+        "Fragmentos finitos; α∈[0,1]; w finito."
+      ],
+      "boundary_conditions": [
+        "Sin fragmentos, acumuladores se inicializan a identidad; α=0 no aporta."
+      ],
+      "dimensional_checks": [
+        "wα y reveal son adimensionales; C_acc conserva unidad de color.",
+        "La composición final mantiene tipo de señal de color."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:7",
+      "name": "Temporal anti-aliasing",
+      "variables": [
+        {
+          "symbol": "C_t",
+          "meaning": "color actual",
+          "unit": "señal RGB",
+          "dimension": "adimensional si normalizado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "H_{t-1}",
+          "meaning": "historial reproyectado",
+          "unit": "misma unidad que C_t",
+          "dimension": "igual a C_t",
+          "domain": "alineado"
+        },
+        {
+          "symbol": "w",
+          "meaning": "peso histórico",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "jitter",
+          "meaning": "desplazamiento de muestra",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo/frame",
+          "unit": "s o índice",
+          "dimension": "T o discreto",
+          "domain": "ordenado"
+        }
+      ],
+      "constraints": [
+        "Current/history deben compartir viewport, espacio de color y exposición; reproyección usa matrices cámara coherentes.",
+        "Clamping y rechazo de historia deben declarar criterio para disoclusiones."
+      ],
+      "valid_domain": [
+        "Historial válido; matrices finitas; peso en [0,1]."
+      ],
+      "boundary_conditions": [
+        "Primer frame no tiene historial; w=0 usa solo muestra actual."
+      ],
+      "dimensional_checks": [
+        "w es adimensional; jitter es px; color conserva unidad de señal.",
+        "El tiempo/frame index no se suma a atributos de color."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:8",
+      "name": "FXAA",
+      "variables": [
+        {
+          "symbol": "I",
+          "meaning": "imagen entrada",
+          "unit": "señal RGB",
+          "dimension": "adimensional si normalizado",
+          "domain": "finita"
+        },
+        {
+          "symbol": "Y",
+          "meaning": "luminancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "lineal/normalizada"
+        },
+        {
+          "symbol": "edgeDirection",
+          "meaning": "dirección de borde",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "pixelStep",
+          "meaning": "paso de muestreo",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "positivo"
+        }
+      ],
+      "constraints": [
+        "Luminancia y umbral deben compartir espacio lineal; muestras se desplazan en píxeles.",
+        "El filtro es postproceso 2D y no cambia profundidad/posición de geometría."
+      ],
+      "valid_domain": [
+        "Imagen válida; resolución positiva; umbrales finitos."
+      ],
+      "boundary_conditions": [
+        "Imagen uniforme no requiere filtrado; pixelStep cero se rechaza."
+      ],
+      "dimensional_checks": [
+        "Luminancia y dirección son adimensionales; pixelStep es raster.",
+        "Salida conserva unidad de color."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:9",
+      "name": "MSAA",
+      "variables": [
+        {
+          "symbol": "coverage",
+          "meaning": "cobertura de muestra",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "depth",
+          "meaning": "profundidad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válida"
+        },
+        {
+          "symbol": "N_s",
+          "meaning": "muestras por pixel",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥1"
+        },
+        {
+          "symbol": "pixel",
+          "meaning": "posición de pixel",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "viewport"
+        }
+      ],
+      "constraints": [
+        "Cobertura, profundidad y color se resuelven con misma muestra/attachment; profundidad usa convención near/far.",
+        "Número de muestras es capacidad discreta del formato."
+      ],
+      "valid_domain": [
+        "N_s soportado por dispositivo; attachments compatibles."
+      ],
+      "boundary_conditions": [
+        "N_s=1 equivale a no multisample; pixel fuera de viewport no se procesa."
+      ],
+      "dimensional_checks": [
+        "Coverage adimensional; depth L; N_s conteo; pixel raster.",
+        "Resolve de color conserva unidad de señal."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:10",
+      "name": "Occlusion query",
+      "variables": [
+        {
+          "symbol": "samplesPassed",
+          "meaning": "muestras visibles",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "bounds",
+          "meaning": "bounds objeto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válidos"
+        },
+        {
+          "symbol": "query",
+          "meaning": "resultado",
+          "unit": "booleano",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "visible si >0"
+        }
+      ],
+      "constraints": [
+        "La consulta usa el mismo depth buffer y estado de cámara que el render de referencia.",
+        "Resultados asíncronos deben asociarse al frame/objeto correcto."
+      ],
+      "valid_domain": [
+        "Bounds válidos; query disponible; profundidad consistente."
+      ],
+      "boundary_conditions": [
+        "samplesPassed=0 clasifica oculto; consulta no disponible no equivale a cero."
+      ],
+      "dimensional_checks": [
+        "samplesPassed es conteo; bounds tienen L; query es booleano.",
+        "La visibilidad no tiene unidad física."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:11",
+      "name": "Hierarchical Z",
+      "variables": [
+        {
+          "symbol": "depthPyramid",
+          "meaning": "pirámide de profundidad",
+          "unit": "m o depth normalizado",
+          "dimension": "según convención",
+          "domain": "válida"
+        },
+        {
+          "symbol": "bounds",
+          "meaning": "bounds proyectados",
+          "unit": "px y depth",
+          "dimension": "raster + profundidad",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "level",
+          "meaning": "nivel mip",
+          "unit": "índice",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "occluded",
+          "meaning": "resultado",
+          "unit": "booleano",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "true/false"
+        }
+      ],
+      "constraints": [
+        "Depth pyramid y bounds deben usar misma convención de profundidad, proyección y near/far.",
+        "El rechazo es válido solo si bounds completos están detrás de depth conservado."
+      ],
+      "valid_domain": [
+        "Piramide construida; viewport válido; niveles coherentes."
+      ],
+      "boundary_conditions": [
+        "Bounds fuera de pantalla usan política conservadora; depth desconocido no debe marcar oculto."
+      ],
+      "dimensional_checks": [
+        "Nivel es discreto; coordenadas raster px; depth conserva unidad/normalización declarada.",
+        "El resultado de oclusión es booleano."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:12",
+      "name": "Portals",
+      "variables": [
+        {
+          "symbol": "portal",
+          "meaning": "polígono portal",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "M_portal",
+          "meaning": "transformación cámara",
+          "unit": "afín tipada",
+          "dimension": "rotación 1; traslación L",
+          "domain": "invertible"
+        },
+        {
+          "symbol": "camera",
+          "meaning": "posición/dirección",
+          "unit": "m y 1",
+          "dimension": "tipado",
+          "domain": "válida"
+        },
+        {
+          "symbol": "clipPlane",
+          "meaning": "plano de recorte",
+          "unit": "normal 1; offset m",
+          "dimension": "tipado",
+          "domain": "definido"
+        }
+      ],
+      "constraints": [
+        "Portal, cámara y geometría comparten unidad y marcos; transformación debe preservar escala o declarar conversión.",
+        "Clipping plane se transforma correctamente a espacio de vista."
+      ],
+      "valid_domain": [
+        "Polígono no degenerado; matriz invertible; cámara válida."
+      ],
+      "boundary_conditions": [
+        "Portal no visible no inicia render; plano coplanar requiere epsilon geométrico con unidad L."
+      ],
+      "dimensional_checks": [
+        "Rotación adimensional y traslación L; normal 1 y offset L.",
+        "La cámara transformada conserva tipo de posición/orientación."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D34:13",
+      "name": "Impostors",
+      "variables": [
+        {
+          "symbol": "billboard",
+          "meaning": "plano orientado a cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "bounds válidos"
+        },
+        {
+          "symbol": "sprite",
+          "meaning": "textura",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "resolución positiva"
+        },
+        {
+          "symbol": "distance",
+          "meaning": "distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "screenSize",
+          "meaning": "tamaño proyectado",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "LOD",
+          "meaning": "nivel",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válido"
+        }
+      ],
+      "constraints": [
+        "Sprite representa geometría desde cámara/ángulo de captura; distancia y tamaño proyectado se relacionan por proyección.",
+        "Transición a geometría real debe usar umbral e histéresis para evitar popping."
+      ],
+      "valid_domain": [
+        "Textura válida; cámara y bounds finitos; distancia no negativa."
+      ],
+      "boundary_conditions": [
+        "Distancia grande selecciona impostor; cerca se cambia a malla según threshold; fuera de vista se cullea."
+      ],
+      "dimensional_checks": [
+        "Billboard bounds tienen L; sprite y screenSize son raster; distance L.",
+        "LOD es discreto y no se suma a magnitudes geométricas."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "14/14 técnicas incluidas; ninguna protegida",
+      "Variables, unidades, restricciones, dominios, límites y comprobaciones específicas por técnica",
+      "Separadas magnitudes físicas, señales de color, coordenadas raster y estados GPU"
+    ],
+    "limitations": [
+      "Auditoría dimensional; no valida calidad visual, compatibilidad de cada backend ni rendimiento real de GPU."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

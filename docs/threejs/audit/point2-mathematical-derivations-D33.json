@@ -1,0 +1,456 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D33 Animación basada en datos, captura y retargeting",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D33",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D33 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D33:0",
+      "name": "Retarget transform",
+      "starting_principles": [
+        "Mapeo de huesos y marcos de bind compatibles.",
+        "Convención de multiplicación y handedness fija."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "R_rel=R_bind_source^{-1}R_source",
+          "justification": "Expresar rotación actual relativa a bind pose de origen."
+        },
+        {
+          "step": 2,
+          "equation": "R_target=R_bind_target R_rel",
+          "justification": "Aplicar rotación relativa al bind pose destino."
+        },
+        {
+          "step": 3,
+          "equation": "R_target=R_bind_target R_bind_source^{-1}R_source",
+          "justification": "Sustituir para obtener fórmula de retarget."
+        },
+        {
+          "step": 4,
+          "equation": "apply per bone with mapped frames",
+          "justification": "Transformar por articulación usando correspondencia de ejes."
+        }
+      ],
+      "assumptions": [
+        "Mapeo de huesos y marcos de bind compatibles.",
+        "Convención de multiplicación y handedness fija."
+      ],
+      "result": "Retargeting transfiere rotación relativa a bind desde rig origen a bind del rig destino.",
+      "limits": [
+        "Escalas y longitudes óseas no se corrigen solo con rotación; requiere mapeo de proporciones."
+      ],
+      "dimensional_verification": [
+        "R matrices and quaternions are dimensionless; positions/translation offsets have L.",
+        "Relative rotation is dimensionless and target orientation remains unit quaternion."
+      ]
+    },
+    {
+      "record_key": "D33:1",
+      "name": "Motion blending",
+      "starting_principles": [
+        "Pesos no negativos y suma uno; topología de pose compatible.",
+        "Cuaterniones unitarios y signos alineados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p=Σ_iw_i p_i; Σw_i=1",
+          "justification": "Mezclar traslaciones con combinación convexa."
+        },
+        {
+          "step": 2,
+          "equation": "q=normalize(Σ_iw_i s_i q_i)",
+          "justification": "Mezclar cuaterniones alineando signos."
+        },
+        {
+          "step": 3,
+          "equation": "pose=(p,q,scale)",
+          "justification": "Combinar canales con interpoladores apropiados."
+        },
+        {
+          "step": 4,
+          "equation": "weights vary over time",
+          "justification": "Animar pesos para transición entre clips."
+        }
+      ],
+      "assumptions": [
+        "Pesos no negativos y suma uno; topología de pose compatible.",
+        "Cuaterniones unitarios y signos alineados."
+      ],
+      "result": "Motion blending interpola poses mediante pesos normalizados y canales tipados.",
+      "limits": [
+        "Promediar cuaterniones sin alineación de signo puede cancelar orientaciones."
+      ],
+      "dimensional_verification": [
+        "p_i translations have L; q_i are unitless quaternions; scale_i dimensionless.",
+        "Weights w_i are dimensionless and sum 1; blend preserves each channel's unit."
+      ]
+    },
+    {
+      "record_key": "D33:2",
+      "name": "Motion matching distance",
+      "starting_principles": [
+        "Features normalizadas o pesos tipados; biblioteca indexada.",
+        "Distancia y coste de transición definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ_q=feature(query pose,velocity,contacts)",
+          "justification": "Extraer vector de características de pose actual."
+        },
+        {
+          "step": 2,
+          "equation": "D(q,c)=Σ_k w_k[((φ_q,k−φ_c,k)/s_k)²]",
+          "justification": "Normalize each feature difference by a scale s_k with the same unit, so position, velocity, angle and contact channels become dimensionless before summation."
+        },
+        {
+          "step": 3,
+          "equation": "c*=argmin_c D(q,c)",
+          "justification": "Seleccionar candidato más cercano."
+        },
+        {
+          "step": 4,
+          "equation": "transition to c* with continuity constraints",
+          "justification": "Evitar saltos mediante ventanas de transición/velocidad."
+        }
+      ],
+      "assumptions": [
+        "Features normalizadas o pesos tipados; biblioteca indexada.",
+        "Distancia y coste de transición definidos.",
+        "s_k is a nonzero scale with the same unit as feature k; w_k are dimensionless and nonnegative."
+      ],
+      "result": "Motion matching busca pose candidata de mínima distancia en espacio de características.",
+      "limits": [
+        "Distancia baja no garantiza continuidad perceptual; se requieren restricciones de transición."
+      ],
+      "dimensional_verification": [
+        "Features may have L, L/T, radians or discrete contact values; each is normalized by s_k of same unit.",
+        "D is dimensionless after normalization; weights are dimensionless."
+      ]
+    },
+    {
+      "record_key": "D33:3",
+      "name": "Root motion",
+      "starting_principles": [
+        "Transformación raíz separable de pose local.",
+        "Matriz invertible y orden temporal correcto."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "M(t)=M_root(t)·M_pose(t)",
+          "justification": "Separar transformación raíz del movimiento local."
+        },
+        {
+          "step": 2,
+          "equation": "ΔM=M_root(t+Δt)M_root(t)^{-1}",
+          "justification": "Calcular transformación incremental de raíz."
+        },
+        {
+          "step": 3,
+          "equation": "world'=world·ΔM",
+          "justification": "Aplicar desplazamiento a personaje/escena."
+        },
+        {
+          "step": 4,
+          "equation": "pose_root←identity or remove root component",
+          "justification": "Eliminar componente extraída de la pose local."
+        }
+      ],
+      "assumptions": [
+        "Transformación raíz separable de pose local.",
+        "Matriz invertible y orden temporal correcto."
+      ],
+      "result": "Root motion extrae delta de transformación raíz y la aplica al mundo.",
+      "limits": [
+        "Extracción de raíz depende de convención de locomoción y coordenadas mundo/local."
+      ],
+      "dimensional_verification": [
+        "Root translations have L; rotation blocks dimensionless; ΔM is affine with L translation.",
+        "Δt has T; extracted translation and orientation preserve their respective types."
+      ]
+    },
+    {
+      "record_key": "D33:4",
+      "name": "Foot locking",
+      "starting_principles": [
+        "Ventana de apoyo definida; suelo estable.",
+        "IK y marco de personaje válidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "contact(t)=1 over planted interval",
+          "justification": "Definir ventana de apoyo."
+        },
+        {
+          "step": 2,
+          "equation": "p_foot_world(t)=p_anchor",
+          "justification": "Fijar pie en posición mundo durante apoyo."
+        },
+        {
+          "step": 3,
+          "equation": "target_local=M_character^{-1}p_anchor",
+          "justification": "Convertir ancla a espacio local del rig."
+        },
+        {
+          "step": 4,
+          "equation": "pose=IK(leg,target_local)",
+          "justification": "Resolver articulaciones para mantener contacto."
+        }
+      ],
+      "assumptions": [
+        "Ventana de apoyo definida; suelo estable.",
+        "IK y marco de personaje válidos."
+      ],
+      "result": "Foot locking mantiene ancla mundo y resuelve pierna mediante IK.",
+      "limits": [
+        "Ancla fija puede deslizar si suelo/personaje se mueve o intervalo de contacto es incorrecto."
+      ],
+      "dimensional_verification": [
+        "p_foot_world, p_anchor and target_local have L; matrix inverse maps same units.",
+        "Contact interval endpoints have T; planted position remains constant in world coordinates."
+      ]
+    },
+    {
+      "record_key": "D33:5",
+      "name": "Contact constraints",
+      "starting_principles": [
+        "Distancia firmada y normal de suelo válidas.",
+        "Corrección limitada y contacto geométrico."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(x)=signedDistance(foot,ground)",
+          "justification": "Definir restricción escalar de contacto."
+        },
+        {
+          "step": 2,
+          "equation": "C=0 at contact",
+          "justification": "Imponer pie sobre superficie."
+        },
+        {
+          "step": 3,
+          "equation": "∇C=groundNormal",
+          "justification": "Usar gradiente de distancia como dirección de corrección."
+        },
+        {
+          "step": 4,
+          "equation": "Δx=−C∇C/||∇C||²",
+          "justification": "Proyectar posición sobre superficie en aproximación lineal."
+        }
+      ],
+      "assumptions": [
+        "Distancia firmada y normal de suelo válidas.",
+        "Corrección limitada y contacto geométrico."
+      ],
+      "result": "Contact constraints proyecta posición del pie sobre superficie de apoyo.",
+      "limits": [
+        "Un solo constraint no evita penetración lateral ni colisión de todo el pie."
+      ],
+      "dimensional_verification": [
+        "Signed distance C has L; ∇C is dimensionless for Euclidean distance.",
+        "C∇C/||∇C||² has L and corrects position."
+      ]
+    },
+    {
+      "record_key": "D33:6",
+      "name": "Motion warping",
+      "starting_principles": [
+        "Objetivo y pose en mismo marco; ventana temporal ordenada.",
+        "Correction field definido por rig."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e=target−endEffector(t)",
+          "justification": "Calcular error entre objetivo y efector."
+        },
+        {
+          "step": 2,
+          "equation": "w(t)=smoothstep(t_start,t_end)",
+          "justification": "Definir distribución temporal de corrección."
+        },
+        {
+          "step": 3,
+          "equation": "p'_pos=p_pos+w(t)e_pos; q'=slerp(q,q_corrected,w(t))",
+          "justification": "Apply additive correction only to translation channels; interpolate rotational channels on the unit-quaternion manifold."
+        },
+        {
+          "step": 4,
+          "equation": "enforce end condition at t_end",
+          "justification": "Ajustar último frame al objetivo sin salto."
+        }
+      ],
+      "assumptions": [
+        "Objetivo y pose en mismo marco; ventana temporal ordenada.",
+        "Correction field definido por rig.",
+        "Correction is typed per channel: L for translation, radians/quaternion for rotation, dimensionless for scale."
+      ],
+      "result": "Motion warping distribuye corrección del efector a lo largo del clip.",
+      "limits": [
+        "Corrección grande puede deformar pose o exceder límites articulares."
+      ],
+      "dimensional_verification": [
+        "e_pos has L and correction_pos has L; w(t) dimensionless; corrected position retains L.",
+        "Rotations are not added as vectors; interpolate quaternions with slerp using dimensionless w."
+      ]
+    },
+    {
+      "record_key": "D33:7",
+      "name": "Kalman filter",
+      "starting_principles": [
+        "Modelo lineal/ruido aproximado; covarianzas positivas.",
+        "Matriz H y observaciones en unidades coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x^-_k=F x̂_{k−1}; P^-_k=F P_{k−1}Fᵀ+Q",
+          "justification": "Predecir estado y covarianza."
+        },
+        {
+          "step": 2,
+          "equation": "K_k=P^-Hᵀ(HP^-Hᵀ+R)^{-1}",
+          "justification": "Calcular ganancia de Kalman."
+        },
+        {
+          "step": 3,
+          "equation": "x̂_k=x^-_k+K_k(z_k−Hx^-_k)",
+          "justification": "Corregir predicción con medida."
+        },
+        {
+          "step": 4,
+          "equation": "P_k=(I−K_kH)P^-_k",
+          "justification": "Actualizar incertidumbre."
+        }
+      ],
+      "assumptions": [
+        "Modelo lineal/ruido aproximado; covarianzas positivas.",
+        "Matriz H y observaciones en unidades coherentes.",
+        "Covariance entries P_ij have units unit(x_i)·unit(x_j); measurement covariance R has units unit(z_i)·unit(z_j)."
+      ],
+      "result": "Kalman filter combina predicción de modelo y medición ponderada por incertidumbre.",
+      "limits": [
+        "Modelo lineal puede ser insuficiente para tracking no lineal; covarianzas mal calibradas sesgan."
+      ],
+      "dimensional_verification": [
+        "State components may be heterogeneous; F maps state units to state units; z and Hx share measurement units.",
+        "P and Q carry pairwise state-unit products; R measurement-unit products; K has state/measurement units."
+      ]
+    },
+    {
+      "record_key": "D33:8",
+      "name": "One Euro filter",
+      "starting_principles": [
+        "Δt>0; cutoff bajo Nyquist; señal muestreada.",
+        "f_min>0; β≥0; filtros causales."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d_raw=(x_k−x_{k−1})/Δt",
+          "justification": "Estimar velocidad de cambio."
+        },
+        {
+          "step": 2,
+          "equation": "d_hat=lowpass(d_raw,f_d)",
+          "justification": "Filtrar derivada."
+        },
+        {
+          "step": 3,
+          "equation": "f_c=f_min+β|d_hat|",
+          "justification": "Elevar cutoff cuando el movimiento es rápido."
+        },
+        {
+          "step": 4,
+          "equation": "x_hat=lowpass(x_k,f_c)",
+          "justification": "Filtrar señal con cutoff adaptativo."
+        }
+      ],
+      "assumptions": [
+        "Δt>0; cutoff bajo Nyquist; señal muestreada.",
+        "f_min>0; β≥0; filtros causales.",
+        "β has inverse units of the filtered signal; for position in meters, β is m⁻¹; for normalized input, β is dimensionless."
+      ],
+      "result": "One Euro adapta suavizado al nivel de movimiento para equilibrar jitter y latencia.",
+      "limits": [
+        "Cutoff alto transmite jitter; bajo introduce latencia."
+      ],
+      "dimensional_verification": [
+        "x has declared signal unit; d_raw and d_hat have unit(x)/T; f_c and f_min have T⁻¹.",
+        "β has T⁻¹ divided by unit(x)/T, i.e. inverse unit(x); α filter coefficients are dimensionless."
+      ]
+    },
+    {
+      "record_key": "D33:9",
+      "name": "Quaternion retarget",
+      "starting_principles": [
+        "Cuaterniones unitarios; bind poses válidas.",
+        "Convención de orden y ejes consistente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "q_rel=q_bind_source^{-1}q_source",
+          "justification": "Obtener rotación actual relativa al bind de origen."
+        },
+        {
+          "step": 2,
+          "equation": "q_target=q_bind_target⊗q_rel",
+          "justification": "Aplicar rotación relativa al bind destino."
+        },
+        {
+          "step": 3,
+          "equation": "q_target=q_bind_target⊗q_bind_source^{-1}⊗q_source",
+          "justification": "Componer en convención de cuaterniones declarada."
+        },
+        {
+          "step": 4,
+          "equation": "normalize and sign-align",
+          "justification": "Mantener unidad y continuidad antipodal."
+        }
+      ],
+      "assumptions": [
+        "Cuaterniones unitarios; bind poses válidas.",
+        "Convención de orden y ejes consistente."
+      ],
+      "result": "Quaternion retarget transfiere orientación relativa entre esqueletos.",
+      "limits": [
+        "Rotaciones de rigs con ejes distintos requieren conversión de marcos antes de fórmula."
+      ],
+      "dimensional_verification": [
+        "All quaternions are dimensionless unit quaternions; multiplication/inverse preserve orientation type.",
+        "Sign alignment changes representation, not orientation or units."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "10/10 técnicas D33 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Motion matching normaliza features heterogéneas antes de sumar distancias",
+      "Motion warping separa desplazamientos de posición y rotaciones quaternion",
+      "Kalman tipa covarianzas, observaciones y ganancia según unidades de estado/medida",
+      "One Euro tipa β según unidad de señal y frecuencia de corte"
+    ],
+    "limitations": [
+      "Los filtros y retargeting requieren calibración de rigs, correspondencia anatómica, tasas de captura y pruebas temporales; las fórmulas no garantizan por sí solas ausencia de artefactos."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

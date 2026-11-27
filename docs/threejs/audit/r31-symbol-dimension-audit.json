@@ -1,0 +1,2628 @@
+{
+  "title": "R31 symbol table and dimensional audit",
+  "version": "1.0.0",
+  "based_on_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "dimension_system": "SI base dimensions L,M,T,I,Theta,N,J; angles are dimensionless in dimensional analysis but retain radian units for API clarity.",
+  "count": 23,
+  "records": [
+    {
+      "record_key": "D02:15",
+      "research_id": "R31-STOP-MOTION-PROCEDURAL-CON-MICROJITTER-D",
+      "name": "Stop-motion procedural con microjitter determinista",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "tiempo continuo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "f_s",
+          "meaning": "frecuencia de muestreo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "Hz",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "k",
+          "meaning": "índice de muestra",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "integer",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "t_q",
+          "meaning": "tiempo cuantizado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "A_pos",
+          "meaning": "amplitud de jitter de posición",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m o unidad de escena",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "A_rot",
+          "meaning": "amplitud de jitter angular",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "rad",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "semilla entera determinista",
+          "unit": "integer",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite signed/unsigned integer under declared uint32 wrap"
+        },
+        {
+          "symbol": "channel",
+          "meaning": "identificador de flujo de jitter",
+          "unit": "integer",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite integer channel identifier"
+        },
+        {
+          "symbol": "u",
+          "meaning": "hash uint32 normalizado",
+          "unit": "dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0 <= u < 1"
+        },
+        {
+          "symbol": "epsilon",
+          "meaning": "offset de jitter",
+          "unit": "same as A_pos or A_rot",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "bounded by the selected amplitude"
+        }
+      ],
+      "dimensional_findings": [
+        "La multiplicación t*f_s es adimensional; floor produce índice entero y t_q vuelve a segundos. A_pos y A_rot no pueden compartir una sola amplitud numérica sin unidades separadas.",
+        "u y 2u-1 son adimensionales; epsilon hereda la dimensión de A_pos o A_rot. Los canales de posición y rotación no comparten unidades."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D03:17",
+      "research_id": "R31-FABRIK-PARA-CADENAS-ARTICULADAS",
+      "name": "FABRIK para cadenas articuladas",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "posición del joint i",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m o unidad local",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "target",
+          "meaning": "posición objetivo",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m o unidad local",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "l_i",
+          "meaning": "longitud del segmento",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m o unidad local",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "epsilon",
+          "meaning": "tolerancia de convergencia",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m o unidad local",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "N_iter",
+          "meaning": "máximo de iteraciones",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "integer",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "r_i",
+          "meaning": "distancia de proyección entre articulaciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "strictly positive for normalized projection; finite"
+        },
+        {
+          "symbol": "k_i",
+          "meaning": "razón de proyección d_i/r_i",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite dimensionless ratio"
+        }
+      ],
+      "dimensional_findings": [
+        "Las restricciones ||p_(i+1)-p_i||=l_i son dimensionalmente consistentes; normalizar vectores requiere epsilon con unidad de longitud.",
+        "r_i y d_i son longitudes; k_i=d_i/r_i es adimensional y la combinación afín conserva longitud."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D03:18",
+      "research_id": "R31-SKINNING-POR-DUAL-QUATERNIONS",
+      "name": "Skinning por dual quaternions",
+      "variables": [
+        {
+          "symbol": "q_r",
+          "meaning": "parte real del dual quaternion",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "q_d",
+          "meaning": "parte dual",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "translation-unit (length)",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "t",
+          "meaning": "traslación",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m o unidad local",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "peso de influencia",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless, nonnegative",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "b_0",
+          "meaning": "suma ponderada de partes reales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite; nonzero norm required"
+        },
+        {
+          "symbol": "b_epsilon",
+          "meaning": "suma ponderada de partes duales",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite; translation scale"
+        },
+        {
+          "symbol": "v",
+          "meaning": "posición de vértice",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite in declared transform frame"
+        }
+      ],
+      "dimensional_findings": [
+        "La parte dual tiene escala de longitud cuando codifica traslación. La normalización y el orden del producto quaternion deben seguir la convención declarada.",
+        "La parte real y sus productos internos son adimensionales; la parte dual y la traslación tienen dimensión de longitud. El par dual debe documentarse componente a componente."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D04:17",
+      "research_id": "R31-CUANTIZACI-N-TEMPORAL-DE-ANIMACI-N",
+      "name": "Cuantización temporal de animación",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "tiempo de consulta",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "f_s",
+          "meaning": "frecuencia de muestreo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "Hz",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "k",
+          "meaning": "índice de muestra",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "integer",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "t_q",
+          "meaning": "tiempo cuantizado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s",
+          "domain": "finite values in stated coordinate space"
+        }
+      ],
+      "dimensional_findings": [
+        "t*f_s es adimensional y t_q tiene unidad de tiempo; floor y truncamiento difieren para t<0.",
+        "t*f_s es adimensional; floor produce índice entero; k/f_s recupera segundos. La frecuencia debe ser estrictamente positiva."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D04:18",
+      "research_id": "R31-XPBD-RESTRICCIONES-CON-COMPLIANCE",
+      "name": "XPBD: restricciones con compliance",
+      "variables": [
+        {
+          "symbol": "C",
+          "meaning": "distance constraint",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "grad C",
+          "meaning": "gradient with respect to position",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "inverse mass",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "kg^-1",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "alpha",
+          "meaning": "compliance for distance constraint",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s^2/kg",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "alpha_tilde",
+          "meaning": "alpha/dt^2",
+          "dimension": {
+            "L": 0,
+            "M": -1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "kg^-1",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "lambda",
+          "meaning": "accumulated XPBD multiplier",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "kg*m",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "dt",
+          "meaning": "time step",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        }
+      ],
+      "dimensional_findings": [
+        "For C measured in metres, grad C is dimensionless; Σw_i|grad_i C|² and alpha_tilde both have kg^-1.",
+        "Energy U=1/2 C²/alpha requires alpha in s²/kg. Lambda has kg*m so alpha_tilde*lambda has metres and dx_i=w_i grad_i C dlambda has metres.",
+        "These dimensions are specific to distance constraints; any other C dimension requires recomputing alpha and lambda dimensions."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D04:19",
+      "research_id": "R31-HASH-ESPACIAL-UNIFORME-PARA-VECINOS",
+      "name": "Hash espacial uniforme para vecinos",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición consultada",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "origin",
+          "meaning": "origen de grilla",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "h",
+          "meaning": "tamaño de celda",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m, strictly positive",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "r",
+          "meaning": "radio de consulta",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m, nonnegative",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "cell",
+          "meaning": "coordenada de celda",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "integer vector",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "i,j,k",
+          "meaning": "coordenadas enteras de celda",
+          "unit": "integer",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "signed integer coordinates; floor quantization"
+        },
+        {
+          "symbol": "p1,p2,p3",
+          "meaning": "multiplicadores enteros del hash",
+          "unit": "integer constants",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fixed positive integer constants"
+        },
+        {
+          "symbol": "n",
+          "meaning": "tamaño de tabla hash",
+          "unit": "count",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positive integer"
+        },
+        {
+          "symbol": "H",
+          "meaning": "índice de bucket",
+          "unit": "integer index",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0 <= H < n"
+        }
+      ],
+      "dimensional_findings": [
+        "(p-origin)/h es adimensional antes de floor; el resultado es un índice entero.",
+        "Los índices de celda, multiplicadores y bucket son enteros adimensionales; la tabla hash no convierte colisiones de bucket en identidad de celda."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D06:11",
+      "research_id": "R31-MODELO-DE-DISPERSI-N-MICROFACET-PARA-CAB",
+      "name": "Modelo de dispersión microfacet para cabello",
+      "variables": [
+        {
+          "symbol": "wi,wo,wh,wm",
+          "meaning": "unit directions in fiber frame",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "D",
+          "meaning": "microfacet normal distribution",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "sr^-1 under solid-angle convention",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "G,R",
+          "meaning": "Smith masking and Fresnel reflectance",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "beta,alpha",
+          "meaning": "GGX roughness and cuticle tilt",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless; radians for alpha",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "sigma_a",
+          "meaning": "pigment absorption coefficient",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m^-1",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        }
+      ],
+      "dimensional_findings": [
+        "The NDF, angular variables, dot products, roughness and Fresnel/Smith terms are dimensionless; sigma_a times internal path length must be dimensionless.",
+        "Eq. (12) is a fiber BCSDF, not a planar BRDF; its complete units follow the paper's curve-scattering convention and must not be relabeled as an ordinary BRDF."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D08:14",
+      "research_id": "R31-TENSOR-DE-ESTRUCTURA-PARA-ORIENTACI-N-DE",
+      "name": "Tensor de estructura para orientación de pincelada",
+      "variables": [
+        {
+          "symbol": "I",
+          "meaning": "intensidad de imagen lineal normalizada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "x,y",
+          "meaning": "coordenadas de píxel",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "pixel",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "I_x,I_y",
+          "meaning": "gradientes de intensidad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "intensity/pixel",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "Jxx,Jxy,Jyy",
+          "meaning": "componentes del tensor de estructura",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "intensity^2/pixel^2",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "theta",
+          "meaning": "orientación principal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "rad",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "coherence",
+          "meaning": "coherencia del tensor",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "lambda_max,lambda_min",
+          "meaning": "autovalores ordenados del tensor",
+          "unit": "intensity^2/pixel^2",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "lambda_max>=lambda_min>=0"
+        },
+        {
+          "symbol": "theta_gradient,theta_stroke",
+          "meaning": "ángulos de autovectores mayor y menor",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "orientation modulo pi"
+        },
+        {
+          "symbol": "epsilon",
+          "meaning": "regularizador del denominador de coherencia",
+          "unit": "same as eigenvalues",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "strictly positive"
+        }
+      ],
+      "dimensional_findings": [
+        "Las unidades del tensor dependen de la escala de luminancia y de coordenadas de imagen; theta y coherence son adimensionales.",
+        "J y sus autovalores conservan intensidad²/píxel²; epsilon comparte esa escala. Los ángulos y la coherencia son adimensionales."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D08:15",
+      "research_id": "R31-KUWAHARA-ANISOTR-PICO-MULTIESCALA",
+      "name": "Kuwahara anisotrópico multiescala",
+      "variables": [
+        {
+          "symbol": "f",
+          "meaning": "RGB input sample",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "8-bit code values 0..255",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "sigma_s,sigma_r",
+          "meaning": "spatial Gaussian scales",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "pixels",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "A,alpha,q",
+          "meaning": "anisotropy and tuning parameters",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "m_i,s_i",
+          "meaning": "weighted sector mean and standard deviation",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "RGB code values",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        }
+      ],
+      "dimensional_findings": [
+        "The publication states integer RGB values, e.g. 0..255; q=8 weights are calibrated to that code-value scale. Normalizing RGB to [0,1] changes the output unless the norm/weight parameterization is adjusted.",
+        "The 2009 source defines a single-scale filter per application; it does not specify the manifest's simultaneous multi-scale saliency blend."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D08:16",
+      "research_id": "R31-RELIEVE-DE-IMPASTO-DERIVADO-DE-PINCELADA",
+      "name": "Relieve de impasto derivado de pinceladas",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "posición en plano de pintura",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m o unidad local",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "d_i",
+          "meaning": "distancia a trazo i",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m o unidad local",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "amplitud de altura del trazo",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m o unidad local",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "h",
+          "meaning": "campo de altura",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "grad_h",
+          "meaning": "gradiente espacial de altura",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "N",
+          "meaning": "normal geométrica",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "unit vector",
+          "domain": "finite values in stated coordinate space"
+        }
+      ],
+      "dimensional_findings": [
+        "Si h y x usan la misma unidad de longitud, grad(h) es adimensional; el factor de escala del normal perturbado debe quedar explícito."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D09:12",
+      "research_id": "R31-RUIDO-DE-EROSI-N-ORIENTADO-POR-FLUJO-Y-P",
+      "name": "Ruido de erosión orientado por flujo y pendiente",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición de terreno",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "h",
+          "meaning": "elevación del terreno",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "A",
+          "meaning": "amplitud de desplazamiento",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "slope",
+          "meaning": "pendiente",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "flow",
+          "meaning": "dirección de flujo unitaria",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless unit vector",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "frequency",
+          "meaning": "frecuencia espacial",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m^-1",
+          "domain": "finite values in stated coordinate space"
+        }
+      ],
+      "dimensional_findings": [
+        "La pendiente es adimensional y el ruido debe producir una magnitud compatible con altura. La dirección cuesta abajo suele ser opuesta a grad(h)."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D13:14",
+      "research_id": "R31-SDF-SMOOTH-UNION-Y-MODELADO-IMPL-CITO",
+      "name": "SDF smooth union y modelado implícito",
+      "variables": [
+        {
+          "symbol": "a,b",
+          "meaning": "campos de distancia",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m, same coordinate space and sign convention",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "k",
+          "meaning": "ancho de suavizado",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m, k>0 for polynomial smooth union",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "h",
+          "meaning": "factor auxiliar acotado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "d_union",
+          "meaning": "campo combinado",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        }
+      ],
+      "dimensional_findings": [
+        "a, b y k deben compartir unidad de distancia y espacio de coordenadas; k>0 para la variante polinómica.",
+        "k y |a-b| son longitudes; h es adimensional; k*h^2 conserva dimensión de longitud. El caso k=0 se define por rama para evitar división por cero."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D13:15",
+      "research_id": "R31-CURVAS-DE-C-MARA-CON-MARCO-DE-ORIENTACI-",
+      "name": "Curvas de cámara con marco de orientación estable",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "parámetro de curva",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "C(u)",
+          "meaning": "posición de cámara",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "C'(u)",
+          "meaning": "derivada respecto de u",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m per parameter unit",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "T,N,B",
+          "meaning": "tangente, normal y binormal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "unit vectors",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "q",
+          "meaning": "orientación quaternion",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless normalized quaternion",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "v1",
+          "meaning": "primer vector de reflexión, diferencia entre posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "nonzero finite vector"
+        },
+        {
+          "symbol": "v2",
+          "meaning": "segundo vector de reflexión, diferencia entre tangentes unitarias",
+          "unit": "dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "nonzero finite vector in non-degenerate step"
+        },
+        {
+          "symbol": "c1",
+          "meaning": "cuadrado de la norma de v1",
+          "unit": "m^2",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "strictly positive"
+        },
+        {
+          "symbol": "c2",
+          "meaning": "cuadrado de la norma de v2",
+          "unit": "dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "strictly positive"
+        }
+      ],
+      "dimensional_findings": [
+        "T, N y B deben ser adimensionales y unitarios; C' tiene longitud por unidad de parámetro.",
+        "R1 usa v1 en metros y su denominador c1 en m²; R2 usa v2 como diferencia de tangentes unitarias y c2 es adimensional. Los coeficientes de ambas reflexiones son adimensionales."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D14:15",
+      "research_id": "R31-CONTORNO-POR-DISCONTINUIDAD-DE-PROFUNDID",
+      "name": "Contorno por discontinuidad de profundidad y normal",
+      "variables": [
+        {
+          "symbol": "z0,z1",
+          "meaning": "positive linear view-space depth at center and neighbor",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m (or one consistent scene-length unit)",
+          "domain": "finite positive linear eye-depth; never raw nonlinear depth-buffer samples"
+        },
+        {
+          "symbol": "z_floor",
+          "meaning": "positive lower bound for relative-depth denominator",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m (same as z)",
+          "domain": "finite and >0; normally tied to camera near plane or a documented scene epsilon"
+        },
+        {
+          "symbol": "n0,n1",
+          "meaning": "surface normals in the same coordinate frame",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1 (unit vectors)",
+          "domain": "finite nonzero 3-vectors; normalized before dot product"
+        },
+        {
+          "symbol": "lambda_n",
+          "meaning": "relative weight of normal discontinuity",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1",
+          "domain": "finite and >=0; artistic/calibration parameter"
+        },
+        {
+          "symbol": "E",
+          "meaning": "combined local discontinuity score",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1",
+          "domain": "finite and >=0"
+        },
+        {
+          "symbol": "tau_0,tau_1",
+          "meaning": "lower and upper antialiasing thresholds",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1",
+          "domain": "finite; 0<=tau_0<tau_1"
+        },
+        {
+          "symbol": "a",
+          "meaning": "outline coverage/opacity",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1",
+          "domain": "clamped to [0,1]"
+        },
+        {
+          "symbol": "delta_uv",
+          "meaning": "neighbor sample offset in texture coordinates",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "normalized UV",
+          "domain": "finite offset derived from render-target resolution and selected neighbor stencil"
+        }
+      ],
+      "dimensional_findings": [
+        "The relative depth jump |z0-z1|/max(min(z0,z1),z_floor) is dimensionless.",
+        "The normalized normal dot product and 1-dot are dimensionless; lambda_n is dimensionless, so both score terms may be added.",
+        "The smoothstep thresholds and resulting coverage are dimensionless. Pixel offsets are sampling coordinates, not lengths in world space."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of the authored pairwise depth-normal score; not a source-equation claim or renderer certification."
+    },
+    {
+      "record_key": "D14:16",
+      "research_id": "R31-HALFTONE-BEN-DAY-PROCEDURAL",
+      "name": "Halftone / Ben-Day procedural",
+      "variables": [
+        {
+          "symbol": "x,y",
+          "meaning": "coordinates in the chosen screen or UV plane",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "px or UV",
+          "domain": "finite coordinates; x and y use the same coordinate system"
+        },
+        {
+          "symbol": "f",
+          "meaning": "inverse half-period parameter in the manifest's pi*f sinusoid",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "coordinate_unit^-1",
+          "domain": "finite and >0; actual full period is 2/f, so cycles per coordinate unit are f/2"
+        },
+        {
+          "symbol": "theta",
+          "meaning": "screen rotation angle",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "rad",
+          "domain": "finite angle; coordinate rotation occurs before evaluating the pattern"
+        },
+        {
+          "symbol": "L",
+          "meaning": "linear normalized luminance",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1",
+          "domain": "finite [0,1]; derive from linear RGB, not gamma-encoded display RGB"
+        },
+        {
+          "symbol": "m",
+          "meaning": "sinusoidal threshold mask",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1",
+          "domain": "[0,1] for finite coordinates and f"
+        },
+        {
+          "symbol": "w",
+          "meaning": "antialias transition half-width",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1 (luminance difference)",
+          "domain": "finite and >=0; shader estimate from derivatives of L-m"
+        },
+        {
+          "symbol": "a",
+          "meaning": "ink coverage",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "1",
+          "domain": "clamped to [0,1]"
+        }
+      ],
+      "dimensional_findings": [
+        "f*x and f*y are dimensionless; trigonometric arguments are therefore valid.",
+        "L, m, w and a are normalized dimensionless scalar quantities and may be compared/interpolated.",
+        "The parameter f is not cycles per unit for the written sin(pi*f*x) expression: the period is 2/f and the cycles-per-unit value is f/2."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of the project-authored sinusoidal screen mask and threshold; not a source-equation or renderer certification."
+    },
+    {
+      "record_key": "D14:17",
+      "research_id": "R31-HACHURADO-ORIENTADO-POR-CAMPO-VECTORIAL",
+      "name": "Hachurado orientado por campo vectorial",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "screen, UV or object-space sample position",
+          "unit": "px, UV or m (one consistent space)",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite 2D or 3D coordinate vector"
+        },
+        {
+          "symbol": "d",
+          "meaning": "unit hatch direction",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite nonzero vector normalized before projection"
+        },
+        {
+          "symbol": "s",
+          "meaning": "distance between adjacent hatch periods",
+          "unit": "same coordinate unit as p",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite and >0"
+        },
+        {
+          "symbol": "phi",
+          "meaning": "wrapped periodic phase",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fract(dot(p,d)/s), in [0,1)"
+        },
+        {
+          "symbol": "w",
+          "meaning": "stripe half-width",
+          "unit": "fraction of period",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<=w<=0.5"
+        },
+        {
+          "symbol": "aa",
+          "meaning": "antialias transition width",
+          "unit": "fraction of period",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "aa>=0 and w+aa<=0.5"
+        },
+        {
+          "symbol": "a",
+          "meaning": "hatch coverage",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "clamped to [0,1]"
+        }
+      ],
+      "dimensional_findings": [
+        "dot(p,d) has the same unit as p because d is unit; dividing by s yields dimensionless phase.",
+        "w and aa are fractions of one period and dimensionless; the smoothstep argument is dimensionless.",
+        "For world-space hatching, p and s use the same scene-length unit; for screen/UV hatching, both use that coordinate space."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of a project-authored periodic hatch phase and coverage; not a renderer or varying-field certification."
+    },
+    {
+      "record_key": "D21:21",
+      "research_id": "R31-ADVECCI-N-SEMI-LAGRANGIANA-DE-PIGMENTO",
+      "name": "Advección semi-Lagrangiana de pigmento",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "physical sample position",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite point in 2D/3D simulation domain"
+        },
+        {
+          "symbol": "t,dt",
+          "meaning": "time and positive simulation step",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite t; dt>=0"
+        },
+        {
+          "symbol": "u",
+          "meaning": "velocity field",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite velocity field; boundary behavior declared"
+        },
+        {
+          "symbol": "Delta x,Delta y",
+          "meaning": "physical grid cell spacing",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite and strictly positive"
+        },
+        {
+          "symbol": "x_d",
+          "meaning": "backtraced departure point",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite point; boundary policy applied before interpolation"
+        },
+        {
+          "symbol": "c",
+          "meaning": "pigment concentration or a scalar pigment/color channel",
+          "unit": "kg/m^3 for mass concentration, or normalized 1 for visual channel",
+          "dimension": {
+            "L": -3,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite scalar grid; visual channels use dimensionless [0,1] encoding"
+        },
+        {
+          "symbol": "D",
+          "meaning": "diffusion coefficient in the separate diffusion operator",
+          "unit": "m^2/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite and >=0; not applied by the advection kernel"
+        },
+        {
+          "symbol": "k",
+          "meaning": "first-order drying/dissipation rate in a separate reaction operator",
+          "unit": "s^-1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite and >=0; not applied by the advection kernel"
+        }
+      ],
+      "dimensional_findings": [
+        "dt*u has units of length; dividing by grid spacing converts the physical backtrace displacement to grid-index units.",
+        "The characteristic relation transports c without changing its units.",
+        "D*Laplacian(c) and k*c both have units of concentration/time, matching the time derivative; these are separate operators and are not included in the advection kernel.",
+        "For a normalized visual pigment channel, c is dimensionless; physical concentration and display color must not be silently interchanged."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of scalar advection and separate diffusion/dissipation terms; not a conservation or pigment chemistry certification."
+    },
+    {
+      "record_key": "D27:11",
+      "research_id": "R31-CAMPOS-VECTORIALES-PARA-TRAYECTORIAS-Y-P",
+      "name": "Campos vectoriales para trayectorias y partículas",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "estado de posición",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "V",
+          "meaning": "campo vectorial velocidad",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m/s",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "dt",
+          "meaning": "paso de integración",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "k1..k4",
+          "meaning": "pendientes RK4",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m/s",
+          "domain": "finite values in stated coordinate space"
+        }
+      ],
+      "dimensional_findings": [
+        "dt*k_i tiene unidad de posición; en RK4 los k_i son derivadas, no incrementos ya multiplicados por dt."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D27:12",
+      "research_id": "R31-BOIDS-CON-SEPARACI-N-ALINEACI-N-Y-COHESI",
+      "name": "Boids con separación, alineación y cohesión",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "agent position",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "v_i",
+          "meaning": "agent velocity",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m/s",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "a_req",
+          "meaning": "behavior acceleration request",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m/s^2",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "strength",
+          "meaning": "behavior strength",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless [0,1]",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "a_max",
+          "meaning": "maximum allocated acceleration",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m/s^2",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        },
+        {
+          "symbol": "dt",
+          "meaning": "time step",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s",
+          "domain": "finite values in declared coordinate frame; dimension and unit are explicitly stated"
+        }
+      ],
+      "dimensional_findings": [
+        "Reynolds p.29 explicitly defines behavior outputs as acceleration requests truncated to unit magnitude and strength as a fractional attenuation; all requests therefore share acceleration units before allocation.",
+        "The manifest weighted sum mixing position, velocity and acceleration terms is not dimensionally valid as written; it remains an unverified project variant until each steering term is converted to acceleration with dimensional gains."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D31:12",
+      "research_id": "R31-VOXEL-GREEDY-MESHING",
+      "name": "Voxel greedy meshing",
+      "variables": [
+        {
+          "symbol": "i,j,k",
+          "meaning": "índices de celda",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "integer",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "voxel_size",
+          "meaning": "tamaño físico de vóxel",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "occupancy",
+          "meaning": "ocupación",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "boolean",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "face_key",
+          "meaning": "clave de fusión de cara",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "categorical key",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "vertex",
+          "meaning": "posición de vértice emitido",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        }
+      ],
+      "dimensional_findings": [
+        "La fusión de caras es combinatoria; las posiciones de vértices se obtienen multiplicando índices enteros por voxel_size."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D35:14",
+      "research_id": "R31-INTEGRACI-N-VOLUM-TRICA-BEER-LAMBERT",
+      "name": "Integración volumétrica Beer–Lambert",
+      "variables": [
+        {
+          "symbol": "sigma_t",
+          "meaning": "coeficiente volumétrico de extinción",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m^-1",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "s,ds",
+          "meaning": "distancia y paso de rayo",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "T",
+          "meaning": "transmitancia",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "rho",
+          "meaning": "densidad relativa",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless if sigma_t is per scene-length at unit density",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "alpha",
+          "meaning": "opacidad por segmento",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "L",
+          "meaning": "radiancia acumulada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "radiometric radiance units",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "mu_t",
+          "meaning": "coeficiente efectivo volumétrico sigma_t*rho",
+          "unit": "m^-1",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite nonnegative"
+        },
+        {
+          "symbol": "S",
+          "meaning": "radiancia fuente condicional por evento de extinción",
+          "unit": "W m^-2 sr^-1",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite; linear-light radiance"
+        }
+      ],
+      "dimensional_findings": [
+        "sigma_t*ds debe ser adimensional. Aclarar si sigma_t ya incluye densidad para evitar multiplicarla dos veces.",
+        "rho se fija adimensional como multiplicador de densidad relativa en el kernel actual; mu_t=sigma_t*rho conserva m^-1 y mu_t*ds es adimensional. Si rho es densidad másica real, sigma_t debe ser másico (m²/kg).",
+        "La radiancia acumulada y la fuente S deben compartir unidades radiométricas; alpha y T son adimensionales."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D39:11",
+      "research_id": "R31-FRESNEL-SCHLICK-Y-REFLECTANCIA-ANGULAR",
+      "name": "Fresnel Schlick y reflectancia angular",
+      "variables": [
+        {
+          "symbol": "F",
+          "meaning": "reflectancia Fresnel aproximada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "F0",
+          "meaning": "reflectancia a incidencia normal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless linear reflectance",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "cosTheta",
+          "meaning": "coseno del ángulo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "eta_i,eta_t",
+          "meaning": "índices de refracción",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "u",
+          "meaning": "coseno de incidencia sobre la dirección elegida por la BRDF",
+          "unit": "dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "clamped to [0,1]"
+        },
+        {
+          "symbol": "N,V",
+          "meaning": "normal y dirección unitaria",
+          "unit": "dimensionless vectors",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite normalized vectors"
+        }
+      ],
+      "dimensional_findings": [
+        "F, F0, cos(theta) e índices de refracción son adimensionales; F0 debe estar en espacio lineal.",
+        "La potencia (1-u)^5 es adimensional; F0+(1-F0)(1-u)^5 es adimensional. En Cook-Torrance el coseno de entrada habitual es V·H, no necesariamente N·V."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    },
+    {
+      "record_key": "D40:13",
+      "research_id": "R31-DUAL-CONTOURING",
+      "name": "Dual Contouring",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "vértice solución de QEF",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "p_i",
+          "meaning": "intersección Hermite",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "n_i",
+          "meaning": "normal unitaria",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "QEF",
+          "meaning": "error cuadrático",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m^2",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "lambda",
+          "meaning": "regularización relativa al centro de celda",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "dimensionless",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "cell_size",
+          "meaning": "tamaño de celda",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "m",
+          "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "c",
+          "meaning": "centro de celda usado como ancla de regularización",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite point inside or at the cell"
+        }
+      ],
+      "dimensional_findings": [
+        "Cada residuo n_i·(x-p_i) tiene unidad de longitud; QEF tiene longitud². El término de regularización debe conservar esa dimensión.",
+        "La variante ridge añade lambda*||x-c||²; lambda es adimensional para que el término tenga m², y c es una posición en metros."
+      ],
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
+      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+    }
+  ],
+  "global_rules": [
+    "Never add quantities with different dimensions.",
+    "Every numeric parameter must declare coordinate space, unit, range and whether it is normalized.",
+    "Dimensionless shader values may still require explicit color-space or encoding declarations.",
+    "For constraints C with dimensions other than length, XPBD compliance and lambda dimensions must be recalculated.",
+    "A conditional dimensional pass does not certify the formula against its primary publication."
+  ]
+}

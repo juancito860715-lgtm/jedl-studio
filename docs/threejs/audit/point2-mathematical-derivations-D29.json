@@ -1,0 +1,469 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D29 Color, percepción, composición y percepción visual",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D29",
+    "record_count": 11,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D29 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D29:0",
+      "name": "CIE XYZ conversion",
+      "starting_principles": [
+        "RGB y perfiles conocidos; matriz compatible con primarias/blanco."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "RGB_linear=decodeTransfer(RGB_encoded)",
+          "justification": "Convertir señal codificada a lineal."
+        },
+        {
+          "step": 2,
+          "equation": "XYZ=M_RGB→XYZ·RGB_linear",
+          "justification": "Aplicar matriz derivada de primarias y blanco."
+        },
+        {
+          "step": 3,
+          "equation": "XYZ'=adaptWhite(XYZ,white_in,white_out)",
+          "justification": "Adaptar punto blanco si los perfiles difieren."
+        }
+      ],
+      "assumptions": [
+        "RGB y perfiles conocidos; matriz compatible con primarias/blanco."
+      ],
+      "result": "XYZ deriva de transformar RGB lineal a un espacio colorimétrico basado en primarias y blanco.",
+      "limits": [
+        "Conversión depende del perfil y no puede ser exacta sin primarias/blanco/transferencia."
+      ],
+      "dimensional_verification": [
+        "RGB_linear y XYZ son tristímulos relativos adimensionales; M_RGB es adimensional.",
+        "Si RGB representa radiancia, XYZ conserva la unidad radiométrica; no mezclar con RGB normalizado sin declarar."
+      ]
+    },
+    {
+      "record_key": "D29:1",
+      "name": "CIE Lab distance",
+      "starting_principles": [
+        "XYZ normalizado por blanco; función CIE por tramos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "t=f(X/X_n)",
+          "justification": "Normalizar tristímulo respecto al blanco de referencia y aplicar función CIE."
+        },
+        {
+          "step": 2,
+          "equation": "L*=116f(Y/Y_n)−16",
+          "justification": "Obtener claridad perceptual."
+        },
+        {
+          "step": 3,
+          "equation": "a*=500[f(X/X_n)−f(Y/Y_n)]",
+          "justification": "Obtener eje verde-rojo."
+        },
+        {
+          "step": 4,
+          "equation": "b*=200[f(Y/Y_n)−f(Z/Z_n)]",
+          "justification": "Obtener eje azul-amarillo."
+        },
+        {
+          "step": 5,
+          "equation": "ΔE_76=√((ΔL*)²+(Δa*)²+(Δb*)²)",
+          "justification": "Calcular distancia euclidiana perceptual básica."
+        }
+      ],
+      "assumptions": [
+        "XYZ normalizado por blanco; función CIE por tramos."
+      ],
+      "result": "Lab deriva de normalizar XYZ y aplicar función no lineal perceptual; ΔE76 es distancia euclidiana.",
+      "limits": [
+        "ΔE76 no modela uniformidad perceptual perfecta; ΔE2000 es más avanzado."
+      ],
+      "dimensional_verification": [
+        "L*,a*,b* y ΔE son coordenadas/distancia perceptual adimensionales bajo escala CIE declarada.",
+        "La distancia euclídea compara colores en el mismo espacio y adaptación de blanco."
+      ]
+    },
+    {
+      "record_key": "D29:2",
+      "name": "HSV/HSL",
+      "starting_principles": [
+        "RGB en rango y espacio declarado; manejo de Δ=0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "M=max(R,G,B); m=min(R,G,B); Δ=M−m",
+          "justification": "Obtener extremos de canales."
+        },
+        {
+          "step": 2,
+          "equation": "V=M; L=(M+m)/2",
+          "justification": "Definir value y lightness."
+        },
+        {
+          "step": 3,
+          "equation": "S_HSV=Δ/M; S_HSL=Δ/(1−|2L−1|)",
+          "justification": "Normalizar saturación con denominadores válidos."
+        },
+        {
+          "step": 4,
+          "equation": "H=sectorFormula(R,G,B)",
+          "justification": "Calcular hue por sector y envolver módulo 360°."
+        }
+      ],
+      "assumptions": [
+        "RGB en rango y espacio declarado; manejo de Δ=0."
+      ],
+      "result": "HSV/HSL se derivan de máximo, mínimo y diferencia de canales RGB.",
+      "limits": [
+        "HSV/HSL no son espacios perceptualmente uniformes."
+      ],
+      "dimensional_verification": [
+        "H,S,V/L son adimensionales; hue es ángulo en grados/radianes.",
+        "La transformación RGB↔HSV/HSL opera en el mismo espacio/codificación de entrada declarada."
+      ]
+    },
+    {
+      "record_key": "D29:3",
+      "name": "Luminance",
+      "starting_principles": [
+        "Canales lineales y primarias sRGB."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Y=Σ_i y_iR_i",
+          "justification": "Luminancia relativa es combinación lineal ponderada por contribución de primarias."
+        },
+        {
+          "step": 2,
+          "equation": "for sRGB linear: Y=.2126R+.7152G+.0722B",
+          "justification": "Usar coeficientes de primarias sRGB en espacio lineal."
+        },
+        {
+          "step": 3,
+          "equation": "encoded inputs must be linearized first",
+          "justification": "La fórmula no se aplica directamente a canales sRGB codificados."
+        }
+      ],
+      "assumptions": [
+        "Canales lineales y primarias sRGB."
+      ],
+      "result": "La luminancia relativa es una suma ponderada de canales lineales.",
+      "limits": [
+        "Los coeficientes cambian con primarias; sRGB encoded debe linearizarse."
+      ],
+      "dimensional_verification": [
+        "R,G,B lineales y Y son adimensionales para color relativo; coeficientes son adimensionales.",
+        "Para RGB radiométrico, Y conserva unidad de radiancia; no aplicar a valores gamma-encoded."
+      ]
+    },
+    {
+      "record_key": "D29:4",
+      "name": "Contrast ratio",
+      "starting_principles": [
+        "Luminancia relativa en rango [0,1]."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L_1=max(Y_a,Y_b); L_2=min(Y_a,Y_b)",
+          "justification": "Ordenar luminancias relativas."
+        },
+        {
+          "step": 2,
+          "equation": "contrast=(L_1+0.05)/(L_2+0.05)",
+          "justification": "Añadir offset de referencia y dividir luminancia clara por oscura."
+        },
+        {
+          "step": 3,
+          "equation": "ratio≥1",
+          "justification": "Verificar que contraste es al menos uno."
+        }
+      ],
+      "assumptions": [
+        "Luminancia relativa en rango [0,1]."
+      ],
+      "result": "El contraste es cociente de luminancias relativas con offset.",
+      "limits": [
+        "El ratio no describe toda la percepción de legibilidad ni contexto."
+      ],
+      "dimensional_verification": [
+        "L1,L2 y 0.05 son luminancias relativas adimensionales; el ratio es adimensional.",
+        "L1≥L2≥0; el denominador positivo."
+      ]
+    },
+    {
+      "record_key": "D29:5",
+      "name": "Color harmony",
+      "starting_principles": [
+        "Hue módulo 360°; saturación/claridad normalizadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h_i=h_0+Δh_i mod 360°",
+          "justification": "Generar hues derivados de un ángulo base."
+        },
+        {
+          "step": 2,
+          "equation": "complementary: Δh=180°",
+          "justification": "Elegir opuesto en círculo cromático."
+        },
+        {
+          "step": 3,
+          "equation": "analogous: Δh∈{−δ,0,+δ}",
+          "justification": "Elegir tonos vecinos."
+        },
+        {
+          "step": 4,
+          "equation": "triadic: Δh∈{0,120°,240°}",
+          "justification": "Distribuir tres tonos equidistantes."
+        }
+      ],
+      "assumptions": [
+        "Hue módulo 360°; saturación/claridad normalizadas."
+      ],
+      "result": "La armonía cromática se deriva de relaciones angulares en círculo de hue.",
+      "limits": [
+        "Armonía es heurística artística, no regla perceptual universal."
+      ],
+      "dimensional_verification": [
+        "hue_0 y Δh son ángulos; suma y módulo 360° conservan ángulo.",
+        "Saturación/valor y separaciones armónicas son parámetros adimensionales."
+      ]
+    },
+    {
+      "record_key": "D29:6",
+      "name": "Luminance pyramid",
+      "starting_principles": [
+        "Filtro y factor de reducción declarados; niveles alineados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L_0=linearLuminance(image)",
+          "justification": "Construir nivel base de luminancia."
+        },
+        {
+          "step": 2,
+          "equation": "L'_k=blur(L_k)",
+          "justification": "Suavizar antes de reducir resolución."
+        },
+        {
+          "step": 3,
+          "equation": "L_{k+1}=downsample(L'_k)",
+          "justification": "Reducir dimensiones para obtener siguiente escala."
+        },
+        {
+          "step": 4,
+          "equation": "pyramid={L_0,…,L_n}",
+          "justification": "Representar señal a varias frecuencias espaciales."
+        }
+      ],
+      "assumptions": [
+        "Filtro y factor de reducción declarados; niveles alineados.",
+        "El kernel de blur está normalizado para que la media/energía de señal no cambie arbitrariamente por escala."
+      ],
+      "result": "La pirámide deriva de blur y submuestreo repetidos.",
+      "limits": [
+        "Cada nivel pierde altas frecuencias; filtro define aliasing/blur."
+      ],
+      "dimensional_verification": [
+        "L_k conserva unidad de luminancia de entrada si blur kernel suma 1.",
+        "Downsample cambia resolución en píxeles, no unidad del valor."
+      ]
+    },
+    {
+      "record_key": "D29:7",
+      "name": "Saliency map",
+      "starting_principles": [
+        "Features normalizadas y pesos calibrados; mapa espacial alineado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C=normalize(contrastFeature)",
+          "justification": "Construir mapa de contraste."
+        },
+        {
+          "step": 2,
+          "equation": "E=normalize(edgeMagnitude)",
+          "justification": "Construir mapa de bordes."
+        },
+        {
+          "step": 3,
+          "equation": "M=normalize(motionMagnitude); F=faceFeature",
+          "justification": "Añadir movimiento y presencia de rostro."
+        },
+        {
+          "step": 4,
+          "equation": "S=w_cC+w_eE+w_mM+w_fF",
+          "justification": "Combinar mapas mediante pesos."
+        },
+        {
+          "step": 5,
+          "equation": "normalize S",
+          "justification": "Remapear saliencia a rango comparable."
+        }
+      ],
+      "assumptions": [
+        "Features normalizadas y pesos calibrados; mapa espacial alineado.",
+        "Cada feature C,E,M,F se normaliza a una escala adimensional común antes de aplicar pesos w_i."
+      ],
+      "result": "La saliencia combina mapas de características normalizados.",
+      "limits": [
+        "Saliencia depende de pesos y no predice atención humana exacta."
+      ],
+      "dimensional_verification": [
+        "C,E,M,F y S son adimensionales tras normalización; w_i adimensionales.",
+        "Si M se mide px/s o E en px⁻¹, normalizar antes de sumar con contrast/face features."
+      ]
+    },
+    {
+      "record_key": "D29:8",
+      "name": "Rule of thirds",
+      "starting_principles": [
+        "W,H positivos; origen de coordenadas declarado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x_1=W/3; x_2=2W/3",
+          "justification": "Dividir ancho en tres columnas."
+        },
+        {
+          "step": 2,
+          "equation": "y_1=H/3; y_2=2H/3",
+          "justification": "Dividir alto en tres filas."
+        },
+        {
+          "step": 3,
+          "equation": "intersections=(x_i,y_j)",
+          "justification": "Obtener cuatro puntos orientativos de interés."
+        },
+        {
+          "step": 4,
+          "equation": "place subject near guide/intersection",
+          "justification": "Usar guías como heurística de encuadre."
+        }
+      ],
+      "assumptions": [
+        "W,H positivos; origen de coordenadas declarado."
+      ],
+      "result": "La regla de tercios divide el cuadro en tercios iguales y genera guías.",
+      "limits": [
+        "La regla de tercios es guía, no ley de composición."
+      ],
+      "dimensional_verification": [
+        "W,H,x,y tienen px; W/3 y H/3 tienen px.",
+        "Las proporciones x/W e y/H son adimensionales."
+      ]
+    },
+    {
+      "record_key": "D29:9",
+      "name": "Golden ratio framing",
+      "starting_principles": [
+        "Rectángulo y subdivisión en mismo sistema de unidades."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ=(1+√5)/2",
+          "justification": "Resolver φ²=φ+1 con raíz positiva."
+        },
+        {
+          "step": 2,
+          "equation": "W/H=φ",
+          "justification": "Definir proporción de rectángulo áureo."
+        },
+        {
+          "step": 3,
+          "equation": "subrectangle ratio remains φ",
+          "justification": "La subdivisión por cuadrado conserva proporción."
+        },
+        {
+          "step": 4,
+          "equation": "compose key elements near φ-guides",
+          "justification": "Usar proporción como guía compositiva, no obligación."
+        }
+      ],
+      "assumptions": [
+        "Rectángulo y subdivisión en mismo sistema de unidades."
+      ],
+      "result": "La proporción áurea se deriva de la solución positiva de φ²=φ+1.",
+      "limits": [
+        "φ es una proporción geométrica; no garantiza composición atractiva."
+      ],
+      "dimensional_verification": [
+        "φ=(1+√5)/2 es adimensional; W/H es razón adimensional.",
+        "Las coordenadas de encuadre derivadas de φ conservan px."
+      ]
+    },
+    {
+      "record_key": "D29:10",
+      "name": "Depth layering",
+      "starting_principles": [
+        "Cámara perspectiva; profundidad positiva; β≥0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "projectedSize≈f·worldSize/z",
+          "justification": "La escala aparente disminuye con profundidad en cámara perspectiva."
+        },
+        {
+          "step": 2,
+          "equation": "contrast(d)=C_0e^(−βd)+C_atm(1−e^(−βd))",
+          "justification": "Atenuar contraste hacia tono atmosférico."
+        },
+        {
+          "step": 3,
+          "equation": "detail(d)=detail_0·g(d), g'(d)≤0",
+          "justification": "Reducir frecuencia/detalle con distancia."
+        },
+        {
+          "step": 4,
+          "equation": "combine scale, contrast and detail cues",
+          "justification": "Construir jerarquía de planos."
+        }
+      ],
+      "assumptions": [
+        "Cámara perspectiva; profundidad positiva; β≥0."
+      ],
+      "result": "La profundidad se sugiere combinando escala proyectada, pérdida de contraste y reducción de detalle.",
+      "limits": [
+        "Las pistas de profundidad dependen de cámara, luz y medio."
+      ],
+      "dimensional_verification": [
+        "d tiene L; contraste y detalle son adimensionales; coeficiente k_atm tiene L⁻¹.",
+        "C(d)=C0 exp(−k_atm d) conserva contraste adimensional."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "11/11 técnicas D29 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "CIE XYZ, Lab, HSV/HSL y luminancia distinguen color relativo de radiancia física",
+      "Contraste y armonía operan sobre magnitudes normalizadas y ángulos coherentes",
+      "Saliency exige normalización de features antes de combinarlas",
+      "Composición y profundidad separan píxeles, razones y distancias físicas"
+    ],
+    "limitations": [
+      "Las métricas perceptuales dependen del observador, pantalla, adaptación, espacio de color y contenido; las ecuaciones no garantizan por sí solas calidad artística."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

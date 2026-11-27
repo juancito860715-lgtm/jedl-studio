@@ -1,0 +1,963 @@
+{
+ "manifest": {
+  "title": "Manifiesto / Diccionario enciclopédico de matemáticas, técnicas y estilos de producción 3D con Three.js",
+  "version": "3.5.0-jedl-studio-single-document",
+  "language": "es",
+  "created": "2026-11-26",
+  "purpose": "Referencia técnica extensible para diseñar escenas, criaturas, mundos, animación, simulación visual, cámaras, shaders, audio y render cinematográfico con Three.js.",
+  "scope_note": "Catálogo ampliado y abierto de técnicas documentadas de gráficos por computador, simulación, anatomía, geometría, materiales, iluminación, comportamiento y estilos visuales. No se afirma exhaustividad absoluta: la literatura es abierta y cada familia contiene variantes. No se filtra por compatibilidad ni rendimiento en iPhone. Esta versión añade una capa de investigación centrada en resultados generados por código, ecuaciones y algoritmos. Los recursos externos (modelos, texturas, HDRI, audio o animaciones) no son dependencias aceptadas para las demostraciones objetivo; se admiten como fuentes de estudio solo los métodos matemáticos y las implementaciones inspeccionables.",
+  "source_policy": {
+   "crimson_loong": "Observaciones verificadas en README.md y módulos fuente consultados del repositorio ChetasLua/crimson-loong. Se resumen técnicas y arquitectura; no se reproduce su implementación íntegra.",
+   "general_techniques": "Conocimiento general de gráficos por computador, geometría, animación, óptica, simulación y documentación oficial de Three.js.",
+   "equations": "Las ecuaciones son formulaciones matemáticas generales. Algunas son aproximaciones artísticas o modelos simplificados, no fórmulas exclusivas de Three.js.",
+   "code_generated_only": "Las escenas demostrativas objetivo deben generar geometría, materiales, iluminación, movimiento, cámara y audio mediante código. No deben requerir modelos, imágenes, texturas, HDRI, sonidos, capturas ni animaciones prefabricadas. Una técnica que normalmente usa esos recursos debe incluir una alternativa procedural o marcar explícitamente que no puede reproducirse íntegramente sin ellos."
+  },
+  "reference_sources": [
+   {
+    "name": "Crimson Loong README",
+    "url": "https://github.com/ChetasLua/crimson-loong/blob/main/README.md",
+    "type": "repositorio primario",
+    "notes": "Describe la película procedural, la arquitectura modular, la ausencia de assets externos, el pipeline y las herramientas."
+   },
+   {
+    "name": "Crimson Loong dragon module",
+    "url": "https://github.com/ChetasLua/crimson-loong/blob/main/src/60_dragon.js",
+    "type": "código fuente",
+    "notes": "Trayectorias, espina dorsal, ondas viajeras, impulsos, orientación y poses."
+   },
+   {
+    "name": "Crimson Loong sky module",
+    "url": "https://github.com/ChetasLua/crimson-loong/blob/main/src/20_sky.js",
+    "type": "código fuente",
+    "notes": "Nubes ray-marched horneadas en capas, deriva, viento, composición y cielo."
+   },
+   {
+    "name": "Crimson Loong rock module",
+    "url": "https://github.com/ChetasLua/crimson-loong/blob/main/src/30_rock.js",
+    "type": "código fuente",
+    "notes": "Relieve kárstico procedural, juntas, estratos, hash entero y desplazamiento compartido CPU/GLSL."
+   },
+   {
+    "name": "Crimson Loong water module",
+    "url": "https://github.com/ChetasLua/crimson-loong/blob/main/src/68_water.js",
+    "type": "código fuente",
+    "notes": "Lago reflectante, mapa de lecho, ondas, estelas, espuma y cascadas."
+   },
+   {
+    "name": "Crimson Loong post module",
+    "url": "https://github.com/ChetasLua/crimson-loong/blob/main/src/80_post.js",
+    "type": "código fuente",
+    "notes": "HDR, profundidad, AO, bloom, haces de luz y gradación."
+   },
+   {
+    "name": "Crimson Loong film module",
+    "url": "https://github.com/ChetasLua/crimson-loong/blob/main/src/88_film.js",
+    "type": "código fuente",
+    "notes": "Guion temporal, curvas monotónicas, cámara y sincronización de eventos."
+   },
+   {
+    "name": "Three.js manual: fundamentals",
+    "url": "https://threejs.org/manual/en/fundamentals.html",
+    "type": "documentación oficial",
+    "notes": "Scene graph, geometría, materiales, texturas, luces y render."
+   },
+   {
+    "name": "Three.js manual: creating a scene",
+    "url": "https://threejs.org/manual/en/creating-a-scene.html",
+    "type": "documentación oficial",
+    "notes": "Scene, camera, renderer y render loop."
+   },
+   {
+    "name": "Three.js manual: textures",
+    "url": "https://threejs.org/manual/en/textures.html",
+    "type": "documentación oficial",
+    "notes": "Texturas, UV y atlas."
+   },
+   {
+    "name": "Three.js API",
+    "url": "https://threejs.org/docs/",
+    "type": "documentación oficial",
+    "notes": "API de cámaras, geometría, atributos, materiales, animación, audio, render targets y addons."
+   },
+   {
+    "name": "Physics-based fluid simulation in computer graphics: Survey (2024)",
+    "url": "https://link.springer.com/article/10.1007/s41095-023-0368-y",
+    "type": "revisión científica",
+    "notes": "Fundamentos, discretización, métodos Lagrangianos/Eulerianos/híbridos, escalabilidad e interacción multifásica."
+   },
+   {
+    "name": "Multiphysics Simulation Methods in Computer Graphics (2025)",
+    "url": "https://onlinelibrary.wiley.com/doi/10.1111/cgf.70082",
+    "type": "revisión científica",
+    "notes": "Métodos para sólidos deformables, fluidos, granularidad e interacción entre materiales."
+   },
+   {
+    "name": "Three.js Post Processing",
+    "url": "https://threejs.org/manual/pages/post-processing.html",
+    "type": "documentación oficial",
+    "notes": "Render targets, EffectComposer y cadena de passes."
+   },
+   {
+    "name": "Three.js WebGPURenderer",
+    "url": "https://threejs.org/manual/pages/webgpurenderer",
+    "type": "documentación oficial",
+    "notes": "Renderer universal, WebGPU con fallback WebGL 2, TSL y nodos."
+   },
+   {
+    "name": "Survey on Hair Modeling: Styling, Simulation, and Rendering",
+    "url": "https://www.cs.cornell.edu/~srm/publications/TVCG07-hair.html",
+    "type": "revisión científica",
+    "notes": "Modelado, estilizado, simulación y render de cabello."
+   },
+   {
+    "name": "A Survey of Image Synthesis Methods",
+    "url": "https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14047",
+    "type": "revisión científica",
+    "notes": "Ecuación de renderizado, rasterización, ray tracing y path tracing."
+   },
+   {
+    "name": "State of the Art: A Taxonomy of Artistic Stylization Techniques for Images and Video",
+    "url": "https://doi.org/10.1109/TVCG.2012.160",
+    "type": "revisión científica IEEE TVCG",
+    "notes": "Taxonomía de NPR: painterly, edge-aware, paletas limitadas, abstracción y estilización de imagen/video."
+   },
+   {
+    "name": "3D facial modeling, animation, and rendering for digital humans: A survey (2024)",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0925231224009391",
+    "type": "revisión científica",
+    "notes": "Modelado facial, animación y render de humanos digitales."
+   },
+   {
+    "name": "The skinning in character animation: A survey (2022)",
+    "url": "https://doi.org/10.25236/AJCIS.2022.050402",
+    "type": "revisión científica",
+    "notes": "Skinning directo, automático, basado en ejemplos y deformación delta."
+   },
+   {
+    "name": "State of the art in skinning techniques for articulated deformable characters",
+    "url": "https://publications.lib.chalmers.se/records/fulltext/239289/local_239289.pdf",
+    "type": "revisión científica",
+    "notes": "Skinning esquelético, conservación de volumen y deformación física."
+   },
+   {
+    "name": "Dynamic implicit muscles for character skinning (2018)",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0097849318301742",
+    "type": "investigación",
+    "notes": "Músculos implícitos dinámicos, PBD y colisiones."
+   },
+   {
+    "name": "Real-time animation of human characters’ anatomy (2018)",
+    "url": "https://www.sciencedirect.com/science/article/pii/S0097849318300906",
+    "type": "investigación",
+    "notes": "Animación anatómica interna y externa."
+   },
+   {
+    "name": "Anatomically Based Modeling",
+    "url": "https://graphics.stanford.edu/courses/cs448-01-spring/papers/wilhelms.pdf",
+    "type": "investigación clásica",
+    "notes": "Jerarquía corporal, músculos, tejidos, voxelización y extracción de piel."
+   },
+   {
+    "name": "Three.js WebGPU / TSL",
+    "url": "https://threejs.org/manual/en/webgpurenderer.html",
+    "type": "documentación oficial",
+    "notes": "Renderer WebGPU y sistema de nodos/TSL."
+   },
+   {
+    "name": "Three.js WebGLRenderer API",
+    "url": "https://threejs.org/docs/pages/WebGLRenderer.html",
+    "type": "documentación oficial",
+    "notes": "WebGL2 como backend de WebGLRenderer; WebGL1 no soportado desde r163. Evidencia: documentación API consultada 2026-11-26."
+   },
+   {
+    "name": "Image and Video Abstraction by Anisotropic Kuwahara Filtering",
+    "url": "https://doi.org/10.1111/j.1467-8659.2009.01574.x",
+    "type": "artículo científico",
+    "notes": "tensor de estructura suavizado; Kuwahara anisotrópico; orientación local de rasgos; abstracción pictórica temporalmente coherente. Evidencia: resumen editorial y metadatos consultados."
+   },
+   {
+    "name": "Painting with Polygons: A Procedural Watercolor Engine",
+    "url": "https://doi.org/10.1109/TVCG.2012.295",
+    "type": "artículo científico",
+    "notes": "representación vectorial de trazos; advección procedural de pigmentos; comportamiento dinámico de acuarela. Evidencia: PubMed/IEEE metadata and abstract consulted."
+   },
+   {
+    "name": "Oil Painting Style Rendering Based on Kuwahara Filter",
+    "url": "https://doi.org/10.1109/ACCESS.2019.2931037",
+    "type": "artículo científico",
+    "notes": "Kuwahara anisotrópico multiescala; tamaño de pincel controlado por saliencia; relieve de impasto mediante bump mapping. Evidencia: IEEE abstract and metadata consulted."
+   },
+   {
+    "name": "A Microfacet-based Hair Scattering Model",
+    "url": "https://doi.org/10.1111/cgf.14588",
+    "type": "artículo científico",
+    "notes": "cilindro rugoso y cutículas inclinadas; modelo microfacet para cabello; lóbulo reflejado GGX; muestreo de importancia. Evidencia: KIT/Eurographics publisher abstract consulted."
+   },
+   {
+    "name": "Real-time Terrain Enhancement with Controlled Procedural Patterns",
+    "url": "https://doi.org/10.1111/cgf.14992",
+    "type": "artículo científico",
+    "notes": "ruido estructurado para patrones de erosión; orientación ligada a pendiente y flujo; detalle de terreno procedural en tiempo real. Evidencia: publisher abstract consulted."
+   },
+   {
+    "name": "Dripping Thin Films for Real-time Digital Painting",
+    "url": "https://research.adobe.com/publication/dripping-thin-films-for-real-time-digital-painting/",
+    "type": "investigación académica",
+    "notes": "película líquida; interfaz fluido-aire; advección/difusión de pigmento; goteo. Evidencia: referencia identificada; texto completo y detalles de discretización pendientes de inspección."
+   },
+   {
+    "name": "Eurographics Digital Library: A Microfacet-based Hair Scattering Model",
+    "url": "https://diglib.eg.org/handle/10.1111/cgf14588",
+    "type": "repositorio académico primario",
+    "notes": "versión editorial y resumen del modelo microfacet de cabello. Evidencia: registro editorial consultado."
+   }
+  ],
+  "crimson_loong_architecture_audit": {
+   "runtime": "Una película de 90 segundos reproducida en navegador desde un HTML generado; Three.js r180 está integrado en la página.",
+   "external_assets": "El README declara que no hay modelos, imágenes, fuentes, HDRI ni archivos de sonido externos; se generan mediante código.",
+   "module_map": [
+    {
+     "module": "05_glsl.js",
+     "responsibility": "fragmentos GLSL compartidos: niebla, bruma aérea, sombras móviles de nubes y viento"
+    },
+    {
+     "module": "10_sdf.js",
+     "responsibility": "kit de modelado mediante Signed Distance Fields"
+    },
+    {
+     "module": "15_tex.js",
+     "responsibility": "mapas de detalle y texturas horneadas al iniciar"
+    },
+    {
+     "module": "20_sky.js",
+     "responsibility": "cielo, nubes ray-marched, capas, tormenta, lluvia y deriva"
+    },
+    {
+     "module": "30_rock.js",
+     "responsibility": "agujas kársticas y acantilados mediante superficies desplazadas"
+    },
+    {
+     "module": "35_arch.js",
+     "responsibility": "puertas, pabellones, edificios, faroles pendulares y telas"
+    },
+    {
+     "module": "40_flora.js",
+     "responsibility": "arces, pinos, arbustos, hierba y plantas de acantilado"
+    },
+    {
+     "module": "58_dlook.js",
+     "responsibility": "apariencia de dragones, shader de escamas, cabezas, crines y humedad"
+    },
+    {
+     "module": "60_dragon.js",
+     "responsibility": "fábrica de criaturas, trayectorias, espina, poses y coreografía"
+    },
+    {
+     "module": "66_wake.js",
+     "responsibility": "respuesta de plantas, polvo y piedras al paso de cuerpos y frentes de choque"
+    },
+    {
+     "module": "68_water.js",
+     "responsibility": "lago, espejo planar, corriente, cascadas, estelas y salpicaduras"
+    },
+    {
+     "module": "70_fx.js",
+     "responsibility": "fuego, hielo, rayos, haces, explosiones, spray y agua desprendida"
+    },
+    {
+     "module": "72_air.js",
+     "responsibility": "niebla, aves, hojas, humo, luciérnagas y ráfagas"
+    },
+    {
+     "module": "80_post.js",
+     "responsibility": "pipeline HDR, AO, capas FX, bloom, haces solares y gradación"
+    },
+    {
+     "module": "85_audio.js",
+     "responsibility": "música y efectos sintetizados"
+    },
+    {
+     "module": "88_film.js",
+     "responsibility": "guion temporal, cámara y viento"
+    },
+    {
+     "module": "90_main.js",
+     "responsibility": "arranque, luces, bucle de render y calidad adaptativa"
+    }
+   ],
+   "high_value_principles": [
+    "La imagen de cada instante se deriva del tiempo absoluto de la película; esto permite renderizar fotogramas fuera de orden.",
+    "Los efectos con memoria aparente se resuelven mediante tablas de eventos precalculadas y evaluadas en el tiempo.",
+    "La geometría y el shader comparten la misma función de desplazamiento para alinear silueta, juntas y detalle.",
+    "Las capas de nubes se hornean una vez y luego se desplazan y componen.",
+    "La animación de criaturas se divide en trayectoria, onda corporal, impulsos y orientación de cabeza.",
+    "El agua lee eventos de interacción y mapas del lecho para responder a los cuerpos.",
+    "La calidad se adapta al coste medido de los fotogramas."
+   ],
+   "limits_of_evidence": "La inspección de módulos confirma la arquitectura y técnicas indicadas, pero no constituye una auditoría línea por línea de cada módulo ni una medición independiente de rendimiento en todos los dispositivos."
+  },
+  "research_method_v2": [
+   "Ampliación guiada por taxonomías de gráficos por computador, simulación multiphysics, renderizado, geometría computacional, óptica, animación y acústica.",
+   "Se incluyen familias de métodos y formulaciones representativas; no se afirma que una ecuación aislada sea un solver completo.",
+   "Las ecuaciones de simulación requieren discretización, condiciones de contorno, parámetros, estabilidad numérica y validación.",
+   "Las técnicas de investigación se incluyen aunque no sean implementaciones nativas de Three.js; Three.js puede visualizar sus resultados o ejecutar versiones personalizadas en GPU/CPU."
+  ],
+  "research_policy_v3": [
+   "Separar fórmulas físicas, modelos constitutivos, métodos geométricos, algoritmos numéricos y controles artísticos.",
+   "Para cada método profundo incluir derivación conceptual, parámetros, variantes, pasos de algoritmo y relación con Three.js.",
+   "Las recetas de estilos son composiciones de dirección artística y técnicas, no algoritmos oficiales de estudios ni fórmulas únicas.",
+   "Las referencias académicas respaldan familias de métodos; no implican que cada ecuación concreta esté copiada literalmente de una fuente.",
+   "El inventario no puede ser matemáticamente cerrado: se mantiene extensible por publicaciones, nuevas variantes y técnicas de producción."
+  ],
+  "v3_additions": {
+   "deep_domains_added": 6,
+   "style_presets": 44,
+   "deep_algorithm_recipes": 7,
+   "derivation_chapters": 6
+  },
+  "updated": "2026-11-27",
+  "change_log": [
+   {
+    "version": "3.1.0",
+    "change": "Ampliación incremental: catálogo de 22 estilos con recetas de siete dimensiones, nuevas fichas algorítmicas, matriz de cobertura del encargo y política estricta de generación por código.",
+    "baseline_preserved": "Se conservan los 41 dominios, 518 técnicas y secciones originales de v3. No se eliminan ni reescriben las fichas existentes."
+   },
+   {
+    "version": "3.4.0",
+    "change": "Corrección de contadores a valores reales; D19 sincronizado con 22 estilos canónicos (13 previos preservados); nuevo D42 de audio, música y voz por código; contrato de regeneración para personajes; campo derivation_status por técnica; bloque binding_policy como guía obligatoria.",
+    "baseline_preserved": "Se conservan los 41 dominios originales y todas las técnicas. No se eliminan fichas."
+   },
+   {
+    "version": "3.5.0",
+    "change": "Documento único: se incorporan la especificación de escena procedural, plantilla de Scene Spec, esqueleto de módulo, informe de verificación y especificación de exportación MP4 (1280x720 y formatos verticales/cuadrados) con reproducción, pausa y descarga. Se agregan pendientes y regla de entrega completa.",
+    "baseline_preserved": "Todo el contenido de v3.4 se conserva sin cambios."
+   }
+  ],
+  "status": "v3_5_documento_unico; NO_CERTIFICADO; metodologia_escena_incluida; exportacion_mp4_especificada; pendientes_abiertos",
+  "change_summary": "Dominios 42, técnicas 616, estilos 22. Derivación real: 43; plantilla pendiente: 115; no evaluadas: 444. No certificado.",
+  "binding_policy": {
+   "status": "GUÍA OBLIGATORIA para agentes de IA que generen animación, escenas o audio de jedl-studio.",
+   "scope": "Repositorio GitHub jedl-studio. No se vincula a ningún motor (Godot u otro). Three.js y Web Audio API son las únicas APIs de referencia.",
+   "rules": [
+    "Toda técnica usada debe existir en este JSON con su ecuación, algoritmo y pseudocódigo. Si no existe, responder NO_CUBIERTO y no improvisar.",
+    "Prohibido inventar ecuaciones, constantes, parámetros o nombres de API que no aparezcan en el JSON o en su threejs/threejs_adaptation.",
+    "Prohibido implementar sin pseudocódigo previo. Si el pseudocódigo falta, el agente debe completarlo desde la derivación indicada o marcarlo pendiente.",
+    "Prohibido usar modelos, texturas, HDRI, sonidos, fuentes o animaciones externas. Todo se genera por código.",
+    "Una técnica con derivation_status = plantilla_pendiente NO puede usarse como fundamento de código de producción."
+   ],
+   "certification": {
+    "default": "certified: false en todo el manifiesto.",
+    "requirements": [
+     "derivation_status = derivada (derivación real símbolo a símbolo).",
+     "pseudocode presente y revisado contra la ecuación.",
+     "Prueba ejecutable en navegador con resultado registrado (threejs_runtime_tests = passed).",
+     "Revisión matemática por revisor distinto del autor."
+    ],
+    "who_certifies": "Solo una IA o persona que ejecute las pruebas y revise la derivación puede cambiar certified a true. Esta versión NO está certificada."
+   },
+   "obligacion_de_entrega_ref": "ver manifest.obligacion_de_entrega"
+  },
+  "obligacion_de_entrega": {
+   "regla": "Una IA que ejecute esta guía debe entregar el trabajo COMPLETO o declarar explícitamente qué quedó fuera. No se entrega una escena parcial como si estuviera terminada.",
+   "entregables_minimos": [
+    "dist/scene.html funcional",
+    "src/ con módulos numerados",
+    "scene_spec.json validado",
+    "informe_verificacion.md con todas las secciones",
+    "capturas en los tiempos clave",
+    "botón Reproducir/Pausar/Descargar MP4 operativo",
+    "lista NO_CUBIERTO y lista no_verificado"
+   ],
+   "prohibido": [
+    "marcar como terminado un entregable con fases sin puerta cumplida",
+    "dejar funciones con 'NO IMPLEMENTADO' en la escena final",
+    "omitir el informe de verificación",
+    "afirmar que algo funciona sin ejecutarlo",
+    "dejar el botón de exportación sin probar o sin fallback"
+   ],
+   "si_no_puede_terminar": "Entregar lo completado, marcar cada fase pendiente con su puerta no cumplida y el motivo, y no declarar la escena como entregada."
+  },
+  "production_method_v1": {
+   "descripcion": "Metodología de producción de escenas procedurales de alto detalle. Documento completo incluido como texto literal.",
+   "orden_de_lectura": [
+    "ESPECIFICACION_ESCENA_PROCEDURAL.md",
+    "scene_spec.template.json",
+    "scene_skeleton.js",
+    "INFORME_VERIFICACION_PLANTILLA.md"
+   ],
+   "fases": [
+    "0 Brief a Scene Spec",
+    "1 Guion temporal T",
+    "2 Composición",
+    "3 Blockout",
+    "4 Modelado por sistemas",
+    "5 Materiales y luz",
+    "6 Movimiento como función del tiempo",
+    "7 Efectos con memoria",
+    "8 Audio opcional",
+    "9 Post y calidad",
+    "10 Verificación y entrega"
+   ],
+   "regla_de_elementos": "Todo elemento necesita rol y technique_ids válidos en este manifiesto. Lo no cubierto va a no_cubierto.",
+   "archivos": {
+    "ESPECIFICACION_ESCENA_PROCEDURAL.md": "# Especificación de producción: escena procedural de alto detalle\n\nEstado: guía obligatoria para cualquier IA que genere una escena en jedl-studio.\nFuente técnica única: `Manifiesto_ThreeJS_v3_4_jedl-studio.json`.\nSin motor externo. Three.js y Web Audio API son las únicas APIs de referencia.\nNinguna escena se marca como verificada sin el informe de la fase 10.\n\n---\n\n## 0. Principio rector\n\nUna escena no se inventa: se **compone** con técnicas del manifiesto, se\n**parametriza** con el brief y se **verifica** con capturas y pruebas.\n\nSi un elemento no puede justificarse con una técnica del manifiesto, no se\nmodela. Se registra como `NO_CUBIERTO` y se informa al usuario.\n\nProhibido:\n- Formas geométricas decorativas sin función narrativa o compositiva\n  (cubos, esferas o toros de relleno).\n- Elementos \"para que se vea lleno\" sin rol en la composición.\n- Ecuaciones, constantes o nombres de API que no estén en el manifiesto.\n- Modelos, texturas, HDRI, fuentes, sonidos o animaciones externas.\n- Afirmar que algo funciona sin haber ejecutado la prueba correspondiente.\n\n---\n\n## 1. Entrada: el brief\n\nEl usuario describe la escena en lenguaje natural. La IA primero convierte esa\ndescripción en un **brief estructurado** antes de tocar código. El brief debe\ncontener, como mínimo:\n\n| Campo | Contenido |\n|---|---|\n| `tema` | Qué es la escena, en una frase |\n| `duracion_s` | Duración del loop o del plano en segundos |\n| `lugar` | Ambiente: bosque, ciudad, mar, interior, espacio... |\n| `hora_y_clima` | Momento del día, luz y condición atmosférica |\n| `protagonistas` | Seres u objetos principales, con su rol |\n| `secundarios` | Elementos de apoyo |\n| `accion` | Qué ocurre, en orden, con tiempos aproximados |\n| `camara` | Planos principales y movimiento |\n| `emocion` | Tono visual y sonoro deseado |\n| `estilo` | Uno o más estilos del atlas (STYLE-CODE-01..22) |\n| `restricciones` | Lo que no debe aparecer; limites de rendimiento |\n\nSi falta un campo esencial (tema, duración, protagonista), la IA pregunta una\nsola vez antes de continuar. Si el usuario no contesta, la IA asume valores\nrazonables y los declara en el informe.\n\n---\n\n## 2. Scene Spec: contrato entre brief y código\n\nAntes del código se produce un **Scene Spec** en JSON (ver\n`plantilla/scene_spec.template.json`). Es el documento que valida el\ncumplimiento del manifiesto.\n\nCada elemento de la escena debe declarar:\n- `id`, único y estable.\n- `rol`: por qué existe (silueta, foco, contexto, transición, ritmo).\n- `technique_ids`: técnicas del manifiesto que lo generan. Mínimo una.\n- `parametros`: valores con unidades SI declaradas.\n- `lod`: niveles de detalle previstos.\n- `seed`: semilla explícita.\n\nUn elemento sin `technique_ids` o sin `rol` no pasa la validación. La IA debe\nrechazarlo y reportarlo como `NO_CUBIERTO`.\n\n---\n\n## 3. Pipeline de producción\n\nCada fase tiene un artefacto de salida y una **puerta** (gate). No se avanza sin\ncumplir la puerta.\n\n### Fase 0. Brief → Scene Spec\n- Salida: `scene_spec.json`.\n- Puerta: todos los elementos tienen `rol` y `technique_ids` válidos en el\n  manifiesto. Lista de `NO_CUBIERTO` documentada.\n\n### Fase 1. Guion temporal\n- Salida: objeto `T` con los tiempos de cada evento (inicio, pico, fin).\n- Puerta: todos los eventos del brief tienen tiempo. Imagen y sonido leen el\n  mismo `T`.\n\n### Fase 2. Composición\n- Salida: planos clave con cámara, escala de referencia y jerarquía focal.\n- Reglas:\n  - **Jerarquía focal**: un foco principal, uno secundario y contexto. No más\n    de tres focos.\n  - **Silueta a tres valores**: el sujeto principal debe leerse en negro sobre\n    gris medio. Si no se lee, se rehace la silueta.\n  - **Profundidad en tres planos**: primer plano, medio y fondo, con cambio de\n    contraste y de saturación con la distancia (niebla atmosférica).\n  - **Escala**: al menos un objeto de escala conocida en metros.\n  - **Color narrativo**: una paleta de 3 a 5 colores, con un color de acento.\n- Puerta: captura en grises de cada plano clave, revisada por silueta y valor.\n\n### Fase 3. Blockout\n- Salida: formas de volumen sin materiales finos. Solo las primitivas y SDF\n  necesarias para la silueta.\n- Puerta: captura del blockout en grises. Las proporciones coinciden con el\n  Scene Spec.\n\n### Fase 4. Modelado por sistemas\n- Salida: geometría por módulos, cada uno con su técnica del manifiesto.\n- Reglas:\n  - No modelar nada como una malla monolítica. Un módulo por sistema.\n  - Instancing para repeticiones (hojas, piedras, ventanas, multitudes).\n  - LOD declarado para cada sistema.\n  - Presupuesto de triángulos y de llamadas de dibujo en el Scene Spec.\n- Puerta: el presupuesto se cumple en la máquina de prueba.\n\n### Fase 5. Materiales y luz\n- Salida: materiales PBR con modelo de reflectancia del manifiesto (microfacet\n  o equivalente documentado), luces con intensidad en unidades declaradas.\n- Reglas:\n  - Trabajo en espacio lineal. Tone mapping explícito.\n  - Un solo color de luz de llave por plano; los demás son relleno o contorno.\n- Puerta: captura por material en tres condiciones de luz.\n\n### Fase 6. Movimiento como función del tiempo\n- Salida: funciones `pose(t)`, `pathAt(s)` o equivalentes, sin estado acumulado.\n- Reglas:\n  - Cualquier fotograma se calcula solo con `t`. No se depende del orden de\n    llamadas.\n  - Curvas con claves o Bézier del manifiesto. Anticipación y sobreimpulso\n    cuando el movimiento lo pida.\n- Puerta: el mismo `t` produce la misma pose en dos ejecuciones.\n\n### Fase 7. Efectos con memoria\n- Salida: tablas calculadas al cargar (ondas, hojas caídas, oscilación de\n  elementos colgantes, estelas).\n- Reglas: la tabla se construye con semilla explícita y se lee por `t`.\n- Puerta: la tabla tiene tamaño y rango declarados.\n\n### Fase 8. Audio (opcional, pero si se incluye sigue estas reglas)\n- Salida: `synth(P)` que corre en Worker y devuelve dos canales.\n- Reglas:\n  - Todo el audio se calcula en código. Sin samples ni archivos.\n  - Ningún componente usa `Math.random`.\n  - Los sonidos se colocan con el mismo `T` que la imagen y, si hay posición\n    en pantalla, con la misma proyección de cámara.\n  - Limitador final y verificación de pico.\n- Puerta: WAV exportado sin NaN, pico ≤ 1, duración exacta.\n\n### Fase 9. Post y calidad\n- Salida: pipeline HDR, oclusión ambiental, bloom y gradación.\n- Reglas: calidad adaptativa. Si un fotograma supera el presupuesto, baja la\n  resolución interna, no el modelo.\n- Puerta: coste por fotograma medido y registrado.\n\n### Fase 10. Verificación y entrega\n- Salida: informe de verificación (sección 6).\n- Puerta: el informe existe y lista todo lo no verificado.\n\n---\n\n## 4. Presupuesto de detalle\n\nEl detalle se construye en cuatro capas. Cada capa tiene un criterio de\naceptación.\n\n| Capa | Qué resuelve | Criterio |\n|---|---|---|\n| 1. Silueta | Lectura del sujeto a distancia | Se lee en negro sobre gris medio |\n| 2. Forma mayor | Volúmenes, proporciones, grandes superficies | Coincide con el blockout y la escala |\n| 3. Forma menor | Pliegues, bordes, agrupaciones, elementos secundarios | Aporta variación sin ruido |\n| 4. Micro | Textura, rugosidad, desgaste (shader o mapa generado) | Visible solo de cerca; no sustituye a las capas 1-3 |\n\nSi una escena tiene detalle solo en la capa 4, se rechaza. El detalle que\nimporta está en las capas 1 a 3.\n\n---\n\n## 5. Reglas de código\n\n- Un módulo por sistema, con número de orden que define dependencias.\n- Cada módulo expone funciones de tiempo, no estado.\n- Semilla explícita en cada módulo: `rng(semilla)`, con mulberry32.\n- Sin `Math.random`. Sin red después de abrir la página. Sin assets externos.\n- Unidades SI en todo, declaradas en el código. Ángulos en radianes salvo que\n  se declare lo contrario.\n- Constantes con nombre y comentario de unidad.\n- Trabajo caro al cargar; nada de asignar memoria por fotograma en bucles de\n  render.\n- Three.js fijado a una versión exacta, incluido en `vendor/` con su licencia.\n- Un solo archivo de salida: `dist/scene.html`.\n\n---\n\n## 6. Verificación\n\nEsta sección es obligatoria. Sin ella, la escena no se entrega como verificada.\n\n### 6.1 Capturas\n- Capturas en tiempos fijos definidos en `T` (inicio, pico, fin y al menos dos\n  intermedios), en resolución declarada, desde navegador headless.\n- Comparación contra la referencia generada en la fase 2, con tolerancia\n  declarada. La comparación detecta regresiones, no juzga calidad estética.\n\n### 6.2 Pruebas por familia de técnica\nNo se escriben pruebas a mano para cada elemento. Se escriben pruebas de\npropiedad por familia y se aplican a cada técnica con sus parámetros:\n- Sin NaN ni Infinity en salidas numéricas.\n- Determinismo: dos ejecuciones con la misma semilla producen el mismo hash.\n- Rango de valores dentro de lo declarado.\n- Sistemas de partículas o instancias: número de instancias igual al declarado.\n- Audio: pico, duración y frecuencia dominante según lo declarado.\n\n### 6.3 Métricas\n- Coste por fotograma en la máquina de prueba.\n- Triángulos y llamadas de dibujo frente al presupuesto.\n- Memoria de texturas y de tablas precalculadas.\n\n### 6.4 Informe de verificación\nEl informe contiene, como mínimo:\n1. Lista de técnicas usadas, con su `id` y su estado en el manifiesto.\n2. Lista de `NO_CUBIERTO` y el motivo.\n3. Resultado de cada prueba: `pass`, `fail` o `no_ejecutada`.\n4. Capturas y hashes.\n5. Lo que no pudo verificarse y por qué (por ejemplo, rendimiento en iPhone).\n\nRegla: la IA nunca escribe que algo pasó si no lo ejecutó.\n\n---\n\n## 7. Entrega\n\nCarpeta de salida:\n\n```\ndist/scene.html            escena completa, un solo archivo\nsrc/                       módulos fuente numerados\nvendor/                    three.js fijado y su licencia\nscene_spec.json            Scene Spec validado\ninforme_verificacion.md    fase 10\ncapturas/                  imágenes de los tiempos clave\naudio/                     WAV exportado, si aplica\n```\n\nEl botón de descarga de la escena exporta el resultado que el usuario puede\nvalidar fuera del navegador: imagen del fotograma actual, WAV si hay audio y el\nScene Spec.\n\n---\n\n## 8. Prueba en dispositivo\n\nEl usuario prueba la escena en iPhone con Three.js Code Play. Esa prueba\nconfirma solo lo siguiente:\n- La escena carga.\n- El audio arranca tras un toque del usuario (requisito de iOS).\n- El botón de descarga funciona.\n\nNo valida la matemática ni el rendimiento real. Esos quedan como\n`no_verificado` en el informe hasta medirlos en el dispositivo.\n\n---\n\n## 9. Instrucción base para la IA\n\nCopia este bloque al inicio de cualquier tarea de generación de escena:\n\n```\nEres un generador de escenas procedurales para jedl-studio. Sigues\nESPECIFICACION_ESCENA_PROCEDURAL.md y el manifiesto JSON como fuentes únicas.\n\n1. Convierte la descripción del usuario en un brief (sección 1).\n2. Produce el Scene Spec (sección 2). Cada elemento debe tener rol y\n   technique_ids del manifiesto. Lo que no esté cubierto va a NO_CUBIERTO.\n3. No inventes ecuaciones, constantes, APIs ni formas sin función.\n4. Sigue las fases 0 a 10 en orden. No avances sin cumplir la puerta.\n5. No uses assets externos, Math.random ni red.\n6. Entrega el informe de verificación. Nunca digas que algo funcionó sin\n   haberlo ejecutado.\n```\n\n---\n\n## 10. Límites de esta especificación\n\n- Describe el proceso y las restricciones. No garantiza calidad estética: esa\n  depende de iteración y de revisión humana por escena.\n- El manifiesto aún tiene pendientes (derivaciones, pruebas de runtime,\n  pipeline de personajes). Hasta que se completen, las técnicas marcadas como\n  `plantilla_pendiente` o `no_evaluada` no deben usarse como base de código de\n  producción.\n",
+    "plantilla/scene_spec.template.json": "{\n  \"_instrucciones\": \"Plantilla. Completar todos los campos. Cada elemento necesita rol y technique_ids validos en el manifiesto. Lo no cubierto va a no_cubierto.\",\n  \"brief\": {\n    \"tema\": \"\",\n    \"duracion_s\": 0,\n    \"lugar\": \"\",\n    \"hora_y_clima\": \"\",\n    \"protagonistas\": [],\n    \"secundarios\": [],\n    \"accion\": [],\n    \"camara\": [],\n    \"emocion\": \"\",\n    \"estilo\": [],\n    \"restricciones\": []\n  },\n  \"tiempo_T\": {\n    \"_nota\": \"Un tiempo por evento. Imagen y sonido leen este objeto.\",\n    \"eventos\": {}\n  },\n  \"composicion\": {\n    \"foco_principal\": \"\",\n    \"foco_secundario\": \"\",\n    \"planos\": [],\n    \"escala_referencia_m\": { \"objeto\": \"\", \"altura_m\": 0 },\n    \"paleta\": [],\n    \"color_acento\": \"\"\n  },\n  \"elementos\": [\n    {\n      \"id\": \"\",\n      \"rol\": \"\",\n      \"descripcion\": \"\",\n      \"technique_ids\": [],\n      \"parametros\": {},\n      \"unidades\": {},\n      \"lod\": [],\n      \"seed\": 0,\n      \"estado\": \"pendiente\"\n    }\n  ],\n  \"presupuesto\": {\n    \"triangulos_max\": 0,\n    \"llamadas_dibujo_max\": 0,\n    \"coste_fotograma_ms_max\": 0,\n    \"resolucion_interna\": [0, 0]\n  },\n  \"audio\": {\n    \"incluido\": false,\n    \"technique_ids\": []\n  },\n  \"verificacion\": {\n    \"capturas_en_t\": [],\n    \"tolerancia_imagen\": 0,\n    \"pruebas\": []\n  },\n  \"no_cubierto\": [],\n  \"no_verificado\": []\n}\n",
+    "plantilla/scene_skeleton.js": "// Plantilla de módulo para una escena jedl-studio.\n// Cada función NO implementada lanza error a propósito: la IA debe completarla\n// con la técnica indicada en el Scene Spec, no inventar código nuevo.\n// Ver ESPECIFICACION_ESCENA_PROCEDURAL.md, secciones 3 a 5.\n\n'use strict';\n\n// ---- 00: utilidades. Copiar del manifiesto, no inventar otras ----\nfunction rng(seed) {\n  let s = seed >>> 0;\n  return () => {\n    s = (s + 0x6D2B79F5) | 0;\n    let t = Math.imul(s ^ (s >>> 15), 1 | s);\n    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;\n    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;\n  };\n}\nconst clamp = (x, a = 0, b = 1) => (x < a ? a : x > b ? b : x);\nconst smooth = (a, b, x) => { const t = clamp((x - a) / (b - a)); return t * t * (3 - 2 * t); };\n\n// ---- T: guion temporal único. Imagen, cámara y sonido leen de aquí ----\nconst T = {\n  // Completar desde tiempo_T del Scene Spec. Ejemplo de forma:\n  // INICIO: 0.0, PICO: 12.0, FIN: 24.0\n};\n\n// ---- Módulo de sistema. Un archivo por sistema, numerado ----\nconst Sistema_EJEMPLO = (() => {\n  const r = rng(/* semilla del Scene Spec */ 0);\n  function bake() {\n    throw new Error('NO IMPLEMENTADO: falta técnica del manifiesto para este sistema');\n  }\n  function pose(t) {\n    // Función pura de t. Sin estado acumulado entre llamadas.\n    throw new Error('NO IMPLEMENTADO: definir pose(t) con la técnica declarada');\n  }\n  return { bake, pose, _rng: r };\n})();\n\n// ---- Verificación: cada escena debe exponer estas funciones ----\nconst Verificacion = {\n  // Devuelve un hash determinista del fotograma en t, para comparar ejecuciones.\n  hashFrameAt(t) { throw new Error('NO IMPLEMENTADO'); },\n  // Lista de pruebas de propiedad aplicadas a esta escena.\n  pruebas() { return []; },\n};\n\nexport { rng, clamp, smooth, T, Sistema_EJEMPLO, Verificacion };\n",
+    "plantilla/INFORME_VERIFICACION_PLANTILLA.md": "# Informe de verificación: [nombre de la escena]\n\n## 1. Identificación\n- Escena:\n- Versión del manifiesto:\n- Versión de Three.js (exacta):\n- Fecha:\n\n## 2. Técnicas usadas\n| technique_id | Elemento | Estado en el manifiesto | Prueba aplicada | Resultado |\n|---|---|---|---|---|\n\n## 3. NO_CUBIERTO\n| Elemento solicitado | Motivo | Propuesta |\n|---|---|---|\n\n## 4. Pruebas\n| Prueba | Familia | Resultado (pass / fail / no_ejecutada) | Observación |\n|---|---|---|---|\n\n## 5. Capturas y hashes\n| Tiempo T | Archivo | Hash | Tolerancia | Resultado |\n|---|---|---|---|---|\n\n## 6. Métricas\n- Coste por fotograma (máquina de prueba):\n- Triángulos vs presupuesto:\n- Llamadas de dibujo vs presupuesto:\n- Memoria de texturas y tablas:\n\n## 7. No verificado\n- Rendimiento en iPhone (requiere prueba del usuario):\n- Otros:\n\n## 8. Declaración\nSolo se listan como verificados los elementos con resultado `pass` en la sección 4.\n"
+   }
+  },
+  "exportacion_mp4_v1": {
+   "objetivo": "Cada escena incluye botones Reproducir, Pausar y Descargar MP4. La descarga entrega un video en resolución alta para YouTube, TikTok, Instagram y Reels.",
+   "formatos": [
+    {
+     "id": "youtube_720p",
+     "tamano": [
+      1280,
+      720
+     ],
+     "relacion": "16:9",
+     "uso": "YouTube",
+     "estado": "obligatorio"
+    },
+    {
+     "id": "youtube_1080p",
+     "tamano": [
+      1920,
+      1080
+     ],
+     "relacion": "16:9",
+     "uso": "YouTube HD",
+     "estado": "opcional; si el dispositivo lo soporta"
+    },
+    {
+     "id": "vertical_1080x1920",
+     "tamano": [
+      1080,
+      1920
+     ],
+     "relacion": "9:16",
+     "uso": "TikTok, Reels, Stories de Instagram, Shorts",
+     "estado": "recomendado"
+    },
+    {
+     "id": "cuadrado_1080",
+     "tamano": [
+      1080,
+      1080
+     ],
+     "relacion": "1:1",
+     "uso": "Feed de Instagram",
+     "estado": "opcional"
+    }
+   ],
+   "fps": {
+    "por_defecto": 30,
+    "opcional": 60
+   },
+   "bitrate_orientativo_mbps": {
+    "720p": 8,
+    "1080p": 12,
+    "nota": "Valores de partida; ajustar con la prueba"
+   },
+   "duracion": "La del guion T de la escena, con cola de silencio declarada.",
+   "reproducir_pausar": "Los controles usan el reloj de la película. Pausar detiene la imagen y el sonido en el mismo instante.",
+   "render_determinista": "El video se genera con la escena en función de t: se reinicia en t=0, se avanza a fps fijos y se captura cada fotograma. El resultado no depende de la velocidad del equipo.",
+   "captura": {
+    "primaria": "MediaRecorder sobre canvas.captureStream(fps) más el audio del AudioBuffer (MediaStreamAudioDestinationNode) cuando el audio esté incluido.",
+    "tipos": "Preferir video/mp4 con codec H.264 si isTypeSupported lo acepta. Si no, usar el tipo que el navegador ofrezca y avisar al usuario.",
+    "prohibido": "Renombrar un WebM a .mp4 sin avisar. Declarar MP4 cuando no lo es."
+   },
+   "guardar_en_iphone": {
+    "metodo": "navigator.share({ files: [archivo] }) lanzado desde el toque del usuario. La hoja de compartir ofrece Guardar video, que lo lleva a Fotos.",
+    "fallback": "Si share con archivos no está disponible, enlace de descarga. En iOS esto va a Archivos, no a Fotos: el mensaje debe decirlo.",
+    "nota": "iOS exige gesto del usuario para compartir y reproducir audio. Preparar el video con un toque y compartirlo con otro toque es más seguro que hacer todo en un solo clic largo."
+   },
+   "guardar_en_android": {
+    "metodo": "navigator.share con archivos (Chrome lo soporta en Android). Ofrece guardar en Fotos o Galería.",
+    "fallback": "Descarga a Descargas. Indicar que el video aparece en la galería según el dispositivo."
+   },
+   "limites": [
+    "Una página web no puede escribir directamente en la galería del iPhone ni del Android.",
+    "La memoria del dispositivo limita la resolución: si falla a 1080p, ofrecer 720p con aviso.",
+    "Ningún formato se declara garantizado: se confirma en la prueba del dispositivo."
+   ],
+   "interfaz": [
+    "Botón Reproducir/Pausar",
+    "Botón Descargar MP4 con selector de formato (720p obligatorio, vertical y cuadrado opcionales)",
+    "Indicador de progreso durante la captura",
+    "Mensaje claro si el navegador no ofrece MP4"
+   ],
+   "verificacion": [
+    "Archivo generado con duración igual al guion",
+    "Resolución del archivo igual a la elegida",
+    "Reproduce en Fotos (iPhone) y en Galería (Android)",
+    "Sonido presente si la escena tiene audio",
+    "Pausa detiene imagen y sonido en el mismo instante"
+   ]
+  }
+ },
+ "mathematical_primitives": [
+  {
+   "id": "M01",
+   "name": "Vector 3D",
+   "equation": "v=(x,y,z)",
+   "use": "posición, dirección, velocidad, normal y fuerza"
+  },
+  {
+   "id": "M02",
+   "name": "Longitud de vector",
+   "equation": "|v|=sqrt(x²+y²+z²)",
+   "use": "distancias y magnitudes"
+  },
+  {
+   "id": "M03",
+   "name": "Normalización",
+   "equation": "v_hat=v/max(|v|,epsilon)",
+   "use": "direcciones unitarias"
+  },
+  {
+   "id": "M04",
+   "name": "Producto punto",
+   "equation": "a·b=|a||b|cos(theta)",
+   "use": "ángulos, iluminación difusa, proyección"
+  },
+  {
+   "id": "M05",
+   "name": "Producto cruz",
+   "equation": "n=a×b",
+   "use": "normales, orientación de marcos locales"
+  },
+  {
+   "id": "M06",
+   "name": "Interpolación lineal",
+   "equation": "lerp(a,b,t)=(1-t)a+tb",
+   "use": "transiciones y mezcla"
+  },
+  {
+   "id": "M07",
+   "name": "Smoothstep",
+   "equation": "s(t)=u²(3-2u), u=clamp((t-a)/(b-a),0,1)",
+   "use": "transiciones suaves"
+  },
+  {
+   "id": "M08",
+   "name": "Hermite cúbica",
+   "equation": "p(t)=(2t³-3t²+1)p0+(t³-2t²+t)m0+(-2t³+3t²)p1+(t³-t²)m1",
+   "use": "trayectorias con tangentes controladas"
+  },
+  {
+   "id": "M09",
+   "name": "Catmull-Rom",
+   "equation": "C(t)=0.5[2P1+(-P0+P2)t+(2P0-5P1+4P2-P3)t²+(-P0+3P1-3P2+P3)t³]",
+   "use": "rutas suaves por puntos"
+  },
+  {
+   "id": "M10",
+   "name": "Transformación homogénea",
+   "equation": "p_world=M_parent M_local [x,y,z,1]^T",
+   "use": "jerarquías y articulaciones"
+  },
+  {
+   "id": "M11",
+   "name": "Rotación eje-ángulo",
+   "equation": "q=(cos(theta/2), axis_hat sin(theta/2))",
+   "use": "orientación mediante quaternion"
+  },
+  {
+   "id": "M12",
+   "name": "Interpolación quaternion",
+   "equation": "q(t)=slerp(q0,q1,t)",
+   "use": "evitar giros indeseados entre orientaciones"
+  },
+  {
+   "id": "M13",
+   "name": "Derivada temporal",
+   "equation": "v(t)=dp/dt; a(t)=d²p/dt²",
+   "use": "velocidad y aceleración"
+  },
+  {
+   "id": "M14",
+   "name": "Ruido fractal",
+   "equation": "F(p)=sum(i=0..n-1) a^i noise(2^i p)",
+   "use": "detalle natural multiescala"
+  },
+  {
+   "id": "M15",
+   "name": "Hash determinista",
+   "equation": "h=fract(sin(dot(cell,k))*c)",
+   "use": "variación pseudoaleatoria reproducible; usar hash entero robusto en GLSL cuando se requiera estabilidad"
+  }
+ ],
+ "domains": [
+  {
+   "id": "D01",
+   "domain": "Fundamentos de escena y arquitectura",
+   "techniques": [
+    {
+     "name": "Scene graph jerárquico",
+     "equation": "M_world(child)=M_world(parent)·M_local(child)",
+     "use": "personajes, vehículos, edificios y piezas vinculadas",
+     "threejs": "THREE.Group, Object3D, add()",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Instanciación de objetos",
+     "equation": "p_i=M_i·p_local",
+     "use": "repetir miles de rocas, hojas, faroles o ventanas sin crear un draw call por objeto",
+     "threejs": "InstancedMesh, InstancedBufferGeometry",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Geometría compartida",
+     "equation": "G_1=G_2=...=G_n; cada instancia tiene M_i",
+     "use": "reutilización de mallas y materiales",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "LOD",
+     "equation": "LOD(d)=G_k donde d pertenece al intervalo de nivel k",
+     "use": "detalle alto cerca de cámara y bajo en distancia",
+     "threejs": "LOD o selección propia por distancia",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Frustum culling",
+     "equation": "objeto visible si su volumen intersecta el frustum de cámara",
+     "use": "no procesar objetos fuera de pantalla",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Spatial partitioning",
+     "equation": "celdas=floor((p-origin)/cellSize)",
+     "use": "quadtree, octree, grid espacial, BVH para consultas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Render on demand",
+     "equation": "render si dirty=true o existe animación activa",
+     "use": "escenas estáticas y ahorro energético",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Render loop temporal",
+     "equation": "t=clock; state=F(t); render(scene,camera)",
+     "use": "reproducción determinista y sincronización",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D02",
+   "domain": "Modelado procedural y geometría",
+   "techniques": [
+    {
+     "name": "Primitivas geométricas",
+     "equation": "superficie parametrizada P(u,v)",
+     "use": "esferas, cajas, cilindros, conos, toros y planos",
+     "threejs": "SphereGeometry, BoxGeometry, CylinderGeometry, TorusGeometry",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "BufferGeometry manual",
+     "equation": "vertices=[p0,p1,...]; indices=[i0,i1,i2,...]",
+     "use": "mallas arbitrarias, terreno, criaturas y estructuras",
+     "threejs": "BufferGeometry, BufferAttribute",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Superficie paramétrica",
+     "equation": "P(u,v)=(x(u,v),y(u,v),z(u,v))",
+     "use": "caparazones, hojas, telas, montañas y superficies orgánicas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Superficie de revolución",
+     "equation": "P(u,theta)=(r(u)cos(theta), y(u), r(u)sin(theta))",
+     "use": "troncos, cuernos, columnas, cuerpos y vasijas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Extrusión",
+     "equation": "P(s,u)=C(u)+s·d",
+     "use": "tubos, caminos, molduras y perfiles",
+     "threejs": "ExtrudeGeometry, TubeGeometry",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Sweep por curva",
+     "equation": "P(s,theta)=C(s)+r(s)[N(s)cos(theta)+B(s)sin(theta)]",
+     "use": "cuerpos serpentinos, cables, ramas, colas y tuberías",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Sweep con marco paralelo",
+     "equation": "T=C'/|C'|; N transportado; B=T×N",
+     "use": "evitar torsión en tubos que siguen curvas 3D",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Subdivision surfaces",
+     "equation": "P_nuevo=ponderación de vértices vecinos según reglas Catmull-Clark",
+     "use": "suavizar mallas poligonales; no es una sola ecuación universal",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Boolean CSG",
+     "equation": "union=min(dA,dB); intersection=max(dA,dB); subtraction=max(dA,-dB)",
+     "use": "fusionar, cortar y perforar volúmenes mediante SDF",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Signed Distance Field esfera",
+     "equation": "d(p)=|p-c|-r",
+     "use": "modelado implícito, ray marching y colisiones aproximadas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "SDF caja",
+     "equation": "q=abs(p-c)-b; d=|max(q,0)|+min(max(qx,qy,qz),0)",
+     "use": "bloques, arquitectura y CSG",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Desplazamiento procedural",
+     "equation": "P'=P+N·D(P)",
+     "use": "roca, corteza, piel, terreno y superficies erosionadas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Voronoi",
+     "equation": "d1=min_i |p-site_i|; borde relacionado con d2-d1",
+     "use": "piedra fracturada, escamas, células y patrones",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Fractales geométricos",
+     "equation": "P_n=transformaciones repetidas de P_0",
+     "use": "ramas, helechos, corales y estructuras autosimilares",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Marching Cubes",
+     "equation": "isolevel: f(p)=iso; interpolación t=(iso-fA)/(fB-fA)",
+     "use": "convertir campos volumétricos en malla",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Stop-motion procedural con microjitter determinista",
+     "research_id": "R31-STOP-MOTION-PROCEDURAL-CON-MICROJITTER-D",
+     "category": "estética temporal",
+     "foundation": "Combina muestreo temporal discreto y perturbaciones pequeñas por frame indexadas por hash reproducible.",
+     "equations": [
+      "t_q=floor(t f_s)/f_s",
+      "ε_k=A(2h(k,seed)−1)"
+     ],
+     "algorithm_steps": [
+      "Cuantizar el tiempo.",
+      "Obtener índice entero de frame.",
+      "Generar hash determinista por canal.",
+      "Aplicar offsets acotados a posición/rotación.",
+      "Mantener semilla fija entre renders."
+     ],
+     "pseudocode": "frame=floor(t*fps); jitter=(hash(frame,seed)-0.5)*2*amplitude; pose=F(frame/fps)+jitter",
+     "threejs_adaptation": "Aplicar a transformaciones Object3D o a atributos en vertex shader.",
+     "compatibility": {
+      "javascript_cpu": "sí",
+      "webgl2_glsl_es_300": "posible con buffers/pases",
+      "webgpu_wgsl": "posible; compute según algoritmo",
+      "threejs_webglrenderer": "sí, CPU + renderizado",
+      "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+     },
+     "parameters": {
+      "fps": "8–18",
+      "position_jitter": "0–0.5% escala personaje",
+      "rotation_jitter": "0–1.5°"
+     },
+     "computational_cost": "O(1) por canal.",
+     "limitations": "Jitter demasiado alto destruye lectura; para reproducibilidad no usar random no sembrado.",
+     "source_ids": [],
+     "evidence_status": "derivado/pendiente de prototipo",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "SDF smooth union y modelado implícito",
+     "research_id": "R31-SDF-SMOOTH-UNION-Y-MODELADO-IMPL-CITO",
+     "category": "geometría implícita",
+     "foundation": "Combina campos de distancia con un mínimo suave para fundir formas sin costuras visibles.",
+     "equations": [
+      "d_union=min(a,b)",
+      "smin(a,b,k)=min(a,b)−h²k/4; h=max(k−|a−b|,0)/k"
+     ],
+     "algorithm_steps": [
+      "Definir SDF primitivas.",
+      "Transformar coordenadas locales.",
+      "Combinar con unión/intersección/diferencia.",
+      "Evaluar gradiente para normal.",
+      "Raymarch o extraer malla."
+     ],
+     "pseudocode": "d=smin(sdfA(p),sdfB(p),k); n=normalize(gradient(d,p))",
+     "threejs_adaptation": "Fragment shader raymarch; CPU para malla extraída; WebGPU compute posible.",
+     "compatibility": {
+      "javascript_cpu": "sí",
+      "webgl2_glsl_es_300": "sí, shader propio",
+      "webgpu_wgsl": "requiere portar shader",
+      "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+      "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+     },
+     "parameters": {
+      "smoothness_k": "0–1 escala local",
+      "max_steps": "32–128",
+      "epsilon": "1e-3–1e-2 escala escena"
+     },
+     "computational_cost": "O(pixels·steps·primitives).",
+     "limitations": "Unión suave altera volumen; los campos combinados pueden dejar de ser distancia exacta.",
+     "source_ids": [],
+     "evidence_status": "derivado/pendiente de prototipo",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D03",
+   "domain": "Personajes, criaturas y anatomía procedural",
+   "techniques": [
+    {
+     "name": "Anatomía por volúmenes",
+     "equation": "cuerpo=unión suave de SDFs de torso, cráneo y extremidades",
+     "use": "bloquear silueta y proporciones sin assets",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Anatomía por volúmenes». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "cuerpo=unión suave de SDFs de torso, cráneo y extremidades",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "cuerpo=unión suave de SDFs de torso, cráneo y extremidades",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Anatomía por volúmenes» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: cuerpo=unión suave de SDFs de torso, cráneo y extremidades.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Anatomía por volúmenes\", normalizar)\nresultado = resolver_relacion(\"cuerpo=unión suave de SDFs de torso, cráneo y extremidades\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Anatomía por volúmenes\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Metaballs",
+     "equation": "F(p)=sum_i r_i²/|p-c_i|²; superficie F(p)=iso",
+     "use": "formas orgánicas fusionadas",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Metaballs». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "F(p)=sum_i r_i²/|p-c_i|²; superficie F(p)=iso",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "F(p)=sum_i r_i²/|p-c_i|²; superficie F(p)=iso",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Metaballs» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: F(p)=sum_i r_i²/|p-c_i|²; superficie F(p)=iso.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Metaballs\", normalizar)\nresultado = resolver_relacion(\"F(p)=sum_i r_i²/|p-c_i|²; superficie F(p)=iso\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Metaballs\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Malla por anillos",
+     "equation": "P(s,theta)=C(s)+r1(s)cos(theta)N(s)+r2(s)sin(theta)B(s)",
+     "use": "dragones, serpientes, gusanos, tentáculos y colas",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Malla por anillos». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "P(s,theta)=C(s)+r1(s)cos(theta)N(s)+r2(s)sin(theta)B(s)",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",

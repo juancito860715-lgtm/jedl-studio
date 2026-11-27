@@ -1,0 +1,1500 @@
+{
+  "title": "Auditoría dimensional punto 1 — D35 Matemáticas de sistemas, control y optimización",
+  "version": "1.2.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D35",
+    "domain": "Matemáticas de sistemas, control y optimización",
+    "record_count": 15,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D35 protegidas.",
+    "note": "Las 38 entradas previamente genéricas ahora incluyen dimensión SI explícita o expresión dimensional simbólica por componente. Las magnitudes abstractas permanecen parametrizadas hasta que el sistema físico concreto defina sus unidades."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "time": "Segundos; frecuencias Hz o rad/s.",
+    "optimization": "Cada parámetro y gradiente conserva unidad; tasas de aprendizaje tipadas.",
+    "signal": "Señales conservan unidad; espectros dependen de normalización."
+  },
+  "records": [
+    {
+      "record_key": "D35:0",
+      "name": "PID controller",
+      "variables": [
+        {
+          "symbol": "e",
+          "meaning": "error",
+          "unit": "unidad de error E; dimensión física parametrizada",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "finito",
+          "dimension_by_symbol": {
+            "e": {
+              "L": "D_e.L",
+              "M": "D_e.M",
+              "T": "D_e.T",
+              "I": "D_e.I",
+              "Theta": "D_e.Theta",
+              "N": "D_e.N",
+              "J": "D_e.J"
+            }
+          }
+        },
+        {
+          "symbol": "u",
+          "meaning": "salida control",
+          "unit": "unidad de actuador U; dimensión física parametrizada",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "finita",
+          "dimension_by_symbol": {
+            "u": {
+              "L": "D_u.L",
+              "M": "D_u.M",
+              "T": "D_u.T",
+              "I": "D_u.I",
+              "Theta": "D_u.Theta",
+              "N": "D_u.N",
+              "J": "D_u.J"
+            }
+          }
+        },
+        {
+          "symbol": "Kp,Ki,Kd",
+          "meaning": "ganancias",
+          "unit": "Kp: U/E; Ki: U/(E·s); Kd: U·s/E",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "finitas",
+          "dimension_by_symbol": {
+            "Kp": {
+              "L": "D_u.L - D_e.L",
+              "M": "D_u.M - D_e.M",
+              "T": "D_u.T - D_e.T",
+              "I": "D_u.I - D_e.I",
+              "Theta": "D_u.Theta - D_e.Theta",
+              "N": "D_u.N - D_e.N",
+              "J": "D_u.J - D_e.J"
+            },
+            "Ki": {
+              "L": "D_u.L - D_e.L",
+              "M": "D_u.M - D_e.M",
+              "T": "D_u.T - D_e.T - 1",
+              "I": "D_u.I - D_e.I",
+              "Theta": "D_u.Theta - D_e.Theta",
+              "N": "D_u.N - D_e.N",
+              "J": "D_u.J - D_e.J"
+            },
+            "Kd": {
+              "L": "D_u.L - D_e.L",
+              "M": "D_u.M - D_e.M",
+              "T": "D_u.T - D_e.T + 1",
+              "I": "D_u.I - D_e.I",
+              "Theta": "D_u.Theta - D_e.Theta",
+              "N": "D_u.N - D_e.N",
+              "J": "D_u.J - D_e.J"
+            }
+          },
+          "dimension_note": "Ganancias con dimensiones diferentes; no deben compartir un único vector."
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Cada término proporcional, integral y derivativo debe producir unidad de salida u.",
+        "Anti-windup, filtrado y saturación requieren límites declarados."
+      ],
+      "valid_domain": [
+        "Ganancias y señal finitas."
+      ],
+      "boundary_conditions": [
+        "Error cero anula término proporcional; estado inicial del integrador definido."
+      ],
+      "dimensional_checks": [
+        "Kp·e, Ki∫e dt y Kd·de/dt comparten unidad u.",
+        "Ki y Kd incorporan unidades temporales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:1",
+      "name": "Proportional tracking",
+      "variables": [
+        {
+          "symbol": "target,position",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo marco"
+        },
+        {
+          "symbol": "e",
+          "meaning": "error",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "Kp",
+          "meaning": "ganancia",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad salida",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "v=Kp(target−position) exige Kp con T⁻¹.",
+        "Limitar velocidad y declarar marco."
+      ],
+      "valid_domain": [
+        "Kp y posiciones finitos."
+      ],
+      "boundary_conditions": [
+        "Error cero da velocidad cero; Kp=0 desactiva seguimiento."
+      ],
+      "dimensional_checks": [
+        "Kp·e tiene L/T y coincide con velocidad.",
+        "La salida conserva m/s."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:2",
+      "name": "Critically damped spring",
+      "variables": [
+        {
+          "symbol": "x,target",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "x'",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "x''",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "frecuencia angular",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Todos los términos de x''+2ωx'+ω²(x−target)=0 tienen L/T².",
+        "Integración temporal y target variable deben definirse."
+      ],
+      "valid_domain": [
+        "ω>0; estado inicial finito."
+      ],
+      "boundary_conditions": [
+        "x=target y x'=0 es equilibrio."
+      ],
+      "dimensional_checks": [
+        "ωx' tiene L/T²; ω²(x−target) también.",
+        "La ecuación es dimensionalmente homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:3",
+      "name": "Kalman state model",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "estado",
+          "unit": "unidad por componente x_i; dimensión física parametrizada",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "finito",
+          "dimension_by_symbol": {
+            "x_i": {
+              "L": "D_x_i.L",
+              "M": "D_x_i.M",
+              "T": "D_x_i.T",
+              "I": "D_x_i.I",
+              "Theta": "D_x_i.Theta",
+              "N": "D_x_i.N",
+              "J": "D_x_i.J"
+            }
+          }
+        },
+        {
+          "symbol": "A,H",
+          "meaning": "matrices",
+          "unit": "A_ij: x_i/x_j; H_ij: z_i/x_j",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "compatibles",
+          "dimension_by_symbol": {
+            "A_ij": {
+              "L": "D_x_i.L - D_x_j.L",
+              "M": "D_x_i.M - D_x_j.M",
+              "T": "D_x_i.T - D_x_j.T",
+              "I": "D_x_i.I - D_x_j.I",
+              "Theta": "D_x_i.Theta - D_x_j.Theta",
+              "N": "D_x_i.N - D_x_j.N",
+              "J": "D_x_i.J - D_x_j.J"
+            },
+            "H_ij": {
+              "L": "D_z_i.L - D_x_j.L",
+              "M": "D_z_i.M - D_x_j.M",
+              "T": "D_z_i.T - D_x_j.T",
+              "I": "D_z_i.I - D_x_j.I",
+              "Theta": "D_z_i.Theta - D_x_j.Theta",
+              "N": "D_z_i.N - D_x_j.N",
+              "J": "D_z_i.J - D_x_j.J"
+            }
+          }
+        },
+        {
+          "symbol": "z",
+          "meaning": "medición",
+          "unit": "unidad por componente z_i; dimensión física parametrizada",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "finita",
+          "dimension_by_symbol": {
+            "z_i": {
+              "L": "D_z_i.L",
+              "M": "D_z_i.M",
+              "T": "D_z_i.T",
+              "I": "D_z_i.I",
+              "Theta": "D_z_i.Theta",
+              "N": "D_z_i.N",
+              "J": "D_z_i.J"
+            }
+          }
+        },
+        {
+          "symbol": "w,v",
+          "meaning": "ruidos",
+          "unit": "w_i: unidad de estado; v_i: unidad de medición",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "covarianzas válidas",
+          "dimension_by_symbol": {
+            "w_i": {
+              "L": "D_x_i.L",
+              "M": "D_x_i.M",
+              "T": "D_x_i.T",
+              "I": "D_x_i.I",
+              "Theta": "D_x_i.Theta",
+              "N": "D_x_i.N",
+              "J": "D_x_i.J"
+            },
+            "v_i": {
+              "L": "D_z_i.L",
+              "M": "D_z_i.M",
+              "T": "D_z_i.T",
+              "I": "D_z_i.I",
+              "Theta": "D_z_i.Theta",
+              "N": "D_z_i.N",
+              "J": "D_z_i.J"
+            }
+          }
+        },
+        {
+          "symbol": "P,Q,R",
+          "meaning": "Covarianzas de estado, proceso y medición",
+          "unit": "P_ij: x_i·x_j; Q_ij: w_i·w_j; R_ij: z_i·z_j",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "simétricas y semidefinidas positivas",
+          "dimension_by_symbol": {
+            "P_ij": {
+              "L": "D_x_i.L + D_x_j.L",
+              "M": "D_x_i.M + D_x_j.M",
+              "T": "D_x_i.T + D_x_j.T",
+              "I": "D_x_i.I + D_x_j.I",
+              "Theta": "D_x_i.Theta + D_x_j.Theta",
+              "N": "D_x_i.N + D_x_j.N",
+              "J": "D_x_i.J + D_x_j.J"
+            },
+            "Q_ij": {
+              "L": "D_w_i.L + D_w_j.L",
+              "M": "D_w_i.M + D_w_j.M",
+              "T": "D_w_i.T + D_w_j.T",
+              "I": "D_w_i.I + D_w_j.I",
+              "Theta": "D_w_i.Theta + D_w_j.Theta",
+              "N": "D_w_i.N + D_w_j.N",
+              "J": "D_w_i.J + D_w_j.J"
+            },
+            "R_ij": {
+              "L": "D_z_i.L + D_z_j.L",
+              "M": "D_z_i.M + D_z_j.M",
+              "T": "D_z_i.T + D_z_j.T",
+              "I": "D_z_i.I + D_z_j.I",
+              "Theta": "D_z_i.Theta + D_z_j.Theta",
+              "N": "D_z_i.N + D_z_j.N",
+              "J": "D_z_i.J + D_z_j.J"
+            }
+          }
+        },
+        {
+          "symbol": "K",
+          "meaning": "Ganancia de Kalman",
+          "unit": "K_ij: x_i/z_j",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "finita",
+          "dimension_by_symbol": {
+            "K_ij": {
+              "L": "D_x_i.L - D_z_j.L",
+              "M": "D_x_i.M - D_z_j.M",
+              "T": "D_x_i.T - D_z_j.T",
+              "I": "D_x_i.I - D_z_j.I",
+              "Theta": "D_x_i.Theta - D_z_j.Theta",
+              "N": "D_x_i.N - D_z_j.N",
+              "J": "D_x_i.J - D_z_j.J"
+            }
+          }
+        }
+      ],
+      "constraints": [
+        "A y H deben mapear unidades de cada componente; ruido y covarianzas compatibles.",
+        "P_ij, Q_ij y R_ij conservan productos de unidades de sus variables por pares; K convierte innovación de medición en corrección de estado.",
+        "Δt se incorpora en transición/proceso si el modelo es continuo discretizado."
+      ],
+      "valid_domain": [
+        "Matrices compatibles; covarianzas semidefinidas positivas."
+      ],
+      "boundary_conditions": [
+        "Sin medición solo se predice; identidad A conserva estado."
+      ],
+      "dimensional_checks": [
+        "Cada suma de estado/medición es homogénea por componente.",
+        "Covarianza P_ij tiene unidad x_i·x_j; K(z−Hx) tiene unidad de estado y puede sumarse a x̂."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:4",
+      "name": "Gradient descent",
+      "variables": [
+        {
+          "symbol": "θ",
+          "meaning": "parámetros",
+          "unit": "unidad por parámetro θ_i; dimensión física parametrizada",
+          "dimension": {
+            "L": "D_theta_i.L",
+            "M": "D_theta_i.M",
+            "T": "D_theta_i.T",
+            "I": "D_theta_i.I",
+            "Theta": "D_theta_i.Theta",
+            "N": "D_theta_i.N",
+            "J": "D_theta_i.J"
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "E",
+          "meaning": "objetivo",
+          "unit": "unidad del objetivo E; dimensión física parametrizada",
+          "dimension": {
+            "L": "D_E.L",
+            "M": "D_E.M",
+            "T": "D_E.T",
+            "I": "D_E.I",
+            "Theta": "D_E.Theta",
+            "N": "D_E.N",
+            "J": "D_E.J"
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "∇E",
+          "meaning": "gradiente",
+          "unit": "E/θ_i por componente",
+          "dimension": {
+            "L": "D_E.L - D_theta_i.L",
+            "M": "D_E.M - D_theta_i.M",
+            "T": "D_E.T - D_theta_i.T",
+            "I": "D_E.I - D_theta_i.I",
+            "Theta": "D_E.Theta - D_theta_i.Theta",
+            "N": "D_E.N - D_theta_i.N",
+            "J": "D_E.J - D_theta_i.J"
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "η",
+          "meaning": "tasa aprendizaje",
+          "unit": "θ_i²/E por componente; requiere métrica/precondicionamiento coherente",
+          "dimension": {
+            "L": "2*D_theta_i.L - D_E.L",
+            "M": "2*D_theta_i.M - D_E.M",
+            "T": "2*D_theta_i.T - D_E.T",
+            "I": "2*D_theta_i.I - D_E.I",
+            "Theta": "2*D_theta_i.Theta - D_E.Theta",
+            "N": "2*D_theta_i.N - D_E.N",
+            "J": "2*D_theta_i.J - D_E.J"
+          },
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "θ−η∇E debe conservar unidad de θ; parámetros heterogéneos requieren tasas/precondicionamiento separados.",
+        "Normalización de parámetros y objetivo se documenta."
+      ],
+      "valid_domain": [
+        "E diferenciable; η finita positiva."
+      ],
+      "boundary_conditions": [
+        "Gradiente cero es punto estacionario; η=0 no actualiza."
+      ],
+      "dimensional_checks": [
+        "η·∇E tiene unidad θ.",
+        "La resta conserva unidad de parámetro."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:5",
+      "name": "Levenberg–Marquardt",
+      "variables": [
+        {
+          "symbol": "r",
+          "meaning": "residual",
+          "unit": "unidad de residual r_i; dimensión física parametrizada",
+          "dimension": {
+            "L": "D_r_i.L",
+            "M": "D_r_i.M",
+            "T": "D_r_i.T",
+            "I": "D_r_i.I",
+            "Theta": "D_r_i.Theta",
+            "N": "D_r_i.N",
+            "J": "D_r_i.J"
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "J",
+          "meaning": "Jacobiano",
+          "unit": "J_ij: unidad residual/unidad parámetro",
+          "dimension": {
+            "L": "D_r_i.L - D_theta_j.L",
+            "M": "D_r_i.M - D_theta_j.M",
+            "T": "D_r_i.T - D_theta_j.T",
+            "I": "D_r_i.I - D_theta_j.I",
+            "Theta": "D_r_i.Theta - D_theta_j.Theta",
+            "N": "D_r_i.N - D_theta_j.N",
+            "J": "D_r_i.J - D_theta_j.J"
+          },
+          "domain": "compatible"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "amortiguamiento",
+          "unit": "adimensional en la formulación de la ficha fuente; D debe escalar columnas de J de forma compatible",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0",
+          "dimension_note": "No usar el anterior criterio residual²: la ficha fuente define λ multiplicando la diagonal de JᵀJ. La consistencia de DᵀD y JᵀJ sigue condicionada a escalas de parámetros homogéneas o a una normalización explícita."
+        },
+        {
+          "symbol": "Δ",
+          "meaning": "incremento",
+          "unit": "unidad de incremento de parámetro θ_j",
+          "dimension": {
+            "L": "D_theta_j.L",
+            "M": "D_theta_j.M",
+            "T": "D_theta_j.T",
+            "I": "D_theta_j.I",
+            "Theta": "D_theta_j.Theta",
+            "N": "D_theta_j.N",
+            "J": "D_theta_j.J"
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "JᵀJ y λI deben tener mismas unidades por elemento; escalar parámetros heterogéneos.",
+        "La ecuación normal debe conservar unidades en ambos lados."
+      ],
+      "valid_domain": [
+        "Sistema resoluble; λ≥0."
+      ],
+      "boundary_conditions": [
+        "λ grande amortigua el paso; singularidad requiere regularización."
+      ],
+      "dimensional_checks": [
+        "JᵀJ y λI comparten unidad matricial.",
+        "Δ conserva unidad del parámetro."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:6",
+      "name": "Newton method",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "variable",
+          "unit": "unidad de variable x; dimensión física parametrizada",
+          "dimension": {
+            "L": "D_x.L",
+            "M": "D_x.M",
+            "T": "D_x.T",
+            "I": "D_x.I",
+            "Theta": "D_x.Theta",
+            "N": "D_x.N",
+            "J": "D_x.J"
+          },
+          "domain": "en dominio"
+        },
+        {
+          "symbol": "f",
+          "meaning": "función",
+          "unit": "unidad de función f; dimensión física parametrizada",
+          "dimension": {
+            "L": "D_f.L",
+            "M": "D_f.M",
+            "T": "D_f.T",
+            "I": "D_f.I",
+            "Theta": "D_f.Theta",
+            "N": "D_f.N",
+            "J": "D_f.J"
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "f'",
+          "meaning": "derivada",
+          "unit": "f/x",
+          "dimension": {
+            "L": "D_f.L - D_x.L",
+            "M": "D_f.M - D_x.M",
+            "T": "D_f.T - D_x.T",
+            "I": "D_f.I - D_x.I",
+            "Theta": "D_f.Theta - D_x.Theta",
+            "N": "D_f.N - D_x.N",
+            "J": "D_f.J - D_x.J"
+          },
+          "domain": "no nula"
+        },
+        {
+          "symbol": "x_next",
+          "meaning": "siguiente valor",
+          "unit": "misma unidad que x",
+          "dimension": {
+            "L": "D_x.L",
+            "M": "D_x.M",
+            "T": "D_x.T",
+            "I": "D_x.I",
+            "Theta": "D_x.Theta",
+            "N": "D_x.N",
+            "J": "D_x.J"
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "f/f' tiene unidad x y puede restarse de x.",
+        "Derivada cercana a cero requiere salvaguarda."
+      ],
+      "valid_domain": [
+        "f diferenciable; f'≠0."
+      ],
+      "boundary_conditions": [
+        "f(x)=0 deja iteración en raíz; f'=0 impide paso estándar."
+      ],
+      "dimensional_checks": [
+        "f/f' conserva unidad x.",
+        "x_next conserva unidad x."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:7",
+      "name": "Bisection",
+      "variables": [
+        {
+          "symbol": "a,b,m",
+          "meaning": "extremos y punto medio",
+          "unit": "misma unidad de abscisa x",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "a≤m≤b",
+          "dimension_by_symbol": {
+            "a": {
+              "L": "D_x.L",
+              "M": "D_x.M",
+              "T": "D_x.T",
+              "I": "D_x.I",
+              "Theta": "D_x.Theta",
+              "N": "D_x.N",
+              "J": "D_x.J"
+            },
+            "b": {
+              "L": "D_x.L",
+              "M": "D_x.M",
+              "T": "D_x.T",
+              "I": "D_x.I",
+              "Theta": "D_x.Theta",
+              "N": "D_x.N",
+              "J": "D_x.J"
+            },
+            "m": {
+              "L": "D_x.L",
+              "M": "D_x.M",
+              "T": "D_x.T",
+              "I": "D_x.I",
+              "Theta": "D_x.Theta",
+              "N": "D_x.N",
+              "J": "D_x.J"
+            }
+          }
+        },
+        {
+          "symbol": "f(a),f(b)",
+          "meaning": "valores función",
+          "unit": "misma unidad de salida de f",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "signos opuestos o raíz",
+          "dimension_by_symbol": {
+            "f(a)": {
+              "L": "D_f.L",
+              "M": "D_f.M",
+              "T": "D_f.T",
+              "I": "D_f.I",
+              "Theta": "D_f.Theta",
+              "N": "D_f.N",
+              "J": "D_f.J"
+            },
+            "f(b)": {
+              "L": "D_f.L",
+              "M": "D_f.M",
+              "T": "D_f.T",
+              "I": "D_f.I",
+              "Theta": "D_f.Theta",
+              "N": "D_f.N",
+              "J": "D_f.J"
+            }
+          }
+        },
+        {
+          "symbol": "ε_x",
+          "meaning": "tolerancia",
+          "unit": "unidad de abscisa x",
+          "dimension": {
+            "L": "D_x.L",
+            "M": "D_x.M",
+            "T": "D_x.T",
+            "I": "D_x.I",
+            "Theta": "D_x.Theta",
+            "N": "D_x.N",
+            "J": "D_x.J"
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "n",
+          "meaning": "iteración",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero"
+        }
+      ],
+      "constraints": [
+        "a,b y ε_x comparten unidad; f(a), f(b) misma salida.",
+        "Requiere continuidad y cambio de signo."
+      ],
+      "valid_domain": [
+        "Intervalo finito; f continua; f(a)f(b)≤0."
+      ],
+      "boundary_conditions": [
+        "Extremo con f=0 se devuelve directamente; ε=0 requiere límite de iteraciones."
+      ],
+      "dimensional_checks": [
+        "(a+b)/2 conserva unidad x.",
+        "n es conteo discreto."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:8",
+      "name": "Cubic interpolation",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "parámetro",
+          "unit": "adimensional si normalizado; s si representa tiempo",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "declarado",
+          "dimension_by_symbol": {
+            "t_normalized": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "t_seconds": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          "dimension_note": "Elegir exactamente una rama antes de evaluar coeficientes."
+        },
+        {
+          "symbol": "a,b,c,d",
+          "meaning": "coeficientes",
+          "unit": "Coeficientes: p, p/s, p/s², p/s³ si t está en segundos; todos p si t está normalizado.",
+          "dimension": "heterogeneous_by_symbol",
+          "domain": "finitos",
+          "dimension_by_symbol": {
+            "a": {
+              "L": "D_p.L",
+              "M": "D_p.M",
+              "T": "D_p.T",
+              "I": "D_p.I",
+              "Theta": "D_p.Theta",
+              "N": "D_p.N",
+              "J": "D_p.J"
+            },
+            "b_if_t_seconds": {
+              "L": "D_p.L",
+              "M": "D_p.M",
+              "T": "D_p.T - 1",
+              "I": "D_p.I",
+              "Theta": "D_p.Theta",
+              "N": "D_p.N",
+              "J": "D_p.J"
+            },
+            "c_if_t_seconds": {
+              "L": "D_p.L",
+              "M": "D_p.M",
+              "T": "D_p.T - 2",
+              "I": "D_p.I",
+              "Theta": "D_p.Theta",
+              "N": "D_p.N",
+              "J": "D_p.J"
+            },
+            "d_if_t_seconds": {
+              "L": "D_p.L",
+              "M": "D_p.M",
+              "T": "D_p.T - 3",
+              "I": "D_p.I",
+              "Theta": "D_p.Theta",
+              "N": "D_p.N",
+              "J": "D_p.J"
+            },
+            "b_if_t_normalized": {
+              "L": "D_p.L",
+              "M": "D_p.M",
+              "T": "D_p.T",
+              "I": "D_p.I",
+              "Theta": "D_p.Theta",
+              "N": "D_p.N",
+              "J": "D_p.J"
+            },
+            "c_if_t_normalized": {
+              "L": "D_p.L",
+              "M": "D_p.M",
+              "T": "D_p.T",
+              "I": "D_p.I",
+              "Theta": "D_p.Theta",
+              "N": "D_p.N",
+              "J": "D_p.J"
+            },
+            "d_if_t_normalized": {
+              "L": "D_p.L",
+              "M": "D_p.M",
+              "T": "D_p.T",
+              "I": "D_p.I",
+              "Theta": "D_p.Theta",
+              "N": "D_p.N",
+              "J": "D_p.J"
+            }
+          }
+        },
+        {
+          "symbol": "p(t)",
+          "meaning": "salida",
+          "unit": "unidad de salida p",
+          "dimension": {
+            "L": "D_p.L",
+            "M": "D_p.M",
+            "T": "D_p.T",
+            "I": "D_p.I",
+            "Theta": "D_p.Theta",
+            "N": "D_p.N",
+            "J": "D_p.J"
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "duration",
+          "meaning": "duración",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0 si t normalizado desde tiempo"
+        }
+      ],
+      "constraints": [
+        "Si t son segundos, b,c,d tienen unidades salida/T, salida/T² y salida/T³.",
+        "Tangentes de frontera deben usar la unidad de derivada correspondiente."
+      ],
+      "valid_domain": [
+        "Coeficientes finitos; dominio definido."
+      ],
+      "boundary_conditions": [
+        "t=0 devuelve a; duración cero se rechaza al normalizar."
+      ],
+      "dimensional_checks": [
+        "Cada término del polinomio comparte unidad de salida.",
+        "La unidad de coeficientes depende del parámetro t."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:9",
+      "name": "Fourier series",
+      "variables": [
+        {
+          "symbol": "a0,an,bn",
+          "meaning": "coeficientes",
+          "unit": "unidad de señal f",
+          "dimension": {
+            "L": "D_f.L",
+            "M": "D_f.M",
+            "T": "D_f.T",
+            "I": "D_f.I",
+            "Theta": "D_f.Theta",
+            "N": "D_f.N",
+            "J": "D_f.J"
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "frecuencia angular",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "f(t)",
+          "meaning": "señal",
+          "unit": "unidad de señal f",
+          "dimension": {
+            "L": "D_f.L",
+            "M": "D_f.M",
+            "T": "D_f.T",
+            "I": "D_f.I",
+            "Theta": "D_f.Theta",
+            "N": "D_f.N",
+            "J": "D_f.J"
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "nωt es adimensional; n es índice entero.",
+        "Coeficientes y señal comparten escala."
+      ],
+      "valid_domain": [
+        "Serie finita o convergente; parámetros finitos."
+      ],
+      "boundary_conditions": [
+        "Coeficientes armónicos cero dejan componente a0."
+      ],
+      "dimensional_checks": [
+        "ωt es adimensional.",
+        "f conserva unidad de coeficientes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:10",
+      "name": "FFT",
+      "variables": [
+        {
+          "symbol": "x_n",
+          "meaning": "muestras",
+          "unit": "unidad de amplitud de muestra",
+          "dimension": {
+            "L": "D_x.L",
+            "M": "D_x.M",
+            "T": "D_x.T",
+            "I": "D_x.I",
+            "Theta": "D_x.Theta",
+            "N": "D_x.N",
+            "J": "D_x.J"
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "X_k",
+          "meaning": "coeficientes espectrales",
+          "unit": "misma unidad de amplitud para DFT; la división por N no cambia unidades",
+          "dimension": {
+            "L": "D_x.L",
+            "M": "D_x.M",
+            "T": "D_x.T",
+            "I": "D_x.I",
+            "Theta": "D_x.Theta",
+            "N": "D_x.N",
+            "J": "D_x.J"
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "N",
+          "meaning": "muestras",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥1"
+        },
+        {
+          "symbol": "f_s",
+          "meaning": "frecuencia muestreo",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Normalización FFT determina escala; bins usan f_s/N.",
+        "Señal y espectro conservan unidad de amplitud; potencia espectral usa unidad al cuadrado."
+      ],
+      "valid_domain": [
+        "N≥1; f_s>0; muestras finitas."
+      ],
+      "boundary_conditions": [
+        "N=1 solo DC; señal cero produce espectro cero."
+      ],
+      "dimensional_checks": [
+        "X conserva unidad de x según convención; f_s/N tiene T⁻¹.",
+        "N y k son discretos."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:11",
+      "name": "Wavelet transform",
+      "variables": [
+        {
+          "symbol": "f(t)",
+          "meaning": "señal",
+          "unit": "unidad de señal",
+          "dimension": {
+            "L": "D_f.L",
+            "M": "D_f.M",
+            "T": "D_f.T",
+            "I": "D_f.I",
+            "Theta": "D_f.Theta",
+            "N": "D_f.N",
+            "J": "D_f.J"
+          },
+          "domain": "integrable"
+        },
+        {
+          "symbol": "a",
+          "meaning": "escala",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "a>0; escala temporal en segundos para transformada continua"
+        },
+        {
+          "symbol": "b",
+          "meaning": "traslación temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "W",
+          "meaning": "coeficiente",
+          "unit": "dim(f)·s^(1/2), transformada continua con normalización L²",
+          "dimension": {
+            "L": "D_f.L",
+            "M": "D_f.M",
+            "T": "D_f.T + 0.5",
+            "I": "D_f.I",
+            "Theta": "D_f.Theta",
+            "N": "D_f.N",
+            "J": "D_f.J"
+          },
+          "domain": "finito; ψ madre normalizada L² y admisible"
+        }
+      ],
+      "constraints": [
+        "Con escala temporal a en segundos, (t−b)/a es adimensional.",
+        "La normalización 1/√|a| aporta s⁻¹/² y dt aporta s; W tiene unidad dim(f)·√s bajo convención L² continua.",
+        "Una DWT discreta o wavelet con otra normalización puede cambiar escala numérica; declarar esa convención aparte."
+      ],
+      "valid_domain": [
+        "a>0; señal integrable; wavelet admisible."
+      ],
+      "boundary_conditions": [
+        "Señal cero produce W=0; a=0 se rechaza."
+      ],
+      "dimensional_checks": [
+        "(t−b)/a es adimensional; integral f·dt tiene unidad dim(f)·s.",
+        "Dividir por √s deja dim(f)·√s."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:12",
+      "name": "Monte Carlo sampling",
+      "variables": [
+        {
+          "symbol": "x_i",
+          "meaning": "muestra",
+          "unit": "unidad del dominio por componente",
+          "dimension": {
+            "L": "D_x_j.L",
+            "M": "D_x_j.M",
+            "T": "D_x_j.T",
+            "I": "D_x_j.I",
+            "Theta": "D_x_j.Theta",
+            "N": "D_x_j.N",
+            "J": "D_x_j.J"
+          },
+          "domain": "en soporte"
+        },
+        {
+          "symbol": "p(x)",
+          "meaning": "PDF",
+          "unit": "unidad inversa de la medida dx; D_measure suma dimensiones de los ejes integrados",
+          "dimension": {
+            "L": "-D_measure.L",
+            "M": "-D_measure.M",
+            "T": "-D_measure.T",
+            "I": "-D_measure.I",
+            "Theta": "-D_measure.Theta",
+            "N": "-D_measure.N",
+            "J": "-D_measure.J"
+          },
+          "domain": "normalizada"
+        },
+        {
+          "symbol": "f(x)",
+          "meaning": "integrando",
+          "unit": "unidad del integrando",
+          "dimension": {
+            "L": "D_f.L",
+            "M": "D_f.M",
+            "T": "D_f.T",
+            "I": "D_f.I",
+            "Theta": "D_f.Theta",
+            "N": "D_f.N",
+            "J": "D_f.J"
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "N",
+          "meaning": "muestras",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥1"
+        }
+      ],
+      "constraints": [
+        "PDF usa la misma medida que dx; no mezclar densidad de área y angular.",
+        "p=0 donde f≠0 invalida estimación."
+      ],
+      "valid_domain": [
+        "N≥1; f finita; PDF normalizada."
+      ],
+      "boundary_conditions": [
+        "N=0 inválido."
+      ],
+      "dimensional_checks": [
+        "PDF tiene unidad inversa a dx.",
+        "El estimador conserva unidad de integral/esperanza."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:13",
+      "name": "Blue-noise sampling",
+      "variables": [
+        {
+          "symbol": "p_i,p_j",
+          "meaning": "puntos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "en dominio"
+        },
+        {
+          "symbol": "r",
+          "meaning": "separación mínima",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "N",
+          "meaning": "muestras",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "P(k)",
+          "meaning": "espectro",
+          "unit": "adimensional; espectro normalizado respecto a ventana y energía de referencia declaradas",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Distancia mínima usa métrica del dominio; espectro requiere ventana y normalización.",
+        "Supresión de baja frecuencia es criterio estadístico."
+      ],
+      "valid_domain": [
+        "Dominio finito; r>0."
+      ],
+      "boundary_conditions": [
+        "N=0 conjunto vacío; r=0 se rechaza."
+      ],
+      "dimensional_checks": [
+        "Distancias y r tienen L.",
+        "N es conteo discreto."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D35:14",
+      "name": "Integración volumétrica Beer–Lambert",
+      "variables": [
+        {
+          "symbol": "σ_t,σ_s",
+          "meaning": "extinción/dispersión",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "ds",
+          "meaning": "paso rayo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "T",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "L_i",
+          "meaning": "radiancia",
+          "unit": "W·m⁻²·sr⁻¹ = kg·s⁻³·sr⁻¹; sr es adimensional en SI base",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        }
+      ],
+      "constraints": [
+        "σρ·ds debe ser adimensional; si ρ tiene unidad física, redefinir σ.",
+        "Radiancia acumulada conserva unidad de L_i; fase angular normalizada."
+      ],
+      "valid_domain": [
+        "σ≥0; ds>0; radiancia finita."
+      ],
+      "boundary_conditions": [
+        "σ=0 o ρ=0 produce T=1 sin extinción."
+      ],
+      "dimensional_checks": [
+        "σ[m⁻¹]·ds[m] es adimensional.",
+        "Transmitancia es adimensional; radiancia conserva unidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "15/15 técnicas incluidas; ninguna protegida",
+      "Cada registro contiene variables, unidades, restricciones, dominio, límites y comprobaciones dimensionales",
+      "Kalman incorpora covarianzas y ganancia tipadas por componente; wavelet fija convención continua L²",
+      "38/38 definiciones dimensionales genéricas reemplazadas por vectores SI o mapas simbólicos de siete componentes; variables agrupadas con dimensiones distintas se desglosan mediante dimension_by_symbol.",
+      "Corrección de D35:5 λ: se marca adimensional según la formulación fuente λ·DᵀD; se retira la asignación residual² que no correspondía a la ecuación original."
+    ],
+    "limitations": [
+      "La auditoría dimensional no certifica convergencia, estabilidad de control, condición numérica ni calidad de estimación.",
+      "Las magnitudes abstractas (estado, actuador, residual, parámetro, señal y dominio) requieren instanciar sus dimensiones físicas antes de una comprobación numérica SI concreta.",
+      "Levenberg–Marquardt: λ escalar solo es dimensionalmente consistente tras escalar/normalizar parámetros; en parámetros heterogéneos se requiere regularización diagonal tipada.",
+      "Cubic interpolation: seleccionar la rama t normalizado o t en segundos antes de asignar unidades a b,c,d.",
+      "Monte Carlo: la unidad de p(x) es la inversa de la medida integrada, no necesariamente la inversa de una sola coordenada.",
+      "D35:5 requiere revisión dimensional del escalado diagonal D en parámetros heterogéneos; λ es adimensional solo cuando DᵀD tiene las mismas unidades matriciales que JᵀJ."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

@@ -1,0 +1,599 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D34 Técnicas de render y visibilidad adicionales",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D34",
+    "record_count": 14,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D34 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D34:0",
+      "name": "Forward rendering",
+      "starting_principles": [
+        "Objetos/materiales visibles; luces y BRDF válidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "visible geometry→fragment shader",
+          "justification": "Rasterizar objetos visibles."
+        },
+        {
+          "step": 2,
+          "equation": "for each light affecting fragment: evaluate BRDF",
+          "justification": "Evaluar contribución de cada luz en la etapa de shading."
+        },
+        {
+          "step": 3,
+          "equation": "C=Σ_l f_r L_l cosθ_l",
+          "justification": "Acumular contribuciones directas."
+        },
+        {
+          "step": 4,
+          "equation": "compose with ambient/emission",
+          "justification": "Añadir términos no directos/emitidos."
+        }
+      ],
+      "assumptions": [
+        "Objetos/materiales visibles; luces y BRDF válidos.",
+        "Para luces discretas, el término L_l incluye irradiancia o radiancia integrada por su ángulo sólido/atenuación; no sumar BRDF·radiancia sin medida angular."
+      ],
+      "result": "Forward evalúa iluminación directa durante el shading de geometría visible.",
+      "limits": [
+        "Coste de shading crece con número de luces por fragmento."
+      ],
+      "dimensional_verification": [
+        "f_r has sr⁻¹; L_l is radiance; cosθ and light solid-angle/attenuation factors are dimensionless.",
+        "Each discrete light contribution must already include its angular measure/irradiance so output is radiance."
+      ]
+    },
+    {
+      "record_key": "D34:1",
+      "name": "Forward+",
+      "starting_principles": [
+        "Tile frusta y bounds de luces conservadores."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "partition screen into tiles",
+          "justification": "Dividir imagen en regiones."
+        },
+        {
+          "step": 2,
+          "equation": "frustum(tile)=unproject tile bounds",
+          "justification": "Construir volumen de vista por tile."
+        },
+        {
+          "step": 3,
+          "equation": "lights(tile)={l:bounds_l intersects frustum(tile)}",
+          "justification": "Culling geométrico de luces."
+        },
+        {
+          "step": 4,
+          "equation": "shade fragment using local list",
+          "justification": "Usar lista reducida de luces por fragmento."
+        }
+      ],
+      "assumptions": [
+        "Tile frusta y bounds de luces conservadores."
+      ],
+      "result": "Forward+ reduce luces por fragmento mediante culling por tiles.",
+      "limits": [
+        "Listas de luces y overdraw consumen memoria/tiempo."
+      ],
+      "dimensional_verification": [
+        "Tile bounds and light bounds have L; tile indices and light lists are discrete.",
+        "Frustum planes have unit normals and offsets L."
+      ]
+    },
+    {
+      "record_key": "D34:2",
+      "name": "Deferred shading",
+      "starting_principles": [
+        "G-buffer con formatos/codificaciones coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "geometry pass: G(x)=(albedo,normal,depth,material)",
+          "justification": "Guardar atributos visibles en G-buffer."
+        },
+        {
+          "step": 2,
+          "equation": "for each pixel, read G(x)",
+          "justification": "Recuperar datos de superficie."
+        },
+        {
+          "step": 3,
+          "equation": "C(x)=Σ_l BRDF(G(x),L_l)",
+          "justification": "Calcular iluminación en pasada separada."
+        },
+        {
+          "step": 4,
+          "equation": "combine emission/ambient",
+          "justification": "Componer términos restantes."
+        }
+      ],
+      "assumptions": [
+        "G-buffer con formatos/codificaciones coherentes."
+      ],
+      "result": "Deferred separa generación de atributos de superficie e iluminación.",
+      "limits": [
+        "Ancho de banda y formatos G-buffer pueden ser altos."
+      ],
+      "dimensional_verification": [
+        "Albedo/material channels and normals are dimensionless; depth is L or normalized depth.",
+        "G-buffer attachments have separate declared formats/units; lighting output is radiance."
+      ]
+    },
+    {
+      "record_key": "D34:3",
+      "name": "Clustered shading",
+      "starting_principles": [
+        "Clusters cubren volumen de vista sin huecos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "partition view into clusters (x,y,z)",
+          "justification": "Dividir volumen de cámara en celdas 3D."
+        },
+        {
+          "step": 2,
+          "equation": "clusterBounds_k",
+          "justification": "Calcular volumen de cada cluster."
+        },
+        {
+          "step": 3,
+          "equation": "lights_k={l:lightBounds_l intersects clusterBounds_k}",
+          "justification": "Asignar luces intersectantes."
+        },
+        {
+          "step": 4,
+          "equation": "fragment selects cluster from view position",
+          "justification": "Consultar lista de luces del cluster correspondiente."
+        }
+      ],
+      "assumptions": [
+        "Clusters cubren volumen de vista sin huecos."
+      ],
+      "result": "Clustered shading asigna luces a volúmenes 3D y consulta por posición.",
+      "limits": [
+        "Gestión de clusters y límites de luz requieren memoria adicional."
+      ],
+      "dimensional_verification": [
+        "Cluster bounds have L; cluster coordinates and light indices are discrete.",
+        "View-space position and light bounds use same coordinate frame and length unit."
+      ]
+    },
+    {
+      "record_key": "D34:4",
+      "name": "Tiled deferred",
+      "starting_principles": [
+        "G-buffer y tile lists sincronizados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "screen tile→frustum",
+          "justification": "Construir frustum por tile."
+        },
+        {
+          "step": 2,
+          "equation": "G-buffer stores surface attributes",
+          "justification": "Rasterizar geometría y guardar atributos."
+        },
+        {
+          "step": 3,
+          "equation": "lights(tile) from intersection",
+          "justification": "Calcular lista local de luces."
+        },
+        {
+          "step": 4,
+          "equation": "shade G-buffer with tile lights",
+          "justification": "Iluminar cada píxel usando su lista."
+        }
+      ],
+      "assumptions": [
+        "G-buffer y tile lists sincronizados."
+      ],
+      "result": "Tiled deferred combina G-buffer con listas de luces por tile.",
+      "limits": [
+        "Transparencias y materiales especiales pueden necesitar rutas separadas."
+      ],
+      "dimensional_verification": [
+        "Tile bounds have L; G-buffer and light list channels retain their own units.",
+        "The shading result preserves radiance/color signal."
+      ]
+    },
+    {
+      "record_key": "D34:5",
+      "name": "Order-independent transparency",
+      "starting_principles": [
+        "Acumuladores preservan información suficiente para resolve."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "per fragment: color C_i, alpha α_i",
+          "justification": "Obtener contribución transparente."
+        },
+        {
+          "step": 2,
+          "equation": "accumulate commutative statistics",
+          "justification": "Sumar color/alpha o capas en estructuras independientes del orden."
+        },
+        {
+          "step": 3,
+          "equation": "resolve accumulated data",
+          "justification": "Reconstruir color final tras rasterizar todas las capas."
+        },
+        {
+          "step": 4,
+          "equation": "order-independent property",
+          "justification": "La suma/producto de acumuladores no depende del orden de draw."
+        }
+      ],
+      "assumptions": [
+        "Acumuladores preservan información suficiente para resolve."
+      ],
+      "result": "OIT acumula contribuciones transparentes en estructuras resolubles sin ordenar draw calls.",
+      "limits": [
+        "Algunas OIT exactas requieren memoria por fragmento; aproximaciones pierden capas."
+      ],
+      "dimensional_verification": [
+        "α_i, w_i and revealage are dimensionless; C_i has color/radiance signal unit.",
+        "A_rgb has color unit; A_w dimensionless; C_trans and C_out preserve color unit."
+      ]
+    },
+    {
+      "record_key": "D34:6",
+      "name": "Weighted blended OIT",
+      "starting_principles": [
+        "Pesos positivos; revealage en [0,1]; orden de profundidad gestionado según aproximación."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "A_rgb+=w_iα_iC_i; A_w+=w_iα_i",
+          "justification": "Acumular color y peso."
+        },
+        {
+          "step": 2,
+          "equation": "R*=1−α_i",
+          "justification": "Acumular revelación/transmitancia."
+        },
+        {
+          "step": 3,
+          "equation": "C_trans=A_rgb/max(A_w,ε)",
+          "justification": "Calcular color medio ponderado."
+        },
+        {
+          "step": 4,
+          "equation": "α_out=1−R; C_out=α_out C_trans+(1−α_out)C_bg",
+          "justification": "Componer sobre fondo."
+        }
+      ],
+      "assumptions": [
+        "Pesos positivos; revealage en [0,1]; orden de profundidad gestionado según aproximación."
+      ],
+      "result": "Weighted blended OIT aproxima transparencia con acumuladores de color y revelación.",
+      "limits": [
+        "Weighted OIT no preserva orden/transmisión exacta de capas."
+      ],
+      "dimensional_verification": [
+        "C_cur and C_hist share color space/exposure; α is dimensionless.",
+        "Motion vectors are px or UV; depth values share encoding; output retains color unit."
+      ]
+    },
+    {
+      "record_key": "D34:7",
+      "name": "Temporal anti-aliasing",
+      "starting_principles": [
+        "Motion vectors y depth correctos; jitter conocido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "jitter projection per frame",
+          "justification": "Desplazar muestra subpíxel para cubrir posiciones distintas."
+        },
+        {
+          "step": 2,
+          "equation": "C_cur=render(jittered camera)",
+          "justification": "Obtener muestra actual."
+        },
+        {
+          "step": 3,
+          "equation": "C_hist=reproject(previous,motion,depth)",
+          "justification": "Alinear historial a píxel actual."
+        },
+        {
+          "step": 4,
+          "equation": "C_t=αC_cur+(1−α)C_hist",
+          "justification": "Acumular temporalmente con peso según confianza."
+        },
+        {
+          "step": 5,
+          "equation": "reject history at disocclusion",
+          "justification": "Descartar historial cuando superficie no coincide."
+        }
+      ],
+      "assumptions": [
+        "Motion vectors y depth correctos; jitter conocido."
+      ],
+      "result": "TAA mezcla muestras subpíxel actuales con historial reproyectado.",
+      "limits": [
+        "Ghosting si reproyección/validación de historia falla."
+      ],
+      "dimensional_verification": [
+        "Y has luminance/color-signal unit; ∇Y has signal/px; normalized edge direction is dimensionless.",
+        "Weighted samples and C' preserve color-signal unit."
+      ]
+    },
+    {
+      "record_key": "D34:8",
+      "name": "FXAA",
+      "starting_principles": [
+        "Luminancia y dirección de borde calculadas de forma estable."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Y=dot(C,lumaWeights)",
+          "justification": "Calcular luminancia."
+        },
+        {
+          "step": 2,
+          "equation": "edge=gradient(Y)",
+          "justification": "Detectar borde por contraste local."
+        },
+        {
+          "step": 3,
+          "equation": "dir=perpendicular(gradient(Y))",
+          "justification": "Elegir dirección de filtrado a lo largo del borde."
+        },
+        {
+          "step": 4,
+          "equation": "C'=weightedSamples(C along dir)",
+          "justification": "Filtrar muestras cercanas para suavizar aliasing."
+        }
+      ],
+      "assumptions": [
+        "Luminancia y dirección de borde calculadas de forma estable."
+      ],
+      "result": "FXAA detecta bordes en luminancia y filtra a lo largo de su orientación.",
+      "limits": [
+        "FXAA puede suavizar detalles finos o no resolver aliasing geométrico profundo."
+      ],
+      "dimensional_verification": [
+        "Coverage_i and 1/N are dimensionless; colors share the same signal unit.",
+        "Resolve average preserves color unit."
+      ]
+    },
+    {
+      "record_key": "D34:9",
+      "name": "MSAA",
+      "starting_principles": [
+        "N muestras y depth sample count soportados por backend."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "sample coverage/depth at N subpixel locations",
+          "justification": "Evaluar cobertura y profundidad por muestra."
+        },
+        {
+          "step": 2,
+          "equation": "resolve=Σ_i coverage_i·color_i/N",
+          "justification": "Promediar contribuciones de muestras."
+        },
+        {
+          "step": 3,
+          "equation": "depth test per sample",
+          "justification": "Resolver visibilidad en subpíxel."
+        },
+        {
+          "step": 4,
+          "equation": "N samples→pixel",
+          "justification": "Reducir aliasing geométrico."
+        }
+      ],
+      "assumptions": [
+        "N muestras y depth sample count soportados por backend."
+      ],
+      "result": "MSAA evalúa cobertura/profundidad en varias muestras por píxel.",
+      "limits": [
+        "MSAA aumenta coste de memoria/bandwidth y no suaviza shading aliasing por sí solo."
+      ],
+      "dimensional_verification": [
+        "samplesPassed is an integer count; visible is boolean.",
+        "Depth and candidate bounds share the same projection/coding."
+      ]
+    },
+    {
+      "record_key": "D34:10",
+      "name": "Occlusion query",
+      "starting_principles": [
+        "Query asíncrona y bounds conservadores."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "draw occluder geometry to depth/stencil",
+          "justification": "Registrar profundidad de objetos oclusores."
+        },
+        {
+          "step": 2,
+          "equation": "render candidate bounds with color/depth writes disabled",
+          "justification": "Probar bounds sin alterar buffers principales."
+        },
+        {
+          "step": 3,
+          "equation": "samplesPassed=count(depthTestPassed)",
+          "justification": "Contar muestras visibles."
+        },
+        {
+          "step": 4,
+          "equation": "visible iff samplesPassed>0",
+          "justification": "Dibujar objeto si alguna muestra pasa."
+        }
+      ],
+      "assumptions": [
+        "Query asíncrona y bounds conservadores."
+      ],
+      "result": "Occlusion query usa número de muestras que pasan depth test para decidir visibilidad.",
+      "limits": [
+        "Queries pueden causar stalls si se esperan sincrónicamente."
+      ],
+      "dimensional_verification": [
+        "Depth pyramid values share depth-buffer encoding; min/max reduction depends on standard vs reverse-Z.",
+        "Object and occluder depths must be compared in the same units/encoding."
+      ]
+    },
+    {
+      "record_key": "D34:11",
+      "name": "Hierarchical Z",
+      "starting_principles": [
+        "Convención standard/reverse-Z declarada; pirámide usa reducción apropiada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Z_0=depthBuffer",
+          "justification": "Crear nivel base de profundidad."
+        },
+        {
+          "step": 2,
+          "equation": "Z_{k+1}=reduce2x2(Z_k)",
+          "justification": "Construir pirámide de profundidad."
+        },
+        {
+          "step": 3,
+          "equation": "objectNearestDepth vs tileFarthestOccluderDepth",
+          "justification": "Comparar profundidad más cercana del objeto con límite conservador del tile."
+        },
+        {
+          "step": 4,
+          "equation": "reject if all covered tiles occlude object",
+          "justification": "Descartar bounds solo si todos los tiles relevantes prueban oclusión."
+        }
+      ],
+      "assumptions": [
+        "Convención standard/reverse-Z declarada; pirámide usa reducción apropiada.",
+        "La reducción de profundidad usa min/max según convención estándar o reverse-Z y el bound de oclusión debe ser conservador."
+      ],
+      "result": "Hi-Z resume profundidad por niveles y descarta bounds completamente ocultos.",
+      "limits": [
+        "Profundidad conservadora y reverse-Z requieren reducción/compare correctos."
+      ],
+      "dimensional_verification": [
+        "Portal positions and translations have L; rotation matrices are dimensionless.",
+        "Clip plane n is unitless and offset d has L; camera transformation preserves L."
+      ]
+    },
+    {
+      "record_key": "D34:12",
+      "name": "Portals",
+      "starting_principles": [
+        "Matrices de portal invertibles; plano de clipping válido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "M_link=M_dest·R_portal·M_source^{-1}",
+          "justification": "Construir transformación entre marcos de portales."
+        },
+        {
+          "step": 2,
+          "equation": "camera'_world=M_link·camera_world",
+          "justification": "Transformar cámara a través del portal."
+        },
+        {
+          "step": 3,
+          "equation": "clip view to destination portal plane",
+          "justification": "Recortar geometría fuera de la abertura."
+        },
+        {
+          "step": 4,
+          "equation": "render recursively with depth limit",
+          "justification": "Renderizar vista conectada con límite de recursión."
+        }
+      ],
+      "assumptions": [
+        "Matrices de portal invertibles; plano de clipping válido."
+      ],
+      "result": "Portals transforman cámara entre marcos y recortan vista a polígonos de abertura.",
+      "limits": [
+        "Recursión de portales requiere límites y gestión de clipping."
+      ],
+      "dimensional_verification": [
+        "Impostor worldSize and z have L; f_px has px; projected screenSize has px.",
+        "τ is pixel error; UV and billboard axes are dimensionless."
+      ]
+    },
+    {
+      "record_key": "D34:13",
+      "name": "Impostors",
+      "starting_principles": [
+        "Impostor generado desde vista/iluminación apropiada; error umbral definido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "billboard basis faces camera",
+          "justification": "Construir quad orientado hacia cámara."
+        },
+        {
+          "step": 2,
+          "equation": "uv=project(local object appearance)",
+          "justification": "Generar/consultar imagen representativa."
+        },
+        {
+          "step": 3,
+          "equation": "screenSize≈f·worldSize/z",
+          "justification": "Estimar tamaño proyectado."
+        },
+        {
+          "step": 4,
+          "equation": "use impostor when screenError≤τ",
+          "justification": "Sustituir geometría por sprite cuando error proyectado es aceptable."
+        }
+      ],
+      "assumptions": [
+        "Impostor generado desde vista/iluminación apropiada; error umbral definido."
+      ],
+      "result": "Impostors reemplazan geometría distante por imagen representativa bajo tolerancia proyectada.",
+      "limits": [
+        "Impostor puede fallar con cambios grandes de vista, luz o animación."
+      ],
+      "dimensional_verification": [
+        "f_px has px; worldSize and z have L; screenSize has px.",
+        "τ is px; the LOD decision compares like pixel quantities."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "14/14 técnicas D34 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Forward/deferred/clustered shading separan BRDF, radiancia y atributos de G-buffer",
+      "Weighted OIT, TAA, FXAA y MSAA mantienen pesos adimensionales y señales compatibles",
+      "Occlusion query y Hi-Z comparan profundidad en codificación coherente",
+      "Portals e impostors distinguen transformaciones espaciales y error proyectado en píxeles"
+    ],
+    "limitations": [
+      "La derivación no certifica rendimiento por GPU, calidad de OIT/TAA, exactitud de oclusión ni compatibilidad de renderer; requieren pruebas por backend."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

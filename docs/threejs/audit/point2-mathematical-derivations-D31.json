@@ -1,0 +1,589 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D31 Datos espaciales, mallas, topología y algoritmos geométricos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D31",
+    "record_count": 13,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D31 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D31:0",
+      "name": "Barycentric coordinates",
+      "starting_principles": [
+        "Triángulo no degenerado; coordenadas en mismo marco."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p=a+u(b−a)+v(c−a)",
+          "justification": "Expresar punto como combinación afín de vértices."
+        },
+        {
+          "step": 2,
+          "equation": "α=1−u−v; β=u; γ=v",
+          "justification": "Reescribir como suma ponderada con suma unitaria."
+        },
+        {
+          "step": 3,
+          "equation": "p=αa+βb+γc",
+          "justification": "Obtener coordenadas baricéntricas."
+        },
+        {
+          "step": 4,
+          "equation": "α,β,γ≥0",
+          "justification": "La condición identifica puntos dentro del triángulo."
+        }
+      ],
+      "assumptions": [
+        "Triángulo no degenerado; coordenadas en mismo marco."
+      ],
+      "result": "Las coordenadas baricéntricas derivan de resolver combinación afín de los tres vértices.",
+      "limits": [
+        "Los pesos pueden ser negativos fuera del triángulo; degeneración requiere fallback."
+      ],
+      "dimensional_verification": [
+        "a,b,c,p tienen L; α,β,γ son adimensionales y suman 1.",
+        "La combinación afín conserva L."
+      ]
+    },
+    {
+      "record_key": "D31:1",
+      "name": "Möller–Trumbore ray triangle",
+      "starting_principles": [
+        "Rayo y triángulo en mismo espacio; determinante no nulo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "o+td=a+u e_1+v e_2",
+          "justification": "Igualar rayo y punto del triángulo."
+        },
+        {
+          "step": 2,
+          "equation": "e_1=b−a; e_2=c−a; h=d×e_2; det=e_1·h",
+          "justification": "Construir sistema lineal y determinante."
+        },
+        {
+          "step": 3,
+          "equation": "u=(o−a)·h/det; q=(o−a)×e_1; v=d·q/det",
+          "justification": "Resolver coordenadas baricéntricas por productos cruzados."
+        },
+        {
+          "step": 4,
+          "equation": "t=e_2·q/det",
+          "justification": "Resolver distancia del rayo."
+        },
+        {
+          "step": 5,
+          "equation": "hit iff det≠0, u≥0, v≥0, u+v≤1, t≥0",
+          "justification": "Aplicar condiciones de intersección dentro del triángulo y delante del origen."
+        }
+      ],
+      "assumptions": [
+        "Rayo y triángulo en mismo espacio; determinante no nulo."
+      ],
+      "result": "Möller–Trumbore resuelve el sistema rayo-plano-triángulo con productos cruzados y pruebas baricéntricas.",
+      "limits": [
+        "Rayos casi paralelos requieren tolerancia numérica robusta."
+      ],
+      "dimensional_verification": [
+        "o,a,b,c tienen L; dirección d es unitaria adimensional; t tiene L.",
+        "u,v son coordenadas baricéntricas adimensionales; det y productos conservan unidades compatibles."
+      ]
+    },
+    {
+      "record_key": "D31:2",
+      "name": "Ray-AABB slab test",
+      "starting_principles": [
+        "AABB axis-aligned; componentes de dirección cero tratadas por intervalo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "t1=(b_min−o)/d; t2=(b_max−o)/d",
+          "justification": "Calcular entrada/salida por eje."
+        },
+        {
+          "step": 2,
+          "equation": "t_enter=max_i min(t1_i,t2_i)",
+          "justification": "Tomar el último ingreso entre slabs."
+        },
+        {
+          "step": 3,
+          "equation": "t_exit=min_i max(t1_i,t2_i)",
+          "justification": "Tomar la primera salida."
+        },
+        {
+          "step": 4,
+          "equation": "hit iff t_enter≤t_exit and t_exit≥0",
+          "justification": "Los intervalos de los tres ejes deben solaparse hacia delante."
+        }
+      ],
+      "assumptions": [
+        "AABB axis-aligned; componentes de dirección cero tratadas por intervalo."
+      ],
+      "result": "Slab test deriva de intersectar intervalos del rayo con cada intervalo de la caja.",
+      "limits": [
+        "Rayos paralelos a slab requieren caso especial para evitar división por cero."
+      ],
+      "dimensional_verification": [
+        "b_min,b_max,o tienen L; d es unitario adimensional; t_enter/t_exit tienen L.",
+        "Comparaciones de t usan el mismo parámetro/distancia del rayo."
+      ]
+    },
+    {
+      "record_key": "D31:3",
+      "name": "Separating Axis Theorem",
+      "starting_principles": [
+        "A y B convexos; ejes candidatos completos para poliedros."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "axes={face normals A,B, cross(edge_A,edge_B)}",
+          "justification": "Generar ejes candidatos de separación para poliedros convexos."
+        },
+        {
+          "step": 2,
+          "equation": "I_A(axis)=[min a·axis,max a·axis]",
+          "justification": "Proyectar vértices de A."
+        },
+        {
+          "step": 3,
+          "equation": "I_B(axis)=[min b·axis,max b·axis]",
+          "justification": "Proyectar vértices de B."
+        },
+        {
+          "step": 4,
+          "equation": "separated iff maxA<minB or maxB<minA",
+          "justification": "Si existe eje con intervalos disjuntos, los cuerpos no intersectan."
+        },
+        {
+          "step": 5,
+          "equation": "overlap on all axes ⇒ no separating axis found",
+          "justification": "Para convexos, ausencia de eje separador indica intersección."
+        }
+      ],
+      "assumptions": [
+        "A y B convexos; ejes candidatos completos para poliedros."
+      ],
+      "result": "SAT prueba intersección proyectando convexos sobre ejes candidatos.",
+      "limits": [
+        "SAT requiere ejes adecuados; para poliedros convexos se incluyen normales y productos cruzados de aristas."
+      ],
+      "dimensional_verification": [
+        "Ejes SAT son unitarios/adimensionales; proyecciones a·axis y b·axis tienen L.",
+        "Los intervalos comparados tienen L; separación es una relación booleana adimensional."
+      ]
+    },
+    {
+      "record_key": "D31:4",
+      "name": "GJK",
+      "starting_principles": [
+        "Convexidad y función support correcta; simplex no degenerado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Minkowski difference C=A⊖B",
+          "justification": "Construir conjunto de diferencias a−b."
+        },
+        {
+          "step": 2,
+          "equation": "support_C(d)=support_A(d)−support_B(−d)",
+          "justification": "Obtener punto extremo del Minkowski sin construirlo explícitamente."
+        },
+        {
+          "step": 3,
+          "equation": "simplex={support_C(d_i)}",
+          "justification": "Acumular puntos soporte."
+        },
+        {
+          "step": 4,
+          "equation": "update direction toward origin",
+          "justification": "Reducir simplex según región más cercana al origen."
+        },
+        {
+          "step": 5,
+          "equation": "origin in simplex ⇒ intersect",
+          "justification": "La intersección equivale a que el origen pertenezca a A⊖B."
+        }
+      ],
+      "assumptions": [
+        "Convexidad y función support correcta; simplex no degenerado."
+      ],
+      "result": "GJK reduce colisión convexa a comprobar si el origen está en diferencia de Minkowski.",
+      "limits": [
+        "GJK puede estancarse en degeneraciones y requiere tolerancias."
+      ],
+      "dimensional_verification": [
+        "Puntos de soporte y Minkowski difference tienen L; direcciones de búsqueda son adimensionales.",
+        "Distancia al origen y simplex conservan L."
+      ]
+    },
+    {
+      "record_key": "D31:5",
+      "name": "EPA",
+      "starting_principles": [
+        "Intersección convexa; poliedro y tolerancia válidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "start from GJK terminal simplex",
+          "justification": "Usar simplex que contiene/cercana al origen."
+        },
+        {
+          "step": 2,
+          "equation": "construct enclosing polytope",
+          "justification": "Expandir simplex a poliedro alrededor del origen."
+        },
+        {
+          "step": 3,
+          "equation": "find closest face to origin",
+          "justification": "Seleccionar cara con distancia mínima."
+        },
+        {
+          "step": 4,
+          "equation": "support point along face normal",
+          "justification": "Consultar nuevo punto extremo."
+        },
+        {
+          "step": 5,
+          "equation": "converge when supportDistance−faceDistance≤ε",
+          "justification": "La diferencia pequeña aproxima profundidad y normal de penetración."
+        }
+      ],
+      "assumptions": [
+        "Intersección convexa; poliedro y tolerancia válidos."
+      ],
+      "result": "EPA expande simplex para estimar normal y profundidad geométrica de solapamiento.",
+      "limits": [
+        "EPA depende de simplex inicial y tolerancias; poliedros degenerados son problemáticos."
+      ],
+      "dimensional_verification": [
+        "Distancia de cara y supportDistance tienen L; normal de cara es adimensional.",
+        "ε tiene L; profundidad de penetración estimada tiene L."
+      ]
+    },
+    {
+      "record_key": "D31:6",
+      "name": "BVH",
+      "starting_principles": [
+        "Jerarquía válida; bounds contienen completamente primitivas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "bounds(node)=AABB(union child bounds)",
+          "justification": "Envolver geometría/hijos con caja alineada a ejes."
+        },
+        {
+          "step": 2,
+          "equation": "build split minimizing SAH cost",
+          "justification": "Elegir partición que minimiza coste estimado de traversal/intersection."
+        },
+        {
+          "step": 3,
+          "equation": "traverse: reject node if ray misses bounds",
+          "justification": "Descartar subárboles no intersectados."
+        },
+        {
+          "step": 4,
+          "equation": "visit nearer child first",
+          "justification": "Ordenar traversal para encontrar impactos cercanos pronto."
+        },
+        {
+          "step": 5,
+          "equation": "leaf: test primitives",
+          "justification": "Probar triángulos solo en hojas alcanzadas."
+        }
+      ],
+      "assumptions": [
+        "Jerarquía válida; bounds contienen completamente primitivas."
+      ],
+      "result": "BVH acelera consultas mediante jerarquía de bounds y traversal selectivo.",
+      "limits": [
+        "SAH es heurística; construir BVH tiene coste y memoria."
+      ],
+      "dimensional_verification": [
+        "AABB bounds y ray origins tienen L; ray direction adimensional; t tiene L.",
+        "Áreas de caja tienen L²; razones SAH son adimensionales; índices de nodo son discretos."
+      ]
+    },
+    {
+      "record_key": "D31:7",
+      "name": "Mesh normals",
+      "starting_principles": [
+        "Triángulo no degenerado; winding consistente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e_1=b−a; e_2=c−a",
+          "justification": "Obtener aristas."
+        },
+        {
+          "step": 2,
+          "equation": "n=e_1×e_2",
+          "justification": "Calcular vector perpendicular al triángulo."
+        },
+        {
+          "step": 3,
+          "equation": "N=n/||n||",
+          "justification": "Normalizar."
+        },
+        {
+          "step": 4,
+          "equation": "area=||n||/2",
+          "justification": "El módulo del producto cruzado da doble área."
+        }
+      ],
+      "assumptions": [
+        "Triángulo no degenerado; winding consistente."
+      ],
+      "result": "La normal de malla deriva del producto cruzado de dos aristas.",
+      "limits": [
+        "Área casi cero produce normal inestable."
+      ],
+      "dimensional_verification": [
+        "e1,e2 tienen L; e1×e2 tiene L²; normal normalizada adimensional.",
+        "Área del triángulo tiene L²."
+      ]
+    },
+    {
+      "record_key": "D31:8",
+      "name": "Tangent basis",
+      "starting_principles": [
+        "UV no degeneradas; N unitaria; handedness definido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T_raw=P_u·v_v−P_v·v_u",
+          "justification": "Derivar tangente a partir de derivadas de posición y UV."
+        },
+        {
+          "step": 2,
+          "equation": "T=normalize(T_raw−N(N·T_raw))",
+          "justification": "Eliminar componente normal y normalizar."
+        },
+        {
+          "step": 3,
+          "equation": "B=handedness·(N×T)",
+          "justification": "Completar base ortonormal."
+        },
+        {
+          "step": 4,
+          "equation": "TBN=[T B N]",
+          "justification": "Transformar vectores entre tangent y world space."
+        }
+      ],
+      "assumptions": [
+        "UV no degeneradas; N unitaria; handedness definido."
+      ],
+      "result": "TBN deriva de derivadas de posición/UV y ortonormalización.",
+      "limits": [
+        "UV degeneradas no definen base tangente estable."
+      ],
+      "dimensional_verification": [
+        "P_u y P_v tienen L; derivadas UV son adimensionales; T_raw tiene L.",
+        "T,B,N y handedness son adimensionales; TBN conserva dirección unitaria."
+      ]
+    },
+    {
+      "record_key": "D31:9",
+      "name": "Mesh Laplacian",
+      "starting_principles": [
+        "Malla conectada; vecindad y bordes definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L=D−A",
+          "justification": "Definir Laplaciano combinatorio."
+        },
+        {
+          "step": 2,
+          "equation": "(Lp)_i=deg(i)p_i−Σ_{j∈N(i)}p_j",
+          "justification": "Expresar operador por vértice."
+        },
+        {
+          "step": 3,
+          "equation": "p_i'=p_i−λ(Lp)_i/deg(i)",
+          "justification": "Actualizar hacia promedio de vecinos."
+        },
+        {
+          "step": 4,
+          "equation": "repeat iterations",
+          "justification": "Aplicar relajación para reducir variación local."
+        }
+      ],
+      "assumptions": [
+        "Malla conectada; vecindad y bordes definidos."
+      ],
+      "result": "El Laplaciano discreto mide diferencia entre un vértice y su vecindad.",
+      "limits": [
+        "Laplacian smoothing encoge malla y elimina detalle."
+      ],
+      "dimensional_verification": [
+        "L=D−A es combinatorio/adimensional; Lp tiene L; λ es adimensional.",
+        "Si se usa Laplaciano cotangente normalizado por área, la escala cambia y debe declararse."
+      ]
+    },
+    {
+      "record_key": "D31:10",
+      "name": "Geodesic distance",
+      "starting_principles": [
+        "Superficie conectada; métrica y triangulación válidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "distance_G(u,v)=inf_{γ⊂surface}∫||γ'(s)||ds",
+          "justification": "Definir distancia mínima entre puntos restringida a superficie."
+        },
+        {
+          "step": 2,
+          "equation": "edge graph: w_ij=||p_i−p_j||",
+          "justification": "Aproximar superficie por grafo de aristas."
+        },
+        {
+          "step": 3,
+          "equation": "Dijkstra from source",
+          "justification": "Resolver camino mínimo en grafo."
+        },
+        {
+          "step": 4,
+          "equation": "heat method: diffuse then normalize gradient",
+          "justification": "Alternativa continua aproximada para distancias geodésicas."
+        }
+      ],
+      "assumptions": [
+        "Superficie conectada; métrica y triangulación válidas."
+      ],
+      "result": "La distancia geodésica es longitud de camino mínimo restringido a la superficie.",
+      "limits": [
+        "Dijkstra en aristas aproxima geodésica y depende de resolución de malla."
+      ],
+      "dimensional_verification": [
+        "γ'(s) es unitario si s es arco; integral de longitud tiene L.",
+        "Aristas del grafo tienen L; Dijkstra devuelve distancia geodésica aproximada con L."
+      ]
+    },
+    {
+      "record_key": "D31:11",
+      "name": "UV seam minimization",
+      "starting_principles": [
+        "UV y malla consistentes; métrica de distorsión definida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ: S⊂R³→R²; J_φ=∂(u,v)/∂x",
+          "justification": "Definir el mapa UV y su Jacobiano local respecto a coordenadas físicas de superficie."
+        },
+        {
+          "step": 2,
+          "equation": "J̃=J_φ/s_0,  [J_φ]=[s_0]=L⁻¹",
+          "justification": "Normalizar el Jacobiano por densidad UV de referencia para que la deformación métrica sea adimensional."
+        },
+        {
+          "step": 3,
+          "equation": "E_stretch=(1/A_S)∫_S ||J̃ᵀJ̃−I||² dA",
+          "justification": "Comparar la métrica inducida con la métrica objetivo y normalizar por área de superficie."
+        },
+        {
+          "step": 4,
+          "equation": "E_seam=λ·length(cutGraph)/L_ref",
+          "justification": "Penalizar costuras mediante longitud relativa adimensional."
+        },
+        {
+          "step": 5,
+          "equation": "min_{cuts,φ} E_stretch+E_seam",
+          "justification": "Buscar cortes y parametrización que equilibran distorsión relativa y coste de costura."
+        }
+      ],
+      "assumptions": [
+        "UV y malla consistentes; métrica de distorsión definida.",
+        "s0 tiene unidad L⁻¹; L_ref y longitud de corte tienen L; A_S tiene L²."
+      ],
+      "result": "La minimización UV compara una métrica normalizada adimensional y penaliza longitud de costura relativa a una escala de referencia.",
+      "limits": [
+        "Optimizar UV es no convexo; puede requerir cortes adicionales.",
+        "La función objetivo depende de s0, L_ref y pesos; su elección cambia la distribución de distorsión."
+      ],
+      "dimensional_verification": [
+        "J_φ=∂UV/∂x tiene L⁻¹; escala UV objetivo s0 tiene L⁻¹; J̃=J_φ/s0 es adimensional.",
+        "La energía normalizada de stretch y longitud de corte/L_ref son adimensionales."
+      ]
+    },
+    {
+      "record_key": "D31:12",
+      "name": "Voxel greedy meshing",
+      "starting_principles": [
+        "Voxel grid y materiales discretos; chunks consultan vecinos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "face visible iff occupancy(cell+normal)=0",
+          "justification": "Marcar caras expuestas."
+        },
+        {
+          "step": 2,
+          "equation": "mask(axis,plane)=faceKey(material,orientation)",
+          "justification": "Construir máscara por plano y tipo de cara."
+        },
+        {
+          "step": 3,
+          "equation": "find maximal rectangle of equal keys",
+          "justification": "Fusionar celdas coplanares contiguas."
+        },
+        {
+          "step": 4,
+          "equation": "emit quad; clear mask region",
+          "justification": "Emitir cuatro vértices y dos triángulos por rectángulo."
+        },
+        {
+          "step": 5,
+          "equation": "repeat six directions",
+          "justification": "Procesar orientaciones de caras."
+        }
+      ],
+      "assumptions": [
+        "Voxel grid y materiales discretos; chunks consultan vecinos."
+      ],
+      "result": "Greedy meshing fusiona caras voxel expuestas coplanares de misma clave.",
+      "limits": [
+        "Greedy meshing requiere actualizar chunks vecinos y manejar bordes."
+      ],
+      "dimensional_verification": [
+        "VoxelSize tiene L; cell indices y material keys son discretos/adimensionales.",
+        "Los vértices emitidos son origin+voxelSize·index y tienen L; caras/triángulos son conteos."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "13/13 técnicas D31 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Ray/triangle, ray/AABB, SAT, GJK y EPA distinguen longitud, dirección y tolerancia",
+      "Normals/TBN y Laplaciano discreto conservan dimensiones geométricas",
+      "UV seam minimization normaliza Jacobiano y coste de corte para evitar sumar magnitudes incompatibles",
+      "Voxel greedy meshing separa índices discretos y coordenadas físicas"
+    ],
+    "limitations": [
+      "Los algoritmos geométricos requieren pruebas numéricas de degeneración, tolerancias, robustez y rendimiento en las etapas posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

@@ -1,0 +1,1541 @@
+{
+  "title": "Auditoría dimensional punto 1 — D08 Materiales, texturas y superficies",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D08",
+    "domain": "Materiales, texturas y superficies",
+    "record_count": 17,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D08 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "color": "RGB debe indicar espacio lineal o codificado; las operaciones físicas se realizan en lineal.",
+    "pixels": "px son unidades de raster dependientes de resolución, no unidades SI.",
+    "scene_length": "Unidad global de longitud; SI si se declara."
+  },
+  "records": [
+    {
+      "record_key": "D08:0",
+      "name": "UV mapping",
+      "variables": [
+        {
+          "symbol": "P",
+          "meaning": "posición superficial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "punto finito"
+        },
+        {
+          "symbol": "u,v",
+          "meaning": "coordenadas UV",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizadas o rango de atlas declarado"
+        },
+        {
+          "symbol": "project",
+          "meaning": "proyección",
+          "unit": "mapeo geométrico",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "proyección continua por parche"
+        }
+      ],
+      "constraints": [
+        "UV son adimensionales; discontinuidades de seam deben ser explícitas.",
+        "La proyección debe declarar espacio y orientación."
+      ],
+      "valid_domain": [
+        "Superficie con coordenadas y proyección definidas."
+      ],
+      "boundary_conditions": [
+        "En costuras, duplicar UV sin romper continuidad geométrica.",
+        "Degeneración de proyección debe resolverse por parche alternativo."
+      ],
+      "dimensional_checks": [
+        "P has L; u,v are dimensionless parameter coordinates or normalized atlas coordinates.",
+        "The projection map converts a 3D surface point to dimensionless UV coordinates; it is not a length-preserving map.",
+        "UV seams and parameter singularities are topological/geometric boundary cases, not dimensional conversions."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:1",
+      "name": "Triplanar mapping",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "normal de superficie",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "w_x,w_y,w_z",
+          "meaning": "pesos triplanares",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos; suma 1"
+        },
+        {
+          "symbol": "T_x,T_y,T_z",
+          "meaning": "muestras de textura",
+          "unit": "color lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio/colorimetría"
+        },
+        {
+          "symbol": "k",
+          "meaning": "exponente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k>0"
+        }
+      ],
+      "constraints": [
+        "Pesos se calculan a partir de componentes absolutas de normal y se normalizan.",
+        "Las muestras deben compartir espacio de color y escala de textura."
+      ],
+      "valid_domain": [
+        "Normal no nula; k positivo."
+      ],
+      "boundary_conditions": [
+        "Normal alineada con eje produce peso dominante en proyección correspondiente.",
+        "Si suma de pesos es cero, usar proyección de respaldo."
+      ],
+      "dimensional_checks": [
+        "Normals n and weights w_x,w_y,w_z are dimensionless; weights must sum to one after normalization.",
+        "Texture samples T_x,T_y,T_z must share color space, transfer function and channel units; their weighted blend preserves those units.",
+        "The projection coordinates require a declared spatial scale/frequency; k is dimensionless."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:2",
+      "name": "Procedural texture",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "coordenada de evaluación",
+          "unit": "m o coordenada normalizada",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dominio declarado"
+        },
+        {
+          "symbol": "noise,voronoi,curvature",
+          "meaning": "atributos de campo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados y acotados"
+        },
+        {
+          "symbol": "C",
+          "meaning": "color resultante",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "componentes según espacio declarado"
+        },
+        {
+          "symbol": "palette",
+          "meaning": "función de paleta",
+          "unit": "mapeo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "continua o discretización declarada"
+        }
+      ],
+      "constraints": [
+        "Curvatura tiene dimensión L⁻¹ si geométrica; normalizar por escala antes de mezclar con ruido adimensional.",
+        "Definir espacio lineal/sRGB y rango de canales."
+      ],
+      "valid_domain": [
+        "Campos evaluables en dominio; paleta definida."
+      ],
+      "boundary_conditions": [
+        "Valores de campo fuera del rango se saturan o extrapolan según política.",
+        "Color debe permanecer en rango representable tras tone/color management."
+      ],
+      "dimensional_checks": [
+        "p is either a length-valued world coordinate or a dimensionless normalized coordinate; noise frequencies must compensate so noise arguments are dimensionless.",
+        "Noise, Voronoi and curvature features must be normalized or separately scaled before combining; curvature itself has L^-1 unless normalized by a reference length.",
+        "C is a color in a declared linear color space; palette maps dimensionless feature inputs to that color space."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:3",
+      "name": "Texture atlas",
+      "variables": [
+        {
+          "symbol": "uv",
+          "meaning": "UV original",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "offset",
+          "meaning": "desplazamiento atlas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "coordenada UV"
+        },
+        {
+          "symbol": "scale",
+          "meaning": "escala atlas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "uv′",
+          "meaning": "UV transformada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "offset+scale·uv"
+        }
+      ],
+      "constraints": [
+        "Offset y escala UV adimensionales.",
+        "La región transformada debe quedar dentro de tile asignado con margen para filtrado."
+      ],
+      "valid_domain": [
+        "UV y rectángulo atlas válidos; scale>0."
+      ],
+      "boundary_conditions": [
+        "UV en borde de tile requiere padding/bleed para evitar contaminación.",
+        "Tiles vecinos deben usar límites y mipmaps consistentes."
+      ],
+      "dimensional_checks": [
+        "uv, offset, scale and uv′ are dimensionless; offset and scale must be expressed in the same atlas coordinate convention.",
+        "scale·uv is dimensionless and can be added to offset.",
+        "The transformed UV rectangle must remain within the intended atlas tile or use a declared wrap/clamp policy."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:4",
+      "name": "Normal mapping",
+      "variables": [
+        {
+          "symbol": "T,B,N",
+          "meaning": "base tangente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ortonormal"
+        },
+        {
+          "symbol": "n_texture",
+          "meaning": "normal de mapa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector unitario en espacio tangente"
+        },
+        {
+          "symbol": "N′",
+          "meaning": "normal transformada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "uv",
+          "meaning": "coordenada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "atributos tangentes definidos"
+        }
+      ],
+      "constraints": [
+        "TBN debe ser ortonormal o corregirse; handedness de bitangent debe respetarse.",
+        "Normal map debe decodificarse desde espacio de color no lineal según formato."
+      ],
+      "valid_domain": [
+        "Tangentes válidas; normal map finito y no nulo."
+      ],
+      "boundary_conditions": [
+        "En costuras tangentes, separar vértices si discontinuidad.",
+        "Normal nula o TBN singular: fallback a normal geométrica."
+      ],
+      "dimensional_checks": [
+        "T, B, N and n_texture are dimensionless unit directions; the TBN matrix is dimensionless.",
+        "TBN·n_texture is dimensionless and normalization preserves a unit normal.",
+        "Tangent basis must be orthonormal or use a declared re-orthogonalization; UV degeneracy can make tangent construction singular."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:5",
+      "name": "Bump mapping",
+      "variables": [
+        {
+          "symbol": "h(u,v)",
+          "meaning": "altura de bump",
+          "unit": "m o escala normalizada declarada",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "campo diferenciable"
+        },
+        {
+          "symbol": "∇h",
+          "meaning": "gradiente tangencial",
+          "unit": "m per m in physical tangent coordinates; m per UV if differentiated in UV",
+          "dimension": "dimensionless in physical tangent coordinates; L with respect to dimensionless UV",
+          "domain": "finite; convert UV derivative through surface Jacobian/metric before normal perturbation"
+        },
+        {
+          "symbol": "N",
+          "meaning": "normal base",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "N′",
+          "meaning": "normal perturbada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        }
+      ],
+      "constraints": [
+        "La derivada depende de unidades UV y escala física; ajustar factor de bump explícito.",
+        "La aproximación no desplaza geometría y no sustituye desplazamiento real."
+      ],
+      "valid_domain": [
+        "h diferenciable o gradiente filtrado; UV no degeneradas."
+      ],
+      "boundary_conditions": [
+        "Gradiente cero devuelve N.",
+        "En discontinuidades de altura, filtrar o definir normal por lado."
+      ],
+      "dimensional_checks": [
+        "h has a declared height unit; ∂h/∂x in physical tangent coordinates is dimensionless when both h and x are lengths.",
+        "If differentiating with respect to dimensionless UV, ∂h/∂u has length units and must be converted through the surface metric/Jacobian before perturbing a unit normal.",
+        "N and N′ are dimensionless; bump strength must account for the chosen height and surface-length scales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:6",
+      "name": "Roughness map",
+      "variables": [
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o convención renderer"
+        },
+        {
+          "symbol": "wear",
+          "meaning": "desgaste",
+          "unit": "0–1 normalizado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "wetness",
+          "meaning": "humedad",
+          "unit": "0–1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "F",
+          "meaning": "función de material",
+          "unit": "mapeo adimensional",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "salida dentro del rango"
+        }
+      ],
+      "constraints": [
+        "Roughness es parámetro adimensional, no longitud.",
+        "No confundir roughness perceptual con α de microfacet; declarar conversión."
+      ],
+      "valid_domain": [
+        "Entradas normalizadas y finitas."
+      ],
+      "boundary_conditions": [
+        "wetness=0 produce estado seco; wetness=1 estado completamente mojado según modelo.",
+        "Saturar salida a rango admitido por BRDF."
+      ],
+      "dimensional_checks": [
+        "roughness, wear and wetness are dimensionless normalized parameters; all inputs must be clamped to the renderer's declared range.",
+        "F returns dimensionless roughness (or another declared material scalar), not a length or color.",
+        "A wetness/wear model is empirical; normalization range does not itself imply physical calibration."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:7",
+      "name": "Metalness workflow",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "metalness",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F0_diel",
+          "meaning": "reflectancia dieléctrica",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango físico"
+        },
+        {
+          "symbol": "F0_cond",
+          "meaning": "reflectancia conductor",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "valores físicos"
+        },
+        {
+          "symbol": "BRDF",
+          "meaning": "respuesta reflectante",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "modelo energético"
+        }
+      ],
+      "constraints": [
+        "Metalness interpola clasificación de material, no mezcla arbitraria de energías sin conservar modelo BRDF.",
+        "Valores de F0 y albedo deben respetar conservación de energía."
+      ],
+      "valid_domain": [
+        "m∈[0,1]; entradas BRDF válidas."
+      ],
+      "boundary_conditions": [
+        "m=0 dieléctrico; m=1 conductor según workflow.",
+        "No extrapolar metalness fuera de [0,1]."
+      ],
+      "dimensional_checks": [
+        "metalness m and F0 reflectances are dimensionless; conductor F0 may be RGB in linear color space.",
+        "BRDF has inverse-steradian convention; the output's angular/radiometric units must be consistent with the lighting integral.",
+        "The metalness interpolation mixes dimensionless reflectance parameters; energy conservation is a separate physical constraint."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:8",
+      "name": "Clearcoat",
+      "variables": [
+        {
+          "symbol": "BRDF_base,BRDF_coat",
+          "meaning": "lóbulos de reflectancia",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos"
+        },
+        {
+          "symbol": "coat",
+          "meaning": "peso de capa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F_coat",
+          "meaning": "Fresnel capa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "BRDF_total",
+          "meaning": "respuesta",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "energéticamente acotada"
+        }
+      ],
+      "constraints": [
+        "La capa superior atenúa energía base según Fresnel; suma directa simple puede violar conservación.",
+        "Declarar rugosidad/IOR de coat y modelo de mezcla."
+      ],
+      "valid_domain": [
+        "Parámetros físicos y BRDF no negativa."
+      ],
+      "boundary_conditions": [
+        "coat=0 recupera base.",
+        "coat=1 no implica apagar base sin regla energética."
+      ],
+      "dimensional_checks": [
+        "coat and F_coat are dimensionless; BRDF_base, BRDF_coat and BRDF_total share the same inverse-steradian convention.",
+        "The layer composition must include physically consistent Fresnel/attenuation weights; simply adding lobes can violate energy conservation.",
+        "All angular directions and normals are unitless; Fresnel arguments use dimensionless cosines and refractive indices."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:9",
+      "name": "Subsurface approximation",
+      "variables": [
+        {
+          "symbol": "d",
+          "meaning": "distancia dentro del medio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "ℓ_mfp",
+          "meaning": "camino libre medio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ℓ_mfp>0"
+        },
+        {
+          "symbol": "wrap",
+          "meaning": "factor aproximado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "exp(−d/ℓ_mfp)"
+        }
+      ],
+      "constraints": [
+        "Exponente d/ℓ_mfp es adimensional.",
+        "La expresión es aproximación de light wrap, no solución general de transporte subsuperficial."
+      ],
+      "valid_domain": [
+        "Distancia no negativa y camino libre medio positivo."
+      ],
+      "boundary_conditions": [
+        "d=0 da wrap=1; d→∞ tiende a 0."
+      ],
+      "dimensional_checks": [
+        "d and meanFreePath ℓ_mfp have L, so d/ℓ_mfp is dimensionless and exp() is valid.",
+        "wrap is dimensionless and lies in (0,1] for d≥0 and ℓ_mfp>0.",
+        "The exponential is an artistic light-wrap approximation, not a full volumetric transport solution."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:10",
+      "name": "Anisotropía",
+      "variables": [
+        {
+          "symbol": "T",
+          "meaning": "dirección tangente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "V,L",
+          "meaning": "direcciones vista/luz",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "α_x,α_y",
+          "meaning": "rugosidades anisotrópicas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "BRDF",
+          "meaning": "respuesta",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "La orientación anisotrópica depende del marco tangente y dos ejes de rugosidad.",
+        "Rugosidad no debe ser negativa; isotropía cuando α_x=α_y."
+      ],
+      "valid_domain": [
+        "Marco tangente válido; parámetros dentro del dominio del BRDF."
+      ],
+      "boundary_conditions": [
+        "Si α_x=α_y se reduce a modelo isotrópico.",
+        "T degenerada: fallback a marco ortogonal."
+      ],
+      "dimensional_checks": [
+        "T,V,L are unit directions; α_x and α_y are dimensionless roughness parameters.",
+        "BRDF output retains inverse-steradian convention; tangent/bitangent orientation must be consistent.",
+        "If α_x or α_y approaches zero, guard singular distributions and clamp to the model's supported range."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:11",
+      "name": "Wetness blending",
+      "variables": [
+        {
+          "symbol": "wet",
+          "meaning": "humedad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "roughDry,roughWet,roughness′",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango BRDF"
+        },
+        {
+          "symbol": "colorDry,colorWet,color′",
+          "meaning": "color",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio"
+        }
+      ],
+      "constraints": [
+        "wet adimensional; interpolar en espacio lineal y con canales compatibles.",
+        "El oscurecimiento debe ser modelo de reflectancia explícito, no multiplicador arbitrario sin rango."
+      ],
+      "valid_domain": [
+        "wet∈[0,1]; colores finitos."
+      ],
+      "boundary_conditions": [
+        "wet=0 devuelve seco; wet=1 devuelve mojado.",
+        "Valores intermedios continuos."
+      ],
+      "dimensional_checks": [
+        "wet and roughness values are dimensionless; colors share a common linear RGB space.",
+        "lerp(a,b,wet) preserves the unit/type of a and b; wet must be in [0,1].",
+        "Darkening/color shift is an artistic parameterization unless tied to measured reflectance."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:12",
+      "name": "Vertex colors",
+      "variables": [
+        {
+          "symbol": "C0,C1,C2",
+          "meaning": "colores por vértice",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "bary",
+          "meaning": "coordenadas baricéntricas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativas; suma 1"
+        },
+        {
+          "symbol": "C(p)",
+          "meaning": "color interpolado",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "combinación ponderada"
+        }
+      ],
+      "constraints": [
+        "Colores deben usar mismo espacio y codificación.",
+        "Interpolación baricéntrica requiere triángulo no degenerado."
+      ],
+      "valid_domain": [
+        "Punto dentro del triángulo o extrapolación declarada."
+      ],
+      "boundary_conditions": [
+        "En vértice, devuelve color correspondiente; en arista, interpola dos colores."
+      ],
+      "dimensional_checks": [
+        "C0,C1,C2 and C(p) are linear color vectors in the same color space; barycentric weights are dimensionless.",
+        "Barycentric coordinates satisfy b_i≥0 and Σb_i=1 inside the triangle.",
+        "Interpolated color retains the color-channel units/encoding; do not mix gamma-encoded and linear values."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:13",
+      "name": "Baking procedural",
+      "variables": [
+        {
+          "symbol": "u,v",
+          "meaning": "coordenadas de textura",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dentro de dominio UV"
+        },
+        {
+          "symbol": "P(u,v)",
+          "meaning": "punto superficial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "superficie evaluable"
+        },
+        {
+          "symbol": "shader/evaluator",
+          "meaning": "función generadora",
+          "unit": "color/atributo tipado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "determinista si baking reproducible"
+        },
+        {
+          "symbol": "texture",
+          "meaning": "texel",
+          "unit": "color o canal tipado",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "resolución finita"
+        }
+      ],
+      "constraints": [
+        "La evaluación debe muestrear la superficie y respetar espacio UV; antialiasing y filtrado deben definirse.",
+        "Baking almacena un resultado discreto; resolución limita frecuencia espacial representable."
+      ],
+      "valid_domain": [
+        "UV válidas, shader evaluable, resolución positiva."
+      ],
+      "boundary_conditions": [
+        "UV en seams deben hornearse con padding.",
+        "Texels fuera de UV válidas transparentes, repetidos o clamp según política."
+      ],
+      "dimensional_checks": [
+        "u,v are dimensionless; P(u,v) has L; evaluator output retains the declared attribute type (color, normal, height, etc.).",
+        "Texture resolution and texel indices are discrete counts; they are not world-space lengths unless mapped through texel density.",
+        "A deterministic bake must use identical coordinate, color-space and material conventions to runtime evaluation."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:14",
+      "name": "Tensor de estructura para orientación de pincelada",
+      "variables": [
+        {
+          "symbol": "σ",
+          "meaning": "escala de tensor",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "1–8 px a resolución de trabajo"
+        },
+        {
+          "symbol": "J",
+          "meaning": "tensor de estructura",
+          "unit": "gradiente²",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "simétrico 2×2"
+        },
+        {
+          "symbol": "coherence",
+          "meaning": "coherencia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "radius",
+          "meaning": "radio de ventana",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "3–12 px"
+        },
+        {
+          "symbol": "I_x,I_y",
+          "meaning": "derivadas de luminancia por píxel",
+          "unit": "luminance/px",
+          "dimension": "intensity per raster step; px is a discrete image-space unit",
+          "domain": "finite; same linear luminance encoding"
+        },
+        {
+          "symbol": "λ_1,λ_2",
+          "meaning": "autovalores del tensor",
+          "unit": "luminance²/px²",
+          "dimension": "squared luminance per squared pixel step",
+          "domain": "nonnegative up to numerical error"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "regularización de coherencia",
+          "unit": "same as λ_1+λ_2",
+          "dimension": "luminance²/px²",
+          "domain": "ε>0"
+        }
+      ],
+      "constraints": [
+        "J=Gσ*[[I_x²,I_xI_y],[I_xI_y,I_y²]]; sus autovalores tienen las mismas unidades que sus entradas.",
+        "coherence=(λ1−λ2)/(λ1+λ2+ε) exige ε con la misma unidad que los autovalores; en RGB lineal normalizado es luminance²/px²."
+      ],
+      "valid_domain": [
+        "Imagen con dimensiones positivas; parámetros dentro de rangos registrados."
+      ],
+      "boundary_conditions": [
+        "Bordes de imagen requieren padding/reflexión/clamp declarado.",
+        "Gradiente nulo produce orientación indefinida; usar orientación neutra estable."
+      ],
+      "dimensional_checks": [
+        "I_x,I_y tienen luminance/px; J y λ_i tienen luminance²/px².",
+        "θ es angular; coherence es adimensional solo si ε comparte unidades con λ1+λ2."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:15",
+      "name": "Kuwahara anisotrópico multiescala",
+      "variables": [
+        {
+          "symbol": "r_k",
+          "meaning": "radio kernel",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "2–12 px"
+        },
+        {
+          "symbol": "n_sec",
+          "meaning": "sectores",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "4–8"
+        },
+        {
+          "symbol": "n_scale",
+          "meaning": "escalas",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "2–4"
+        },
+        {
+          "symbol": "I",
+          "meaning": "imagen",
+          "unit": "RGB",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "resolución finita"
+        },
+        {
+          "symbol": "I′",
+          "meaning": "imagen filtrada",
+          "unit": "RGB",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "μ_k",
+          "meaning": "media de color por sector",
+          "unit": "linear RGB dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "same color space"
+        },
+        {
+          "symbol": "σ²_k",
+          "meaning": "varianza de color por sector",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "nonnegative"
+        },
+        {
+          "symbol": "σ²_0",
+          "meaning": "escala de referencia para normalizar varianza",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "σ²_0>0"
+        },
+        {
+          "symbol": "w_k",
+          "meaning": "peso adimensional normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "w_k≥0; Σw_k>0"
+        }
+      ],
+      "constraints": [
+        "La función de peso debe recibir varianza normalizada σ²_k/σ²_0 para que su argumento sea adimensional.",
+        "w_k=f(σ²_k/σ²_0) y C_out=Σw_kμ_k/Σw_k; todos los sectores usan el mismo espacio de color lineal."
+      ],
+      "valid_domain": [
+        "Imagen no vacía; parámetros dentro de rangos; sectores enteros."
+      ],
+      "boundary_conditions": [
+        "En borde usar extensión de imagen explícita.",
+        "Si coherencia cero, caer a filtro isotrópico."
+      ],
+      "dimensional_checks": [
+        "μ_k y C_out son colores lineales adimensionales; σ²_k y σ²_0 son adimensionales.",
+        "El cociente de varianzas y w_k son adimensionales; la mezcla conserva unidad de color."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D08:16",
+      "name": "Relieve de impasto derivado de pinceladas",
+      "variables": [
+        {
+          "symbol": "stroke_width",
+          "meaning": "ancho de pincelada",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "1–20 px equivalente"
+        },
+        {
+          "symbol": "height_amp",
+          "meaning": "amplitud de relieve",
+          "unit": "normalizada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0–1"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0.5–1"
+        },
+        {
+          "symbol": "h(u,v)",
+          "meaning": "altura derivada",
+          "unit": "m o unidad de relieve declarada",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "campo finito"
+        },
+        {
+          "symbol": "H0",
+          "meaning": "escala física del relieve",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "H0≥0; height_amp·H0 gives height in meters"
+        },
+        {
+          "symbol": "d_i,stroke_width",
+          "meaning": "distancia al trazo y ancho en espacio raster",
+          "unit": "px",
+          "dimension": "discrete image-space units",
+          "domain": "finite; stroke_width>0"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "amplitud física por trazo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "a_i=height_amp_i·H0"
+        },
+        {
+          "symbol": "φ_i",
+          "meaning": "perfil de sección del trazo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "bounded profile"
+        },
+        {
+          "symbol": "ρ_px",
+          "meaning": "densidad de píxeles sobre superficie",
+          "unit": "px/m",
+          "dimension": "pixel steps per physical length",
+          "domain": "positive local surface mapping"
+        }
+      ],
+      "constraints": [
+        "d_i y stroke_width se miden en píxeles; φ_i recibe d_i/stroke_width, argumento adimensional.",
+        "a_i=height_amp_i·H0 tiene m; h=Σa_iφ_i tiene m.",
+        "∂h/∂px tiene m/px; multiplicar por ρ_px (px/m) convierte a gradiente superficial adimensional antes de perturbar N."
+      ],
+      "valid_domain": [
+        "Pinceladas definidas y campos acotados."
+      ],
+      "boundary_conditions": [
+        "height_amp=0 elimina relieve.",
+        "En bordes de trazo, suavizar o definir discontinuidad deliberada."
+      ],
+      "dimensional_checks": [
+        "a_i y h tienen m; φ_i es adimensional; d_i/stroke_width es adimensional.",
+        "(∂h/∂px)·ρ_px tiene (m/px)(px/m)=1; N′ es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "17/17 técnicas incluidas; ninguna protegida",
+      "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Aclaradas derivadas de altura respecto a UV, unidades de píxel y escala física del impasto",
+      "D08:14 tipa gradientes, autovalores y regularización del tensor",
+      "D08:15 normaliza varianzas antes de construir pesos adimensionales",
+      "D08:16 convierte gradiente de altura raster a gradiente físico mediante densidad px/m"
+    ],
+    "limitations": [
+      "Las expresiones BRDF y filtros NPR conservan aproximaciones de la ficha; la validación dimensional no sustituye la derivación de los modelos completos."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

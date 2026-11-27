@@ -1,0 +1,1123 @@
+{
+  "title": "Auditoría dimensional punto 1 — D27 Multitudes, navegación y comportamiento",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D27",
+    "domain": "Multitudes, navegación y comportamiento",
+    "record_count": 13,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D27 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "cost": "Costes de navegación deben declarar si son distancia, tiempo o coste abstracto.",
+    "agent": "Posición L, velocidad L/T, aceleración L/T².",
+    "screen": "Píxel es unidad raster; no se equipara a longitud física."
+  },
+  "records": [
+    {
+      "record_key": "D27:0",
+      "name": "A* pathfinding",
+      "variables": [
+        {
+          "symbol": "g(n)",
+          "meaning": "coste acumulado",
+          "unit": "unidad de coste",
+          "dimension": "tipado por métrica",
+          "domain": "finito"
+        },
+        {
+          "symbol": "h(n)",
+          "meaning": "heurística",
+          "unit": "misma unidad que g",
+          "dimension": "igual a coste",
+          "domain": "admisible según objetivo"
+        },
+        {
+          "symbol": "f(n)",
+          "meaning": "coste estimado",
+          "unit": "misma unidad que g",
+          "dimension": "igual a coste",
+          "domain": "finito"
+        },
+        {
+          "symbol": "n",
+          "meaning": "nodo",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "grafo finito"
+        }
+      ],
+      "constraints": [
+        "g y h deben compartir unidad y definición de coste; si coste es distancia, usar L; si tiempo, T.",
+        "La heurística admisible/consistente debe ser compatible con las aristas."
+      ],
+      "valid_domain": [
+        "Grafo finito; costes no negativos; objetivo definido."
+      ],
+      "boundary_conditions": [
+        "Inicio=objetivo produce ruta vacía/coste cero.",
+        "Nodos no alcanzables devuelven sin ruta."
+      ],
+      "dimensional_checks": [
+        "f=g+h solo es válido si ambas magnitudes tienen misma dimensión.",
+        "n es índice discreto."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:1",
+      "name": "Dijkstra",
+      "variables": [
+        {
+          "symbol": "dist(v)",
+          "meaning": "distancia/coste acumulado",
+          "unit": "unidad de coste",
+          "dimension": "tipado por métrica",
+          "domain": "finito"
+        },
+        {
+          "symbol": "cost(u,v)",
+          "meaning": "coste de arista",
+          "unit": "misma unidad que dist",
+          "dimension": "igual a dist",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "u,v",
+          "meaning": "nodos",
+          "unit": "índices",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "grafo finito"
+        }
+      ],
+      "constraints": [
+        "dist(u)+cost(u,v) requiere misma unidad de coste.",
+        "Dijkstra requiere pesos no negativos."
+      ],
+      "valid_domain": [
+        "Grafo finito; aristas con costes no negativos."
+      ],
+      "boundary_conditions": [
+        "Nodo origen tiene dist=0.",
+        "Nodo inalcanzable conserva infinito/sin ruta como estado especial."
+      ],
+      "dimensional_checks": [
+        "La suma de costes conserva dimensión declarada.",
+        "Índices no son magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:2",
+      "name": "Flow fields",
+      "variables": [
+        {
+          "symbol": "C",
+          "meaning": "campo de coste",
+          "unit": "unidad de coste",
+          "dimension": "tipado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "∇C",
+          "meaning": "gradiente",
+          "unit": "unidad de coste por m",
+          "dimension": "derivada espacial",
+          "domain": "finito"
+        },
+        {
+          "symbol": "d",
+          "meaning": "dirección elegida",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "p",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Direcciones candidatas comparadas usando gradiente y métrica coherente.",
+        "Si el campo es coste adimensional, gradiente tiene m⁻¹; no interpretarlo directamente como velocidad."
+      ],
+      "valid_domain": [
+        "Campo definido; rejilla y escala espacial positivas."
+      ],
+      "boundary_conditions": [
+        "En mínimo local sin salida, detener o aplicar escape determinista.",
+        "En celdas no transitables, marcar dirección inválida."
+      ],
+      "dimensional_checks": [
+        "∇C tiene unidad C/L; dirección es adimensional.",
+        "La trayectoria p permanece en L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:3",
+      "name": "Social force model",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "masa de agente",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m>0"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "F_goal,F_agent,F_obstacle",
+          "meaning": "fuerzas",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "τ",
+          "meaning": "tiempo de relajación",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "τ>0"
+        }
+      ],
+      "constraints": [
+        "Todos los términos de fuerza deben tener N; fuerza de relajación m(v_des−v)/τ tiene N.",
+        "Distancias y radios de interacción tienen L; potenciales deben derivarse a fuerza."
+      ],
+      "valid_domain": [
+        "Masas y τ positivos; agentes/obstáculos finitos."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos/obstáculos, sus fuerzas son cero.",
+        "Solapamiento geométrico requiere normal de separación de respaldo."
+      ],
+      "dimensional_checks": [
+        "m·Δv/τ tiene N; suma de fuerzas homogénea.",
+        "Posiciones L, velocidades L/T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:4",
+      "name": "ORCA",
+      "variables": [
+        {
+          "symbol": "v_i",
+          "meaning": "velocidad actual",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "v_safe",
+          "meaning": "velocidad elegida",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "τ",
+          "meaning": "horizonte temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "τ>0"
+        },
+        {
+          "symbol": "p_i",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "r_i",
+          "meaning": "radio agente",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_i≥0"
+        }
+      ],
+      "constraints": [
+        "Half-planes deben estar construidos en espacio de velocidades con unidades L/T.",
+        "Desplazamiento de colisión previsto vτ tiene L; horizontes y radios deben compartir unidades temporales/espaciales."
+      ],
+      "valid_domain": [
+        "τ>0; radios no negativos; vecinos finitos."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos, v_safe=v_preferred.",
+        "Conjunto factible vacío requiere fallback seguro declarado."
+      ],
+      "dimensional_checks": [
+        "vτ y radios tienen L; velocidades L/T.",
+        "Los semiplanos y normales deben mantener escalas compatibles."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:5",
+      "name": "Boids separation",
+      "variables": [
+        {
+          "symbol": "p_i,p_j",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "r_ij",
+          "meaning": "distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_ij>0"
+        },
+        {
+          "symbol": "S_i",
+          "meaning": "suma de separación",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración tras escalar",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "k_s",
+          "meaning": "Ganancia que convierte separación en aceleración",
+          "unit": "m²/s²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y calibrada"
+        }
+      ],
+      "constraints": [
+        "S_i=−Σ(p_j−p_i)/|p_j−p_i|² tiene m⁻¹; k_s debe tener m²/s² para producir aceleración.",
+        "No sumar S_i directamente con aceleraciones; convertir mediante ganancia dimensional."
+      ],
+      "valid_domain": [
+        "Radio de vecindad positivo; distancias no nulas o singularidad tratada."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos, S_i=0.",
+        "Distancia→0 requiere saturación/regularización con escala L declarada."
+      ],
+      "dimensional_checks": [
+        "S_i tiene L⁻¹; ganancia convierte a aceleración L/T².",
+        "No sumar directamente S_i a velocidad o posición."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:6",
+      "name": "Boids alignment",
+      "variables": [
+        {
+          "symbol": "v_i",
+          "meaning": "velocidad agente",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "mean(v_neighbors)",
+          "meaning": "velocidad media",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "diferencia velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración de steering",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "k_a",
+          "meaning": "Ganancia que convierte diferencia de velocidad en aceleración",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y calibrada"
+        }
+      ],
+      "constraints": [
+        "A_i=mean(v_neighbors)−v_i tiene L/T; requiere ganancia temporal T⁻¹ para convertirse en aceleración.",
+        "Velocidades deben compartir marco y unidad."
+      ],
+      "valid_domain": [
+        "Vecinos definidos; velocidades finitas."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos, A_i=0.",
+        "Velocidades máximas se limitan después de actualización."
+      ],
+      "dimensional_checks": [
+        "A_i tiene L/T; gain con T⁻¹ produce L/T².",
+        "La media conserva unidad de velocidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:7",
+      "name": "Boids cohesion",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "posición agente",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "mean(p_neighbors)",
+          "meaning": "centroide vecinos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "C_i",
+          "meaning": "vector hacia centro",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "k_c",
+          "meaning": "Ganancia que convierte vector de cohesión en aceleración",
+          "unit": "s⁻²",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y calibrada"
+        }
+      ],
+      "constraints": [
+        "C_i=mean(p_neighbors)−p_i tiene L; requiere ganancia con T⁻² para convertirse en aceleración.",
+        "Centroide solo se calcula con vecinos válidos."
+      ],
+      "valid_domain": [
+        "Población finita; posiciones finitas."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos, C_i=0.",
+        "Centroide fuera de bounds debe tratarse según mundo abierto/cerrado."
+      ],
+      "dimensional_checks": [
+        "C_i tiene L; gain T⁻² produce L/T².",
+        "No sumar directamente C_i con velocidades sin escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:8",
+      "name": "Agent state machine",
+      "variables": [
+        {
+          "symbol": "state",
+          "meaning": "estado actual/siguiente",
+          "unit": "enum discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "conjunto finito"
+        },
+        {
+          "symbol": "conditions",
+          "meaning": "condiciones",
+          "unit": "booleanos/valores tipados",
+          "dimension": "por condición",
+          "domain": "definidas"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo opcional",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "priority",
+          "meaning": "prioridad",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "orden definido"
+        }
+      ],
+      "constraints": [
+        "Transiciones deben tener guardas tipadas y prioridad determinista.",
+        "Estados discretos no se suman ni interpolan como magnitudes físicas."
+      ],
+      "valid_domain": [
+        "Máquina finita; todas las transiciones referencian estados existentes."
+      ],
+      "boundary_conditions": [
+        "Estado sin transición conserva estado o pasa a fallback explícito.",
+        "Guardas simultáneas resueltas por prioridad."
+      ],
+      "dimensional_checks": [
+        "state y priority son discretos; cada condición conserva su tipo.",
+        "Tiempo de transición, si existe, tiene T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:9",
+      "name": "Utility AI",
+      "variables": [
+        {
+          "symbol": "feature_k",
+          "meaning": "característica",
+          "unit": "1 normalizada",
+          "dimension": "adimensional",
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "w_k",
+          "meaning": "peso",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "score",
+          "meaning": "puntuación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "action",
+          "meaning": "acción",
+          "unit": "categoría discreta",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "conjunto finito"
+        }
+      ],
+      "constraints": [
+        "Suma Σw_k feature_k requiere features y pesos normalizados/adimensionales.",
+        "Features de magnitudes físicas deben normalizarse antes de combinarlas."
+      ],
+      "valid_domain": [
+        "Features finitas; pesos y acciones definidos."
+      ],
+      "boundary_conditions": [
+        "Todas las acciones inválidas producen fallback.",
+        "Empate de score requiere desempate determinista."
+      ],
+      "dimensional_checks": [
+        "Score es adimensional; feature y peso también.",
+        "No interpretar score como probabilidad sin normalización probabilística."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:10",
+      "name": "Crowd LOD",
+      "variables": [
+        {
+          "symbol": "screenSize",
+          "meaning": "tamaño proyectado",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "distance",
+          "meaning": "distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "importance",
+          "meaning": "prioridad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "detail",
+          "meaning": "nivel de detalle",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango finito"
+        }
+      ],
+      "constraints": [
+        "screenSize y distance no se comparan directamente; tamaño proyectado requiere cámara/proyección.",
+        "Importance debe normalizarse y reglas de LOD tener umbrales estables."
+      ],
+      "valid_domain": [
+        "Cámara válida; distancias y proyección finitas."
+      ],
+      "boundary_conditions": [
+        "Agente fuera de pantalla puede usar LOD mínimo/culled.",
+        "Cruces de umbral usan histéresis para evitar popping."
+      ],
+      "dimensional_checks": [
+        "screenSize está en px; distance en L; importance adimensional; detail discreto.",
+        "No sumar px con metros."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:11",
+      "name": "Campos vectoriales para trayectorias y partículas",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "estado/posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "V(x,t)",
+          "meaning": "campo velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "continuo y finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "paso",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt>0"
+        }
+      ],
+      "constraints": [
+        "dx/dt=V requiere V con L/T; Euler ΔtV tiene L.",
+        "RK4 pendientes deben compartir unidad de estado/T."
+      ],
+      "valid_domain": [
+        "Campo definido y suficientemente regular; paso temporal positivo."
+      ],
+      "boundary_conditions": [
+        "Δt=0 no avanza estado.",
+        "Fuera del dominio del campo, condición de borde/fallback explícita."
+      ],
+      "dimensional_checks": [
+        "ΔtV tiene L y se suma a x.",
+        "Todas las pendientes RK4 tienen L/T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D27:12",
+      "name": "Boids con separación, alineación y cohesión",
+      "variables": [
+        {
+          "symbol": "S_i",
+          "meaning": "Separación",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "Alineación (diferencia de velocidades)",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "C_i",
+          "meaning": "Cohesión (diferencia de posiciones)",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_s",
+          "meaning": "Ganancia de separación",
+          "unit": "m²/s²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_a",
+          "meaning": "Ganancia de alineación",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_c",
+          "meaning": "Ganancia de cohesión",
+          "unit": "s⁻²",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "Aceleración resultante",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        }
+      ],
+      "constraints": [
+        "La suma declarada w_sS_i+w_aA_i+w_cC_i requiere que cada término tenga aceleración L/T².",
+        "Fijar w_s [L²/T²], w_a [T⁻¹] y w_c [T⁻²]; pesos adimensionales no corrigen incompatibilidades dimensionales.",
+        "Si la salida se define como velocidad en vez de aceleración, recalcular las unidades de las tres ganancias."
+      ],
+      "valid_domain": [
+        "Vecindarios y estados finitos; ganancias de conversión declaradas.",
+        "Convención cerrada: la suma devuelve aceleración en m/s²; no reutilizar estos pesos para una salida de velocidad."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos, los tres términos son cero.",
+        "Distancia nula requiere regularización con escala L.",
+        "Ganancias cero eliminan el componente correspondiente; aceleración final se limita según el modelo de movimiento."
+      ],
+      "dimensional_checks": [
+        "S_i tiene L⁻¹; A_i tiene L/T; C_i tiene L.",
+        "w_s·S_i, w_a·A_i y w_c·C_i tienen cada uno L/T²; la suma produce a_i en m/s²."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "13/13 técnicas incluidas; ninguna protegida",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Se eliminaron definiciones duplicadas/contradictorias de pesos Boids y se añadieron ganancias dimensionales individuales para separación, alineación y cohesión"
+    ],
+    "limitations": [
+      "Las ganancias deben calibrarse numéricamente; la auditoría dimensional no determina sus valores óptimos ni garantiza comportamiento emergente estable."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

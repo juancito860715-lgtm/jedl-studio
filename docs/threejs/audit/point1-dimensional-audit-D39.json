@@ -1,0 +1,994 @@
+{
+  "title": "Auditoría dimensional punto 1 — D39 Iluminación, atmósfera y transporte radiativo",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D39",
+    "domain": "Iluminación, atmósfera y transporte radiativo",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D39 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "radiometry": "Radiancia W·m⁻²·sr⁻¹; irradiancia W·m⁻²; extinción m⁻¹.",
+    "angles": "Funciones de fase y PDFs conservan sr⁻¹; fase normalizada integra a 1.",
+    "atmosphere": "Densidad normalizada requiere coeficiente de extinción con unidad compatible."
+  },
+  "records": [
+    {
+      "record_key": "D39:0",
+      "name": "Radiative transfer equation",
+      "variables": [
+        {
+          "symbol": "L",
+          "meaning": "radiancia",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": "radiancia",
+          "domain": "finita"
+        },
+        {
+          "symbol": "σ_t,σ_s",
+          "meaning": "extinción/dispersión",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "σ_t≥σ_s≥0"
+        },
+        {
+          "symbol": "p",
+          "meaning": "función de fase",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular",
+          "domain": "normalizada"
+        },
+        {
+          "symbol": "Q",
+          "meaning": "fuente por longitud",
+          "unit": "radiancia/m",
+          "dimension": "radiancia·L⁻¹",
+          "domain": "finita"
+        },
+        {
+          "symbol": "s",
+          "meaning": "distancia de recorrido",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "dL/ds y σ_tL deben tener radiancia por metro; término de scattering σ_s∫pL dω también.",
+        "p se normaliza sobre sólido angular; Q declara si incluye emisión o fuente externa."
+      ],
+      "valid_domain": [
+        "Coeficientes no negativos; radiancia finita; medio y banda espectral definidos."
+      ],
+      "boundary_conditions": [
+        "σ_t=0 elimina extinción; σ_s=0 elimina scattering; recorrido cero conserva radiancia de entrada."
+      ],
+      "dimensional_checks": [
+        "dL/ds tiene W·m⁻³·sr⁻¹; σ_tL tiene igual unidad.",
+        "p[sr⁻¹]dω[sr] es adimensional; σ_s·integral tiene radiancia/m."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:1",
+      "name": "Henyey–Greenstein phase function",
+      "variables": [
+        {
+          "symbol": "g",
+          "meaning": "anisotropía",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "−1<g<1"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "ángulo dispersión",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,π]"
+        },
+        {
+          "symbol": "p(cosθ)",
+          "meaning": "fase angular",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular",
+          "domain": "normalizada"
+        }
+      ],
+      "constraints": [
+        "g es adimensional; cosθ es adimensional; p se normaliza a integral unitaria sobre 4π.",
+        "Convención de dirección incidente/saliente debe mantenerse en todos los shaders."
+      ],
+      "valid_domain": [
+        "−1<g<1; ángulo finito."
+      ],
+      "boundary_conditions": [
+        "g=0 produce fase isotrópica; g→±1 es límite concentrado y requiere tratamiento."
+      ],
+      "dimensional_checks": [
+        "p tiene sr⁻¹; integral p dω es adimensional e igual a 1.",
+        "g y cosθ son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:2",
+      "name": "Rayleigh scattering",
+      "variables": [
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "β_R",
+          "meaning": "coeficiente dispersión",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "N_m",
+          "meaning": "densidad molecular",
+          "unit": "m⁻³",
+          "dimension": {
+            "L": -3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "I",
+          "meaning": "intensidad/radiancia",
+          "unit": "unidad radiométrica declarada",
+          "dimension": "tipada",
+          "domain": "finita"
+        },
+        {
+          "symbol": "C_R",
+          "meaning": "Constante espectral molecular en σ_R=C_R/λ⁴",
+          "unit": "m⁶",
+          "dimension": {
+            "L": 6,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "depende de polarizabilidad/índice y convención espectral"
+        },
+        {
+          "symbol": "σ_R",
+          "meaning": "Sección eficaz Rayleigh por molécula",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "σ_R=C_R/λ⁴"
+        }
+      ],
+      "constraints": [
+        "σ_R=C_R/λ⁴: C_R debe tener m⁶ para que σ_R tenga m².",
+        "β_R=N_m·σ_R: N_m tiene m⁻³ y σ_R m², por lo que β_R tiene m⁻¹.",
+        "No combinar densidad molecular y coeficiente proporcional sin declarar la constante que aporta las dimensiones faltantes."
+      ],
+      "valid_domain": [
+        "λ>0; densidad no negativa; banda espectral definida."
+      ],
+      "boundary_conditions": [
+        "Densidad cero produce β_R=0; λ fuera del rango modelado requiere parámetros espectrales válidos."
+      ],
+      "dimensional_checks": [
+        "C_R/λ⁴ tiene m⁶/m⁴=m²; sección eficaz σ_R tiene m².",
+        "N_m·σ_R tiene m⁻³·m²=m⁻¹; β_R·d es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:3",
+      "name": "Mie scattering",
+      "variables": [
+        {
+          "symbol": "r_p",
+          "meaning": "radio de partícula",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "n",
+          "meaning": "índice refractivo relativo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "β_M",
+          "meaning": "coeficiente extinción/dispersión",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "g",
+          "meaning": "anisotropía",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "−1<g<1"
+        }
+      ],
+      "constraints": [
+        "Parámetro de tamaño 2πr_p/λ es adimensional; coeficientes espectrales dependen de distribución de tamaños e índice.",
+        "Aproximaciones de fase deben normalizarse en sólido angular."
+      ],
+      "valid_domain": [
+        "r_p>0; λ>0; índices finitos; distribución declarada."
+      ],
+      "boundary_conditions": [
+        "Concentración nula produce β_M=0; r_p→0 cambia de régimen y no se extrapola sin modelo."
+      ],
+      "dimensional_checks": [
+        "r_p/λ es adimensional; β_M tiene L⁻¹.",
+        "La fase tiene sr⁻¹ y su integral angular es 1."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:4",
+      "name": "Volumetric cloud density",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ρ(x)",
+          "meaning": "densidad normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o rango declarado"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "amplitudes ruido",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "f_i",
+          "meaning": "frecuencias espaciales",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "threshold_i",
+          "meaning": "umbrales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        }
+      ],
+      "constraints": [
+        "Argumentos f_i x son adimensionales; amplitudes y densidad usan misma escala normalizada.",
+        "Si ρ representa densidad física, debe asignarse unidad y ajustar σ_t."
+      ],
+      "valid_domain": [
+        "Posición y parámetros finitos; ruido definido; densidad no negativa."
+      ],
+      "boundary_conditions": [
+        "Amplitudes cero eliminan el detalle correspondiente; densidad cero deja medio vacío."
+      ],
+      "dimensional_checks": [
+        "f_i[L⁻¹]·x[L] es adimensional; ρ es adimensional en variante normalizada.",
+        "σ_tρ·ds debe ser adimensional si se usa en extinción."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:5",
+      "name": "Cloud self-shadowing",
+      "variables": [
+        {
+          "symbol": "σ_t",
+          "meaning": "extinción efectiva",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "ρ",
+          "meaning": "densidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        },
+        {
+          "symbol": "ds",
+          "meaning": "paso de rayo solar",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "T_light",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "N_steps",
+          "meaning": "pasos",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "σ_tρ ds debe ser adimensional; paso y coeficiente usan la misma unidad espacial.",
+        "La acumulación debe usar misma densidad y escala que raymarch de vista."
+      ],
+      "valid_domain": [
+        "σ_t≥0; ds≥0; pasos finitos."
+      ],
+      "boundary_conditions": [
+        "σ_t=0 o ρ=0 da T_light=1; sin pasos no hay atenuación calculada."
+      ],
+      "dimensional_checks": [
+        "σ_t[L⁻¹]·ds[L] es adimensional; T_light es adimensional.",
+        "N_steps es conteo discreto."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:6",
+      "name": "Multiple importance sampling for environment",
+      "variables": [
+        {
+          "symbol": "p_1,p_2",
+          "meaning": "PDF estrategias",
+          "unit": "sr⁻¹",
+          "dimension": "densidades angulares",
+          "domain": "no negativas"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "peso MIS",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "n_i",
+          "meaning": "muestras",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "dirección",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        }
+      ],
+      "constraints": [
+        "PDF de BSDF y entorno deben convertirse a la misma medida angular antes de combinarlas.",
+        "Pesos se normalizan y heuristic se declara."
+      ],
+      "valid_domain": [
+        "PDF finitas; suma de estrategias positiva."
+      ],
+      "boundary_conditions": [
+        "Una PDF cero da peso cero; ambas cero invalidan muestra."
+      ],
+      "dimensional_checks": [
+        "p_i²/Σp_j² es adimensional si PDFs usan misma medida.",
+        "n_i es conteo discreto."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:7",
+      "name": "Temporal accumulation",
+      "variables": [
+        {
+          "symbol": "C_current,C_history",
+          "meaning": "colores",
+          "unit": "señal RGB",
+          "dimension": "adimensional si relativo",
+          "domain": "mismo espacio"
+        },
+        {
+          "symbol": "α",
+          "meaning": "peso actual",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "motion",
+          "meaning": "vector movimiento",
+          "unit": "px o UV",
+          "dimension": "raster o adimensional",
+          "domain": "finito"
+        },
+        {
+          "symbol": "depth",
+          "meaning": "profundidad",
+          "unit": "m o normalizada",
+          "dimension": "tipada",
+          "domain": "válida"
+        },
+        {
+          "symbol": "C_t",
+          "meaning": "salida",
+          "unit": "misma unidad que C",
+          "dimension": "igual",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Current/history deben compartir viewport, espacio de color y exposición; reproyección usa depth y motion coherentes.",
+        "Rechazo de historia por disocclusion debe ser explícito."
+      ],
+      "valid_domain": [
+        "Buffers válidos; α∈[0,1]; matrices finitas."
+      ],
+      "boundary_conditions": [
+        "α=1 usa solo actual; α=0 usa historia válida; primer frame carece de historia."
+      ],
+      "dimensional_checks": [
+        "α adimensional; mezcla conserva unidad de color.",
+        "motion y depth conservan sus tipos raster/espaciales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:8",
+      "name": "Shadow mapping",
+      "variables": [
+        {
+          "symbol": "z_receiver,z_map",
+          "meaning": "profundidades",
+          "unit": "m o normalizadas",
+          "dimension": "según depth convention",
+          "domain": "mismo espacio"
+        },
+        {
+          "symbol": "bias",
+          "meaning": "sesgo profundidad",
+          "unit": "misma unidad que z",
+          "dimension": "igual",
+          "domain": "finito"
+        },
+        {
+          "symbol": "u,v",
+          "meaning": "coordenadas mapa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "resolution",
+          "meaning": "resolución",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "entero positivo"
+        }
+      ],
+      "constraints": [
+        "Profundidades receptor y mapa deben usar misma proyección, near/far y codificación.",
+        "Bias se expresa en misma unidad/escala que profundidad; filtros operan en píxeles."
+      ],
+      "valid_domain": [
+        "Mapa y resolución válidos; profundidades comparables."
+      ],
+      "boundary_conditions": [
+        "Bias cero compara directamente; coordenadas fuera del mapa activan política de borde."
+      ],
+      "dimensional_checks": [
+        "z y bias comparten dimensión/unidad; UV adimensionales.",
+        "Resolution es raster discreto."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:9",
+      "name": "Cascaded shadow maps",
+      "variables": [
+        {
+          "symbol": "split_i",
+          "meaning": "distancias de corte",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ordenadas"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "mezcla log/uniforme",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "N_c",
+          "meaning": "número de cascadas",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "resolution",
+          "meaning": "resolución mapa",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "entero positivo"
+        }
+      ],
+      "constraints": [
+        "Splits logarítmicos y uniformes se calculan con near/far en misma unidad; λ es adimensional.",
+        "Cada cascada debe cubrir intervalo sin huecos ni solapamientos no previstos."
+      ],
+      "valid_domain": [
+        "Far>near>0; N_c≥1; λ∈[0,1]."
+      ],
+      "boundary_conditions": [
+        "λ=0 usa splits uniformes; λ=1 usa logarítmicos; cascada fuera de rango usa fallback."
+      ],
+      "dimensional_checks": [
+        "split_i tiene L; λ adimensional; resolución px.",
+        "Interpolación de splits conserva L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:10",
+      "name": "Global illumination probe interpolation",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "posición consulta",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "pesos probes",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos y suma 1"
+        },
+        {
+          "symbol": "c_lm",
+          "meaning": "coeficientes irradiancia",
+          "unit": "W·m⁻²",
+          "dimension": "irradiancia",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "Y_lm",
+          "meaning": "armónicos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        },
+        {
+          "symbol": "E",
+          "meaning": "irradiancia reconstruida",
+          "unit": "W·m⁻²",
+          "dimension": "igual a coeficientes",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Probes y consulta usan mismo marco; pesos espaciales se normalizan.",
+        "Coeficientes SH deben compartir convención/orden y representar irradiancia, no radiancia."
+      ],
+      "valid_domain": [
+        "Probes válidos; pesos finitos; posición dentro de volumen o fallback."
+      ],
+      "boundary_conditions": [
+        "Un peso 1 reproduce probe; sin probes se usa fallback declarado."
+      ],
+      "dimensional_checks": [
+        "w_i e Y_lm son adimensionales; E conserva W·m⁻².",
+        "x tiene L y solo afecta selección/peso."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D39:11",
+      "name": "Fresnel Schlick y reflectancia angular",
+      "variables": [
+        {
+          "symbol": "F0",
+          "meaning": "reflectancia frontal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "cosθ",
+          "meaning": "coseno de vista",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F",
+          "meaning": "reflectancia angular",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "N,V",
+          "meaning": "normal y vista",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarios"
+        }
+      ],
+      "constraints": [
+        "Potencia (1−cosθ)^5 es adimensional; F0 y F son fracciones de energía.",
+        "Fresnel Schlick es aproximación para dieléctricos y materiales parametrizados; no sustituye espectro complejo de metales."
+      ],
+      "valid_domain": [
+        "F0 en [0,1]; direcciones unitarias."
+      ],
+      "boundary_conditions": [
+        "cosθ=1 da F=F0; cosθ=0 da F=1."
+      ],
+      "dimensional_checks": [
+        "F0, cosθ y F son adimensionales.",
+        "La reflectancia no tiene unidad de radiancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "12/12 técnicas incluidas; ninguna protegida",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Rayleigh separa sección eficaz molecular m² y densidad molecular m⁻³ para obtener coeficiente m⁻¹"
+    ],
+    "limitations": [
+      "La dispersión Rayleigh/Mie requiere parámetros espectrales y de material; las aproximaciones RGB no equivalen a transporte espectral completo."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

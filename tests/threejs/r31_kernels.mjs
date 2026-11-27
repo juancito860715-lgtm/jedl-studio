@@ -4,6 +4,23 @@ export function quantizedTime(t, sampleRate) {
   if (!(sampleRate > 0)) throw new RangeError("sampleRate must be > 0");
   return Math.floor(t * sampleRate) / sampleRate;
 }
+export function evaluateQuantizedChannel(keys,t,sampleRate,mode="hold") {
+  if(!Array.isArray(keys)||keys.length===0||keys.some(k=>!Array.isArray(k)||k.length!==2||!Number.isFinite(k[0])||!Number.isFinite(k[1])))
+    throw new RangeError("keys must be nonempty finite [time,value] pairs");
+  if(keys.some((k,i)=>i>0&&k[0]<=keys[i-1][0]))throw new RangeError("key times must be strictly increasing");
+  if(mode!=="hold"&&mode!=="linear")throw new RangeError("mode must be hold or linear");
+  const tq=quantizedTime(t,sampleRate);
+  if(tq<=keys[0][0])return keys[0][1];
+  for(let i=1;i<keys.length;i++){
+    if(tq<keys[i][0]){
+      const [t0,v0]=keys[i-1],[t1,v1]=keys[i];
+      if(mode==="hold")return v0;
+      const u=(tq-t0)/(t1-t0);
+      return v0+(v1-v0)*u;
+    }
+  }
+  return keys[keys.length-1][1];
+}
 export function smoothMin(a,b,k) {
   if (k < 0) throw new RangeError("k must be >= 0");
   if (k === 0) return Math.min(a,b);
@@ -39,6 +56,16 @@ export function spatialCell(position,origin,cellSize) {
 }
 export function structureTensorOrientation(jxx,jxy,jyy) {
   return 0.5*Math.atan2(2*jxy,jxx-jyy);
+}
+export function structureTensorFeatures(jxx,jxy,jyy,epsilon=1e-12) {
+  if([jxx,jxy,jyy,epsilon].some(v=>!Number.isFinite(v))||epsilon<=0)throw new RangeError("finite tensor entries and positive epsilon required");
+  if(jxx<0||jyy<0||jxx*jyy-jxy*jxy < -1e-10)throw new RangeError("structure tensor must be positive semidefinite");
+  const trace=jxx+jyy,gap=Math.hypot(jxx-jyy,2*jxy);
+  const lmax=Math.max(0,(trace+gap)/2),lmin=Math.max(0,(trace-gap)/2);
+  const grad=gap<=1e-15?0:.5*Math.atan2(2*jxy,jxx-jyy);
+  const tangent=(grad+Math.PI/2)%Math.PI;
+  const coherence=(lmax-lmin)/(lmax+lmin+epsilon);
+  return [lmax,lmin,grad,tangent,coherence];
 }
 export function dualQuaternionNormalize(qr,qd) {
   const norm=Math.hypot(...qr);
@@ -85,6 +112,35 @@ export function ggxNdf(cosTheta,alpha) {
   if(!(alpha>0)) throw new RangeError("alpha must be positive");
   const c=Math.min(1,Math.max(0,cosTheta)),a2=alpha*alpha,denom=c*c*(a2-1)+1;
   return a2/(Math.PI*denom*denom);
+}
+export function hairGgxNdf(dotHM,beta) {
+  if(!(beta>0&&beta<=1)||!Number.isFinite(dotHM)) throw new RangeError("beta must be in (0,1] and dot finite");
+  const d=Math.max(-1,Math.min(1,dotHM)),b2=beta*beta;
+  return b2/(Math.PI*(1+(b2-1)*d*d)**2);
+}
+export function hairTiltedHalfDot(thetaH,phiH,phiM,alpha) {
+  return Math.cos(thetaH)*Math.cos(alpha)*Math.cos(phiH-phiM)+Math.sin(thetaH)*Math.sin(alpha);
+}
+export function prioritizedAccelerationAllocation(requests,maxAcceleration) {
+  if(!(maxAcceleration>=0)||!Number.isFinite(maxAcceleration)) throw new RangeError("maxAcceleration must be finite and nonnegative");
+  const out=[0,0,0];let used=0;
+  for(const [acceleration,strength] of requests) {
+    if(acceleration.length!==3||acceleration.some(v=>!Number.isFinite(v))) throw new RangeError("request must be a finite 3-vector");
+    if(!(strength>=0&&strength<=1)||!Number.isFinite(strength)) throw new RangeError("strength must be in [0,1]");
+    const norm=Math.hypot(...acceleration);if(norm===0||strength===0)continue;
+    const scale=Math.min(1,1/norm)*strength,req=acceleration.map(v=>v*scale),reqNorm=Math.hypot(...req);
+    const remaining=maxAcceleration-used;if(remaining<=0)break;
+    const trim=reqNorm>remaining?remaining/reqNorm:1;
+    for(let i=0;i<3;i++)out[i]+=req[i]*trim;
+    used+=Math.min(reqNorm,remaining);if(used>=maxAcceleration)break;
+  }
+  return out;
+}
+export function anisotropicKuwaharaMean(means,stddevNorms,q=8) {
+  if(!means.length||means.length!==stddevNorms.length||!(q>0)||stddevNorms.some(v=>v<0)) throw new RangeError("invalid Kuwahara sector data");
+  const weights=stddevNorms.map(v=>1/(1+v**q)),total=weights.reduce((a,b)=>a+b,0);
+  if(!(total>0)||!Number.isFinite(total)) throw new RangeError("invalid Kuwahara weight normalization");
+  return means.reduce((s,m,i)=>s+m*weights[i],0)/total;
 }
 export function weightedSectorMean(means,variances) {
   if(!means.length||means.length!==variances.length||variances.some(v=>v<0)) throw new RangeError("invalid sector data");
@@ -157,13 +213,146 @@ export function volumeComposite(segments) {
   }
   return [radiance,trans];
 }
+export function doubleReflectionFrame(x0,x1,t0,t1,r0) {
+  const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
+  const sub=(a,b)=>a.map((v,i)=>v-b[i]);
+  const reflect=(v,axis)=>{
+    const denom=dot(axis,axis);
+    if(denom<1e-20)throw new RangeError("degenerate reflection vector");
+    const scale=2*dot(axis,v)/denom;
+    return v.map((a,i)=>a-scale*axis[i]);
+  };
+  for(const v of [x0,x1,t0,t1,r0])if(v.length!==3||v.some(a=>!Number.isFinite(a)))throw new RangeError("inputs must be finite 3-vectors");
+  if(Math.abs(Math.hypot(...t0)-1)>1e-6||Math.abs(Math.hypot(...t1)-1)>1e-6)throw new RangeError("tangents must be unit");
+  if(Math.abs(Math.hypot(...r0)-1)>1e-6||Math.abs(dot(t0,r0))>1e-6)throw new RangeError("initial reference vector must be unit and orthogonal");
+  const v1=sub(x1,x0),rL=reflect(r0,v1),tL=reflect(t0,v1),v2=sub(t1,tL);
+  const raw=reflect(rL,v2),len=Math.hypot(...raw);
+  if(len<1e-12)throw new RangeError("transported normal is degenerate");
+  const r=raw.map(v=>v/len);
+  const s=[t1[1]*r[2]-t1[2]*r[1],t1[2]*r[0]-t1[0]*r[2],t1[0]*r[1]-t1[1]*r[0]];
+  return [r,s,[...t1]];
+}
 export function regularizedPlaneQef(constraints,center,regularization) {
-  if(regularization<0)throw new RangeError("regularization must be nonnegative");
-  const A=center.map(()=>regularization),b=center.map(v=>regularization*v);
-  for(const [point,normal] of constraints)for(let axis=0;axis<3;axis++){
-    A[axis]+=normal[axis]*normal[axis];
+  if(!Number.isFinite(regularization)||regularization<0)throw new RangeError("regularization must be finite and nonnegative");
+  if(center.length!==3||center.some(v=>!Number.isFinite(v)))throw new RangeError("center must be a finite 3-vector");
+  const A=Array.from({length:3},(_,i)=>Array.from({length:3},(_,j)=>i===j?regularization:0));
+  const b=center.map(v=>regularization*v);
+  for(const [point,normal] of constraints){
+    if(point.length!==3||normal.length!==3||[...point,...normal].some(v=>!Number.isFinite(v)))throw new RangeError("Hermite data must be finite 3-vectors");
+    const norm=Math.hypot(...normal);
+    if(Math.abs(norm-1)>1e-6)throw new RangeError("Hermite normals must be unit length");
     const projection=normal.reduce((s,v,k)=>s+v*point[k],0);
-    b[axis]+=normal[axis]*projection;
+    for(let i=0;i<3;i++){b[i]+=normal[i]*projection;for(let j=0;j<3;j++)A[i][j]+=normal[i]*normal[j];}
   }
-  return b.map((v,i)=>A[i]?v/A[i]:center[i]);
+  for(let col=0;col<3;col++){
+    let pivot=col;
+    for(let row=col+1;row<3;row++)if(Math.abs(A[row][col])>Math.abs(A[pivot][col]))pivot=row;
+    if(Math.abs(A[pivot][col])<1e-12)throw new RangeError("singular QEF; positive regularization or SVD fallback required");
+    [A[col],A[pivot]]=[A[pivot],A[col]];[b[col],b[pivot]]=[b[pivot],b[col]];
+    const scale=A[col][col];for(let j=col;j<3;j++)A[col][j]/=scale;b[col]/=scale;
+    for(let row=0;row<3;row++){if(row===col)continue;const factor=A[row][col];for(let j=col;j<3;j++)A[row][j]-=factor*A[col][j];b[row]-=factor*b[col];}
+  }
+  return b;
+}
+
+
+// R31 spatial hashing: cell coordinates and bounded hash-table bucket index.
+// Hash collisions are expected; callers must retain cell coordinates in buckets.
+export function spatialHashIndex(cell, tableSize) {
+  if (!Number.isInteger(tableSize) || tableSize <= 0) throw new RangeError("tableSize must be a positive integer");
+  if (cell.length !== 3 || cell.some(v => !Number.isInteger(v))) throw new RangeError("cell must be an integer 3-vector");
+  const [x,y,z]=cell;
+  const mixed=(Math.imul(x,73856093)^Math.imul(y,19349663)^Math.imul(z,83492791))>>>0;
+  return mixed % tableSize;
+}
+
+// Weighted dual-quaternion blend with antipodal correction against the first
+// non-zero-weight real quaternion, followed by Study-condition normalization.
+export function blendDualQuaternions(items) {
+  if (!items.length) throw new RangeError("at least one transform is required");
+  let reference=null;
+  const real=[0,0,0,0], dual=[0,0,0,0];
+  let weightSum=0;
+  for (const item of items) {
+    const {qr,qd,weight}=item;
+    if (!Number.isFinite(weight) || weight < 0 || qr.length!==4 || qd.length!==4 ||
+        [...qr,...qd].some(v=>!Number.isFinite(v))) throw new RangeError("invalid weighted dual quaternion");
+    if (weight===0) continue;
+    if (reference===null) reference=qr;
+    const sign=qr.reduce((s,v,i)=>s+v*reference[i],0)<0?-1:1;
+    for(let i=0;i<4;i++){real[i]+=weight*sign*qr[i];dual[i]+=weight*sign*qd[i];}
+    weightSum+=weight;
+  }
+  if (!(weightSum>0)) throw new RangeError("weight sum must be positive");
+  const [r,d]=dualQuaternionNormalize(real,dual);
+  return [r,d];
+}
+
+
+// Authored local contour heuristic. Depths must be positive linear view-space values;
+// normals are normalized here so decoded render-target values cannot bias the dot.
+export function depthNormalEdgeScore(z0,z1,n0,n1,zFloor,normalWeight) {
+  const values=[z0,z1,zFloor,normalWeight,...n0,...n1];
+  if(values.some(v=>!Number.isFinite(v))||z0<=0||z1<=0||zFloor<=0||normalWeight<0)
+    throw new RangeError("positive finite depths/floor and nonnegative finite weight required");
+  if(n0.length!==3||n1.length!==3)throw new RangeError("normals must be 3-vectors");
+  const l0=Math.hypot(...n0),l1=Math.hypot(...n1);
+  if(l0<=1e-15||l1<=1e-15)throw new RangeError("normal vectors must be nonzero");
+  const dot=Math.max(-1,Math.min(1,n0.reduce((s,v,i)=>s+(v/l0)*(n1[i]/l1),0)));
+  const depthJump=Math.abs(z0-z1)/Math.max(Math.min(z0,z1),zFloor);
+  return depthJump+normalWeight*(1-dot);
+}
+export function edgeCoverage(score,low,high) {
+  if(!Number.isFinite(score)||!Number.isFinite(low)||!Number.isFinite(high)||low<0||high<=low)
+    throw new RangeError("require finite score and 0 <= low < high");
+  const x=Math.max(0,Math.min(1,(score-low)/(high-low)));
+  return x*x*(3-2*x);
+}
+
+
+// Antialiased threshold for the periodic halftone mask. aaWidth=0 is the
+// exact binary step; positive width is a dimensionless luminance interval.
+export function halftoneCoverage(luminance,mask,aaWidth) {
+  if([luminance,mask,aaWidth].some(v=>!Number.isFinite(v))||aaWidth<0)
+    throw new RangeError("finite values and nonnegative aaWidth required");
+  const delta=luminance-mask;
+  if(aaWidth===0)return delta>=0?1:0;
+  const x=Math.max(0,Math.min(1,(delta+aaWidth)/(2*aaWidth)));
+  return x*x*(3-2*x);
+}
+
+
+// Periodic stripe coverage. phase is wrapped to [0,1); widths are fractions
+// of one hatch period, not world-space lengths.
+export function hatchCoverage(phase,halfWidth,aaWidth) {
+  if([phase,halfWidth,aaWidth].some(v=>!Number.isFinite(v))||halfWidth<0||aaWidth<0||halfWidth+aaWidth>.5)
+    throw new RangeError("finite widths with 0 <= halfWidth and halfWidth+aaWidth <= 0.5 required");
+  const p=phase-Math.floor(phase),distance=Math.abs(p-.5);
+  if(aaWidth===0)return distance<=halfWidth?1:0;
+  const x=Math.max(0,Math.min(1,(distance-halfWidth)/aaWidth));
+  return 1-x*x*(3-2*x);
+}
+
+
+export function sampleBilinear2d(field,x,y) {
+  if(!Array.isArray(field)||!field.length||!field[0].length||field.some(row=>row.length!==field[0].length))
+    throw new RangeError("field must be a nonempty rectangular grid");
+  if(!Number.isFinite(x)||!Number.isFinite(y))throw new RangeError("sample coordinates must be finite");
+  const h=field.length,w=field[0].length;
+  x=Math.max(0,Math.min(w-1,x));y=Math.max(0,Math.min(h-1,y));
+  const x0=Math.floor(x),y0=Math.floor(y),x1=Math.min(x0+1,w-1),y1=Math.min(y0+1,h-1);
+  const tx=x-x0,ty=y-y0;
+  const a=field[y0][x0]*(1-tx)+field[y0][x1]*tx;
+  const b=field[y1][x0]*(1-tx)+field[y1][x1]*tx;
+  return a*(1-ty)+b*ty;
+}
+export function semiLagrangianAdvect2d(field,velocityX,velocityY,dt) {
+  if(!Number.isFinite(dt)||dt<0)throw new RangeError("dt must be finite and nonnegative");
+  if(!Array.isArray(field)||!field.length||!field[0].length)throw new RangeError("field must be nonempty");
+  const h=field.length,w=field[0].length;
+  for(const grid of [field,velocityX,velocityY]){
+    if(!Array.isArray(grid)||grid.length!==h||grid.some(row=>!Array.isArray(row)||row.length!==w||row.some(v=>!Number.isFinite(v))))
+      throw new RangeError("field and velocity grids must have identical finite rectangular shapes");
+  }
+  return field.map((row,y)=>row.map((_,x)=>sampleBilinear2d(field,x-dt*velocityX[y][x],y-dt*velocityY[y][x])));
 }

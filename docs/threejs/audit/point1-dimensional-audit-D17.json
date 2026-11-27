@@ -1,0 +1,951 @@
+{
+  "title": "Auditoría dimensional punto 1 — D17 Objetos, vehículos, maquinaria y mecanismos",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D17",
+    "domain": "Objetos, vehículos, maquinaria y mecanismos",
+    "catalog_records": 10,
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D17 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "SI_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Unidad global de longitud de escena; Three.js no impone metros.",
+    "dimensionless": "1",
+    "angles": "Radianes; dimensión SI adimensional, tasas angulares T^-1.",
+    "affine_matrices": "Matrices afines se tipan por bloques: lineal adimensional y traslación L."
+  },
+  "records": [
+    {
+      "record_key": "D17:0",
+      "name": "Vehículo por chasis jerárquico",
+      "variables": [
+        {
+          "symbol": "M_vehicle",
+          "meaning": "Transformación de chasis",
+          "unit": "afín tipada",
+          "dimension": "bloque lineal adimensional; traslación L",
+          "domain": "finita"
+        },
+        {
+          "symbol": "offset",
+          "meaning": "Desplazamiento local de rueda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "R_steer,R_spin",
+          "meaning": "Rotaciones de dirección y giro",
+          "unit": "cuaternión/matriz",
+          "dimension": "adimensional",
+          "domain": "rotaciones válidas"
+        },
+        {
+          "symbol": "M_wheel",
+          "meaning": "Transformación mundial de rueda",
+          "unit": "afín tipada",
+          "dimension": "bloque lineal adimensional; traslación L",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "M_wheel=M_vehicle·T(offset)·R(steer)·R(spin) requiere orden de composición y marcos locales definidos.",
+        "Las traslaciones se tipan como L; rotaciones y escala son adimensionales."
+      ],
+      "valid_domain": [
+        "Transformaciones finitas; jerarquía sin ciclos; pivotes y offsets en la misma unidad."
+      ],
+      "boundary_conditions": [
+        "Rotaciones identidad y offset cero mantienen rueda en origen del chasis.",
+        "Al invertir jerarquía, conservar transformación de mundo mediante conversión explícita."
+      ],
+      "dimensional_checks": [
+        "offset y traslaciones tienen L; matrices lineales y rotaciones son adimensionales.",
+        "M_wheel conserva tipado afín; no asignar una dimensión única a la matriz."
+      ]
+    },
+    {
+      "record_key": "D17:1",
+      "name": "Rotación de rueda",
+      "variables": [
+        {
+          "symbol": "distance",
+          "meaning": "Distancia recorrida",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "radius",
+          "meaning": "Radio efectivo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "radius>0"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "Ángulo de giro",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "continuo o envuelto"
+        },
+        {
+          "symbol": "slip",
+          "meaning": "Deslizamiento longitudinal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0 para rodadura pura"
+        }
+      ],
+      "constraints": [
+        "Rodadura pura θ=distance/radius; ambos valores deben usar misma unidad de longitud.",
+        "Si existe slip, definir relación entre distancia del vehículo y desplazamiento real de contacto."
+      ],
+      "valid_domain": [
+        "radius>0; distance finita; radio efectivo constante por tramo o función explícita."
+      ],
+      "boundary_conditions": [
+        "distance=0 implica incremento angular cero.",
+        "radius→0 es singular y debe rechazarse; cambio de radio requiere continuidad de ángulo."
+      ],
+      "dimensional_checks": [
+        "distance/radius es adimensional y representa ángulo en radianes.",
+        "θ no tiene dimensión SI; su tasa temporal tiene T^-1."
+      ]
+    },
+    {
+      "record_key": "D17:2",
+      "name": "Suspensión",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "Masa suspendida/no suspendida",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m>0"
+        },
+        {
+          "symbol": "x,y_road",
+          "meaning": "Desplazamiento de masa y carretera",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "v",
+          "meaning": "Velocidad relativa",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "c",
+          "meaning": "Coeficiente amortiguador",
+          "unit": "kg/s",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "c≥0"
+        },
+        {
+          "symbol": "k",
+          "meaning": "Rigidez",
+          "unit": "N/m = kg/s²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "F_road",
+          "meaning": "Fuerza externa equivalente",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "m x''+c x'+k x=F_road(t) tiene unidades N en cada término.",
+        "Si roadInput representa desplazamiento de carretera y(t), la ecuación correcta usa deformación relativa x−y y velocidad relativa x'−y'; no sumarlo como fuerza."
+      ],
+      "valid_domain": [
+        "m>0; c,k≥0; estados, fuerza y entrada finitos; condiciones iniciales declaradas."
+      ],
+      "boundary_conditions": [
+        "Especificar x(0), x'(0); sin condiciones iniciales no hay solución única.",
+        "k=0 o c=0 son casos límite válidos; no dividir por estos parámetros en solución especializada."
+      ],
+      "dimensional_checks": [
+        "m·x'' , c·x' y k·(x−y) tienen N; F_road también N.",
+        "c/m tiene T^-1 y k/m tiene T^-2."
+      ]
+    },
+    {
+      "record_key": "D17:3",
+      "name": "Dirección Ackermann simplificada",
+      "variables": [
+        {
+          "symbol": "L",
+          "meaning": "Batalla entre ejes",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "L>0"
+        },
+        {
+          "symbol": "W",
+          "meaning": "Ancho de vía",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "W>0"
+        },
+        {
+          "symbol": "R",
+          "meaning": "Radio de giro al centro del eje trasero",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "R>W/2"
+        },
+        {
+          "symbol": "δ_inner,δ_outer",
+          "meaning": "Ángulos de dirección",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango físico"
+        }
+      ],
+      "constraints": [
+        "L/(R±W/2) es adimensional y tan(δ) también; todos los parámetros lineales usan misma unidad.",
+        "Convención geométrica debe declarar rueda interior/exterior y sentido de giro."
+      ],
+      "valid_domain": [
+        "L>0; W>0; R>W/2 para radio exterior positivo; giro dentro de límites mecánicos."
+      ],
+      "boundary_conditions": [
+        "R→∞ tiende a dirección recta δ→0.",
+        "R≤W/2 produce geometría degenerada para esta convención; rechazar o cambiar centro instantáneo."
+      ],
+      "dimensional_checks": [
+        "L, W y R tienen L; L/(R±W/2) es adimensional.",
+        "δ_inner y δ_outer son ángulos, adimensionales en SI."
+      ]
+    },
+    {
+      "record_key": "D17:4",
+      "name": "Hélice",
+      "variables": [
+        {
+          "symbol": "r",
+          "meaning": "Radio de pala",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r≥0"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "Ángulo base",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "Velocidad angular",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "Tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "P",
+          "meaning": "Posición de pala",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "θ+ωt es un argumento angular adimensional; ω tiene T^-1.",
+        "La geometría de pala debe definirse en marco local y rotarse alrededor del eje del rotor."
+      ],
+      "valid_domain": [
+        "r finito; ω,t finitos; eje de rotación unitario."
+      ],
+      "boundary_conditions": [
+        "ω=0 congela el rotor; t=0 conserva pose base.",
+        "Cambio de sentido invierte signo de ω sin cambiar unidad."
+      ],
+      "dimensional_checks": [
+        "ωt es adimensional; r y P tienen L.",
+        "La rotación no altera dimensiones espaciales."
+      ]
+    },
+    {
+      "record_key": "D17:5",
+      "name": "Engranajes",
+      "variables": [
+        {
+          "symbol": "ω1,ω2",
+          "meaning": "Velocidades angulares",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "N1,N2",
+          "meaning": "Número de dientes",
+          "unit": "conteo entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "enteros positivos"
+        },
+        {
+          "symbol": "τ",
+          "meaning": "Par transmitido",
+          "unit": "N·m",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "si se modela carga"
+        },
+        {
+          "symbol": "ratio",
+          "meaning": "Relación cinemática",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "definida por dientes"
+        }
+      ],
+      "constraints": [
+        "Para engranajes externos ω1/ω2=−N2/N1; la razón de dientes es adimensional.",
+        "Engranajes internos cambian signo; no aplicar signo externo sin conocer topología."
+      ],
+      "valid_domain": [
+        "N1,N2≥1; engrane compatible; velocidades finitas."
+      ],
+      "boundary_conditions": [
+        "ω1=0 implica ω2=0 en relación ideal rígida.",
+        "Holgura, elasticidad y pérdidas requieren parámetros adicionales; la relación ideal no los modela."
+      ],
+      "dimensional_checks": [
+        "ω1/ω2 es adimensional; N1,N2 son conteos adimensionales.",
+        "Par tiene M·L²·T^-2; no confundir con fuerza N."
+      ]
+    },
+    {
+      "record_key": "D17:6",
+      "name": "Pistón-biela",
+      "variables": [
+        {
+          "symbol": "r",
+          "meaning": "Radio de manivela",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r≥0"
+        },
+        {
+          "symbol": "l",
+          "meaning": "Longitud de biela",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "l≥r para ciclo completo"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "Ángulo de manivela",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "x",
+          "meaning": "Posición axial del pistón",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "raíz real"
+        },
+        {
+          "symbol": "t",
+          "meaning": "Tiempo opcional",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "si θ=θ(t)"
+        }
+      ],
+      "constraints": [
+        "x=r cosθ+sqrt(l²−r²sin²θ); radicando tiene L² y su raíz L.",
+        "Para movimiento completo sin singularidad geométrica, l≥r; θ es angular."
+      ],
+      "valid_domain": [
+        "r≥0; l>0; l≥r para ciclo completo; θ finito."
+      ],
+      "boundary_conditions": [
+        "r=0 produce desplazamiento constante de referencia.",
+        "En l²−r²sin²θ=0 hay configuración límite; derivada/velocidad puede ser singular."
+      ],
+      "dimensional_checks": [
+        "r cosθ tiene L; l²−r²sin²θ tiene L²; raíz tiene L.",
+        "x conserva L; si θ(t), θ′ tiene T^-1."
+      ]
+    },
+    {
+      "record_key": "D17:7",
+      "name": "Cable o cadena",
+      "variables": [
+        {
+          "symbol": "P_i",
+          "meaning": "Puntos de control",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos y ordenados"
+        },
+        {
+          "symbol": "s",
+          "meaning": "Parámetro de curva",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "r_tube",
+          "meaning": "Radio de sección",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_tube≥0"
+        },
+        {
+          "symbol": "C(s)",
+          "meaning": "Curva central",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "regular"
+        },
+        {
+          "symbol": "L_cable",
+          "meaning": "Longitud de cable",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "Curva interpolada y radio tubular deben usar la misma unidad espacial.",
+        "Para cadena/cable inextensible, longitud de arco debe permanecer constante o cumplir tolerancia; spline libre no garantiza longitud."
+      ],
+      "valid_domain": [
+        "P_i finitos; curva regular; radio no negativo; longitud total positiva."
+      ],
+      "boundary_conditions": [
+        "En un punto de control la spline cumple la interpolación según variante elegida.",
+        "Tangente nula o puntos duplicados requieren eliminación/regularización."
+      ],
+      "dimensional_checks": [
+        "P_i,C(s),r_tube y longitud de arco tienen L; s es adimensional.",
+        "Derivada dC/ds tiene L si s normalizado; tangente normalizada es adimensional."
+      ]
+    },
+    {
+      "record_key": "D17:8",
+      "name": "Puertas y bisagras",
+      "variables": [
+        {
+          "symbol": "pivot",
+          "meaning": "Punto de bisagra",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "θ(t)",
+          "meaning": "Ángulo de apertura",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango mecánico"
+        },
+        {
+          "symbol": "T(pivot)",
+          "meaning": "Traslación al pivote",
+          "unit": "afín tipada",
+          "dimension": "traslación L",
+          "domain": "finita"
+        },
+        {
+          "symbol": "R(θ)",
+          "meaning": "Rotación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válida"
+        },
+        {
+          "symbol": "M(t)",
+          "meaning": "Transformación final",
+          "unit": "afín tipada",
+          "dimension": "bloque lineal adimensional; traslación L",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "M(t)=T(pivot)·R(θ)·T(−pivot) conserva punto de pivote; orden de multiplicación según convención matricial.",
+        "θ(t) debe ser función temporal con unidad angular y rango mecánico."
+      ],
+      "valid_domain": [
+        "pivot finito; θ dentro de límites; transformaciones válidas."
+      ],
+      "boundary_conditions": [
+        "θ=0 deja la puerta en pose cerrada definida.",
+        "En topes mecánicos, saturar ángulo y definir respuesta de animación."
+      ],
+      "dimensional_checks": [
+        "pivot y traslaciones tienen L; rotación y θ son adimensionales angulares.",
+        "M(t) mantiene bloque lineal adimensional y traslación L."
+      ]
+    },
+    {
+      "record_key": "D17:9",
+      "name": "Rigidbody approximation",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "Masa",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m>0"
+        },
+        {
+          "symbol": "F",
+          "meaning": "Fuerza",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "a",
+          "meaning": "Aceleración lineal",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "I",
+          "meaning": "Tensor de inercia",
+          "unit": "kg·m²",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "simétrico positivo"
+        },
+        {
+          "symbol": "τ",
+          "meaning": "Torque",
+          "unit": "N·m",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "α",
+          "meaning": "Aceleración angular",
+          "unit": "rad/s²",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "velocidad angular en marco del cuerpo",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        }
+      ],
+      "constraints": [
+        "Traslación: F_net=m a. Rotación en marco del cuerpo: τ=Iα+ω×(Iω).",
+        "La simplificación τ=Iα solo vale en eje principal, cuerpo isotrópico o cuando el término giroscópico es nulo/despreciable."
+      ],
+      "valid_domain": [
+        "m>0; I positivo definido; fuerzas, torque y estados finitos; paso temporal controlado."
+      ],
+      "boundary_conditions": [
+        "F=0 y τ=0 mantienen velocidad constante en ausencia de otras fuerzas.",
+        "Masa o inercia singular requieren constraint/regularización explícita, no inversión directa."
+      ],
+      "dimensional_checks": [
+        "m·a tiene N; I·α y ω×(Iω) tienen N·m.",
+        "ω tiene T⁻¹; I tiene kg·m²; el término giroscópico tiene kg·m²·s⁻²=N·m."
+      ]
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "10/10 técnicas incluidas",
+      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "D17:9 distingue ecuación rotacional Euler completa de la simplificación de eje principal."
+    ],
+    "limitations": [
+      "Revisión dimensional; algoritmos de simulación, integración, contacto y validación numérica corresponden a puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

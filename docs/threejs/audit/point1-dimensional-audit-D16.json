@@ -1,0 +1,889 @@
+{
+  "title": "Auditoría dimensional punto 1 — D16 Audio procedural y sincronización audiovisual",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D16",
+    "domain": "Audio procedural y sincronización audiovisual",
+    "catalog_records": 10,
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D16 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "SI_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "time": "Segundos para timeline y AudioContext; BPM conserva explícitamente beats/min.",
+    "digital_audio": "Muestras PCM normalizadas son adimensionales; presión acústica física se tipa aparte en Pa.",
+    "frequency": "Hz=s⁻¹; argumento trigonométrico f·t es adimensional."
+  },
+  "records": [
+    {
+      "record_key": "D16:0",
+      "name": "Oscilador sinusoidal",
+      "variables": [
+        {
+          "symbol": "A",
+          "meaning": "Amplitud de muestra normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤A≤1 o escala de mezcla declarada"
+        },
+        {
+          "symbol": "f",
+          "meaning": "Frecuencia",
+          "unit": "Hz = s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤f<Nyquist"
+        },
+        {
+          "symbol": "t",
+          "meaning": "Tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "φ",
+          "meaning": "Fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "x(t)",
+          "meaning": "Muestra de audio",
+          "unit": "1 (normalizada)",
+          "dimension": "adimensional",
+          "domain": "−1≤x≤1 antes de clipping"
+        }
+      ],
+      "constraints": [
+        "2πft+φ debe ser adimensional; f en Hz y t en segundos.",
+        "Si se usa amplitud física (Pa), declararla y mantenerla separada del sample normalizado digital."
+      ],
+      "valid_domain": [
+        "Frecuencia no negativa y menor que Nyquist; sample rate positivo; amplitud finita."
+      ],
+      "boundary_conditions": [
+        "A=0 produce silencio; f=0 produce componente constante según fase.",
+        "Al cambiar frecuencia, evitar discontinuidad de fase si se requiere continuidad."
+      ],
+      "dimensional_checks": [
+        "f·t es adimensional; φ es ángulo y 2π es constante adimensional.",
+        "A y x(t) comparten unidad de muestra normalizada."
+      ]
+    },
+    {
+      "record_key": "D16:1",
+      "name": "ADSR envelope",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "Tiempo desde nota-on",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        },
+        {
+          "symbol": "t_A,t_D,t_R",
+          "meaning": "Tiempos attack/decay/release",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos"
+        },
+        {
+          "symbol": "S",
+          "meaning": "Nivel sustain",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "A(t)",
+          "meaning": "Envolvente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "A_peak",
+          "meaning": "Nivel pico",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Los tramos temporales deben tener duraciones en segundos; el nivel sustain y pico son adimensionales.",
+        "Definir note-off para iniciar release; no derivar release solo del tiempo desde note-on."
+      ],
+      "valid_domain": [
+        "t_A,t_D,t_R≥0; niveles finitos y acotados; eventos note-on/off ordenados."
+      ],
+      "boundary_conditions": [
+        "Attack inicia en nivel inicial declarado y alcanza A_peak; decay llega a S.",
+        "Release comienza desde el nivel actual al note-off y converge a cero; duración cero debe resolverse explícitamente."
+      ],
+      "dimensional_checks": [
+        "Todos los tiempos tienen T; S,A(t),A_peak son adimensionales.",
+        "La envolvente multiplica la señal sin cambiar su unidad."
+      ]
+    },
+    {
+      "record_key": "D16:2",
+      "name": "FM synthesis",
+      "variables": [
+        {
+          "symbol": "f_c,f_m",
+          "meaning": "Frecuencias portadora/moduladora",
+          "unit": "Hz = s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas y bajo Nyquist efectivo"
+        },
+        {
+          "symbol": "I",
+          "meaning": "Índice de modulación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "adimensional"
+        },
+        {
+          "symbol": "t",
+          "meaning": "Tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "φ_c,φ_m",
+          "meaning": "Fases",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "x(t)",
+          "meaning": "Muestra sintetizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada y acotada"
+        }
+      ],
+      "constraints": [
+        "Argumentos 2πf_ct+I·sin(2πf_mt+φ_m)+φ_c deben ser adimensionales.",
+        "I es índice adimensional; desviación de frecuencia asociada es Δf=I·f_m y tiene Hz."
+      ],
+      "valid_domain": [
+        "f_c,f_m≥0; frecuencias laterales relevantes deben respetar Nyquist o filtrarse.",
+        "I finito; sample rate positivo."
+      ],
+      "boundary_conditions": [
+        "I=0 reduce a oscilador portador sin modulación.",
+        "f_m=0 produce fase constante adicional; evitar asumir vibrato dinámico."
+      ],
+      "dimensional_checks": [
+        "f_c·t y f_m·t son adimensionales; I y fases son adimensionales.",
+        "x(t) es muestra normalizada y no hereda unidades de frecuencia."
+      ]
+    },
+    {
+      "record_key": "D16:3",
+      "name": "Noise synthesis",
+      "variables": [
+        {
+          "symbol": "n(t)",
+          "meaning": "Ruido fuente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "muestras normalizadas"
+        },
+        {
+          "symbol": "H(f)",
+          "meaning": "Respuesta del filtro",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "coeficientes finitos"
+        },
+        {
+          "symbol": "f_c",
+          "meaning": "Frecuencia de corte",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<f_c<Nyquist"
+        },
+        {
+          "symbol": "f_s",
+          "meaning": "Frecuencia de muestreo",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "y(t)",
+          "meaning": "Ruido filtrado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "muestra normalizada"
+        }
+      ],
+      "constraints": [
+        "Filtro debe tener coeficientes compatibles con frecuencia de muestreo y unidades de tiempo.",
+        "Si ruido es aleatorio, definir PRNG/semilla para repetibilidad y evitar clipping tras filtrado."
+      ],
+      "valid_domain": [
+        "f_s>0; cutoff dentro de rango de Nyquist; coeficientes estables."
+      ],
+      "boundary_conditions": [
+        "Ganancia cero produce silencio; filtro identidad devuelve ruido original.",
+        "Al cambiar filtro, suavizar parámetros para evitar clicks si se requiere continuidad."
+      ],
+      "dimensional_checks": [
+        "f_c y f_s tienen T^-1; frecuencia normalizada f/f_s es adimensional.",
+        "H y n son adimensionales; y conserva unidad de muestra normalizada."
+      ]
+    },
+    {
+      "record_key": "D16:4",
+      "name": "Reverb",
+      "variables": [
+        {
+          "symbol": "x(t)",
+          "meaning": "Señal de entrada",
+          "unit": "1 (muestra normalizada)",
+          "dimension": "adimensional",
+          "domain": "finita"
+        },
+        {
+          "symbol": "h(t)",
+          "meaning": "Respuesta impulsional continua",
+          "unit": "s⁻¹",
+          "dimension": "T^-1",
+          "domain": "integrable y estable"
+        },
+        {
+          "symbol": "h[n]",
+          "meaning": "Respuesta impulsional discreta",
+          "unit": "1",
+          "dimension": "adimensional",
+          "domain": "coeficientes finitos"
+        },
+        {
+          "symbol": "y(t)",
+          "meaning": "Señal reverberada",
+          "unit": "1",
+          "dimension": "adimensional",
+          "domain": "finita"
+        },
+        {
+          "symbol": "f_s",
+          "meaning": "Frecuencia de muestreo",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "Convolución continua y(t)=∫x(τ)h(t−τ)dτ requiere h con unidad T^-1 si x,y tienen la misma unidad.",
+        "En convolución discreta y[n]=Σx[k]h[n−k], coeficientes h[n] son adimensionales bajo convención digital."
+      ],
+      "valid_domain": [
+        "Respuesta impulsional causal o con latencia declarada; energía/ganancia finita; sample rate conocido."
+      ],
+      "boundary_conditions": [
+        "h=δ produce señal seca (identidad).",
+        "Cola de reverb debe truncarse o procesarse hasta umbral definido; memoria finita declarada."
+      ],
+      "dimensional_checks": [
+        "En continuo, h tiene T^-1 y dτ tiene T; la convolución conserva unidad de x.",
+        "En discreto, suma de productos de muestras adimensionales conserva unidad digital."
+      ]
+    },
+    {
+      "record_key": "D16:5",
+      "name": "Delay",
+      "variables": [
+        {
+          "symbol": "x(t)",
+          "meaning": "Señal seca",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "muestra normalizada"
+        },
+        {
+          "symbol": "τ",
+          "meaning": "Tiempo de retardo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "τ≥0"
+        },
+        {
+          "symbol": "g",
+          "meaning": "Ganancia de eco",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "|g|≤1 para feedback estable simple"
+        },
+        {
+          "symbol": "y(t)",
+          "meaning": "Señal mezclada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "t−τ conserva dimensión T; τ debe convertirse a muestras mediante τ·f_s (adimensional).",
+        "Ganancia g es adimensional; feedback mayor que unidad puede divergir."
+      ],
+      "valid_domain": [
+        "τ≥0; sample rate positivo; buffer de delay suficiente."
+      ],
+      "boundary_conditions": [
+        "τ=0 mezcla señal consigo misma según fórmula y debe definir ganancia resultante.",
+        "g=0 elimina eco; al cambiar delay, crossfade para evitar discontinuidad."
+      ],
+      "dimensional_checks": [
+        "t y τ tienen T; índice de muestra τf_s es adimensional.",
+        "x, gx y y comparten unidad de muestra digital."
+      ]
+    },
+    {
+      "record_key": "D16:6",
+      "name": "Panning",
+      "variables": [
+        {
+          "symbol": "A",
+          "meaning": "Amplitud mono",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "Ángulo de paneo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,π/2] en convención igual potencia"
+        },
+        {
+          "symbol": "L,R",
+          "meaning": "Ganancias de canal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "x_L,x_R",
+          "meaning": "Muestras estéreo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizadas"
+        }
+      ],
+      "constraints": [
+        "L=A cosθ y R=A sinθ conservan unidad de amplitud; θ se interpreta según convención elegida.",
+        "La ley de paneo debe declarar si conserva potencia, amplitud o balance perceptual."
+      ],
+      "valid_domain": [
+        "A finita y acotada; θ dentro del rango; canales y sample format compatibles."
+      ],
+      "boundary_conditions": [
+        "θ=0 coloca señal en canal izquierdo; θ=π/2 en derecho bajo convención indicada.",
+        "A=0 produce silencio en ambos canales."
+      ],
+      "dimensional_checks": [
+        "A, L y R son amplitudes digitales adimensionales; cos/sin reciben ángulos adimensionales.",
+        "La mezcla conserva unidad de muestra digital; evitar clipping al sumar fuentes."
+      ]
+    },
+    {
+      "record_key": "D16:7",
+      "name": "Audio event timeline",
+      "variables": [
+        {
+          "symbol": "t,t_i",
+          "meaning": "Tiempo global y eventos",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ordenados"
+        },
+        {
+          "symbol": "envelope_i",
+          "meaning": "Envolvente de evento",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o rango declarado"
+        },
+        {
+          "symbol": "synth_i(t)",
+          "meaning": "Señal sintetizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "muestra normalizada"
+        },
+        {
+          "symbol": "mix(t)",
+          "meaning": "Mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "suma con headroom"
+        }
+      ],
+      "constraints": [
+        "Cada evento tiene instante, duración, payload y regla de solapamiento tipados; tiempos en segundos.",
+        "envelope·synth conserva unidad de muestra; mezcla simultánea requiere headroom/limitador para evitar clipping."
+      ],
+      "valid_domain": [
+        "Eventos finitos y ordenados; duraciones no negativas; sample rate y clock mapping definidos."
+      ],
+      "boundary_conditions": [
+        "Antes de start no emitir evento; en end aplicar release/tail definido.",
+        "Eventos coincidentes usan prioridad/mezcla determinista; timeline seek debe reconstruir estado."
+      ],
+      "dimensional_checks": [
+        "t y t_i tienen T; envelope es adimensional; synth y mix son muestras normalizadas.",
+        "El tiempo de proyecto debe convertirse al clock de audio con una escala T/T adimensional y offset temporal definido."
+      ]
+    },
+    {
+      "record_key": "D16:8",
+      "name": "Beat synchronization",
+      "variables": [
+        {
+          "symbol": "BPM",
+          "meaning": "Tempo",
+          "unit": "beats/min",
+          "dimension": "T^-1 con factor min",
+          "domain": "BPM>0"
+        },
+        {
+          "symbol": "n",
+          "meaning": "Índice de beat",
+          "unit": "conteo entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n≥0"
+        },
+        {
+          "symbol": "t_n",
+          "meaning": "Tiempo de beat",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "offset",
+          "meaning": "Desfase inicial",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "t_n=offset+n·60/BPM; factor 60 convierte minutos a segundos.",
+        "Cambios de tempo requieren mapa BPM(t) por tramos y acumulación de duración, no fórmula de BPM constante."
+      ],
+      "valid_domain": [
+        "BPM>0; n entero; offset finito."
+      ],
+      "boundary_conditions": [
+        "n=0 corresponde a offset.",
+        "Tempo variable debe mantener continuidad temporal entre tramos y definir compás/anacrusa si aplica."
+      ],
+      "dimensional_checks": [
+        "60/BPM tiene segundos por beat; n es conteo adimensional; t_n tiene T.",
+        "BPM se expresa en beats/min; conversión de minuto a segundo debe mantenerse explícita."
+      ]
+    },
+    {
+      "record_key": "D16:9",
+      "name": "Web Audio graph",
+      "variables": [
+        {
+          "symbol": "sampleRate",
+          "meaning": "Frecuencia de muestreo",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "gain",
+          "meaning": "Ganancia de nodo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango soportado"
+        },
+        {
+          "symbol": "cutoff",
+          "meaning": "Frecuencia de filtro",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<cutoff<Nyquist"
+        },
+        {
+          "symbol": "time",
+          "meaning": "Tiempo de contexto",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "monótono"
+        },
+        {
+          "symbol": "sample",
+          "meaning": "Muestra de audio",
+          "unit": "1",
+          "dimension": "adimensional digital",
+          "domain": "formato definido"
+        }
+      ],
+      "constraints": [
+        "Gain es adimensional; cutoff y sampleRate tienen T^-1; tiempos de automatización usan reloj de AudioContext en segundos.",
+        "Cada nodo conserva sample format y canales; conversiones de frecuencia/latencia deben declararse."
+      ],
+      "valid_domain": [
+        "AudioContext activo; sampleRate>0; parámetros dentro de rangos del nodo; conexiones sin ciclos no permitidos."
+      ],
+      "boundary_conditions": [
+        "Context suspendido no avanza audio; resume/close debe manejarse explícitamente.",
+        "Parámetros fuera de rango se rechazan o clipean según API; no asumir valores por defecto."
+      ],
+      "dimensional_checks": [
+        "cutoff/sampleRate es adimensional; ambos tienen T^-1.",
+        "Gain no cambia unidad de muestra; time tiene T y sample es señal digital adimensional."
+      ]
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "10/10 técnicas incluidas",
+      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas"
+    ],
+    "limitations": [
+      "Revisión dimensional; síntesis algorítmica, estabilidad, aliasing, medición acústica y pruebas de audio corresponden a puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

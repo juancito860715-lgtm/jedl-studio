@@ -1,0 +1,550 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D20 Optimización, pruebas y producción",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D20",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D20 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D20:0",
+      "name": "Instancing first",
+      "starting_principles": [
+        "Geometría y material compatibles; matrices finitas.",
+        "Atributos por instancia soportados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "G_i=G; material_i=M",
+          "justification": "Agrupar instancias con geometría/material compartidos."
+        },
+        {
+          "step": 2,
+          "equation": "p_world,i=M_i p_local",
+          "justification": "Aplicar transformación por instancia."
+        },
+        {
+          "step": 3,
+          "equation": "drawCalls≈batches(material,geometry,pass)",
+          "justification": "El lote comparte estado de pipeline y reduce cambios/draw calls."
+        },
+        {
+          "step": 4,
+          "equation": "instanceCount=N",
+          "justification": "La cantidad de objetos pasa a datos de instancia en lugar de comandos separados."
+        }
+      ],
+      "assumptions": [
+        "Geometría y material compatibles; matrices finitas.",
+        "Atributos por instancia soportados."
+      ],
+      "result": "Instancing deriva de separar datos geométricos compartidos y transformaciones por objeto.",
+      "limits": [
+        "No todos los objetos se pueden agrupar si cambian materiales, transparencias o estados."
+      ],
+      "dimensional_verification": [
+        "N batches y draw calls son conteos enteros; memoria de geometría se mide en bytes.",
+        "Una llamada por batch requiere mismo material/estado compatible; instancing no convierte automáticamente todos los objetos en una llamada."
+      ]
+    },
+    {
+      "record_key": "D20:1",
+      "name": "GPU deformation",
+      "starting_principles": [
+        "Función F paralelizable y sin dependencias cruzadas no resueltas.",
+        "Buffers y atributos compatibles con backend."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_i'=F(p_i,uniforms,t)",
+          "justification": "Definir deformación como función pura por vértice."
+        },
+        {
+          "step": 2,
+          "equation": "invocation i reads p_i and parameters",
+          "justification": "Cada invocación procesa un vértice/índice."
+        },
+        {
+          "step": 3,
+          "equation": "write p_i' to output buffer",
+          "justification": "Escribir resultado en buffer de salida."
+        },
+        {
+          "step": 4,
+          "equation": "draw from output buffer",
+          "justification": "Renderizar malla deformada sin transferencia vértice-a-vértice CPU."
+        }
+      ],
+      "assumptions": [
+        "Función F paralelizable y sin dependencias cruzadas no resueltas.",
+        "Buffers y atributos compatibles con backend."
+      ],
+      "result": "La deformación GPU deriva de aplicar una misma función paralela a cada vértice.",
+      "limits": [
+        "Para restricciones entre vértices se necesita reducción, etapas múltiples o compute específico."
+      ],
+      "dimensional_verification": [
+        "vertex y desplazamiento tienen L; time tiene T; velocity uniform L/T si se integra.",
+        "F debe devolver posición L o desplazamiento L según el contrato del shader."
+      ]
+    },
+    {
+      "record_key": "D20:2",
+      "name": "Bake static complexity",
+      "starting_principles": [
+        "Campo estático o cambia muy lentamente.",
+        "Parametrización y resolución suficientes; error definido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "v_i=expensiveField(p_i)",
+          "justification": "Evaluar campo costoso una vez en muestras discretas."
+        },
+        {
+          "step": 2,
+          "equation": "texture[i,j]=v(P(u_i,v_j))",
+          "justification": "Almacenar resultados en texels o malla."
+        },
+        {
+          "step": 3,
+          "equation": "v_approx(p)=sample(texture,uv(p))",
+          "justification": "Sustituir evaluación costosa por lookup."
+        },
+        {
+          "step": 4,
+          "equation": "error≤ε via resolution/filtering",
+          "justification": "Aumentar resolución o filtrado hasta cumplir tolerancia."
+        }
+      ],
+      "assumptions": [
+        "Campo estático o cambia muy lentamente.",
+        "Parametrización y resolución suficientes; error definido."
+      ],
+      "result": "Baking deriva de precomputar un campo y aproximarlo mediante almacenamiento muestreable.",
+      "limits": [
+        "Cambios de parámetros invalidan bake; dependencias dinámicas no incluidas no se actualizan."
+      ],
+      "dimensional_verification": [
+        "p tiene L; frecuencia de bake L⁻¹; coordenadas de textura son adimensionales.",
+        "La textura horneada conserva unidad/tipo del campo almacenado; resolución son píxeles."
+      ]
+    },
+    {
+      "record_key": "D20:3",
+      "name": "Adaptive quality",
+      "starting_principles": [
+        "T_target,T_measured>0; medición estable.",
+        "El cuello de botella es mayormente proporcional a píxeles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T_measured=measure(frame)",
+          "justification": "Medir tiempo del frame relevante."
+        },
+        {
+          "step": 2,
+          "equation": "cost∝scale²",
+          "justification": "Aproximar coste fill-rate por área de píxeles."
+        },
+        {
+          "step": 3,
+          "equation": "scale_next=scale·sqrt(T_target/T_measured)",
+          "justification": "Resolver el factor de escala bajo relación cuadrática."
+        },
+        {
+          "step": 4,
+          "equation": "scale_next=clamp(scale_next,min,max)",
+          "justification": "Aplicar límites y suavizado temporal."
+        }
+      ],
+      "assumptions": [
+        "T_target,T_measured>0; medición estable.",
+        "El cuello de botella es mayormente proporcional a píxeles.",
+        "La actualización cuadrática de scale solo es válida cuando el coste variable dominante escala aproximadamente con el área de píxeles; recalibrar si CPU/geometry domina."
+      ],
+      "result": "La calidad adaptativa ajusta escala de render a partir de relación coste/área.",
+      "limits": [
+        "No corrige cuellos de botella CPU/geométricos ni variación transitoria."
+      ],
+      "dimensional_verification": [
+        "targetMs y measuredMs tienen T; su cociente y scale son adimensionales.",
+        "La ley scale_next=scale·sqrt(target/measured) supone coste dominado por píxeles y proporcional a scale²."
+      ]
+    },
+    {
+      "record_key": "D20:4",
+      "name": "Dynamic resolution",
+      "starting_principles": [
+        "0<s≤1 o rango definido; dimensiones enteras positivas.",
+        "Upscaler y filtro declarados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "W_r=W_d·s; H_r=H_d·s",
+          "justification": "Escalar ambas dimensiones por factor s."
+        },
+        {
+          "step": 2,
+          "equation": "pixels_r=W_rH_r=s²W_dH_d",
+          "justification": "El número de píxeles cambia cuadráticamente con s."
+        },
+        {
+          "step": 3,
+          "equation": "s_next=controller(frameTime)",
+          "justification": "Controlar escala según tiempo medido."
+        },
+        {
+          "step": 4,
+          "equation": "upscale(renderBuffer,displaySize)",
+          "justification": "Reescalar buffer a resolución de presentación."
+        }
+      ],
+      "assumptions": [
+        "0<s≤1 o rango definido; dimensiones enteras positivas.",
+        "Upscaler y filtro declarados."
+      ],
+      "result": "La resolución dinámica deriva de escalar ancho y alto con el mismo factor.",
+      "limits": [
+        "La calidad espacial cae con resolución; sharpening no recupera detalle perdido."
+      ],
+      "dimensional_verification": [
+        "displayWidth y renderWidth tienen px; scale es adimensional; renderWidth=displayWidth·scale conserva px.",
+        "Redondeo a entero se aplica al final; límites de resolución son px."
+      ]
+    },
+    {
+      "record_key": "D20:5",
+      "name": "Budget per frame",
+      "starting_principles": [
+        "FPS_target>0; tiempos medidos en misma unidad.",
+        "Distinguir latencia total de throughput pipelined."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T_budget=1000/FPS_target  [ms]",
+          "justification": "Convertir la frecuencia objetivo en el tiempo disponible por frame."
+        },
+        {
+          "step": 2,
+          "equation": "T_frame=T_CPU+T_GPU+T_sync  (trabajo secuencial)",
+          "justification": "Si las fases se ejecutan en serie, sumar sus duraciones y sincronizaciones."
+        },
+        {
+          "step": 3,
+          "equation": "T_frame≤T_budget",
+          "justification": "La suma secuencial debe caber en el intervalo entre frames para sostener la frecuencia objetivo."
+        },
+        {
+          "step": 4,
+          "equation": "T_throughput≈max(T_CPU,T_GPU) cuando CPU/GPU se solapan",
+          "justification": "En una tubería completamente solapada, el componente más lento limita el throughput; stalls, transferencias y sincronización añaden coste."
+        }
+      ],
+      "assumptions": [
+        "FPS_target>0; tiempos medidos en misma unidad.",
+        "Distinguir latencia total de throughput pipelined.",
+        "Vsync/presentación incluida si afecta objetivo.",
+        "No usar T_CPU+T_GPU como throughput en pipeline solapado; medir frame time, latency y stalls por separado."
+      ],
+      "result": "El presupuesto por frame se deriva del periodo de presentación; la condición correcta depende de si CPU y GPU trabajan en serie o solapadas.",
+      "limits": [
+        "Sumar CPU y GPU no siempre refleja frame time cuando hay solapamiento; declarar modelo de ejecución."
+      ],
+      "dimensional_verification": [
+        "CPU_ms, GPU_ms y frameBudget tienen T; FPS_target tiene T⁻¹; 1000/FPS_target queda en ms.",
+        "CPU+GPU es presupuesto de suma solo si los trabajos son secuenciales; en pipeline solapado el throughput queda limitado por max(CPU,GPU) más esperas/sincronización."
+      ]
+    },
+    {
+      "record_key": "D20:6",
+      "name": "Profiling",
+      "starting_principles": [
+        "Reloj monotónico; medición no invasiva.",
+        "Contadores y unidades documentados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Δt_i=t_{i+1}−t_i",
+          "justification": "Medir duración entre marcas de tiempo."
+        },
+        {
+          "step": 2,
+          "equation": "FPS≈1000/mean(Δt_ms)",
+          "justification": "Convertir tiempo medio en frames por segundo."
+        },
+        {
+          "step": 3,
+          "equation": "collect(drawCalls,triangles,textureBytes,CPU_ms,GPU_ms)",
+          "justification": "Relacionar duración con contadores de trabajo."
+        },
+        {
+          "step": 4,
+          "equation": "bottleneck=argmax(normalizedCost_i)",
+          "justification": "Identificar recurso dominante según presupuesto/etapa."
+        }
+      ],
+      "assumptions": [
+        "Reloj monotónico; medición no invasiva.",
+        "Contadores y unidades documentados.",
+        "Tomar muestras múltiples y reportar percentiles."
+      ],
+      "result": "Profiling deriva de mediciones temporales y contadores correlacionados con carga.",
+      "limits": [
+        "Una única muestra no representa rendimiento sostenido; medir warmup y p95/p99."
+      ],
+      "dimensional_verification": [
+        "frameTime tiene T; drawCalls y triangles son conteos; textureMemory tiene bytes.",
+        "Métricas heterogéneas se registran por separado; no sumarlas sin normalización."
+      ]
+    },
+    {
+      "record_key": "D20:7",
+      "name": "Deterministic seeds",
+      "starting_principles": [
+        "Hash/PRNG especificado; overflow definido.",
+        "Identificadores estables; no depender de orden de ejecución."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "seed_i=hash(globalSeed,recordId,channel)",
+          "justification": "Derivar semilla por elemento/canal."
+        },
+        {
+          "step": 2,
+          "equation": "r_i=PRNG(seed_i)",
+          "justification": "Generar secuencia pseudoaleatoria determinista."
+        },
+        {
+          "step": 3,
+          "equation": "value_i=map(r_i,range)",
+          "justification": "Convertir muestra a parámetro dentro de rango."
+        },
+        {
+          "step": 4,
+          "equation": "same inputs ⇒ same outputs",
+          "justification": "La reproducibilidad se obtiene evitando estado global dependiente del orden."
+        }
+      ],
+      "assumptions": [
+        "Hash/PRNG especificado; overflow definido.",
+        "Identificadores estables; no depender de orden de ejecución."
+      ],
+      "result": "Las semillas indexadas permiten reproducir variación procedural independientemente del orden de render.",
+      "limits": [
+        "Cambiar PRNG/hash/version altera resultados; guardar versión junto a proyecto."
+      ],
+      "dimensional_verification": [
+        "seed e index son enteros discretos; PRNG devuelve número adimensional en [0,1).",
+        "Al mapear [0,1) a rango físico, amplitud y offset aportan la unidad del parámetro generado."
+      ]
+    },
+    {
+      "record_key": "D20:8",
+      "name": "Golden frame tests",
+      "starting_principles": [
+        "Color space, exposure, viewport y antialiasing fijados.",
+        "Tolerancia τ calibrada; máscara de regiones variables declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "I_ref,I_test∈R^{H×W×C}",
+          "justification": "Comparar imágenes con misma resolución, cámara y formato."
+        },
+        {
+          "step": 2,
+          "equation": "MAE=(1/N)Σ|I_test−I_ref|",
+          "justification": "Calcular error absoluto medio."
+        },
+        {
+          "step": 3,
+          "equation": "RMSE=√((1/N)Σ(I_test−I_ref)²)",
+          "justification": "Penalizar diferencias grandes."
+        },
+        {
+          "step": 4,
+          "equation": "pass iff metric≤τ and masks/metadata match",
+          "justification": "Aplicar tolerancia y comparar condiciones de render."
+        }
+      ],
+      "assumptions": [
+        "Color space, exposure, viewport y antialiasing fijados.",
+        "Tolerancia τ calibrada; máscara de regiones variables declarada.",
+        "Comparación requiere misma cámara, resolución, exposición, color space, renderer y condiciones deterministas."
+      ],
+      "result": "Golden-frame testing deriva de métricas de diferencia entre render y referencia.",
+      "limits": [
+        "Un único MAE puede ocultar defectos localizados; combinar métricas y revisión visual."
+      ],
+      "dimensional_verification": [
+        "Imagen de referencia y render tienen misma resolución/espacio; pixel values comparten codificación.",
+        "ε_abs tiene unidad del canal de pixel o es adimensional para color normalizado; métricas agregadas conservan convención."
+      ]
+    },
+    {
+      "record_key": "D20:9",
+      "name": "Numerical tests",
+      "starting_principles": [
+        "Referencia independiente; tolerancias justificadas.",
+        "Entradas y salidas con unidades declaradas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e_abs=|y−y_ref|",
+          "justification": "Calcular error absoluto."
+        },
+        {
+          "step": 2,
+          "equation": "e_rel=e_abs/max(|y_ref|,ε)",
+          "justification": "Normalizar por magnitud de referencia."
+        },
+        {
+          "step": 3,
+          "equation": "|f(x)−expected|≤ε_abs+ε_rel·|expected|",
+          "justification": "Combinar tolerancia absoluta para valores cercanos a cero con tolerancia relativa para magnitudes grandes."
+        },
+        {
+          "step": 4,
+          "equation": "test boundary and degenerate inputs",
+          "justification": "Probar dominio, límites y singularidades además de casos típicos."
+        }
+      ],
+      "assumptions": [
+        "Referencia independiente; tolerancias justificadas.",
+        "Entradas y salidas con unidades declaradas.",
+        "ε>0 para referencia cercana a cero.",
+        "ε_abs comparte unidad con la salida; ε_rel es adimensional."
+      ],
+      "result": "La prueba numérica deriva de una norma de error con tolerancia absoluta y relativa.",
+      "limits": [
+        "Una tolerancia arbitraria puede ocultar errores o producir falsos fallos; justificar por escala y precisión."
+      ],
+      "dimensional_verification": [
+        "f(x) y expected comparten unidad; ε_abs tiene esa unidad y ε_rel es adimensional.",
+        "La comparación absoluta/relativa no mezcla escalas incompatibles."
+      ]
+    },
+    {
+      "record_key": "D20:10",
+      "name": "Device capability tiers",
+      "starting_principles": [
+        "Consultas reales al backend; resultados validados.",
+        "Perfiles y requisitos versionados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "features=(GPU,extensions,limits,frameCost)",
+          "justification": "Representar capacidades observables del dispositivo."
+        },
+        {
+          "step": 2,
+          "equation": "tier=minTier(features)",
+          "justification": "Asignar nivel según la capacidad mínima requerida por cada perfil."
+        },
+        {
+          "step": 3,
+          "equation": "quality=profile[tier]",
+          "justification": "Elegir resolución/efectos dentro del presupuesto del tier."
+        },
+        {
+          "step": 4,
+          "equation": "fallback if unsupported",
+          "justification": "Desactivar función no soportada en vez de asumir extensión."
+        }
+      ],
+      "assumptions": [
+        "Consultas reales al backend; resultados validados.",
+        "Perfiles y requisitos versionados.",
+        "No inferir capacidad solo por nombre comercial."
+      ],
+      "result": "Los tiers derivan de clasificación por límites/funciones medidas y coste observado.",
+      "limits": [
+        "La clasificación debe adaptarse a temperatura, batería y carga variable si se busca rendimiento sostenido."
+      ],
+      "dimensional_verification": [
+        "FrameCost tiene T; límites GPU son conteos/bytes y extensiones son categorías discretas.",
+        "La clasificación devuelve tier discreto; no asigna unidad física al tier."
+      ]
+    },
+    {
+      "record_key": "D20:11",
+      "name": "Resource lifecycle",
+      "starting_principles": [
+        "Ownership explícita; recursos compartidos no se liberan prematuramente.",
+        "dispose idempotente o protegido contra doble liberación."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "refs(r)=number of active owners",
+          "justification": "Contar referencias/propietarios activos de recurso."
+        },
+        {
+          "step": 2,
+          "equation": "retain(r): refs←refs+1",
+          "justification": "Registrar nuevo propietario."
+        },
+        {
+          "step": 3,
+          "equation": "release(r): refs←refs−1",
+          "justification": "Eliminar propietario."
+        },
+        {
+          "step": 4,
+          "equation": "if refs(r)=0 and not cached: dispose(r)",
+          "justification": "Liberar recurso cuando no hay consumidores y no está en caché."
+        },
+        {
+          "step": 5,
+          "equation": "invalidate handles after dispose",
+          "justification": "Evitar uso posterior de recurso liberado."
+        }
+      ],
+      "assumptions": [
+        "Ownership explícita; recursos compartidos no se liberan prematuramente.",
+        "dispose idempotente o protegido contra doble liberación.",
+        "Caché con política de expiración definida."
+      ],
+      "result": "El ciclo de vida se deriva de contabilidad de propiedad/referencias y liberación al quedar sin uso.",
+      "limits": [
+        "Liberar antes de tiempo rompe consumidores; no liberar genera fuga de GPU memory."
+      ],
+      "dimensional_verification": [
+        "resourceBytes tiene bytes; refCount es entero adimensional; tiempo de vida es estado discreto.",
+        "dispose ocurre cuando referencias activas llegan a cero y no altera unidades de otros recursos."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "12/12 técnicas D20 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos, justificación, supuestos, límites y verificación dimensional",
+      "Frame budget distingue ejecución secuencial de pipeline CPU/GPU solapado",
+      "Adaptive quality declara la hipótesis de coste proporcional a píxeles²",
+      "Golden frame fija cámara, resolución, exposición y espacio de color",
+      "Numerical tests combinan tolerancia absoluta y relativa con unidades correctas"
+    ],
+    "limitations": [
+      "Los criterios matemáticos no fijan umbrales universales; el rendimiento debe medirse en los dispositivos objetivo."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

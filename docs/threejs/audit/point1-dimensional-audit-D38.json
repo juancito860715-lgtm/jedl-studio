@@ -1,0 +1,1002 @@
+{
+  "title": "Auditoría dimensional punto 1 — D38 Materiales avanzados, microestructura y apariencia",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D38",
+    "domain": "Materiales avanzados, microestructura y apariencia",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D38 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "optics": "BRDF/NDF en sr⁻¹; Fresnel y transmitancia adimensionales.",
+    "materials": "Coeficientes de absorción m⁻¹; espesores/distancias m.",
+    "color": "Separar radiometría espectral y color RGB relativo."
+  },
+  "records": [
+    {
+      "record_key": "D38:0",
+      "name": "Microfacet BRDF Cook–Torrance",
+      "variables": [
+        {
+          "symbol": "D",
+          "meaning": "distribución microfacet",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular inversa",
+          "domain": "no negativa e integrable"
+        },
+        {
+          "symbol": "F",
+          "meaning": "Fresnel",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "G",
+          "meaning": "enmascaramiento",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "f_r",
+          "meaning": "BRDF",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular inversa",
+          "domain": "finita"
+        },
+        {
+          "symbol": "α",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "D es densidad por ángulo sólido; F y G son adimensionales.",
+        "Denominadores cosenos deben usar normales y direcciones unitarias en el mismo hemisferio."
+      ],
+      "valid_domain": [
+        "Direcciones unitarias; α>0; denominador definido."
+      ],
+      "boundary_conditions": [
+        "F=0 anula reflexión; α→0 requiere límite delta, no evaluación directa singular."
+      ],
+      "dimensional_checks": [
+        "D [sr⁻¹]·F·G dividido por cosenos adimensionales conserva sr⁻¹.",
+        "La BRDF tiene unidad angular inversa."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:1",
+      "name": "Beer–Lambert absorption",
+      "variables": [
+        {
+          "symbol": "σ_a",
+          "meaning": "coeficiente absorción",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia en medio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "T",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0 si espectral"
+        }
+      ],
+      "constraints": [
+        "σ_a y d usan la misma unidad espacial; el exponente −σ_ad es adimensional.",
+        "Absorción por canal o espectral debe conservar banda y escala."
+      ],
+      "valid_domain": [
+        "σ_a≥0; d≥0; valores finitos."
+      ],
+      "boundary_conditions": [
+        "d=0 o σ_a=0 da T=1; σ_ad→∞ lleva T→0."
+      ],
+      "dimensional_checks": [
+        "σ_a[m⁻¹]·d[m] es adimensional; T es adimensional.",
+        "No sumar coeficiente de absorción con distancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:2",
+      "name": "Subsurface scattering dipole approximation",
+      "variables": [
+        {
+          "symbol": "σ_a,σ_s",
+          "meaning": "absorción/dispersión",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "σ_tr",
+          "meaning": "extinción reducida",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "r,d_r,d_v",
+          "meaning": "distancias",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "R(r)",
+          "meaning": "perfil de difusión superficial",
+          "unit": "m⁻²",
+          "dimension": {
+            "L": -2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "integrable"
+        },
+        {
+          "symbol": "g",
+          "meaning": "anisotropía",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[-1,1]"
+        },
+        {
+          "symbol": "z_r,z_v",
+          "meaning": "Profundidades efectivas de fuentes real/virtual del dipolo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas y calculadas desde coeficientes de transporte"
+        }
+      ],
+      "constraints": [
+        "σ_tr·d_r y σ_tr·d_v son adimensionales.",
+        "Como R(r) se interpreta como perfil espacial m⁻² y los denominadores d³ tienen m³, los numeradores z_r,z_v deben tener m.",
+        "La fórmula es un perfil BSSRDF aproximado; no debe confundirse con BRDF sr⁻¹."
+      ],
+      "valid_domain": [
+        "σ_a,σ_s≥0; distancias positivas; g en rango físico."
+      ],
+      "boundary_conditions": [
+        "Albedo de dispersión cero elimina contribución subsuperficial; r=0 requiere límite/regularización del perfil."
+      ],
+      "dimensional_checks": [
+        "σ_tr tiene m⁻¹; distancias y z_r,z_v tienen m; exponentes son adimensionales.",
+        "z_r/d_r³ y z_v/d_v³ tienen m⁻²; R(r) integra sobre área para reflectancia adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:3",
+      "name": "Oren–Nayar diffuse",
+      "variables": [
+        {
+          "symbol": "ρ",
+          "meaning": "albedo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "σ",
+          "meaning": "desviación angular de microfacetas",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "α,β,φ",
+          "meaning": "ángulos",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "f_r",
+          "meaning": "BRDF difusa",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular inversa",
+          "domain": "no negativa"
+        }
+      ],
+      "constraints": [
+        "Términos trigonométricos son adimensionales; A y B dependen de σ adimensional/parametrización angular.",
+        "La BRDF resultante conserva sr⁻¹ y debe mantener reflectancia integrada física."
+      ],
+      "valid_domain": [
+        "Ángulos y σ finitos; cosenos en dominio visible."
+      ],
+      "boundary_conditions": [
+        "σ=0 recupera Lambert ideal; ρ=0 da BRDF nula."
+      ],
+      "dimensional_checks": [
+        "ρ/π tiene sr⁻¹; los factores angulares son adimensionales.",
+        "f_r conserva sr⁻¹."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:4",
+      "name": "Sheen cloth BRDF",
+      "variables": [
+        {
+          "symbol": "D_Charlie",
+          "meaning": "distribución de microfibras",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular",
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "F_sheen",
+          "meaning": "factor Fresnel aproximado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango del modelo"
+        },
+        {
+          "symbol": "f_sheen",
+          "meaning": "BRDF sheen",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "La distribución Charlie debe normalizarse respecto de ángulo sólido; el factor Fresnel no cambia unidad.",
+        "La contribución sheen se suma a otras BRDF en el mismo espacio de color/medida."
+      ],
+      "valid_domain": [
+        "Roughness dentro del dominio; direcciones unitarias."
+      ],
+      "boundary_conditions": [
+        "F_sheen=0 elimina lóbulo; rugosidad límite requiere tratamiento del modelo."
+      ],
+      "dimensional_checks": [
+        "D_Charlie [sr⁻¹]·F_sheen [1] conserva sr⁻¹.",
+        "La suma con BRDF base es homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:5",
+      "name": "Anisotropic GGX",
+      "variables": [
+        {
+          "symbol": "α_x,α_y",
+          "meaning": "rugosidades tangente/bitangente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "h_x,h_y,h_z",
+          "meaning": "half vector en TBN",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitario"
+        },
+        {
+          "symbol": "D",
+          "meaning": "NDF anisotrópica",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular",
+          "domain": "normalizada"
+        }
+      ],
+      "constraints": [
+        "TBN debe ser ortonormal y α_x,α_y adimensionales; el vector H se expresa en la misma base.",
+        "D se normaliza sobre hemisferio y mantiene densidad por ángulo sólido."
+      ],
+      "valid_domain": [
+        "α_x,α_y>0; H unitario; denominador no nulo."
+      ],
+      "boundary_conditions": [
+        "α_x=α_y recupera caso isotrópico; α→0 requiere límite delta."
+      ],
+      "dimensional_checks": [
+        "Términos del denominador son adimensionales; D tiene sr⁻¹.",
+        "La anisotropía cambia forma, no unidad de NDF."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:6",
+      "name": "Thin-film interference",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "índice película",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "espesor",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "θ_t",
+          "meaning": "ángulo interno",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "δ",
+          "meaning": "fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "4πnd cosθ_t/λ es adimensional angular; phase_shift también es fase.",
+        "Índice puede depender de λ; espectro de fuente y película debe usar misma unidad de longitud."
+      ],
+      "valid_domain": [
+        "d≥0; λ>0; n>0."
+      ],
+      "boundary_conditions": [
+        "d=0 elimina fase geométrica; λ fuera de banda perceptual sigue matemáticamente válida."
+      ],
+      "dimensional_checks": [
+        "nd/λ es adimensional; δ es ángulo en radianes.",
+        "No sumar espesor y longitud de onda."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:7",
+      "name": "Fluorescence",
+      "variables": [
+        {
+          "symbol": "E(λ_i)",
+          "meaning": "irradiancia espectral incidente",
+          "unit": "W·m⁻²·m⁻¹",
+          "dimension": "espectral",
+          "domain": "finita"
+        },
+        {
+          "symbol": "A(λ_i)",
+          "meaning": "absorción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "K(λ_i,λ_o)",
+          "meaning": "kernel de emisión",
+          "unit": "m⁻¹ respecto de λ_o para kernel de emisión normalizado",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "K≥0; integral sobre λ_o igual a 1 para cada λ_i bajo convención declarada"
+        },
+        {
+          "symbol": "L_em",
+          "meaning": "emisión espectral",
+          "unit": "unidad radiométrica espectral",
+          "dimension": "tipada",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "E(λ_i) tiene W·m⁻²·m⁻¹; K tiene m⁻¹ respecto de λ_o; dλ_i aporta m, por lo que L_em(λ_o) conserva W·m⁻²·m⁻¹.",
+        "El kernel debe declarar normalización y eficiencia cuántica/energética; la emisión no puede exceder energía absorbida sin fuente externa."
+      ],
+      "valid_domain": [
+        "Espectros finitos; A∈[0,1]; kernel integrable."
+      ],
+      "boundary_conditions": [
+        "A=0 produce emisión nula; kernel nulo produce emisión nula."
+      ],
+      "dimensional_checks": [
+        "E(λ_i)·K(λ_i,λ_o)·dλ_i tiene W·m⁻²·m⁻¹.",
+        "K tiene unidad inversa de longitud de salida; integral sobre λ_o normalizada es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:8",
+      "name": "Layered material",
+      "variables": [
+        {
+          "symbol": "f_base,f_layer",
+          "meaning": "BRDF por capa",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular",
+          "domain": "no negativas"
+        },
+        {
+          "symbol": "T_in,T_out",
+          "meaning": "transmitancias",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "d_i",
+          "meaning": "espesor capa",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "roughness_i",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dominio del modelo"
+        },
+        {
+          "symbol": "f_total",
+          "meaning": "BRDF total",
+          "unit": "sr⁻¹",
+          "dimension": "densidad angular",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada contribución de capa debe estar expresada en la misma medida angular y espacio espectral.",
+        "La transmisión entre capas es adimensional; espesores solo intervienen en atenuación con coeficientes L⁻¹."
+      ],
+      "valid_domain": [
+        "Capas ordenadas; espesores y parámetros finitos; BRDF integrables."
+      ],
+      "boundary_conditions": [
+        "Transmitancia cero bloquea capa posterior; espesor cero elimina atenuación volumétrica de esa capa."
+      ],
+      "dimensional_checks": [
+        "T_in·f_layer·T_out conserva sr⁻¹; suma con f_base es homogénea.",
+        "Si se aplica absorción, σ_a[m⁻¹]·d[m] es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:9",
+      "name": "Procedural bump y normal field",
+      "variables": [
+        {
+          "symbol": "h",
+          "meaning": "altura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "u,v",
+          "meaning": "coordenadas UV",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizadas"
+        },
+        {
+          "symbol": "T,B,N",
+          "meaning": "base tangente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ortonormal"
+        },
+        {
+          "symbol": "∂h/∂u,∂h/∂v",
+          "meaning": "pendientes",
+          "unit": "m por UV; convertir a m/m físico mediante Jacobiano de superficie",
+          "dimension": "L respecto de UV adimensional; 1 tras conversión a coordenada tangente física",
+          "domain": "finitas; no restar directamente de normal antes de convertir por métrica/Jacobiano"
+        },
+        {
+          "symbol": "N'",
+          "meaning": "normal perturbada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        }
+      ],
+      "constraints": [
+        "∂h/∂u tiene m si u es adimensional; para perturbar N se requiere pendiente física ∂h/∂x con m/m, obtenida mediante inversa del Jacobiano de superficie.",
+        "T,B,N son direcciones adimensionales; tras convertir el gradiente a coordenadas tangentes físicas, los términos restados son adimensionales."
+      ],
+      "valid_domain": [
+        "Altura y gradientes finitos; base ortonormal."
+      ],
+      "boundary_conditions": [
+        "h constante produce gradiente cero y normal original."
+      ],
+      "dimensional_checks": [
+        "Derivada respecto de UV tiene L; derivada respecto de longitud tangente física es adimensional.",
+        "N′ es dirección unitaria; la fórmula directa con ∂h/∂UV sin métrica sería dimensionalmente inválida."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:10",
+      "name": "Triplanar mapping",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición de muestreo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "N",
+          "meaning": "normal mundial",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "k",
+          "meaning": "exponente de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "w_x,w_y,w_z",
+          "meaning": "pesos de proyección",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        },
+        {
+          "symbol": "C",
+          "meaning": "color muestreado",
+          "unit": "señal RGB",
+          "dimension": "adimensional si relativo",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Coordenadas de proyección usan L o frecuencia espacial L⁻¹ con argumento adimensional; pesos se normalizan.",
+        "Las tres proyecciones deben compartir textura, escala y espacio de color."
+      ],
+      "valid_domain": [
+        "p finito; N unitario; pesos y k válidos."
+      ],
+      "boundary_conditions": [
+        "N alineada a eje da peso dominante de esa proyección; k=0 produce mezcla uniforme según fórmula."
+      ],
+      "dimensional_checks": [
+        "p tiene L; coordenadas UV proyectadas son adimensionales tras escalar por frecuencia.",
+        "Pesos y color relativo son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D38:11",
+      "name": "Stochastic texture tiling",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "coordenada de consulta",
+          "unit": "m o UV 1",
+          "dimension": "según espacio",
+          "domain": "finita"
+        },
+        {
+          "symbol": "R_i",
+          "meaning": "rotación por celda",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ortogonal"
+        },
+        {
+          "symbol": "o_i",
+          "meaning": "offset",
+          "unit": "m o UV 1",
+          "dimension": "mismo tipo que x",
+          "domain": "finito"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "peso mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "suma 1"
+        },
+        {
+          "symbol": "C",
+          "meaning": "color salida",
+          "unit": "señal RGB",
+          "dimension": "adimensional si relativo",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "R_i, x y o_i deben compartir espacio; un offset físico no se suma a UV normalizada sin conversión.",
+        "Pesos de celdas vecinas deben ser continuos y normalizados."
+      ],
+      "valid_domain": [
+        "Transformaciones finitas; pesos no negativos; textura disponible."
+      ],
+      "boundary_conditions": [
+        "Una celda con peso 1 devuelve muestra transformada; transición de borde conserva continuidad."
+      ],
+      "dimensional_checks": [
+        "Rotaciones y pesos son adimensionales; offset comparte unidad de x.",
+        "La mezcla conserva unidad del color."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "12/12 técnicas incluidas; ninguna protegida",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Cerradas unidades de profundidades del dipolo, kernel espectral de fluorescencia y gradiente UV del bump mapping"
+    ],
+    "limitations": [
+      "Los modelos de subsurface y fluorescencia dependen de convenciones de transporte/normalización explícitas; la auditoría no sustituye calibración espectral."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

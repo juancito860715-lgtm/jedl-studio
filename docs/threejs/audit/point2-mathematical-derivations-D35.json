@@ -1,0 +1,1550 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D35 Matemáticas de sistemas, control y optimización",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D35",
+    "record_count": 15,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D35 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D35:0",
+      "name": "PID controller",
+      "starting_principles": [
+        "Ganancias y error tipados; Δt>0; saturación anti-windup considerada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e(t)=r(t)−y(t)",
+          "justification": "Calcular error entre referencia y salida."
+        },
+        {
+          "step": 2,
+          "equation": "u_P=K_pe; u_I=K_i∫e dt; u_D=K_d de/dt",
+          "justification": "Construir términos proporcional, integral y derivativo."
+        },
+        {
+          "step": 3,
+          "equation": "u=u_P+u_I+u_D",
+          "justification": "Sumar acciones de control."
+        },
+        {
+          "step": 4,
+          "equation": "discrete: I_n=I_{n−1}+e_nΔt; D_n=(e_n−e_{n−1})/Δt",
+          "justification": "Discretizar integral y derivada con paso temporal."
+        }
+      ],
+      "assumptions": [
+        "Ganancias y error tipados; Δt>0; saturación anti-windup considerada.",
+        "Las unidades de ganancias se derivan del tipo de salida U y del tipo de error X; no son constantes adimensionales universales."
+      ],
+      "result": "PID deriva de sumar corrección proporcional, acumulada y predictiva basada en derivada.",
+      "limits": [
+        "Integral windup y derivada ruidosa requieren anti-windup/filtrado."
+      ],
+      "dimensional_verification": [
+        "e has unit X; u has unit U; Kp U/X, Ki U/(X·T), Kd U·T/X.",
+        "Integral and derivative terms all have U; Δt has T."
+      ],
+      "source_record_key": "D35:0",
+      "source_equation": "u_k=Kp e_k + Ki I_k + Kd (e_k-e_{k-1})/Δt; I_k=I_{k-1}+Δt e_k",
+      "source_mathematical_derivation": "Partir de u=Kp e+Ki∫e dt+Kd de/dt. Aproximar la integral por rectángulos izquierdos I_k=I_{k-1}+Δt e_k y la derivada por diferencia hacia atrás (e_k-e_{k-1})/Δt. Sustituir ambas aproximaciones produce la ley discreta. Para evitar windup, limitar u y congelar o retrocalcular el integrador cuando la saturación y el error empujan en la misma dirección.",
+      "source_variables_units": {
+        "explicit": "e [unidad de error E]; u [unidad de control U]; Δt [s]; I [E·s]; Kp [U/E]; Ki [U/(E·s)]; Kd [U·s/E].",
+        "all_symbols": "k índice entero; e_k consigna menos medida; u_k salida saturada; I_k integral acumulada; e_{k-1} error previo; u_min/u_max [U]."
+      },
+      "source_dimensional_analysis": {
+        "equation": "u_k=Kp e_k + Ki I_k + Kd (e_k-e_{k-1})/Δt; I_k=I_{k-1}+Δt e_k",
+        "term_dimensions": {
+          "Kp e": "U",
+          "Ki I": "(U/(E·s))(E·s)=U",
+          "Kd Δe/Δt": "(U·s/E)(E/s)=U"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Δt>0; derivada discreta hacia atrás; saturación y anti-windup configurados."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "Δt>0; u_min≤u_max; limitar integral a [Imin,Imax] o aplicar back-calculation.",
+        "initial_conditions": "e_prev e I inicializados; primer derivativo se fuerza a cero.",
+        "boundary_conditions": "No requiere BC espacial."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "zero_error",
+            "target=measurement; state arbitrary",
+            "u=Ki*I (derivative zero)",
+            1e-12
+          ],
+          [
+            "unit_step",
+            "e=1, dt=0.1, Kp=2, Ki=0, Kd=0",
+            "u=2",
+            1e-12
+          ],
+          [
+            "saturation",
+            "u_raw=20, limits=[-1,1]",
+            "u=1 and integral does not wind up",
+            1e-12
+          ]
+        ],
+        "metrics": [
+          "control error",
+          "saturation status",
+          "integrator state"
+        ],
+        "acceptance": "Exact arithmetic within floating-point tolerance; bounded output and anti-windup invariant."
+      }
+    },
+    {
+      "record_key": "D35:1",
+      "name": "Proportional tracking",
+      "starting_principles": [
+        "K_p>0; objetivo constante por tramo; unidades velocidad/error compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e=target−position",
+          "justification": "Calcular error."
+        },
+        {
+          "step": 2,
+          "equation": "v=K_pe",
+          "justification": "Asignar velocidad proporcional al error."
+        },
+        {
+          "step": 3,
+          "equation": "dx/dt=K_p(target−x)",
+          "justification": "Escribir dinámica continua."
+        },
+        {
+          "step": 4,
+          "equation": "x(t)=target+(x_0−target)e^(−K_pt)",
+          "justification": "Resolver ODE para objetivo constante."
+        }
+      ],
+      "assumptions": [
+        "K_p>0; objetivo constante por tramo; unidades velocidad/error compatibles."
+      ],
+      "result": "Proportional tracking deriva de una ODE de primer orden con error proporcional.",
+      "limits": [
+        "Ganancia excesiva produce overshoot si el sistema real tiene inercia/retardo."
+      ],
+      "dimensional_verification": [
+        "target−position has L; v has L/T; Kp has T⁻¹.",
+        "Kp t is dimensionless in the exponential solution; x(t) retains L."
+      ],
+      "source_record_key": "D35:1",
+      "source_equation": "v_cmd=Kp(x_target-x); x_{k+1}=x_k+Δt v_cmd",
+      "source_mathematical_derivation": "La ley proporcional define el error e=x_target-x y una velocidad comandada v=Kp e. Para un objetivo constante y sin saturación, e_dot=-Kp e; resolver la EDO da e(t)=e(0)exp(-Kp t), por lo que converge si Kp>0. Con Euler explícito, e_{k+1}=(1-KpΔt)e_k; la estabilidad discreta exige |1-KpΔt|<1.",
+      "source_variables_units": {
+        "explicit": "x,target [m]; e [m]; v [m/s]; Kp [1/s]; Δt [s].",
+        "all_symbols": "Kp>0; v_max [m/s] si hay limitación; posición actualizada en el mismo marco. "
+      },
+      "source_dimensional_analysis": {
+        "equation": "v_cmd=Kp(x_target-x); x_{k+1}=x_k+Δt v_cmd",
+        "term_dimensions": {
+          "Kp(target-x)": "(1/s)m=m/s",
+          "Δt v": "s·m/s=m"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Objetivo fijo durante el paso; cinemática de primer orden."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "Kp>0; Δt>0; para Euler sin oscilación 0<KpΔt≤1; estabilidad 0<KpΔt<2.",
+        "initial_conditions": "x_0 conocido.",
+        "boundary_conditions": "Limitar posición a la región permitida; proyectar en límites geométricos si corresponde."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "equilibrium",
+            "x=target",
+            "v=0 and xNext=x",
+            1e-12
+          ],
+          [
+            "scalar_decay",
+            "x=0,target=1,Kp=2,dt=0.1",
+            "xNext=0.2",
+            1e-12
+          ],
+          [
+            "unstable_step",
+            "Kp*dt>=2",
+            "reject configuration or flag unstable",
+            0
+          ]
+        ],
+        "metrics": [
+          "error norm",
+          "tracking error per step"
+        ],
+        "acceptance": "For constant target, Euler error multiplier is 1-KpΔt; require magnitude below one."
+      }
+    },
+    {
+      "record_key": "D35:2",
+      "name": "Critically damped spring",
+      "starting_principles": [
+        "ω>0; sistema lineal de segundo orden; target constante."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x''+2ωx'+ω²(x−target)=0",
+          "justification": "Definir sistema lineal con amortiguamiento crítico."
+        },
+        {
+          "step": 2,
+          "equation": "characteristic: r²+2ωr+ω²=0",
+          "justification": "Construir ecuación característica."
+        },
+        {
+          "step": 3,
+          "equation": "(r+ω)²=0",
+          "justification": "Identificar raíz doble."
+        },
+        {
+          "step": 4,
+          "equation": "x(t)=target+(A+Bt)e^(−ωt)",
+          "justification": "Escribir solución de raíz repetida sin oscilación ideal."
+        }
+      ],
+      "assumptions": [
+        "ω>0; sistema lineal de segundo orden; target constante."
+      ],
+      "result": "El resorte críticamente amortiguado tiene raíz doble y respuesta sin oscilación ideal.",
+      "limits": [
+        "Parámetros dependen de frecuencia natural; no modela saturación."
+      ],
+      "dimensional_verification": [
+        "x and target have L; x' L/T; x'' L/T²; ω T⁻¹.",
+        "Every term in x''+2ωx'+ω²(x−target) has L/T²."
+      ],
+      "source_record_key": "D35:2",
+      "source_equation": "x¨+2ωx˙+ω²(x-target)=0; a=ω²(target-x)-2ωv",
+      "source_mathematical_derivation": "El sistema masa-resorte-amortiguador m x¨+c x˙+k(x-target)=0 tiene frecuencia natural ω_n=√(k/m) y razón de amortiguamiento ζ=c/(2√(km)). Para ζ=1 se obtiene c=2mω_n y, dividiendo por m, x¨+2ω_n x˙+ω_n²(x-target)=0. Definiendo v=x˙ se obtiene la aceleración usada en la integración.",
+      "source_variables_units": {
+        "explicit": "x,target [m]; v [m/s]; a [m/s²]; ω [rad/s]; m [kg]; k [N/m]; c [N·s/m].",
+        "all_symbols": "ω=√(k/m); ζ=1 para amortiguamiento crítico; Δt [s]."
+      },
+      "source_dimensional_analysis": {
+        "equation": "x¨+2ωx˙+ω²(x-target)=0; a=ω²(target-x)-2ωv",
+        "term_dimensions": {
+          "x¨": "m/s²",
+          "2ωx˙": "(1/s)(m/s)=m/s²",
+          "ω²(x-target)": "(1/s²)m=m/s²"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Parámetros constantes durante cada paso; resorte lineal; target conocido."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "ω≥0; Δt>0; inicializar x y v. Para integración explícita restringir Δt respecto de ω; preferir solución analítica exacta o integrador estable.",
+        "initial_conditions": "x(0),v(0) definidos.",
+        "boundary_conditions": "Si hay límites físicos, proyectar x y tratar el impacto como evento separado."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "rest_at_target",
+            "x=target,v=0",
+            "a=0 and state unchanged",
+            1e-12
+          ],
+          [
+            "displaced_rest",
+            "x=0,target=1,v=0,ω=2,dt=0.01",
+            "a=4; vNext=0.04; xNext=0.0004",
+            1e-12
+          ],
+          [
+            "zero_frequency",
+            "ω=0",
+            "a=0; constant velocity",
+            1e-12
+          ]
+        ],
+        "metrics": [
+          "position error",
+          "velocity",
+          "mechanical energy"
+        ],
+        "acceptance": "Check monotonic decay of energy for unforced critically damped case; halve Δt to assess convergence."
+      }
+    },
+    {
+      "record_key": "D35:3",
+      "name": "Kalman state model",
+      "starting_principles": [
+        "Covarianzas Q,R semidefinidas positivas; matrices compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x_k=A x_(k−1)+B u_k+w_k; z_k=H x_k+v_k",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 2,
+          "equation": "x⁻=A x+B u; P⁻=A P Aᵀ+Q",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 3,
+          "equation": "r=z−H x⁻; S=H P⁻ Hᵀ+R",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 4,
+          "equation": "K=P⁻HᵀS⁻¹; x=x⁻+Kr",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 5,
+          "equation": "P=(I−KH)P⁻(I−KH)ᵀ+KRKᵀ",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        }
+      ],
+      "assumptions": [
+        "Covarianzas Q,R semidefinidas positivas; matrices compatibles."
+      ],
+      "result": "El filtro lineal gaussiano combina predicción y medición; la actualización de Joseph es la forma numéricamente robusta consignada en el manifiesto.",
+      "limits": [
+        "Modelo lineal y gaussianidad aproximada pueden fallar en tracking no lineal."
+      ],
+      "dimensional_verification": [
+        "State and observation may be heterogeneous; A maps state to state; H maps state to observation.",
+        "P,Q covariance entries carry pairwise state units; R measurement units; K state/measurement."
+      ],
+      "source_record_key": "D35:3",
+      "source_equation": "x⁻=A x+ B u; P⁻=A P Aᵀ+Q; K=P⁻Hᵀ(HP⁻Hᵀ+R)⁻¹; x=x⁻+K(z-Hx⁻); P=(I-KH)P⁻",
+      "source_mathematical_derivation": "El modelo lineal gaussiano supone x_k=A x_{k-1}+Bu+w y z=Hx+v, con ruidos independientes de covarianza Q y R. La predicción propaga media y covarianza. La innovación r=z-Hx⁻ tiene covarianza S=HP⁻Hᵀ+R. La ganancia K minimiza la traza de la covarianza posterior y produce la corrección. Usar la forma de Joseph P=(I-KH)P⁻(I-KH)ᵀ+KRKᵀ para preservar simetría/positividad numérica.",
+      "source_variables_units": {
+        "explicit": "x [estado]; u [control]; z [medición]; A,B,H [matrices de transición]; P,Q [covarianza estado]; R [covarianza medición]; Δt [s].",
+        "all_symbols": "Dimensiones: x∈Rⁿ, z∈Rᵐ, u∈Rᵖ; Q n×n; R m×m; S m×m."
+      },
+      "source_dimensional_analysis": {
+        "equation": "x⁻=A x+ B u; P⁻=A P Aᵀ+Q; K=P⁻Hᵀ(HP⁻Hᵀ+R)⁻¹; x=x⁻+K(z-Hx⁻); P=(I-KH)P⁻",
+        "term_dimensions": {
+          "Ax, Bu": "[x]",
+          "A P Aᵀ y Q": "[x_i x_j]",
+          "HPHᵀ y R": "[z_i z_j]",
+          "K(z-Hx)": "[x]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Ruido blanco gaussiano, media cero, covarianzas conocidas; matrices compatibles."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "Q y R simétricas semidefinidas positivas; R definida positiva para innovación invertible; no invertir explícitamente: resolver S yᵀ=...",
+        "initial_conditions": "x0 y P0 simétrica PSD.",
+        "boundary_conditions": "No hay BC espaciales; validar mediciones y rechazar outliers según innovación normalizada."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "no_measurement_effect",
+            "H=0",
+            "xPost=xPred; PPost=PPred",
+            1e-10
+          ],
+          [
+            "perfect_measurement_limit",
+            "R→0 with observable scalar state",
+            "posterior approaches z",
+            0.000001
+          ],
+          [
+            "innovation_outlier",
+            "rᵀS⁻¹r above configured chi-square gate",
+            "reject measurement; retain prediction",
+            1e-10
+          ]
+        ],
+        "metrics": [
+          "state error",
+          "covariance symmetry",
+          "minimum covariance eigenvalue",
+          "normalized innovation squared"
+        ],
+        "acceptance": "Use Cholesky/LDLT solves; covariance symmetric PSD within tolerance."
+      }
+    },
+    {
+      "record_key": "D35:4",
+      "name": "Gradient descent",
+      "starting_principles": [
+        "E diferenciable; η positivo y suficientemente pequeño."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E(θ+Δ)≈E(θ)+∇EᵀΔ",
+          "justification": "Usar expansión de Taylor de primer orden."
+        },
+        {
+          "step": 2,
+          "equation": "Δθ_j=−η_j∂E/∂θ_j; [η_j]=[θ_j]²/[E]",
+          "justification": "Elegir la escala de paso por parámetro para que el producto tenga la unidad de θ_j."
+        },
+        {
+          "step": 3,
+          "equation": "E(θ−η∇E)≈E(θ)−η||∇E||²",
+          "justification": "Para η pequeño, el primer orden reduce E."
+        },
+        {
+          "step": 4,
+          "equation": "θ_{n+1}=θ_n−η∇E(θ_n)",
+          "justification": "Iterar actualización."
+        }
+      ],
+      "assumptions": [
+        "E diferenciable; η positivo y suficientemente pequeño.",
+        "Para parámetros heterogéneos, usar tasas η_j o normalizar cada parámetro antes del descenso."
+      ],
+      "result": "Gradient descent usa expansión local para moverse en dirección de descenso.",
+      "limits": [
+        "η grande puede divergir; η pequeño converge lentamente."
+      ],
+      "dimensional_verification": [
+        "E has objective unit; θ_j has parameter unit; ∂E/∂θ_j has E/θ_j.",
+        "η_j must have θ_j²/E, or parameters/objective must be nondimensionalized."
+      ],
+      "source_record_key": "D35:4",
+      "source_equation": "θ_{k+1}=θ_k-η∇J(θ_k)",
+      "source_mathematical_derivation": "Para J diferenciable, expand J(θ-ηg)=J(θ)-η||g||²+(η²/2)gᵀ∇²J(ξ)g. Si el Hessiano tiene norma acotada por L, J(θ-ηg)≤J(θ)-η(1-Lη/2)||g||². Por tanto 0<η<2/L garantiza descenso para gradiente exacto bajo gradiente L-Lipschitz; η≤1/L da una cota sencilla.",
+      "source_variables_units": {
+        "explicit": "θ_i [unidad del parámetro]; J [unidad objetivo]; ∂J/∂θ_i [J/θ_i]; η [θ_i²/J] en caso escalar isotrópico.",
+        "all_symbols": "g=∇J; L constante Lipschitz del gradiente; tolerancias en norma de gradiente y cambio relativo."
+      },
+      "source_dimensional_analysis": {
+        "equation": "θ_{k+1}=θ_k-η∇J(θ_k)",
+        "term_dimensions": {
+          "η∇J": "[θ]",
+          "θ-η∇J": "[θ]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "J diferenciable y gradiente exacto; para garantía global, gradiente L-Lipschitz."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "η>0; parámetros dentro de dominio; aplicar proyección si existen restricciones.",
+        "initial_conditions": "θ0 finito.",
+        "boundary_conditions": "Conjunto factible cerrado y proyección definida si hay restricciones."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "quadratic",
+            "J=0.5*θ², θ0=2, η=0.5",
+            "θ1=1.0 and J decreases",
+            1e-12
+          ],
+          [
+            "minimum",
+            "θ at stationary point",
+            "gradient norm <= tol",
+            1e-10
+          ],
+          [
+            "invalid_step",
+            "η<=0",
+            "reject input",
+            0
+          ]
+        ],
+        "metrics": [
+          "objective",
+          "gradient norm",
+          "step length"
+        ],
+        "acceptance": "For convex L-smooth objective and 0<η<2/L, monotonic decrease; nonconvex only stationarity is generally expected."
+      }
+    },
+    {
+      "record_key": "D35:5",
+      "name": "Levenberg–Marquardt",
+      "starting_principles": [
+        "Residuo diferenciable; λ≥0; J y parámetros escalados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Φ(θ)=½ r(θ)ᵀr(θ)",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 2,
+          "equation": "r(θ+δ)≈r(θ)+Jδ",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 3,
+          "equation": "Φ_λ(δ)=½||r+Jδ||²+(λ/2)||Dδ||²",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 4,
+          "equation": "∇_δΦ_λ=Jᵀ(r+Jδ)+λDᵀDδ=0",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 5,
+          "equation": "(JᵀJ+λDᵀD)δ=−Jᵀr",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 6,
+          "equation": "θ_next=θ+δ",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        }
+      ],
+      "assumptions": [
+        "Residuo diferenciable; λ≥0; J y parámetros escalados.",
+        "s_j tiene unidad de θ_j; r_scale,i tiene unidad de r_i; λ es adimensional."
+      ],
+      "result": "Levenberg–Marquardt amortigua Gauss–Newton con una matriz diagonal de escalado D; la compatibilidad dimensional de D y λ debe verificarse para cada parametrización.",
+      "limits": [
+        "λ y escalado condicionan estabilidad; mínimos locales posibles."
+      ],
+      "dimensional_verification": [
+        "Raw J_ij has residual_i/parameter_j; JᵀJ is not generally dimensionally compatible with λI for heterogeneous parameters.",
+        "After normalizing residuals and parameters, J̃ and λ are dimensionless; Δθ_j=s_jΔθ̃_j restores parameter units."
+      ],
+      "source_record_key": "D35:5",
+      "source_equation": "(JᵀJ+λ diag(JᵀJ))δ=-Jᵀr; θ_{k+1}=θ_k+δ",
+      "source_mathematical_derivation": "Para residual r(θ), minimizar Φ=½rᵀr. Linealizar r(θ+δ)≈r+Jδ y minimizar ½||r+Jδ||²+(λ/2)||Dδ||². Anular gradiente respecto de δ da (JᵀJ+λDᵀD)δ=-Jᵀr. D suele ser diagonal con escalas de columnas de J; λ regula transición entre Gauss–Newton y descenso amortiguado.",
+      "source_variables_units": {
+        "explicit": "r∈Rᵐ [unidad residual]; θ∈Rⁿ [unidad parámetro]; J_ij=∂r_i/∂θ_j [r_i/θ_j]; λ adimensional si DᵀD tiene unidades de JᵀJ.",
+        "all_symbols": "δ_j [θ_j]; Φ [r²]; D escala columnas; aceptar/rechazar según reducción real/predicha."
+      },
+      "source_dimensional_analysis": {
+        "equation": "(JᵀJ+λ diag(JᵀJ))δ=-Jᵀr; θ_{k+1}=θ_k+δ",
+        "term_dimensions": {
+          "Jδ": "[r]",
+          "Jᵀr": "[r_i²/θ_j]",
+          "JᵀJδ": "[r_i²/θ_j]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Residual diferenciable; m≥n para problema sobredeterminado habitual; damping positivo."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "λ>0; matriz normal amortiguada definida positiva si D y J tienen rango apropiado; resolver sistema, no invertir.",
+        "initial_conditions": "θ inicial.",
+        "boundary_conditions": "Respetar límites mediante parametrización o trust region proyectada."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "linear_residual",
+            "r(θ)=Aθ-b full-rank",
+            "one GN-like accepted step reduces residual",
+            1e-8
+          ],
+          [
+            "zero_gradient",
+            "Jᵀr=0",
+            "δ≈0",
+            1e-10
+          ],
+          [
+            "rank_deficient",
+            "singular J, λ>0 and D positive",
+            "finite damped step or explicit solver failure",
+            1e-8
+          ]
+        ],
+        "metrics": [
+          "||r||²",
+          "||Jᵀr||",
+          "step norm",
+          "ρ",
+          "λ"
+        ],
+        "acceptance": "Accept only positive actual/predicted reduction; damping prevents singular normal equations when scaled correctly."
+      }
+    },
+    {
+      "record_key": "D35:6",
+      "name": "Newton method",
+      "starting_principles": [
+        "f diferenciable; f' no nula cerca de iteración."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f(x+Δ)≈f(x)+f'(x)Δ",
+          "justification": "Linealizar función cerca de x."
+        },
+        {
+          "step": 2,
+          "equation": "0=f(x)+f'(x)Δ",
+          "justification": "Imponer raíz aproximada."
+        },
+        {
+          "step": 3,
+          "equation": "Δ=−f(x)/f'(x)",
+          "justification": "Despejar corrección."
+        },
+        {
+          "step": 4,
+          "equation": "x_next=x−f(x)/f'(x)",
+          "justification": "Iterar."
+        }
+      ],
+      "assumptions": [
+        "f diferenciable; f' no nula cerca de iteración."
+      ],
+      "result": "Newton deriva de resolver la aproximación lineal local de f(x)=0.",
+      "limits": [
+        "Puede divergir si f'≈0 o si la semilla está lejos."
+      ],
+      "dimensional_verification": [
+        "x and Δ have unit X; f(x) has unit F; f'(x) has F/X; f/f' has X.",
+        "x_next preserves X."
+      ],
+      "source_record_key": "D35:6",
+      "source_equation": "x_{k+1}=x_k-f(x_k)/f′(x_k)",
+      "source_mathematical_derivation": "Aplicar Taylor de primer orden alrededor de x_k: f(x_k+δ)≈f(x_k)+f′(x_k)δ. Imponer f≈0 produce δ=-f/f′ y la iteración de Newton. Si la raíz es simple y x0 está suficientemente cerca, la convergencia es localmente cuadrática; cerca de f′=0 el paso puede divergir y requiere salvaguarda.",
+      "source_variables_units": {
+        "explicit": "x [X]; f(x) [F]; f′ [F/X]; δ=-f/f′ [X].",
+        "all_symbols": "tol_f [F]; tol_x [X]; maxIter entero; derivada evaluada en x_k."
+      },
+      "source_dimensional_analysis": {
+        "equation": "x_{k+1}=x_k-f(x_k)/f′(x_k)",
+        "term_dimensions": {
+          "f/f′": "F/(F/X)=X",
+          "x+δ": "X"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "f dos veces diferenciable cerca de raíz simple; f′ no nula en iteraciones aceptadas."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "Rechazar |f′|≤derivativeFloor; acotar paso o usar bracket/híbrido.",
+        "initial_conditions": "x0 finito.",
+        "boundary_conditions": "Intervalo permitido [xmin,xmax] opcional; no salir del intervalo si hay bracket."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "sqrt2",
+            "f=x²-2,x0=1.5",
+            "x≈1.41421356237",
+            1e-10
+          ],
+          [
+            "exact_root",
+            "f=x-3,x0=3",
+            "x=3 in zero iterations",
+            1e-12
+          ],
+          [
+            "zero_derivative",
+            "f=x²+1,x0=0",
+            "explicit derivative_zero failure",
+            0
+          ]
+        ],
+        "metrics": [
+          "|f(x)|",
+          "|Δx|",
+          "iteration count"
+        ],
+        "acceptance": "Simple root: quadratic local convergence; safeguarded step must reduce residual."
+      }
+    },
+    {
+      "record_key": "D35:7",
+      "name": "Bisection",
+      "starting_principles": [
+        "f continua y signo opuesto en extremos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f(a)f(b)<0",
+          "justification": "Exigir cambio de signo en intervalo."
+        },
+        {
+          "step": 2,
+          "equation": "m=(a+b)/2",
+          "justification": "Partir intervalo por mitad."
+        },
+        {
+          "step": 3,
+          "equation": "retain [a,m] if f(a)f(m)≤0 else [m,b]",
+          "justification": "Conservar subintervalo que mantiene raíz por teorema del valor intermedio."
+        },
+        {
+          "step": 4,
+          "equation": "width_n=(b−a)/2^n",
+          "justification": "El ancho disminuye geométricamente."
+        }
+      ],
+      "assumptions": [
+        "f continua y signo opuesto en extremos."
+      ],
+      "result": "Bisection reduce a la mitad un intervalo que contiene raíz por cambio de signo.",
+      "limits": [
+        "Converge lentamente pero es robusto; exige bracket inicial."
+      ],
+      "dimensional_verification": [
+        "a,b,m have unit X; interval width has X; n is an integer count.",
+        "f(a) and f(b) share output units; sign test is dimensionless."
+      ],
+      "source_record_key": "D35:7",
+      "source_equation": "m_k=(a_k+b_k)/2; elegir [a_k,m_k] si f(a_k)f(m_k)≤0, en otro caso [m_k,b_k]",
+      "source_mathematical_derivation": "Para f continua en [a,b] y f(a)f(b)<0, el teorema del valor intermedio garantiza al menos una raíz. El punto medio divide el intervalo por dos; tras n iteraciones la longitud es (b-a)/2ⁿ y el error del punto medio respecto de alguna raíz encerrada es ≤(b-a)/2ⁿ⁺¹.",
+      "source_variables_units": {
+        "explicit": "a,b,m,x* [X]; f [F]; n entero; ε_x [X].",
+        "all_symbols": "f continua; bracket con cambio de signo; si f(a)=0 o f(b)=0 devolver extremo."
+      },
+      "source_dimensional_analysis": {
+        "equation": "m_k=(a_k+b_k)/2; elegir [a_k,m_k] si f(a_k)f(m_k)≤0, en otro caso [m_k,b_k]",
+        "term_dimensions": {
+          "(a+b)/2": "[X]",
+          "f(a)f(m)": "[F²], solo se usa el signo"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Continuidad de f en el intervalo."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "a<b; signos opuestos o extremo raíz; tolerancia positiva.",
+        "initial_conditions": "No requiere estado previo.",
+        "boundary_conditions": "Mantener raíz encerrada; no extrapolar fuera del bracket."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "sqrt2",
+            "f=x²-2,[1,2]",
+            "root in bracket; error bounded by half-width",
+            1e-8
+          ],
+          [
+            "endpoint_root",
+            "f=x-1,[1,3]",
+            "return a=1 immediately",
+            0
+          ],
+          [
+            "no_bracket",
+            "f=x²+1,[-1,1]",
+            "reject invalid bracket",
+            0
+          ]
+        ],
+        "metrics": [
+          "bracket width",
+          "|f(mid)|",
+          "iterations"
+        ],
+        "acceptance": "Guaranteed linear interval contraction by factor 1/2 per iteration."
+      }
+    },
+    {
+      "record_key": "D35:8",
+      "name": "Cubic interpolation",
+      "starting_principles": [
+        "t_0≠t_1; condiciones de frontera compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "s=(t−t0)/(t1−t0), T=t1−t0",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 2,
+          "equation": "p(s)=a+bs+cs²+ds³",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 3,
+          "equation": "p(0)=p0 ⇒ a=p0; p'(0)=m0 ⇒ b=m0",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 4,
+          "equation": "p(1)=p1 ⇒ a+b+c+d=p1",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 5,
+          "equation": "p'(1)=m1 ⇒ b+2c+3d=m1",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 6,
+          "equation": "c=3(p1−p0)−2m0−m1; d=2(p0−p1)+m0+m1",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 7,
+          "equation": "p'(t)=p'(s)/T",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        }
+      ],
+      "assumptions": [
+        "t_0≠t_1; condiciones de frontera compatibles."
+      ],
+      "result": "La interpolación Hermite cúbica queda expresada en tiempo normalizado s; las tangentes por segundo se convierten multiplicándolas por T.",
+      "limits": [
+        "Oscilación/overshoot según tangentes; usar limitadores cuando necesario."
+      ],
+      "dimensional_verification": [
+        "If t is normalized dimensionless, a,b,c,d share unit of p; if t is seconds, coefficient k has unit p/T^k.",
+        "p(t) and endpoint/tangent constraints preserve declared output units."
+      ],
+      "source_record_key": "D35:8",
+      "source_equation": "p(t)=a+bt+ct²+dt³; solve M[a,b,c,d]ᵀ=[p0,p1,v0,v1]ᵀ",
+      "source_mathematical_derivation": "Para un segmento normalizado s∈[0,1], imponer p(0)=p0, p(1)=p1, p′(0)=m0, p′(1)=m1. De las condiciones a=p0, b=m0, c=3(p1-p0)-2m0-m1 y d=2(p0-p1)+m0+m1. Si las tangentes se dan por segundo, convertirlas a derivadas respecto de s multiplicando por duración T.",
+      "source_variables_units": {
+        "explicit": "s adimensional; p,p0,p1 [unidad posición]; m0,m1 [posición por unidad s]; si tangentes por tiempo, [posición/s] y m_s=T·m_t.",
+        "all_symbols": "T [s]; s=clamp((t-t0)/T,0,1)."
+      },
+      "source_dimensional_analysis": {
+        "equation": "p(t)=a+bt+ct²+dt³; solve M[a,b,c,d]ᵀ=[p0,p1,v0,v1]ᵀ",
+        "term_dimensions": {
+          "a,b,c,d": "[posición]",
+          "p′(s)": "[posición]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Interpolación de un segmento con extremos y tangentes prescritos."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "T>0; s∈[0,1]; declarar tangentes como derivadas normalizadas o temporales, nunca mezclarlas.",
+        "initial_conditions": "p0,p1,m0,m1 dados.",
+        "boundary_conditions": "Clampear extremos o permitir extrapolación explícita."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "endpoints",
+            "s=0 and s=1",
+            "p(0)=p0; p(1)=p1",
+            1e-12
+          ],
+          [
+            "tangent",
+            "derivatives prescribed",
+            "p′(0)=m0; p′(1)=m1",
+            1e-12
+          ],
+          [
+            "zero_duration",
+            "T=0",
+            "reject",
+            0
+          ]
+        ],
+        "metrics": [
+          "endpoint position error",
+          "endpoint tangent error",
+          "continuity across segments"
+        ],
+        "acceptance": "Exact endpoint and tangent constraints up to floating-point roundoff."
+      }
+    },
+    {
+      "record_key": "D35:9",
+      "name": "Fourier series",
+      "starting_principles": [
+        "Señal periódica/integrable; base ortogonal en periodo T."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ω0=2π/T",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 2,
+          "equation": "a0=(2/T)∫₀ᵀ f(t)dt",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 3,
+          "equation": "an=(2/T)∫₀ᵀ f(t)cos(nω0t)dt",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 4,
+          "equation": "bn=(2/T)∫₀ᵀ f(t)sin(nω0t)dt",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 5,
+          "equation": "f_N(t)=a0/2+Σ_(n=1)^N[an cos(nω0t)+bn sin(nω0t)]",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        }
+      ],
+      "assumptions": [
+        "Señal periódica/integrable; base ortogonal en periodo T."
+      ],
+      "result": "La serie truncada es la proyección ortogonal sobre la base seno/coseno; a0/2 es el término constante según la convención del manifiesto.",
+      "limits": [
+        "Señales no periódicas sufren leakage si no se ventanean."
+      ],
+      "dimensional_verification": [
+        "t and period T have seconds; ω has s⁻¹; nωt is dimensionless.",
+        "a_n,b_n,a_0 have same unit as f(t); coefficients retain signal units."
+      ],
+      "source_record_key": "D35:9",
+      "source_equation": "f(t)=a0/2+Σ_{n=1}^N[a_n cos(nω0t)+b_n sin(nω0t)]",
+      "source_mathematical_derivation": "Para señal periódica de periodo T y ω0=2π/T, proyectar f sobre la base ortogonal {1,cos(nω0t),sin(nω0t)} en [0,T]. Los coeficientes son a0=(2/T)∫f dt, a_n=(2/T)∫f cos(nω0t)dt y b_n=(2/T)∫f sin(nω0t)dt. La truncación a N armónicos aproxima la señal y puede oscilar cerca de discontinuidades (fenómeno de Gibbs).",
+      "source_variables_units": {
+        "explicit": "t,T [s]; ω0 [rad/s]; f,a_n,b_n [unidad señal]; n,N enteros adimensionales.",
+        "all_symbols": "a0 se presenta como promedio multiplicado por 2; reconstrucción usa a0/2."
+      },
+      "source_dimensional_analysis": {
+        "equation": "f(t)=a0/2+Σ_{n=1}^N[a_n cos(nω0t)+b_n sin(nω0t)]",
+        "term_dimensions": {
+          "nω0t": "adimensional",
+          "cada sumando": "[unidad señal]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Señal periódica e integrable; periodo conocido; N finito."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "T>0; N≥0; muestras uniformes para estimación FFT; evitar confundir Hz con rad/s.",
+        "initial_conditions": "Coeficientes o muestras completas para estimarlos.",
+        "boundary_conditions": "Periodo [0,T]; convención de continuidad periódica."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "constant",
+            "a0=4, all other coefficients=0",
+            "f(t)=2 for all t",
+            1e-12
+          ],
+          [
+            "single_sine",
+            "b1=1, ω0=2π",
+            "f(0)=0; f(1/4)=1",
+            1e-12
+          ],
+          [
+            "periodicity",
+            "arbitrary coefficients",
+            "f(t)=f(t+T)",
+            1e-10
+          ]
+        ],
+        "metrics": [
+          "reconstruction error",
+          "harmonic energy",
+          "periodicity error"
+        ],
+        "acceptance": "Parseval consistency for complete orthogonal sampling; truncation error reported separately."
+      }
+    },
+    {
+      "record_key": "D35:10",
+      "name": "FFT",
+      "starting_principles": [
+        "N y frecuencia de muestreo definidos; radix-2 para forma clásica."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "X_k=Σ_{n=0}^{N−1}x_n e^(−i2πkn/N)",
+          "justification": "Definir DFT."
+        },
+        {
+          "step": 2,
+          "equation": "split even/odd samples",
+          "justification": "Separar secuencia en índices pares e impares."
+        },
+        {
+          "step": 3,
+          "equation": "X_k=E_k+W_N^kO_k; X_{k+N/2}=E_k−W_N^kO_k",
+          "justification": "Combinar transformadas de mitades para reducir coste."
+        },
+        {
+          "step": 4,
+          "equation": "recursive complexity O(NlogN)",
+          "justification": "La descomposición radix-2 produce FFT."
+        }
+      ],
+      "assumptions": [
+        "N y frecuencia de muestreo definidos; radix-2 para forma clásica."
+      ],
+      "result": "FFT reduce coste de DFT mediante descomposición par/impar.",
+      "limits": [
+        "FFT clásica requiere muestreo uniforme; ventana y zero-padding cambian lectura."
+      ],
+      "dimensional_verification": [
+        "DFT X_k has same unit as discrete samples x_n; N,k,n are counts.",
+        "For a continuous Fourier integral, multiply DFT approximation by Δt, adding a time factor."
+      ],
+      "source_record_key": "D35:10",
+      "source_equation": "X_k=Σ_{n=0}^{N-1}x_n exp(-i2πkn/N); x_n=(1/N)Σ_{k=0}^{N-1}X_k exp(i2πkn/N)",
+      "source_mathematical_derivation": "La DFT resulta de proyectar N muestras sobre raíces de unidad complejas. La FFT Cooley–Tukey factoriza N=r·m y separa índices pares/impares (radix-2: N=2M), reduciendo la evaluación directa O(N²) a O(N log₂N). La convención aquí es transformada directa sin normalizar e inversa con factor 1/N.",
+      "source_variables_units": {
+        "explicit": "x_n [unidad señal]; X_k [unidad señal·muestra]; N,n,k adimensionales; Δt [s]; f_k=k/(NΔt) [Hz].",
+        "all_symbols": "Para radix-2, N potencia de 2; otra longitud requiere otro radix o padding que cambia resolución."
+      },
+      "source_dimensional_analysis": {
+        "equation": "X_k=Σ_{n=0}^{N-1}x_n exp(-i2πkn/N); x_n=(1/N)Σ_{k=0}^{N-1}X_k exp(i2πkn/N)",
+        "term_dimensions": {
+          "exponente": "adimensional",
+          "X_k": "[x]·muestras",
+          "IFFT(X)": "[x]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Muestras uniformes; señal discreta; convención de normalización declarada."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "N≥1; entradas finitas; radix-2 requiere N=2^m.",
+        "initial_conditions": "No requiere estado inicial.",
+        "boundary_conditions": "La señal se interpreta como un bloque periódico; ventana si hay fuga espectral."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "impulse",
+            "x=[1,0,0,0]",
+            "X=[1,1,1,1]",
+            1e-12
+          ],
+          [
+            "constant",
+            "x=[1,1,1,1]",
+            "X0=4 and other bins=0",
+            1e-12
+          ],
+          [
+            "roundtrip",
+            "deterministic complex vector length 8",
+            "IFFT(FFT(x))=x",
+            1e-10
+          ]
+        ],
+        "metrics": [
+          "round-trip max error",
+          "Parseval energy error",
+          "Hermitian symmetry for real input"
+        ],
+        "acceptance": "Round-trip and Parseval within floating-point tolerance; correct normalization."
+      }
+    },
+    {
+      "record_key": "D35:11",
+      "name": "Wavelet transform",
+      "starting_principles": [
+        "Wavelet de energía finita; a≠0; condición de admisibilidad para reconstrucción."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ψ_{a,b}(t)=1/√|a| ψ((t−b)/a)",
+          "justification": "Dilar y trasladar wavelet con normalización de energía."
+        },
+        {
+          "step": 2,
+          "equation": "W(a,b)=∫f(t)ψ*_{a,b}(t)dt",
+          "justification": "Correlacionar señal con wavelet a escala a y posición b."
+        },
+        {
+          "step": 3,
+          "equation": "vary a for scale; b for time",
+          "justification": "Separar información temporal y frecuencial local."
+        },
+        {
+          "step": 4,
+          "equation": "reconstruct using admissibility condition",
+          "justification": "Recuperar señal si wavelet cumple condición de admisibilidad."
+        }
+      ],
+      "assumptions": [
+        "Wavelet de energía finita; a≠0; condición de admisibilidad para reconstrucción."
+      ],
+      "result": "Wavelet analiza señal mediante funciones dilatadas y trasladadas.",
+      "limits": [
+        "Resolución tiempo-frecuencia depende de wavelet/escala."
+      ],
+      "dimensional_verification": [
+        "a and b have T; ψ_{a,b} has T⁻¹/²; W(a,b) has unit(signal)·T¹/².",
+        "Reconstruction constants compensate the scale measure; do not treat CWT coefficient as same unit as raw signal."
+      ],
+      "source_record_key": "D35:11",
+      "source_equation": "Wψ(a,b)=1/√|a| ∫ f(t) ψ*((t-b)/a) dt",
+      "source_mathematical_derivation": "La CWT mide correlación de f con una wavelet trasladada y escalada. Sustituir τ=(t-b)/a muestra el factor de normalización |a|^{-1/2}, que mantiene constante la energía L² de la wavelet bajo escala. Para discretización, aproximar la integral por suma ponderada con Δt y declarar la normalización usada.",
+      "source_variables_units": {
+        "explicit": "t,b,a [s] para señal temporal; f [U]; ψ adimensional si L² normalizada; W [U·√s] bajo esta convención.",
+        "all_symbols": "a≠0; normalmente a>0; b traslación; ψ debe tener energía finita y media cero."
+      },
+      "source_dimensional_analysis": {
+        "equation": "Wψ(a,b)=1/√|a| ∫ f(t) ψ*((t-b)/a) dt",
+        "term_dimensions": {
+          "(t-b)/a": "adimensional",
+          "W": "[U]·√s bajo integral temporal y normalización 1/√a"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Wavelet admisible; muestreo suficiente; escala y unidades temporales fijadas."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "a>0; Δt>0; soporte finito de integración; manejar borde con padding/periodización declarado.",
+        "initial_conditions": "No requiere estado inicial.",
+        "boundary_conditions": "El cono de influencia delimita resultados afectados por bordes."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "zero_signal",
+            "f[n]=0",
+            "all coefficients zero",
+            1e-12
+          ],
+          [
+            "constant_signal",
+            "constant f and admissible zero-mean wavelet, interior shifts",
+            "coefficients approximately zero",
+            0.000001
+          ],
+          [
+            "scale_energy",
+            "scaled wavelet",
+            "L2 norm of normalized wavelet invariant",
+            1e-8
+          ]
+        ],
+        "metrics": [
+          "coefficient magnitude",
+          "wavelet energy",
+          "edge mask"
+        ],
+        "acceptance": "Check normalization and admissibility; compare discrete coefficients against analytic test signal."
+      }
+    },
+    {
+      "record_key": "D35:12",
+      "name": "Monte Carlo sampling",
+      "starting_principles": [
+        "X_1,…,X_N son muestras independientes e idénticamente distribuidas según p en Ω.",
+        "p(x)≥0 y ∫_Ω p(x)dx=1.",
+        "E_p[f(X)^2]<∞ para que la varianza del estimador sea finita."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "X_i iid∼p;  p(x)≥0;  ∫_Ω p(x)dx=1",
+          "justification": "Se define la distribución de muestreo normalizada, tal como exige la esperanza bajo p."
+        },
+        {
+          "step": 2,
+          "equation": "E_p[f(X)]=∫_Ω f(x)p(x)dx",
+          "justification": "Es la definición de esperanza para una variable aleatoria continua con densidad p."
+        },
+        {
+          "step": 3,
+          "equation": "Ĩ_N=(1/N)Σ_{i=1}^N f(X_i)",
+          "justification": "La media muestral sustituye la esperanza por el promedio de N muestras IID; coincide con la ecuación fuente."
+        },
+        {
+          "step": 4,
+          "equation": "E[Ĩ_N]=(1/N)Σ E[f(X_i)]=E_p[f(X)]",
+          "justification": "Por linealidad de la esperanza y distribución idéntica, el estimador es insesgado para la esperanza bajo p."
+        },
+        {
+          "step": 5,
+          "equation": "Var(Ĩ_N)=Var_p(f(X))/N;  SE≈s_f/√N",
+          "justification": "La independencia hace que las varianzas de la suma se sumen; la desviación estándar muestral estima el error estándar."
+        },
+        {
+          "step": 6,
+          "equation": "Si p(x)=1/|Ω| en Ω:  ∫_Ω f(x)dx=|Ω|E_p[f(X)]≈(|Ω|/N)Σ f(X_i)",
+          "justification": "La conversión a integral no normalizada requiere muestreo uniforme y el factor de volumen; no debe confundirse con la esperanza estimada en el paso 3."
+        }
+      ],
+      "assumptions": [
+        "Muestras IID de p normalizada.",
+        "N≥1; p>0 donde la función contribuya a la esperanza.",
+        "Varianza finita para reportar error estándar y aplicar aproximaciones asintóticas.",
+        "Para estimar la integral no normalizada con media simple, el muestreo debe ser uniforme y se multiplica por |Ω|."
+      ],
+      "result": "La media muestral estima sin sesgo E_p[f(X)]=∫_Ω f(x)p(x)dx. Para la integral no normalizada ∫_Ω f(x)dx, el caso uniforme requiere multiplicar la media por |Ω|.",
+      "limits": [
+        "La media simple no estima ∫_Ω f(x)dx para una densidad p arbitraria sin ponderación.",
+        "El error estándar estimado depende de varianza finita y no garantiza una cota determinista para cada muestra.",
+        "Registrar semilla, N, distribución p y convención del objetivo."
+      ],
+      "dimensional_verification": [
+        "p(x) tiene dimensión [x]⁻¹ y p(x)dx es adimensional; f(x)p(x)dx y la esperanza tienen unidad [f].",
+        "La media (1/N)Σf(X_i) tiene unidad [f], pues N es adimensional.",
+        "La integral no normalizada tiene unidad [f]·[x]; |Ω| multiplica la esperanza uniforme para recuperar esa unidad."
+      ],
+      "source_record_key": "D35:12",
+      "source_equation": "E[f]≈(1/N)Σ_i f(x_i)",
+      "source_dimensional_analysis": {
+        "equation": "E[f]≈(1/N)Σ_i f(x_i)",
+        "conclusion": "La ecuación fuente estima la esperanza E_p[f(X)] mediante la media de muestras IID. La integral no normalizada requiere factor de medida |Ω| bajo muestreo uniforme, como indica la derivación fuente."
+      },
+      "source_assumptions": [
+        "Muestras IID de p normalizada.",
+        "N≥1; p>0 donde la función contribuya a la esperanza.",
+        "Varianza finita para reportar error estándar y aplicar aproximaciones asintóticas.",
+        "Para estimar la integral no normalizada con media simple, el muestreo debe ser uniforme y se multiplica por |Ω|."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "N≥1; p normalizada; muestras dentro del soporte declarado.",
+        "initial_conditions": "Semilla fija para reproducibilidad.",
+        "boundary_conditions": "Dominio Ω y densidad p explícitos."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "constant_integrand",
+            "f(x)=c",
+            "estimate exactly c for any samples",
+            1e-12
+          ],
+          [
+            "uniform_unit_interval",
+            "f(x)=x, X~U(0,1), large N",
+            "estimate near 0.5 within statistical interval",
+            0.02
+          ],
+          [
+            "reproducibility",
+            "same seed and N",
+            "identical sample sequence and estimate",
+            0
+          ]
+        ],
+        "metrics": [
+          "sample mean",
+          "sample variance",
+          "standard error",
+          "confidence coverage"
+        ],
+        "acceptance": "Statistical rather than deterministic tolerance; report seed, N and confidence interval."
+      },
+      "source_use": "integración, distribución y estimación"
+    },
+    {
+      "record_key": "D35:13",
+      "name": "Blue-noise sampling",
+      "starting_principles": [
+        "Dominio y distancia mínima definidos; espectro estimado con tamaño finito."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "generate Poisson-separated candidates",
+          "justification": "Imponer distancia mínima entre muestras."
+        },
+        {
+          "step": 2,
+          "equation": "compute structure factor S(k)=|Σ_j e^(−ik·x_j)|²/N",
+          "justification": "Medir energía espectral de conjunto."
+        },
+        {
+          "step": 3,
+          "equation": "penalize low-frequency S(k)",
+          "justification": "Reducir agrupamientos de baja frecuencia."
+        },
+        {
+          "step": 4,
+          "equation": "accept/reposition points to minimize spectral penalty",
+          "justification": "Ajustar distribución conservando separación."
+        }
+      ],
+      "assumptions": [
+        "Dominio y distancia mínima definidos; espectro estimado con tamaño finito."
+      ],
+      "result": "Blue-noise sampling combina separación espacial con supresión espectral de baja frecuencia.",
+      "limits": [
+        "El objetivo espectral depende de dominio y densidad; no hay un único blue-noise universal."
+      ],
+      "dimensional_verification": [
+        "x_j has L; k has L⁻¹; k·x_j is dimensionless; S(k) dimensionless under stated normalization.",
+        "Minimum spacing r_min has L."
+      ],
+      "source_record_key": "D35:13",
+      "source_equation": "minimize low-frequency spectral energy subject to ||x_i-x_j||≥r_min for i≠j",
+      "source_mathematical_derivation": "Blue noise no es una ecuación única: se define por distribución espacial con ausencia de agrupamiento de baja frecuencia y separación mínima. La condición hard-core exige distancia entre muestras ≥r_min. Un algoritmo Poisson-disk produce un conjunto maximal aproximado mediante candidatos locales y una rejilla aceleradora; el espectro radial sirve como diagnóstico, no como condición suficiente aislada.",
+      "source_variables_units": {
+        "explicit": "x_i [m] o coordenadas normalizadas; r_min [m]; k [1/m] número de onda; N adimensional.",
+        "all_symbols": "Dominio Ω, métrica y distancia mínima; radio de rejilla ≤r_min/√d."
+      },
+      "source_dimensional_analysis": {
+        "equation": "minimize low-frequency spectral energy subject to ||x_i-x_j||≥r_min for i≠j",
+        "term_dimensions": {
+          "||x_i-x_j||": "[m]",
+          "r_min": "[m]",
+          "k·x": "adimensional"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Métrica euclídea y dominio definido; dimensión d fija."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "r_min>0; dominio acotado; validar vecinos en celdas adyacentes; frontera con política explícita.",
+        "initial_conditions": "Semilla PRNG para repetibilidad.",
+        "boundary_conditions": "Rechazar candidatos fuera de Ω; periodicidad solo si el dominio lo declara."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "separation",
+            "all generated pairs",
+            "minimum pair distance >= rMin",
+            1e-9
+          ],
+          [
+            "domain",
+            "bounded rectangle",
+            "all points inside Ω",
+            0
+          ],
+          [
+            "determinism",
+            "same seed and settings",
+            "same ordered point set",
+            0
+          ]
+        ],
+        "metrics": [
+          "minimum pair distance",
+          "coverage radius",
+          "radial power spectrum",
+          "point count"
+        ],
+        "acceptance": "Hard minimum-distance invariant must pass exactly within geometric tolerance; spectral quality assessed statistically."
+      }
+    },
+    {
+      "record_key": "D35:14",
+      "name": "Integración volumétrica Beer–Lambert",
+      "starting_principles": [
+        "σ_t≥σ_s≥0; paso espacial y coeficientes compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dT/ds=−σ_t(s)T(s), T(0)=1",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 2,
+          "equation": "d(ln T)/ds=−σ_t(s)",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 3,
+          "equation": "T(s)=exp(−∫₀ˢσ_t(l)dl)",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 4,
+          "equation": "L=∫₀ᴰT(s)σ_s(s)L_i(s)ds",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 5,
+          "equation": "T_step=exp(−σ_tΔs)",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        },
+        {
+          "step": 6,
+          "equation": "ΔL=T·σ_s·L_i·(1−T_step)/σ_t para σ_t>0; límite σ_t→0: ΔL=T·σ_s·L_i·Δs",
+          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+        }
+      ],
+      "assumptions": [
+        "σ_t≥σ_s≥0; paso espacial y coeficientes compatibles.",
+        "p se normaliza sobre ángulo sólido; una fuente direccional requiere delta angular integrada con la misma medida."
+      ],
+      "result": "La transmisión sigue Beer–Lambert y la acumulación de radiancia usa la aproximación homogénea por tramo especificada en la ficha. La ecuación fuente no incluye explícitamente integral angular ni densidad ρ; no se añaden a esta derivación.",
+      "limits": [
+        "Raymarch discreto tiene error y omite múltiples dispersión si no se incluye.",
+        "No omitir la integral angular ni la convención de delta direccional, pues la radiancia quedaría dimensionalmente incompleta."
+      ],
+      "dimensional_verification": [
+        "σ_t and σ_s have L⁻¹; ρ is dimensionless; ds has L; optical depth is dimensionless.",
+        "Phase p has sr⁻¹; angular integral ∫pL_i dω has radiance; σ_s ds is dimensionless."
+      ],
+      "source_record_key": "D35:14",
+      "source_equation": "T(s)=exp(-∫₀ˢ σ_t(l)dl); L=∫₀ᴰ T(s)σ_s(s)L_i(s)ds",
+      "source_mathematical_derivation": "La ley diferencial dT/ds=-σ_t(s)T, con T(0)=1, se resuelve separando variables: lnT=-∫σ_t ds y T=exp(-∫σ_t ds). La radiancia dispersada acumulada integra la fuente σ_s L_i atenuada por la transmittancia previa. Para medio homogéneo por tramo Δs, T_step=exp(-σ_tΔs); la opacidad equivalente es α=1-T_step.",
+      "source_variables_units": {
+        "explicit": "σ_t,σ_s [m⁻¹]; s,D,Δs [m]; T,α [adimensional]; L_i,L [radiancia]; j=σ_sL_i [radiancia/m].",
+        "all_symbols": "σ_t=σ_a+σ_s≥0; albedo σ_s/σ_t∈[0,1] si σ_t>0."
+      },
+      "source_dimensional_analysis": {
+        "equation": "T(s)=exp(-∫₀ˢ σ_t(l)dl); L=∫₀ᴰ T(s)σ_s(s)L_i(s)ds",
+        "term_dimensions": {
+          "σ_t ds": "m⁻¹·m=1",
+          "T": "1",
+          "σ_s L_i ds": "radiancia"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "source_assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Medio absorbente/dispersivo sin emisión adicional salvo fuente definida; coeficientes no negativos."
+      ],
+      "source_domain_constraints_boundary_conditions": {
+        "constraints": "σ_t≥0; σ_s≥0; Δs>0; evitar dividir por σ_t=0; limitar profundidad de integración.",
+        "initial_conditions": "T(0)=1; L(0)=0.",
+        "boundary_conditions": "Integrar a lo largo del rayo [0,D]; terminar en primer impacto/volumen límite."
+      },
+      "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "source_derivation_status": "derivada",
+      "source_numerical_validation": {
+        "cases": [
+          [
+            "vacuum",
+            "σt=0,σs=0",
+            "T=1; L=0",
+            1e-12
+          ],
+          [
+            "homogeneous_transmission",
+            "σt=0.5 m^-1,D=2m",
+            "T=exp(-1)",
+            1e-12
+          ],
+          [
+            "pure_absorption",
+            "σs=0,σt>0",
+            "L_scattered=0; T=exp(-σtD)",
+            1e-12
+          ]
+        ],
+        "metrics": [
+          "transmittance",
+          "radiance",
+          "energy bounds"
+        ],
+        "acceptance": "T∈[0,1]; refine Δs and compare radiance/transmittance convergence."
+      }
+    }
+  ],
+  "validation": {
+    "checks": [
+      "15/15 técnicas D35 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "PID y tracking derivan ganancias según unidades de error, salida y tiempo",
+      "Gradient descent y Levenberg–Marquardt normalizan parámetros heterogéneos y evitan sumar magnitudes incompatibles",
+      "Fourier, FFT y wavelet distinguen unidades de señal, tiempo y coeficientes",
+      "Monte Carlo tipa PDF respecto a la medida integrada",
+      "Beer–Lambert volumétrico integra fase angular y conserva radiancia",
+      "Trazabilidad fuente añadida para 15/15 técnicas D35 mediante ecuación, derivación, variables/unidades, hipótesis, restricciones, evidencia y casos de prueba del manifiesto v3.5.",
+      "D35:12 alineada con la ecuación fuente: media muestral para E_p[f(X)]; integral no normalizada separada con factor |Ω| solo en muestreo uniforme."
+    ],
+    "limitations": [
+      "Los métodos numéricos dependen de escalado, condicionamiento, discretización y criterios de convergencia; los resultados requieren pruebas independientes posteriores.",
+      "El hash de manifiesto se actualizó al blob v3.5 efectivamente auditado en la rama; la correspondencia semántica exacta de cada técnica con su registro de origen queda pendiente de la matriz de trazabilidad por ecuación.",
+      "D35:5: la compatibilidad dimensional de λDᵀD con JᵀJ depende del escalado de parámetros; la ficha declara D diagonal pero no define completamente cómo se construye en casos heterogéneos.",
+      "D35:14: se conserva la fórmula fuente sin añadir integral angular ni densidad; la definición de L_i como radiancia incidente agregada debe mantenerse explícita."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

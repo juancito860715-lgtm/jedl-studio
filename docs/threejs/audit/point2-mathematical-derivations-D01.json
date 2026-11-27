@@ -1,0 +1,383 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D01 Fundamentos de escena y arquitectura",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D01",
+    "record_count": 7,
+    "excluded_protected_records": 1,
+    "excluded_keys": [
+      "D01:1"
+    ],
+    "excluded_reason": "Preservado sin reauditoría conforme al mapa Crimson Loong."
+  },
+  "records": [
+    {
+      "record_key": "D01:0",
+      "name": "Scene graph jerárquico",
+      "starting_principles": [
+        "Un punto hijo p_h se expresa primero en su marco local.",
+        "M_h transforma el marco hijo al marco del padre; M_p transforma el marco del padre al marco mundo.",
+        "La composición de transformaciones equivale a composición de funciones de cambio de coordenadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_p = M_h p_h",
+          "justification": "Aplicar la transformación local del hijo para expresar el punto en el marco del padre."
+        },
+        {
+          "step": 2,
+          "equation": "p_w = M_p p_p",
+          "justification": "Aplicar la transformación mundial del padre al punto ya expresado en el marco del padre."
+        },
+        {
+          "step": 3,
+          "equation": "p_w = M_p(M_h p_h) = (M_p M_h)p_h",
+          "justification": "Sustituir el paso anterior y usar asociatividad de la composición matricial."
+        },
+        {
+          "step": 4,
+          "equation": "M_world(h)=M_world(p) M_local(h)",
+          "justification": "Identificar el producto compuesto como transformación mundo del hijo."
+        },
+        {
+          "step": 5,
+          "equation": "M_world(n)=M_world(root)∏_{a∈path(root,n)}M_local(a)",
+          "justification": "Aplicar recursivamente la misma composición a cada ancestro, conservando el orden raíz→nodo."
+        }
+      ],
+      "assumptions": [
+        "Vectores columna y multiplicación por la izquierda; otra convención cambia el orden escrito.",
+        "Matrices afines homogéneas 4×4; jerarquía sin ciclos.",
+        "Las unidades de traslación son las mismas en todos los marcos."
+      ],
+      "result": "La transformación mundial de cada nodo es el producto ordenado de las transformaciones locales a lo largo de su ruta desde la raíz.",
+      "limits": [
+        "Escalas no uniformes pueden introducir cizalla en la composición; no separar ingenuamente posición/rotación/escala si la matriz ya contiene cizalla."
+      ],
+      "dimensional_verification": [
+        "Los bloques lineales son adimensionales; las traslaciones tienen unidad L.",
+        "La matriz compuesta transforma puntos con dimensión L en puntos con dimensión L."
+      ],
+      "proof_obligation": "La jerarquía debe ser un árbol o DAG con orden topológico inequívoco; un ciclo no define una propagación recursiva finita."
+    },
+    {
+      "record_key": "D01:2",
+      "name": "Geometría compartida",
+      "starting_principles": [
+        "La geometría local G contiene buffers de vértices, índices y atributos compartibles.",
+        "Cada consumidor i posee transformación M_i y puede poseer material/estado de instancia propio.",
+        "La reutilización exige que la geometría compartida no sea mutada de forma exclusiva por un consumidor."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "G_i ≡ G  para i=1,…,N",
+          "justification": "Todos los objetos apuntan a la misma estructura geométrica; no se crea una copia por consumidor."
+        },
+        {
+          "step": 2,
+          "equation": "p_world(i,j)=M_i p_local(j)",
+          "justification": "El vértice j se coloca en mundo aplicando la transformación propia del objeto i."
+        },
+        {
+          "step": 3,
+          "equation": "M_shared = M_G + N·M_transform + N·M_metadata",
+          "justification": "El almacenamiento contiene una geometría base y los datos variables por consumidor."
+        },
+        {
+          "step": 4,
+          "equation": "M_duplicate = N·M_G + N·M_transform + N·M_metadata",
+          "justification": "Si se duplicara la geometría, cada consumidor almacenaría una copia completa."
+        },
+        {
+          "step": 5,
+          "equation": "M_duplicate−M_shared=(N−1)M_G",
+          "justification": "Restar ambas expresiones cuantifica el ahorro de memoria atribuible exclusivamente a compartir G."
+        }
+      ],
+      "assumptions": [
+        "La geometría compartida no se modifica de forma exclusiva para una instancia.",
+        "Si se requieren atributos distintos por instancia, se usan atributos instanciados o geometrías separadas.",
+        "Materiales y estados de render compatibles con el tipo de reutilización."
+      ],
+      "result": "Una geometría común puede alimentar N objetos mediante transformaciones M_i; el ahorro geométrico crece como (N−1) veces el tamaño de G.",
+      "limits": [
+        "Compartir geometría no garantiza un solo draw call: materiales, grupos, transparencias y límites del backend pueden dividir lotes."
+      ],
+      "dimensional_verification": [
+        "p_local y p_world tienen L; M_i es afín con bloque lineal adimensional y traslación L.",
+        "M_G, M_transform y M_metadata son tamaños de memoria, no magnitudes geométricas; se comparan en bytes."
+      ],
+      "proof_obligation": "La igualdad de buffers no implica un solo draw call; la agrupación depende de material, grupos, transparencia, atributos y límites del backend."
+    },
+    {
+      "record_key": "D01:3",
+      "name": "LOD",
+      "starting_principles": [
+        "La proyección perspectiva de una dimensión pequeña es aproximadamente proporcional a f_px/z.",
+        "Cada nivel G_k tiene error geométrico acotado δ_k en unidades de escena y coste C_k.",
+        "La tolerancia visual se expresa como error máximo en píxeles τ_px."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f_px=H_px/[2 tan(φ/2)]",
+          "justification": "Derivar la distancia focal en píxeles a partir de la altura del viewport y el campo de visión vertical φ."
+        },
+        {
+          "step": 2,
+          "equation": "h_px≈f_px·h_world/z",
+          "justification": "La proyección pinhole escala una dimensión transversal por f_px/z cuando el objeto es pequeño frente a la distancia z."
+        },
+        {
+          "step": 3,
+          "equation": "ε_px,k(z)≈f_px·δ_k/z",
+          "justification": "Aplicar la misma proyección a la cota de error geométrico del nivel k."
+        },
+        {
+          "step": 4,
+          "equation": "ε_px,k(z)≤τ_px ⇔ z≥f_px·δ_k/τ_px",
+          "justification": "Reordenar la condición de error en pantalla para obtener la distancia mínima a la que ese nivel satisface la tolerancia."
+        },
+        {
+          "step": 5,
+          "equation": "k*(z)=argmin_k C_k sujeto a ε_px,k(z)≤τ_px",
+          "justification": "Elegir el nivel de menor coste entre los que cumplen la cota perceptual."
+        }
+      ],
+      "assumptions": [
+        "Cámara perspectiva; z es profundidad positiva en espacio de vista, no distancia euclidiana arbitraria.",
+        "ε_world,k y z usan la misma unidad; f_px y τ_px están en píxeles.",
+        "Los niveles tienen errores/costes medidos o estimados."
+      ],
+      "result": "La selección LOD se deriva de una cota de error proyectado; los intervalos de distancia se calculan desde δ_k, FOV, viewport y τ_px.",
+      "limits": [
+        "Para cámaras ortográficas, la escala proyectada no depende de z; usar la escala ortográfica de cámara.",
+        "Usar histéresis o transición gradual si los límites generan popping."
+      ],
+      "dimensional_verification": [
+        "f_px y τ_px se miden en píxeles; δ_k/z es adimensional, por lo que ε_px,k queda en píxeles.",
+        "f_px·δ_k/τ_px tiene unidad L, compatible con z."
+      ],
+      "proof_obligation": "La aproximación requiere objeto pequeño respecto a z y cámara perspectiva; en cámara ortográfica se usa la escala ortográfica, independiente de z."
+    },
+    {
+      "record_key": "D01:4",
+      "name": "Frustum culling",
+      "starting_principles": [
+        "El frustum es la intersección de seis semiespacios interiores.",
+        "Cada plano normalizado es n_j·x+d_j≥0 con ‖n_j‖=1.",
+        "La esfera de contorno (c,r) debe contener completamente el objeto."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "s_j=n_j·c+d_j",
+          "justification": "Con normal unitaria, s_j es la distancia firmada del centro de la esfera al plano j."
+        },
+        {
+          "step": 2,
+          "equation": "min_{x∈sphere} (n_j·x+d_j)=s_j−r",
+          "justification": "El punto de la esfera más exterior al semiespacio interior está a distancia r del centro en dirección −n_j."
+        },
+        {
+          "step": 3,
+          "equation": "s_j−r>0 ⇒ sphere entirely inside plane j",
+          "justification": "Incluso el punto más cercano al exterior sigue en el semiespacio interior."
+        },
+        {
+          "step": 4,
+          "equation": "s_j<−r ⇒ sphere entirely outside plane j",
+          "justification": "Incluso el punto más cercano al interior queda fuera; por tanto no hay intersección con el frustum."
+        },
+        {
+          "step": 5,
+          "equation": "reject ⇔ ∃j: s_j<−r",
+          "justification": "Basta un solo semiespacio que excluya por completo la esfera para rechazar el objeto."
+        }
+      ],
+      "assumptions": [
+        "Planos orientados hacia el interior y normales normalizadas.",
+        "La esfera de contorno contiene completamente el objeto.",
+        "La prueba de planos es conservadora: puede retener falsos positivos cerca de esquinas, pero no debe descartar un objeto que intersecta el frustum."
+      ],
+      "result": "Rechazar únicamente cuando n_j·c+d_j<−r para algún plano; si no se rechaza, el objeto permanece como candidato visible.",
+      "limits": [
+        "Para AABB usar soporte proyectado o radio efectivo por plano; no reutilizar sin cambio la fórmula de esfera.",
+        "Si las normales no están normalizadas, comparar s_j con r·||n_j||."
+      ],
+      "dimensional_verification": [
+        "n_j es adimensional; n_j·c y d_j tienen L; s_j y r tienen L.",
+        "Si n_j no está normalizada, la comparación equivalente es n_j·c+d_j<−r‖n_j‖."
+      ],
+      "proof_obligation": "La prueba de esfera es conservadora: puede mantener falsos positivos cerca de esquinas, pero el volumen límite debe contener toda la geometría."
+    },
+    {
+      "record_key": "D01:5",
+      "name": "Spatial partitioning",
+      "starting_principles": [
+        "La rejilla es ortogonal y cada eje tiene tamaño de celda h_j>0.",
+        "o es el origen de la rejilla; p y o comparten marco y unidad.",
+        "Las celdas se definen como intervalos semiabiertos para asignar fronteras de forma única."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "q_j=(p_j−o_j)/h_j",
+          "justification": "Convertir desplazamiento físico a coordenada medida en unidades de celda."
+        },
+        {
+          "step": 2,
+          "equation": "i_j=floor(q_j)",
+          "justification": "La función piso selecciona el intervalo entero que contiene q_j, también para coordenadas negativas."
+        },
+        {
+          "step": 3,
+          "equation": "cell(p)=(i_1,…,i_n)",
+          "justification": "Aplicar la regla componente a componente para obtener la clave discreta de celda."
+        },
+        {
+          "step": 4,
+          "equation": "m_j=ceil(r/h_j)",
+          "justification": "Un punto a distancia no mayor que r no puede estar separado por más de ceil(r/h_j) índices de celda en el eje j."
+        },
+        {
+          "step": 5,
+          "equation": "candidate cells: |Δi_j|≤m_j; exact filter: ‖p−q‖≤r",
+          "justification": "La rejilla genera candidatos de forma conservadora; la distancia exacta elimina falsos positivos."
+        }
+      ],
+      "assumptions": [
+        "h>0 por eje; si hay tamaños distintos, h es vector componente a componente.",
+        "Las celdas usan intervalos semiabiertos [i,i+1) para resolver fronteras sin doble asignación.",
+        "p y o comparten marco y unidad."
+      ],
+      "result": "cell(p)=floor((p−o)/h); para radio r, explorar offsets por eje hasta ceil(r/h_j) y filtrar candidatos con la métrica geométrica exacta.",
+      "limits": [
+        "Una rejilla uniforme puede degradarse si la densidad espacial es muy desigual; usar jerarquía (quadtree/octree) o BVH cuando proceda."
+      ],
+      "dimensional_verification": [
+        "p−o y h_j tienen L; q_j es adimensional; floor produce índice entero.",
+        "r/h_j es adimensional y ceil devuelve un conteo entero."
+      ],
+      "proof_obligation": "La búsqueda debe incluir todas las celdas cubiertas por la región de consulta; el filtro geométrico exacto es obligatorio para no confundir vecindad de celda con proximidad real."
+    },
+    {
+      "record_key": "D01:6",
+      "name": "Render on demand",
+      "starting_principles": [
+        "v_scene registra la versión de estado visual actual; v_render registra la versión que produjo el último frame válido.",
+        "Una mutación visual incrementa v_scene o establece una invalidación pendiente.",
+        "Una animación activa puede cambiar el estado aunque no haya eventos externos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dirty ⇔ v_scene≠v_render",
+          "justification": "Si las versiones difieren, el frame almacenado no representa el estado visual actual."
+        },
+        {
+          "step": 2,
+          "equation": "needsRender=dirty ∨ animationActive ∨ pendingVisualWork",
+          "justification": "La disyunción reúne cambios de estado, evolución temporal y trabajo visual asíncrono."
+        },
+        {
+          "step": 3,
+          "equation": "if needsRender then render(scene,camera)",
+          "justification": "Solo se ejecuta el render cuando la imagen anterior puede haber quedado obsoleta o hay una evolución pendiente."
+        },
+        {
+          "step": 4,
+          "equation": "v_render←v_scene_snapshot",
+          "justification": "Registrar la versión que efectivamente se dibujó; si ocurre una mutación durante el render, v_scene seguirá siendo distinta y el próximo ciclo no perderá la invalidación."
+        }
+      ],
+      "assumptions": [
+        "Todos los cambios visuales relevantes marcan dirty o activan animationActive.",
+        "Cambios asíncronos de recursos invalidan el frame al completarse.",
+        "No se pierde una invalidación que ocurra durante el render."
+      ],
+      "result": "El render se solicita cuando la versión visual cambió, existe animación activa o queda trabajo visual pendiente.",
+      "limits": [
+        "La lógica de invalidación debe cubrir cámara, controles, resize, carga de assets, luces, materiales y cambios de escena."
+      ],
+      "dimensional_verification": [
+        "Versiones, dirty y animationActive son datos discretos/booleanos; no se combinan con magnitudes físicas.",
+        "El coste de render se mide aparte; la condición de invalidación no asigna una unidad física."
+      ],
+      "proof_obligation": "Todo evento que cambie el resultado visible debe invalidar la versión; una invalidación durante el render no puede borrarse al completar el frame."
+    },
+    {
+      "record_key": "D01:7",
+      "name": "Render loop temporal",
+      "starting_principles": [
+        "La simulación evoluciona con un paso fijo Δt; la presentación puede ocurrir a frecuencia variable.",
+        "A acumula tiempo real pendiente de simular.",
+        "El estado y sus entradas por paso deben ser deterministas si se requiere reproducibilidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "A←A+clamp(Δt_real,0,Δt_max)",
+          "justification": "Acumular el tiempo transcurrido y limitar pausas o saltos de reloj extremos según política explícita."
+        },
+        {
+          "step": 2,
+          "equation": "while A≥Δt: y_prev←y; y←Φ_Δt(y,u); A←A−Δt",
+          "justification": "Consumir el tiempo acumulado en pasos iguales; Φ_Δt es el integrador elegido."
+        },
+        {
+          "step": 3,
+          "equation": "α=A/Δt",
+          "justification": "Después de consumir pasos completos, A es el residuo temporal y 0≤α<1."
+        },
+        {
+          "step": 4,
+          "equation": "y_render=(1−α)y_prev+αy",
+          "justification": "Interpolar el estado entre los dos últimos estados simulados para presentar una imagen suave; usar slerp para rotaciones."
+        },
+        {
+          "step": 5,
+          "equation": "render(scene(y_render),camera)",
+          "justification": "La interpolación afecta la presentación y no modifica el estado físico almacenado."
+        }
+      ],
+      "assumptions": [
+        "F(t) es determinista para una misma entrada y recursos iguales, si se exige reproducción determinista.",
+        "El reloj no retrocede; pausa/reinicio ajustan la referencia temporal.",
+        "Para física incremental, usar paso fijo/accumulator cuando el resultado no deba depender del frame rate."
+      ],
+      "result": "El acumulador transforma un reloj de frame variable en una secuencia de pasos fijos; α representa la fracción temporal entre estados simulados.",
+      "limits": [
+        "Usar t directamente es apropiado para animaciones analíticas; integración física acumulativa requiere gestión de Δt y pasos fijos."
+      ],
+      "dimensional_verification": [
+        "A, Δt_real, Δt tienen T; α=A/Δt es adimensional.",
+        "Para posición, vΔt tiene L; por ello la integración temporal de velocidad produce desplazamiento compatible con la posición."
+      ],
+      "proof_obligation": "La interpolación visual no sustituye el integrador. Eventos discretos deben procesarse en orden temporal y no interpolarse como si fueran magnitudes continuas."
+    }
+  ],
+  "validation": {
+    "checks": [
+      "7/7 técnicas no protegidas incluidas",
+      "Cada derivación presenta principios iniciales, cadena algebraica/geometría, resultado, supuestos, límites y verificación dimensional",
+      "LOD derivado desde proyección perspectiva y tolerancia de error en pantalla",
+      "Frustum culling derivado desde distancia firmada y radio de esfera",
+      "Render on demand derivado mediante invalidación versionada para no perder mutaciones durante el render",
+      "Render temporal derivado con acumulador de paso fijo e interpolación de presentación",
+      "D01:1 permanece excluido por protección Crimson Loong"
+    ],
+    "limitations": [
+      "Las derivaciones son especificaciones matemáticas; los algoritmos completos, pseudocódigo y pruebas independientes se desarrollan en puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

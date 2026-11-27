@@ -1,0 +1,569 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D18 Escalas microscópicas y macroscópicas",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D18",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D18 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D18:0",
+      "name": "Hormiga / insecto",
+      "starting_principles": [
+        "Longitudes l_i>0; límites articulares declarados.",
+        "Objetivos de pata y articulaciones en mismo marco."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "body chain: p_{i+1}=p_i+R(θ_i)l_i",
+          "justification": "Construir segmentos corporales y apéndices desde articulaciones locales."
+        },
+        {
+          "step": 2,
+          "equation": "leg_j=IK(chain_j,target_j)",
+          "justification": "Resolver cada pata como cadena articulada hacia objetivo de apoyo."
+        },
+        {
+          "step": 3,
+          "equation": "antenna(s)=C(s)+r(s)N(s)",
+          "justification": "Construir antena como curva deformable en marco local."
+        },
+        {
+          "step": 4,
+          "equation": "pose(t)=compose(body,legs,antennae)",
+          "justification": "Componer transformaciones y curvas para obtener pose final."
+        }
+      ],
+      "assumptions": [
+        "Longitudes l_i>0; límites articulares declarados.",
+        "Objetivos de pata y articulaciones en mismo marco.",
+        "Curvas de antena diferenciables."
+      ],
+      "result": "La anatomía articulada se deriva de cadenas de segmentos, IK para patas y curvas para antenas.",
+      "limits": [
+        "La ficha es una construcción visual; no pretende representar anatomía entomológica exacta."
+      ],
+      "dimensional_verification": [
+        "Puntos de articulación y longitudes l_i tienen L; rotaciones y ángulos son adimensionales angulares.",
+        "R(θ)l_i produce desplazamiento L; IK conserva longitudes de segmento."
+      ]
+    },
+    {
+      "record_key": "D18:1",
+      "name": "Colonia / enjambre",
+      "starting_principles": [
+        "r>0; campo F y obstáculos definidos.",
+        "Ganancias convierten términos a aceleración común."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "N_i={j:||p_j−p_i||<r}",
+          "justification": "Determinar vecinos dentro de radio."
+        },
+        {
+          "step": 2,
+          "equation": "food_i=∇F(p_i)",
+          "justification": "Calcular dirección de incremento del campo de alimento."
+        },
+        {
+          "step": 3,
+          "equation": "a_i=w_sS_i+w_cC_i+w_f∇F(p_i)+w_oO_i",
+          "justification": "Homogeneizar cada término como aceleración mediante ganancias dimensionales explícitas antes de sumarlos."
+        },
+        {
+          "step": 4,
+          "equation": "v_i'=clamp(v_i+a_iΔt); p_i'=p_i+v_i'Δt",
+          "justification": "Integrar movimiento y limitar velocidad."
+        }
+      ],
+      "assumptions": [
+        "r>0; campo F y obstáculos definidos.",
+        "Ganancias convierten términos a aceleración común.",
+        "Semillas deterministas para variación individual.",
+        "Con F adimensional y O unitario: w_s y w_f tienen L²/T²; w_c tiene T⁻²; w_o tiene L/T²."
+      ],
+      "result": "El comportamiento colectivo emerge de reglas locales y campos ambientales.",
+      "limits": [
+        "Los pesos requieren unidades compatibles; no es modelo ecológico validado."
+      ],
+      "dimensional_verification": [
+        "p_i y radios de vecindad tienen L; S_i tiene L⁻¹; C_i tiene L.",
+        "Si food es campo escalar adimensional, ∇F tiene L⁻¹; ganancias deben convertir separación/cohesión/alimento/evasión a aceleración L/T²."
+      ]
+    },
+    {
+      "record_key": "D18:2",
+      "name": "Célula",
+      "starting_principles": [
+        "SDF y radios en misma unidad espacial.",
+        "Orgánulos no deben cruzar membrana salvo que se defina."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d_membrane(p)=SDF_base(p)+δ(p)",
+          "justification": "Deformar campo de distancia de membrana mediante perturbación."
+        },
+        {
+          "step": 2,
+          "equation": "surface={p:d_membrane(p)=0}",
+          "justification": "Definir membrana como isosuperficie cero."
+        },
+        {
+          "step": 3,
+          "equation": "organelles_i=T_i·geometry_i",
+          "justification": "Instanciar orgánulos dentro de la región celular."
+        },
+        {
+          "step": 4,
+          "equation": "inside_i iff d_membrane(center_i)<−r_i",
+          "justification": "Exigir que el centro esté suficientemente dentro para contener un orgánulo de radio r_i."
+        }
+      ],
+      "assumptions": [
+        "SDF y radios en misma unidad espacial.",
+        "Orgánulos no deben cruzar membrana salvo que se defina.",
+        "δ acotada y continua."
+      ],
+      "result": "La célula se construye como volumen implícito deformable con instancias internas sujetas a condición de contención.",
+      "limits": [
+        "La forma procedural es conceptual y no representa procesos celulares cuantitativos."
+      ],
+      "dimensional_verification": [
+        "SDF y δ tienen L; r_i tiene L; d(center)<−r_i compara longitudes homogéneas.",
+        "Centros y superficies están en mismo marco espacial."
+      ]
+    },
+    {
+      "record_key": "D18:3",
+      "name": "Cristal",
+      "starting_principles": [
+        "A contiene vectores de red con unidad L.",
+        "Índices enteros y rangos finitos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n=(i,j,k)∈Z³",
+          "justification": "Definir índices discretos de red."
+        },
+        {
+          "step": 2,
+          "equation": "p_n=A n",
+          "justification": "Multiplicar índice por matriz de celda unitaria A."
+        },
+        {
+          "step": 3,
+          "equation": "p'_n=R p_n+t",
+          "justification": "Aplicar orientación y traslación al cristal."
+        },
+        {
+          "step": 4,
+          "equation": "neighbors=n+δ_j",
+          "justification": "Obtener vecindad por desplazamientos enteros de red."
+        }
+      ],
+      "assumptions": [
+        "A contiene vectores de red con unidad L.",
+        "Índices enteros y rangos finitos.",
+        "La estructura y simetría de red se declaran."
+      ],
+      "result": "Una red cristalina se obtiene aplicando una transformación de celda unitaria a índices enteros.",
+      "limits": [
+        "Una red visual no determina estructura cristalográfica ni propiedades del material."
+      ],
+      "dimensional_verification": [
+        "A contiene vectores de red con L; n entero adimensional; p_n tiene L.",
+        "R es adimensional y t tiene L; p'_n conserva L."
+      ]
+    },
+    {
+      "record_key": "D18:4",
+      "name": "Átomo estilizado",
+      "starting_principles": [
+        "R y A son funciones de visualización, no soluciones cuánticas exactas.",
+        "r≥0; ángulos en rangos esféricos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ρ(r,θ,φ)=R(r)A(θ,φ)",
+          "justification": "Separar perfil radial y patrón angular de densidad visual."
+        },
+        {
+          "step": 2,
+          "equation": "p(r,θ,φ)=(r sinθ cosφ,r cosθ,r sinθ sinφ)",
+          "justification": "Convertir coordenadas esféricas a posición 3D."
+        },
+        {
+          "step": 3,
+          "equation": "P(r,θ,φ)=ρ(r,θ,φ)·ΔV",
+          "justification": "Interpretar densidad como intensidad de muestra volumétrica."
+        },
+        {
+          "step": 4,
+          "equation": "normalize ∫ρ dV=1 if probability-style visualization",
+          "justification": "Normalizar el campo si se quiere representar densidad relativa conceptual."
+        }
+      ],
+      "assumptions": [
+        "R y A son funciones de visualización, no soluciones cuánticas exactas.",
+        "r≥0; ángulos en rangos esféricos.",
+        "La normalización depende de la interpretación.",
+        "Si se usa P=ρΔV como masa/probabilidad de muestra, ρ se normaliza como densidad volumétrica L⁻³; no se interpreta como densidad electrónica física exacta."
+      ],
+      "result": "La visualización atómica estilizada separa una envolvente radial y una distribución angular para generar volúmenes/orbitas conceptuales.",
+      "limits": [
+        "No debe presentarse como orbital cuántico exacto sin potencial, ecuación y normalización física definidos."
+      ],
+      "dimensional_verification": [
+        "r y coordenadas esféricas tienen L; θ,φ son adimensionales angulares.",
+        "Para densidad de muestreo normalizada, ρ tiene L⁻³; ΔV tiene L³; P=ρΔV es adimensional."
+      ]
+    },
+    {
+      "record_key": "D18:5",
+      "name": "Planeta",
+      "starting_principles": [
+        "R+h>0; ángulos en radianes.",
+        "Heightfield usa longitud/escala coherente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_sphere=R(cosφ cosλ,sinφ,cosφ sinλ)",
+          "justification": "Parametrizar esfera mediante latitud φ y longitud λ."
+        },
+        {
+          "step": 2,
+          "equation": "p=(R+h(φ,λ))·unitSphere(φ,λ)",
+          "justification": "Desplazar radialmente por altura del terreno."
+        },
+        {
+          "step": 3,
+          "equation": "N=normalize(P_φ×P_λ)",
+          "justification": "Obtener normal de la superficie paramétrica."
+        },
+        {
+          "step": 4,
+          "equation": "seam: λ=−π and π",
+          "justification": "Cerrar costura longitudinal; tratar polos con base alternativa."
+        }
+      ],
+      "assumptions": [
+        "R+h>0; ángulos en radianes.",
+        "Heightfield usa longitud/escala coherente.",
+        "Polos y costura UV se manejan explícitamente."
+      ],
+      "result": "La superficie planetaria es una esfera radialmente desplazada por un campo de altura.",
+      "limits": [
+        "Alturas grandes pueden invertir o auto-intersectar la superficie; la topografía real requiere datos/calibración."
+      ],
+      "dimensional_verification": [
+        "R y h tienen L; φ,λ son ángulos adimensionales; p tiene L.",
+        "P_φ×P_λ tiene L²; la normal normalizada es adimensional."
+      ]
+    },
+    {
+      "record_key": "D18:6",
+      "name": "Atmósfera planetaria",
+      "starting_principles": [
+        "H>0; h y H en misma unidad.",
+        "ρ_0 no negativa; σ_t compatible con densidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dρ/dh=−ρ/H",
+          "justification": "Suponer densidad decreciente exponencialmente con altitud."
+        },
+        {
+          "step": 2,
+          "equation": "dρ/ρ=−dh/H",
+          "justification": "Separar variables."
+        },
+        {
+          "step": 3,
+          "equation": "lnρ−lnρ_0=−(h−h_0)/H",
+          "justification": "Integrar desde referencia h_0."
+        },
+        {
+          "step": 4,
+          "equation": "ρ(h)=ρ_0 exp(−(h−h_0)/H)",
+          "justification": "Aplicar condición inicial y definir altura de escala H."
+        },
+        {
+          "step": 5,
+          "equation": "T=exp(−∫σ_tρ(h(s))ds)",
+          "justification": "Calcular transmitancia a lo largo del rayo."
+        }
+      ],
+      "assumptions": [
+        "H>0; h y H en misma unidad.",
+        "ρ_0 no negativa; σ_t compatible con densidad.",
+        "La atmósfera es una aproximación estratificada.",
+        "ρ(h) es densidad relativa adimensional; σ_t es coeficiente efectivo de extinción L⁻¹. Una densidad másica física requeriría coeficiente con unidad m²/kg."
+      ],
+      "result": "La densidad exponencial deriva de una ecuación diferencial de equilibrio vertical simplificado.",
+      "limits": [
+        "No representa variaciones meteorológicas, temperatura ni composición por capas completas."
+      ],
+      "dimensional_verification": [
+        "h,h0,H tienen L; k=1/H tiene L⁻¹; (h−h0)/H es adimensional.",
+        "Si ρ es densidad relativa adimensional, σ_t tiene L⁻¹ y σ_tρ ds es adimensional."
+      ]
+    },
+    {
+      "record_key": "D18:7",
+      "name": "Sistema orbital",
+      "starting_principles": [
+        "0≤e<1 para órbita elíptica; a>0; μ>0.",
+        "Ángulos en radianes; órbita de dos cuerpos ideal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h=√(μa(1−e²))",
+          "justification": "Usar conservación de momento angular específico para órbita kepleriana."
+        },
+        {
+          "step": 2,
+          "equation": "r(ν)=a(1−e²)/(1+e cosν)",
+          "justification": "Resolver ecuación de cónica en coordenadas polares."
+        },
+        {
+          "step": 3,
+          "equation": "M=E−e sinE",
+          "justification": "Relacionar anomalía media y excéntrica por ecuación de Kepler."
+        },
+        {
+          "step": 4,
+          "equation": "M=n(t−t_0); n=√(μ/a³)",
+          "justification": "La anomalía media crece linealmente en tiempo con movimiento medio."
+        },
+        {
+          "step": 5,
+          "equation": "Solve E−e sinE=M; then ν=2atan2(√(1+e)sin(E/2),√(1−e)cos(E/2))",
+          "justification": "Resolver E y convertir a anomalía verdadera."
+        }
+      ],
+      "assumptions": [
+        "0≤e<1 para órbita elíptica; a>0; μ>0.",
+        "Ángulos en radianes; órbita de dos cuerpos ideal.",
+        "Unidades de μ, a y tiempo consistentes."
+      ],
+      "result": "La órbita elíptica se deriva de la ley de gravitación inversa al cuadrado y conservación de energía/momento angular.",
+      "limits": [
+        "No incluye perturbaciones de múltiples cuerpos, presión de radiación ni relatividad."
+      ],
+      "dimensional_verification": [
+        "μ=GM tiene L³/T²; a tiene L; h específico tiene L²/T; n medio tiene T⁻¹.",
+        "e, M, E, ν son adimensionales angulares; r(ν) tiene L."
+      ]
+    },
+    {
+      "record_key": "D18:8",
+      "name": "Galaxia espiral",
+      "starting_principles": [
+        "r,r_0>0; pitch∈(0,π/2).",
+        "θ en radianes; modelo bidimensional de brazos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "tan(pitch)=dr/(r dθ)",
+          "justification": "Definir ángulo de paso constante entre tangente y dirección circular."
+        },
+        {
+          "step": 2,
+          "equation": "dθ/dr=1/(r tan(pitch))",
+          "justification": "Reordenar relación diferencial."
+        },
+        {
+          "step": 3,
+          "equation": "θ(r)−θ_0=∫_{r_0}^r dr/(r tan(pitch))",
+          "justification": "Integrar radialmente."
+        },
+        {
+          "step": 4,
+          "equation": "θ(r)=θ_0+ln(r/r_0)/tan(pitch)",
+          "justification": "Evaluar integral logarítmica."
+        }
+      ],
+      "assumptions": [
+        "r,r_0>0; pitch∈(0,π/2).",
+        "θ en radianes; modelo bidimensional de brazos."
+      ],
+      "result": "La espiral logarítmica resulta de imponer ángulo de paso constante.",
+      "limits": [
+        "Es una forma estilizada; no modela dinámica gravitatoria galáctica."
+      ],
+      "dimensional_verification": [
+        "r y r0 tienen L; r/r0 es adimensional; pitch y θ son angulares adimensionales.",
+        "El logaritmo recibe argumento positivo adimensional."
+      ]
+    },
+    {
+      "record_key": "D18:9",
+      "name": "Nebulosa",
+      "starting_principles": [
+        "Frecuencias y coordenadas compatibles; amplitudes finitas.",
+        "Semilla reproducible; dominio volumétrico definido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f_i(p)=noise(λ_i p)",
+          "justification": "Evaluar ruido a distintas escalas espaciales."
+        },
+        {
+          "step": 2,
+          "equation": "F(p)=Σ_i a_i f_i(p)",
+          "justification": "Combinar octavas para crear campo fractal."
+        },
+        {
+          "step": 3,
+          "equation": "filament(p)=ridge(noise_warp(p))",
+          "justification": "Extraer crestas y deformar coordenadas para estructuras filamentosas."
+        },
+        {
+          "step": 4,
+          "equation": "ρ(p)=clamp(F(p)+β·filament(p),0,ρ_max)",
+          "justification": "Combinar nube base y filamentos en densidad normalizada."
+        }
+      ],
+      "assumptions": [
+        "Frecuencias y coordenadas compatibles; amplitudes finitas.",
+        "Semilla reproducible; dominio volumétrico definido.",
+        "ρ normalizada salvo calibración física."
+      ],
+      "result": "La nebulosa se genera como campo de ruido multiescala con realce de filamentos.",
+      "limits": [
+        "No representa densidad/temperatura/plasma astrofísicos cuantitativos."
+      ],
+      "dimensional_verification": [
+        "p tiene L; frecuencias espaciales λ_i tienen L⁻¹; argumentos de noise son adimensionales.",
+        "Amplitudes a_i y ρ normalizada son adimensionales; la salida es densidad visual normalizada."
+      ]
+    },
+    {
+      "record_key": "D18:10",
+      "name": "Campo de estrellas",
+      "starting_principles": [
+        "R≥0; semilla estable; dirección no nula.",
+        "Distinguir muestreo de superficie de muestreo volumétrico."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=(u_x,u_y,u_z)/||u||, u_i∼N(0,1)",
+          "justification": "Normalizar vector gaussiano isotrópico para obtener dirección uniforme sobre esfera."
+        },
+        {
+          "step": 2,
+          "equation": "r=R for surface sampling",
+          "justification": "Fijar radio para distribución sobre superficie esférica."
+        },
+        {
+          "step": 3,
+          "equation": "r=R·U^{1/3} for volume sampling",
+          "justification": "Usar raíz cúbica de variable uniforme para distribución uniforme en volumen."
+        },
+        {
+          "step": 4,
+          "equation": "p=c+r u",
+          "justification": "Convertir dirección y radio en posición 3D."
+        },
+        {
+          "step": 5,
+          "equation": "seed_i=hash(seed,index)",
+          "justification": "Hacer reproducible la distribución de cada estrella."
+        }
+      ],
+      "assumptions": [
+        "R≥0; semilla estable; dirección no nula.",
+        "Distinguir muestreo de superficie de muestreo volumétrico."
+      ],
+      "result": "El muestreo uniforme se obtiene separando dirección isotrópica y distribución radial apropiada.",
+      "limits": [
+        "Muestreo uniforme en ángulo y radio uniforme no es uniforme en volumen."
+      ],
+      "dimensional_verification": [
+        "R y p tienen L; u y U son adimensionales; p=c+Ru conserva L.",
+        "U^(1/3) es adimensional y genera distribución radial uniforme en volumen."
+      ]
+    },
+    {
+      "record_key": "D18:11",
+      "name": "Universo procedural",
+      "starting_principles": [
+        "λ>1 o convención de escala creciente declarada.",
+        "Error y profundidad en misma unidad; cámara perspectiva."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "seed_k=hash(seed_parent,k)",
+          "justification": "Derivar semilla determinista por región/nivel."
+        },
+        {
+          "step": 2,
+          "equation": "scale_k=scale_0·λ^k",
+          "justification": "Definir escalas jerárquicas."
+        },
+        {
+          "step": 3,
+          "equation": "ε_screen,k=f_px·ε_world,k/z",
+          "justification": "Convertir error de mundo a error proyectado."
+        },
+        {
+          "step": 4,
+          "equation": "select LOD=minCost{ε_screen,k≤τ_px}",
+          "justification": "Elegir nivel más barato que cumple tolerancia en pantalla."
+        },
+        {
+          "step": 5,
+          "equation": "instantiate region only when visible/needed",
+          "justification": "Generar/activar datos de región bajo demanda."
+        }
+      ],
+      "assumptions": [
+        "λ>1 o convención de escala creciente declarada.",
+        "Error y profundidad en misma unidad; cámara perspectiva.",
+        "Semillas jerárquicas deterministas."
+      ],
+      "result": "Un universo procedural combina semillas jerárquicas, escalas y selección LOD por error proyectado.",
+      "limits": [
+        "No es simulación cosmológica; el streaming y presupuesto de memoria requieren límites explícitos."
+      ],
+      "dimensional_verification": [
+        "scale_0 y ε_world tienen L; λ y scale ratio son adimensionales; z tiene L.",
+        "f_px tiene px; ε_screen=f_px ε_world/z tiene px; τ_px también px."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "12/12 técnicas D18 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Colonia/enjambre convierte reglas locales a aceleración mediante ganancias con unidades explícitas",
+      "Átomo estilizado distingue densidad de muestreo L⁻³ de magnitudes cuánticas físicas",
+      "Sistema orbital tipa μ, semieje, momento angular específico y movimiento medio",
+      "Nebulosa y universo procedural normalizan coordenadas de ruido y error proyectado"
+    ],
+    "limitations": [
+      "Los modelos microscópicos y astronómicos se mantienen como visualizaciones conceptuales/procedurales; no se presentan como modelos científicos exactos."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

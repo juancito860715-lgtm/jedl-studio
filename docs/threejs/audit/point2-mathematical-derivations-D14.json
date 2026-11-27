@@ -1,0 +1,832 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D14 Shaders, GPU y renderizado avanzado",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D14",
+    "record_count": 18,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D14 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D14:0",
+      "name": "Vertex shader",
+      "starting_principles": [
+        "Matrices y convención columna/fila declaradas.",
+        "Posiciones y transformaciones en espacios compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_world=M·p_local",
+          "justification": "Transformar posición local al mundo."
+        },
+        {
+          "step": 2,
+          "equation": "p_view=V·p_world",
+          "justification": "Transformar al marco de cámara."
+        },
+        {
+          "step": 3,
+          "equation": "p_clip=P·p_view",
+          "justification": "Aplicar proyección."
+        },
+        {
+          "step": 4,
+          "equation": "gl_Position=p_clip",
+          "justification": "Emitir posición clip para clipping y rasterización."
+        }
+      ],
+      "assumptions": [
+        "Matrices y convención columna/fila declaradas.",
+        "Posiciones y transformaciones en espacios compatibles."
+      ],
+      "result": "La posición clip resulta de la composición Model–View–Projection.",
+      "limits": [
+        "La transformación de normales requiere matriz normal cuando hay escala no uniforme."
+      ],
+      "dimensional_verification": [
+        "Model/View conservan posición L; perspective divide produce NDC adimensional.",
+        "f_px está en px; viewport mapping convierte NDC a px."
+      ]
+    },
+    {
+      "record_key": "D14:1",
+      "name": "Fragment shader",
+      "starting_principles": [
+        "Atributos interpolados y uniformes tienen tipos definidos.",
+        "Color y cálculos de luz en espacio lineal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a_i=interpolate(attribute_i)",
+          "justification": "El rasterizador interpola atributos de vértice sobre el triángulo."
+        },
+        {
+          "step": 2,
+          "equation": "u=uniforms",
+          "justification": "Leer parámetros constantes por draw/dispatch."
+        },
+        {
+          "step": 3,
+          "equation": "C=shade(a_i,u)",
+          "justification": "Evaluar función de material por fragmento."
+        },
+        {
+          "step": 4,
+          "equation": "write(C,depth)",
+          "justification": "Emitir color y opcionalmente profundidad."
+        }
+      ],
+      "assumptions": [
+        "Atributos interpolados y uniformes tienen tipos definidos.",
+        "Color y cálculos de luz en espacio lineal.",
+        "Profundidad sigue convención de pipeline."
+      ],
+      "result": "El fragment shader evalúa la función de sombreado sobre atributos interpolados y parámetros constantes.",
+      "limits": [
+        "El coste escala con fragmentos y muestras; divergencia de ramas puede penalizar."
+      ],
+      "dimensional_verification": [
+        "Atributos conservan su unidad al interpolarse; color lineal y depth siguen codificaciones declaradas.",
+        "Uniforms tipados por canal; output conserva escala del target."
+      ]
+    },
+    {
+      "record_key": "D14:2",
+      "name": "Custom ShaderMaterial",
+      "starting_principles": [
+        "Interfaz vertex/fragment coincide en tipos y nombres.",
+        "Uniforms y texturas enlazados con formato correcto."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "vertex: p_clip=P·V·M·p",
+          "justification": "Definir etapa de transformación y varyings."
+        },
+        {
+          "step": 2,
+          "equation": "fragment: C=F(varyings,uniforms,textures)",
+          "justification": "Definir evaluación de material."
+        },
+        {
+          "step": 3,
+          "equation": "link(vertex,fragment,interface)",
+          "justification": "Vincular nombres, tipos y ubicaciones compatibles."
+        },
+        {
+          "step": 4,
+          "equation": "compile→validate→draw",
+          "justification": "Compilar programa y usarlo con atributos/buffers adecuados."
+        }
+      ],
+      "assumptions": [
+        "Interfaz vertex/fragment coincide en tipos y nombres.",
+        "Uniforms y texturas enlazados con formato correcto.",
+        "Versión GLSL y backend declarados."
+      ],
+      "result": "Un ShaderMaterial se deriva de dos programas enlazados por una interfaz explícita de atributos, varyings y uniforms.",
+      "limits": [
+        "El shader debe respetar requisitos del backend y no asumir extensiones no disponibles."
+      ],
+      "dimensional_verification": [
+        "Posiciones L; normales/direcciones 1; UV 1.",
+        "Uniforms y varyings mantienen tipos coincidentes entre etapas."
+      ]
+    },
+    {
+      "record_key": "D14:3",
+      "name": "Varyings",
+      "starting_principles": [
+        "λ_i son baricéntricos; w_i clip-space w no nulo.",
+        "Atributos y varying tienen el mismo tipo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a_i=attribute(vertex_i)",
+          "justification": "Tomar atributo en cada vértice."
+        },
+        {
+          "step": 2,
+          "equation": "v_i=a_i",
+          "justification": "Asignar valor al varying en vertex shader."
+        },
+        {
+          "step": 3,
+          "equation": "v(p)=Σ_i λ_i v_i/w_i ÷ Σ_i λ_i/w_i",
+          "justification": "Interpolación perspectiva-correcta mediante pesos baricéntricos y recíprocos de w."
+        },
+        {
+          "step": 4,
+          "equation": "fragment uses v(p)",
+          "justification": "El fragment recibe valor interpolado."
+        }
+      ],
+      "assumptions": [
+        "λ_i son baricéntricos; w_i clip-space w no nulo.",
+        "Atributos y varying tienen el mismo tipo.",
+        "Flat/no-perspective qualifiers alteran la regla."
+      ],
+      "result": "Los varyings transportan datos del vértice al fragmento mediante interpolación de rasterizador.",
+      "limits": [
+        "La interpolación lineal simple no es correcta en perspectiva para atributos generales."
+      ],
+      "dimensional_verification": [
+        "λ_i son adimensionales; los pesos perspectiva-correctos normalizados suman 1.",
+        "El varying conserva unidad del atributo original."
+      ]
+    },
+    {
+      "record_key": "D14:4",
+      "name": "Uniform animation",
+      "starting_principles": [
+        "u_time monotónico y en segundos o unidad declarada.",
+        "La función F es determinista para mismos parámetros."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u_time=t",
+          "justification": "Actualizar uniforme de tiempo."
+        },
+        {
+          "step": 2,
+          "equation": "v_i(t)=F(p_i,u_time,parameters)",
+          "justification": "Evaluar estado por vértice usando la misma variable temporal."
+        },
+        {
+          "step": 3,
+          "equation": "p'_i=p_i+Δp_i(t)",
+          "justification": "Sumar una deformación/desplazamiento con unidad L a la posición base; si F entrega velocidad, integrar F en el tiempo antes de sumar."
+        },
+        {
+          "step": 4,
+          "equation": "draw frame",
+          "justification": "El mismo u_time sincroniza todos los vértices del draw."
+        }
+      ],
+      "assumptions": [
+        "u_time monotónico y en segundos o unidad declarada.",
+        "La función F es determinista para mismos parámetros.",
+        "No modificar uniform durante una única ejecución draw.",
+        "La salida de F se declara como desplazamiento L; si es velocidad L/T, debe integrarse."
+      ],
+      "result": "La animación GPU se deriva de una función del tiempo compartido por los vértices.",
+      "limits": [
+        "Un uniforme por sí solo no actualiza estado persistente; para simulación acumulativa se necesita buffer de estado."
+      ],
+      "dimensional_verification": [
+        "u_time tiene T; F entrega desplazamiento L o velocidad L/T según contrato.",
+        "p'_i=p_i+Δp_i exige Δp_i con L; una velocidad debe integrarse."
+      ]
+    },
+    {
+      "record_key": "D14:5",
+      "name": "Displacement in vertex shader",
+      "starting_principles": [
+        "N unitaria; D tiene unidad de longitud.",
+        "El campo es continuo o suficientemente muestreado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "D_i=D(p_i,t)",
+          "justification": "Evaluar campo de desplazamiento escalar."
+        },
+        {
+          "step": 2,
+          "equation": "p'_i=p_i+N_iD_i",
+          "justification": "Desplazar vértice a lo largo de normal."
+        },
+        {
+          "step": 3,
+          "equation": "N'_i=normalize(∂P'/∂u×∂P'/∂v)",
+          "justification": "La normal exacta de superficie deformada se obtiene de tangentes derivadas del nuevo parche."
+        },
+        {
+          "step": 4,
+          "equation": "clip=P·V·M·p'",
+          "justification": "Proyectar posición desplazada."
+        }
+      ],
+      "assumptions": [
+        "N unitaria; D tiene unidad de longitud.",
+        "El campo es continuo o suficientemente muestreado.",
+        "Las normales se actualizan o aproximan."
+      ],
+      "result": "El desplazamiento normal transforma la superficie base mediante un escalar dependiente de posición/tiempo.",
+      "limits": [
+        "Desplazamiento en vertex shader no aumenta teselación; detalle menor que tamaño de triángulo puede perderse."
+      ],
+      "dimensional_verification": [
+        "D tiene L; N es adimensional; N·D tiene L.",
+        "La posición desplazada conserva L."
+      ]
+    },
+    {
+      "record_key": "D14:6",
+      "name": "Ray marching",
+      "starting_principles": [
+        "SDF exacto o cota inferior conservadora.",
+        "r_d no nulo; ε>0; pasos máximos definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p(t)=r_o+t r_d",
+          "justification": "Parametrizar rayo."
+        },
+        {
+          "step": 2,
+          "equation": "d_n=SDF(p(t_n))",
+          "justification": "Evaluar distancia segura al objeto."
+        },
+        {
+          "step": 3,
+          "equation": "t_{n+1}=t_n+d_n/||r_d||",
+          "justification": "Avanzar como máximo la distancia segura."
+        },
+        {
+          "step": 4,
+          "equation": "stop if d_n<ε or t_n>t_max",
+          "justification": "Terminar al acercarse a superficie o salir de rango."
+        }
+      ],
+      "assumptions": [
+        "SDF exacto o cota inferior conservadora.",
+        "r_d no nulo; ε>0; pasos máximos definidos."
+      ],
+      "result": "Ray marching avanza según distancia segura en lugar de usar pasos constantes.",
+      "limits": [
+        "Campos no Lipschitz/conservadores pueden permitir saltar superficies."
+      ],
+      "dimensional_verification": [
+        "SDF d tiene L; dirección de rayo adimensional; d/‖rd‖ tiene unidad del parámetro t.",
+        "ε y t_max comparten unidad con distancia/parámetro."
+      ]
+    },
+    {
+      "record_key": "D14:7",
+      "name": "Depth reconstruction",
+      "starting_principles": [
+        "Near/far positivos y depth buffer usa proyección estándar; reverse-Z requiere otra fórmula.",
+        "UV y depth corresponden al mismo frame/cámara."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d∈[0,1]",
+          "justification": "Leer depth buffer normalizado."
+        },
+        {
+          "step": 2,
+          "equation": "z_view=−nf/(f−d(f−n))",
+          "justification": "Invertir la proyección perspectiva estándar con near n y far f."
+        },
+        {
+          "step": 3,
+          "equation": "p_view=unproject(uv,d,P^{-1})",
+          "justification": "Reconstruir posición de vista completa mediante inversa de proyección."
+        },
+        {
+          "step": 4,
+          "equation": "p_world=V^{-1}p_view",
+          "justification": "Transformar al mundo si se necesita."
+        }
+      ],
+      "assumptions": [
+        "Near/far positivos y depth buffer usa proyección estándar; reverse-Z requiere otra fórmula.",
+        "UV y depth corresponden al mismo frame/cámara."
+      ],
+      "result": "La profundidad lineal se recupera invirtiendo la ecuación de proyección.",
+      "limits": [
+        "No usar fórmula estándar con reverse-Z, logarithmic depth o proyección personalizada sin derivación propia."
+      ],
+      "dimensional_verification": [
+        "near,far,z_view tienen L; depth buffer normalizado es adimensional.",
+        "UV adimensional; unproject retorna posición L."
+      ]
+    },
+    {
+      "record_key": "D14:8",
+      "name": "Screen-space effects",
+      "starting_principles": [
+        "Buffers alineados en resolución, cámara y jitter.",
+        "Normales y depth tienen codificación conocida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "uv=(pixel+0.5)/resolution",
+          "justification": "Normalizar coordenadas de pantalla."
+        },
+        {
+          "step": 2,
+          "equation": "C=sample(colorBuffer,uv); z=sample(depth,uv); n=sample(normal,uv)",
+          "justification": "Obtener señales auxiliares del mismo frame."
+        },
+        {
+          "step": 3,
+          "equation": "E=F(C,z,n,neighbors(uv))",
+          "justification": "Calcular efecto local: AO, outline, bloom o grading."
+        },
+        {
+          "step": 4,
+          "equation": "output=compose(C,E)",
+          "justification": "Componer resultado en espacio lineal/convención definida."
+        }
+      ],
+      "assumptions": [
+        "Buffers alineados en resolución, cámara y jitter.",
+        "Normales y depth tienen codificación conocida.",
+        "Filtros declaran radio y borde."
+      ],
+      "result": "Los efectos screen-space son funciones de buffers de imagen y vecindarios de píxeles.",
+      "limits": [
+        "No tienen información fuera de pantalla ni geometría oculta."
+      ],
+      "dimensional_verification": [
+        "pixel/resolution es px/px, por tanto UV adimensional.",
+        "Color, depth y normal son canales heterogéneos con unidades propias."
+      ]
+    },
+    {
+      "record_key": "D14:9",
+      "name": "Multiple render targets",
+      "starting_principles": [
+        "Formatos y número de attachments soportados por GPU.",
+        "Todos los targets comparten resolución/sample count."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "fragment computes {C,N,z,r}",
+          "justification": "Calcular atributos/materiales una sola vez por fragmento."
+        },
+        {
+          "step": 2,
+          "equation": "out0=C; out1=N; out2=z; out3=r",
+          "justification": "Escribir salidas a attachments separados."
+        },
+        {
+          "step": 3,
+          "equation": "lightingPass reads attachments",
+          "justification": "Consumir buffers en una pasada posterior."
+        },
+        {
+          "step": 4,
+          "equation": "Gbuffer=tuple(out_i)",
+          "justification": "El conjunto de attachments constituye el G-buffer."
+        }
+      ],
+      "assumptions": [
+        "Formatos y número de attachments soportados por GPU.",
+        "Todos los targets comparten resolución/sample count.",
+        "Codificación de cada canal declarada."
+      ],
+      "result": "MRT deriva de múltiples salidas por fragmento a render targets simultáneos.",
+      "limits": [
+        "Ancho de banda y memoria crecen con número/formato de attachments."
+      ],
+      "dimensional_verification": [
+        "Albedo y roughness son adimensionales; normal 1; depth L o normalizado 1.",
+        "MRT attachments pueden tener unidades distintas y deben leerse por separado."
+      ]
+    },
+    {
+      "record_key": "D14:10",
+      "name": "Ping-pong buffers",
+      "starting_principles": [
+        "Buffers del mismo tamaño/formato; sincronización GPU correcta.",
+        "F lee estado completo anterior."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "A_n=state_n",
+          "justification": "Mantener estado actual en buffer A."
+        },
+        {
+          "step": 2,
+          "equation": "B_{n+1}=F(A_n)",
+          "justification": "Escribir estado siguiente en buffer B sin leer/escribir simultáneamente el mismo target."
+        },
+        {
+          "step": 3,
+          "equation": "swap(A,B)",
+          "justification": "Intercambiar roles de entrada/salida."
+        },
+        {
+          "step": 4,
+          "equation": "A_{n+1}=state_{n+1}",
+          "justification": "Continuar iteración."
+        }
+      ],
+      "assumptions": [
+        "Buffers del mismo tamaño/formato; sincronización GPU correcta.",
+        "F lee estado completo anterior.",
+        "No existe aliasing read/write no soportado."
+      ],
+      "result": "Ping-pong implementa recurrencia de estado usando dos buffers alternos.",
+      "limits": [
+        "Cada iteración puede requerir barreras/sincronización según API."
+      ],
+      "dimensional_verification": [
+        "Buffers almacenan estado por componente; F conserva unidad de cada componente.",
+        "Índices y swap son discretos."
+      ]
+    },
+    {
+      "record_key": "D14:11",
+      "name": "Compute-style simulation",
+      "starting_principles": [
+        "Cada elemento tiene acceso a datos definidos; conflictos de escritura evitados.",
+        "Δt y unidades del estado coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "state_n=(position,velocity,attributes)",
+          "justification": "Definir estado por entidad/partícula."
+        },
+        {
+          "step": 2,
+          "equation": "state_{n+1}=F(state_n,Δt,uniforms)",
+          "justification": "Aplicar regla de actualización paralela."
+        },
+        {
+          "step": 3,
+          "equation": "dispatch index i→state_i",
+          "justification": "Asignar hilo/compute invocation a cada elemento."
+        },
+        {
+          "step": 4,
+          "equation": "write nextState[i]",
+          "justification": "Escribir en buffer de salida separado."
+        },
+        {
+          "step": 5,
+          "equation": "swap current/next",
+          "justification": "Usar nuevo estado para siguiente paso."
+        }
+      ],
+      "assumptions": [
+        "Cada elemento tiene acceso a datos definidos; conflictos de escritura evitados.",
+        "Δt y unidades del estado coherentes.",
+        "Backend compute compatible o técnica alternativa."
+      ],
+      "result": "La simulación compute es una función de actualización paralela sobre buffers de estado.",
+      "limits": [
+        "La ejecución WebGL no tiene compute shaders generales; usar transform feedback, ping-pong o CPU según backend."
+      ],
+      "dimensional_verification": [
+        "position L; velocity L/T; acceleration L/T²; dt T.",
+        "vel·dt tiene L; acc·dt tiene L/T; cada componente conserva unidad."
+      ]
+    },
+    {
+      "record_key": "D14:12",
+      "name": "Adaptive resolution",
+      "starting_principles": [
+        "T_target,T_measured>0; medición estable.",
+        "El coste no está dominado por geometría/CPU fija."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T_measured≈K·scale²",
+          "justification": "Bajo fill-rate dominante, el tiempo de GPU es aproximadamente proporcional al número de píxeles; el número de píxeles escala con el cuadrado de la escala lineal."
+        },
+        {
+          "step": 2,
+          "equation": "T_target≈K·scale_next²",
+          "justification": "Imponer el presupuesto de tiempo deseado bajo el mismo coste por píxel."
+        },
+        {
+          "step": 3,
+          "equation": "scale_next=scale·sqrt(T_target/T_measured)",
+          "justification": "Dividir las dos expresiones elimina K y despejar la escala positiva produce la raíz cuadrada del cociente temporal."
+        },
+        {
+          "step": 4,
+          "equation": "scale_next=clamp(scale_next,min,max)",
+          "justification": "Restringir el resultado a los límites de resolución admitidos."
+        },
+        {
+          "step": 5,
+          "equation": "scale_filtered←lerp(scale_filtered,scale_next,α)",
+          "justification": "Suavizar la transición para evitar oscilaciones por ruido de medición; α es adimensional."
+        }
+      ],
+      "assumptions": [
+        "T_target,T_measured>0; medición estable.",
+        "El coste no está dominado por geometría/CPU fija.",
+        "Mínimos/máximos de resolución definidos."
+      ],
+      "result": "La actualización adaptativa se deriva del modelo de coste cuadrático en escala lineal; la fórmula del catálogo omite el factor de escala actual y la raíz cuadrada.",
+      "limits": [
+        "Si el cuello de botella no es fill-rate, la regla cuadrática no predice el tiempo real."
+      ],
+      "dimensional_verification": [
+        "T_target/T_measured es adimensional; sqrt conserva adimensionalidad; scale_next es adimensional.",
+        "La regla requiere T∝scale²; si el cuello de botella es CPU o fijo, la relación puede no cumplirse."
+      ],
+      "catalogue_discrepancy": {
+        "original": "resolutionScale_next=clamp(targetFrameTime/measuredFrameTime)",
+        "issue": "omite scale actual y la raíz cuadrada que se deducen de coste proporcional a píxeles",
+        "corrected": "scale_next=clamp(scale·sqrt(targetFrameTime/measuredFrameTime),min,max)",
+        "pending_manifest_integration": true
+      }
+    },
+    {
+      "record_key": "D14:13",
+      "name": "Temporal accumulation",
+      "starting_principles": [
+        "α∈[0,1]; buffers y motion alineados.",
+        "Historial válido y mismo espacio de color/exposición."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C_t=sample_t",
+          "justification": "Obtener muestra actual."
+        },
+        {
+          "step": 2,
+          "equation": "H_{t−1}=reproject(C_{t−1},motion,depth)",
+          "justification": "Alinear historial al píxel actual."
+        },
+        {
+          "step": 3,
+          "equation": "C_t=α sample_t+(1−α)H_{t−1}",
+          "justification": "Combinar muestra nueva e historial con peso normalizado."
+        },
+        {
+          "step": 4,
+          "equation": "reject history on disocclusion",
+          "justification": "Evitar mezclar datos de superficies distintas."
+        }
+      ],
+      "assumptions": [
+        "α∈[0,1]; buffers y motion alineados.",
+        "Historial válido y mismo espacio de color/exposición.",
+        "Primer frame no tiene historial."
+      ],
+      "result": "La acumulación temporal es una media exponencial de muestras reproyectadas.",
+      "limits": [
+        "Sin rechazo de historia, ghosting y arrastre en objetos móviles."
+      ],
+      "dimensional_verification": [
+        "α adimensional; sample e history comparten color space/exposure.",
+        "Motion y depth reprojection conservan su convención px/UV y profundidad."
+      ]
+    },
+    {
+      "record_key": "D14:14",
+      "name": "Dithering",
+      "starting_principles": [
+        "Δ>0; ruido acotado y sin sesgo.",
+        "Dither puede ser espacial o temporal con semilla/control."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "q=quantize(C,Δ)",
+          "justification": "Cuantizar señal a niveles separados por Δ."
+        },
+        {
+          "step": 2,
+          "equation": "η∼Uniform(−Δ/2,Δ/2)",
+          "justification": "Añadir ruido de amplitud menor que un paso de cuantización."
+        },
+        {
+          "step": 3,
+          "equation": "C'=C+η",
+          "justification": "Descorrelacionar error de cuantización con señal."
+        },
+        {
+          "step": 4,
+          "equation": "q'=quantize(C',Δ)",
+          "justification": "Cuantizar señal perturbada para reducir banding visible."
+        }
+      ],
+      "assumptions": [
+        "Δ>0; ruido acotado y sin sesgo.",
+        "Dither puede ser espacial o temporal con semilla/control.",
+        "Aplicar en espacio de señal apropiado."
+      ],
+      "result": "Dithering reduce correlación del error de cuantización distribuyéndolo como ruido de bajo nivel.",
+      "limits": [
+        "Aumentar amplitud más allá de Δ añade ruido visible."
+      ],
+      "dimensional_verification": [
+        "Δ y ruido η tienen misma unidad que C; q' conserva la unidad de señal.",
+        "La amplitud de dither no puede usar unidad incompatible."
+      ]
+    },
+    {
+      "record_key": "D14:15",
+      "name": "Contorno por discontinuidad de profundidad y normal",
+      "starting_principles": [
+        "Depth linealizado o normalizado de forma consistente.",
+        "Normales unitarias; λ adapta unidades de depth a término angular."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E_z=|z(p)−z(p+δ)|/g_ref",
+          "justification": "La diferencia de profundidad tiene metros; dividir por un gradiente de referencia g_ref [m/px] normaliza la respuesta al desplazamiento de vecino en espacio raster."
+        },
+        {
+          "step": 2,
+          "equation": "E_n=1−n(p)·n(p+δ)",
+          "justification": "El producto escalar de normales unitarias es adimensional y mide discontinuidad angular."
+        },
+        {
+          "step": 3,
+          "equation": "E=E_z+λE_n",
+          "justification": "Ambos términos son adimensionales; λ regula el peso relativo de discontinuidad normal."
+        },
+        {
+          "step": 4,
+          "equation": "outline=smoothstep(τ_0,τ_1,E)",
+          "justification": "Los umbrales adimensionales convierten la respuesta en una máscara suave."
+        },
+        {
+          "step": 5,
+          "equation": "C_out=lerp(C,ink,outline)",
+          "justification": "Componer tinta usando la máscara como peso adimensional."
+        }
+      ],
+      "assumptions": [
+        "Profundidad lineal en el mismo marco de cámara y normales unitarias en el mismo espacio.",
+        "g_ref>0 se calibra según escala de escena, cámara y resolución."
+      ],
+      "result": "El contorno combina un salto de profundidad normalizado con una discontinuidad de orientación; la normalización permite sumar ambos términos.",
+      "limits": [
+        "Umbral fijo puede marcar bordes internos/ruido; usar escala y antialiasing."
+      ],
+      "dimensional_verification": [
+        "z tiene m y δ un paso raster; g_ref tiene m/px, por lo que E_z es adimensional.",
+        "E_n, λ, E y τ son adimensionales; outline es una máscara."
+      ]
+    },
+    {
+      "record_key": "D14:16",
+      "name": "Halftone / Ben-Day procedural",
+      "starting_principles": [
+        "Frecuencia y ángulo declarados; luminancia en espacio coherente.",
+        "Patrón se evalúa en pantalla o UV según objetivo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_screen=(x,y) px; q=R(−θ)·p_screen·f",
+          "justification": "Rotar coordenadas raster y multiplicar por frecuencia espacial f [px⁻¹] para obtener fase de patrón adimensional."
+        },
+        {
+          "step": 2,
+          "equation": "m(q)=0.5+0.5 sin(πq_x)sin(πq_y)",
+          "justification": "Construir una celda periódica de puntos acotada entre cero y uno."
+        },
+        {
+          "step": 3,
+          "equation": "ink=step(m(q),luma(C))",
+          "justification": "Comparar patrón con luminancia normalizada para modular cobertura de tinta."
+        },
+        {
+          "step": 4,
+          "equation": "C_out=lerp(paper,inkColor,coverage)",
+          "justification": "Componer papel y tinta en el mismo espacio de color lineal."
+        }
+      ],
+      "assumptions": [
+        "Frecuencia y ángulo declarados; luminancia en espacio coherente.",
+        "Patrón se evalúa en pantalla o UV según objetivo.",
+        "Antialiasing usa derivadas de pantalla."
+      ],
+      "result": "La trama Ben-Day resulta de una máscara periódica modulada por luminancia.",
+      "limits": [
+        "Frecuencia alta sin filtrado produce moiré y aliasing."
+      ],
+      "dimensional_verification": [
+        "p_screen tiene px; f tiene px⁻¹; q y los argumentos de seno son adimensionales.",
+        "m, luminancia y coverage son adimensionales; color conserva el tipo RGB declarado."
+      ]
+    },
+    {
+      "record_key": "D14:17",
+      "name": "Hachurado orientado por campo vectorial",
+      "starting_principles": [
+        "dir unitario; spacing>0; width dentro del periodo.",
+        "Campo vectorial y p comparten marco."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "phase=fract(dot(p,dir)/spacing)",
+          "justification": "Proyectar posición sobre dirección de línea y repetir periódicamente."
+        },
+        {
+          "step": 2,
+          "equation": "d_line=|phase−0.5|",
+          "justification": "Medir distancia a la fase central del trazo."
+        },
+        {
+          "step": 3,
+          "equation": "line=1−smoothstep(width,width+aa,d_line)",
+          "justification": "Crear banda antialias con ancho y cobertura controlados."
+        },
+        {
+          "step": 4,
+          "equation": "density=F(luma,curvature)",
+          "justification": "Modular cantidad de familias de líneas según sombreado."
+        },
+        {
+          "step": 5,
+          "equation": "C_out=compose(C,line,ink)",
+          "justification": "Componer hachurado."
+        }
+      ],
+      "assumptions": [
+        "dir unitario; spacing>0; width dentro del periodo.",
+        "Campo vectorial y p comparten marco.",
+        "aa derivado de fwidth/derivadas de pantalla."
+      ],
+      "result": "El hachurado se obtiene de una fase periódica a lo largo de un campo de orientación.",
+      "limits": [
+        "En UV deformadas puede estirarse; usar espacio de pantalla o triplanar según necesidad."
+      ],
+      "dimensional_verification": [
+        "p y spacing comparten unidad; phase=fract(dot(p,dir)/spacing) es adimensional.",
+        "width y aa son anchuras adimensionales de fase; line y density son máscaras adimensionales."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "18/18 técnicas D14 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "La animación por uniform distingue desplazamiento L de velocidad L/T",
+      "La reconstrucción de profundidad distingue depth buffer normalizado de profundidad lineal",
+      "El contorno compensa la unidad de discontinuidad de profundidad y cambio de normal",
+      "MRT, ping-pong, compute, temporal accumulation y dithering mantienen tipado por canal",
+      "D14:12 deriva escala adaptativa por raíz del cociente de tiempos y documenta la discrepancia del catálogo",
+      "D14:15 normaliza el salto de profundidad por g_ref antes de combinarlo con discontinuidad de normal",
+      "D14:16 formula halftone en píxeles con frecuencia px⁻¹; D14:17 usa anchuras de fase adimensionales"
+    ],
+    "limitations": [
+      "La auditoría no certifica rendimiento de GPU, compatibilidad de backend ni exactitud visual; esos aspectos requieren pruebas posteriores en cada renderer/dispositivo."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

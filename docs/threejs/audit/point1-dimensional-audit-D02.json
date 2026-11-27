@@ -1,0 +1,963 @@
+{
+  "title": "Auditoría dimensional punto 1 — D02 Modelado procedural y geometría",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D02",
+    "domain": "Modelado procedural y geometría",
+    "record_count": 11,
+    "excluded_protected_records": 5,
+    "excluded_reason": "Las claves protegidas se conservan sin reauditoría, según el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Unidad de longitud global de la escena; usar metros si se declara SI. Three.js no impone unidad física.",
+    "angles": "Radianes; dimensionalmente adimensionales.",
+    "dimension_note": "Los tipos geométricos afines y campos tipados no deben colapsarse a una dimensión escalar si sus bloques tienen tipos distintos.",
+    "status_note": "La revisión documenta dominios y restricciones de la formulación. No certifica exactitud global de las ecuaciones ni sustituye derivación, algoritmos o pruebas del punto 2 en adelante."
+  },
+  "records": [
+    {
+      "record_key": "D02:0",
+      "name": "Primitivas geométricas",
+      "variables": [
+        {
+          "symbol": "u,v",
+          "meaning": "parámetros de superficie",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; intervalos compactos o periódicos declarados"
+        },
+        {
+          "symbol": "P",
+          "meaning": "posición evaluada",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "R³; finita"
+        },
+        {
+          "symbol": "∂P/∂u, ∂P/∂v",
+          "meaning": "tangentes",
+          "unit": "scene_length por unidad paramétrica",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "derivadas existentes; no colineales para normal regular"
+        }
+      ],
+      "constraints": [
+        "P debe ser continua por parche y su normal requiere derivadas independientes.",
+        "No mezclar unidades de longitud ni escalar parámetros dimensionales sin declararlo."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "Puntos, radios y dimensiones de primitivas usan L; parámetros angulares son adimensionales en radianes.",
+        "Los índices y conteos de segmentos son discretos y no se suman a longitudes.",
+        "El escalado de la primitiva transforma longitudes por un factor adimensional; el resultado conserva coordenadas L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:1",
+      "name": "BufferGeometry manual",
+      "variables": [
+        {
+          "symbol": "V",
+          "meaning": "array de posiciones de vértice",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "N×3; N entero ≥0; valores finitos"
+        },
+        {
+          "symbol": "I",
+          "meaning": "índices triangulares",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "enteros en [0,N−1]; longitud múltiplo de 3 para triángulos"
+        },
+        {
+          "symbol": "n_v",
+          "meaning": "normales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vectores finitos no nulos o recalculables"
+        },
+        {
+          "symbol": "uv",
+          "meaning": "coordenadas UV",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas; convención y rango documentados"
+        }
+      ],
+      "constraints": [
+        "Los índices deben apuntar a vértices existentes; winding coherente para caras y normales.",
+        "Buffers deben tener atributos compatibles en longitud y tipo."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "Posiciones de atributo tienen L; normales/direcciones son adimensionales; UV son adimensionales.",
+        "Índices de vértice son enteros y deben estar dentro del rango de posiciones.",
+        "Los índices de BufferGeometry son discretos; las posiciones tienen L y atributos como normales/UV conservan tipos distintos."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:2",
+      "name": "Superficie paramétrica",
+      "variables": [
+        {
+          "symbol": "u,v",
+          "meaning": "parámetros independientes",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dominio declarado; periodicidad explícita"
+        },
+        {
+          "symbol": "x,y,z",
+          "meaning": "componentes de P",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "funciones finitas y diferenciables donde se requiera normal"
+        },
+        {
+          "symbol": "P_u,P_v",
+          "meaning": "derivadas parciales",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "producto vectorial no nulo en parches regulares"
+        }
+      ],
+      "constraints": [
+        "La parametrización debe evitar singularidades salvo polos declarados.",
+        "La normal se obtiene de P_u×P_v y se normaliza solo si su magnitud supera tolerancia."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "u,v son adimensionales; P(u,v) tiene L en cada componente.",
+        "Derivadas ∂P/∂u y ∂P/∂v tienen L si u,v son normalizados.",
+        "P(u,v) debe devolver tres coordenadas con la misma unidad de longitud; el dominio paramétrico u,v es adimensional si se normaliza."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:3",
+      "name": "Superficie de revolución",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "parámetro de perfil",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "intervalo cerrado"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "ángulo de revolución",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,2π] periódico"
+        },
+        {
+          "symbol": "r(u),y(u)",
+          "meaning": "radio y altura",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r≥0; funciones finitas"
+        },
+        {
+          "symbol": "P",
+          "meaning": "punto generado",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "coordenadas finitas; seam periódico"
+        }
+      ],
+      "constraints": [
+        "El ángulo se expresa en radianes internamente; el perfil debe cerrar en eje sin radio negativo.",
+        "En el seam θ=0 y 2π las posiciones y atributos deben coincidir."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "r(u) y y(u) tienen L; θ es adimensional angular; P conserva L.",
+        "El producto r·sinθ y r·cosθ tiene L.",
+        "r(u) y y(u) tienen L; θ es angular adimensional y las funciones seno/coseno no alteran la unidad de posición."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:4",
+      "name": "Extrusión",
+      "variables": [
+        {
+          "symbol": "s",
+          "meaning": "parámetro de extrusión",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] si d representa desplazamiento total"
+        },
+        {
+          "symbol": "u",
+          "meaning": "parámetro de contorno",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "curva cerrada o extremos explícitos"
+        },
+        {
+          "symbol": "C(u)",
+          "meaning": "punto del perfil",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "curva finita"
+        },
+        {
+          "symbol": "d",
+          "meaning": "vector de desplazamiento total",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito; puede ser cero solo si extrusión degenerada permitida"
+        },
+        {
+          "symbol": "P",
+          "meaning": "punto extruido",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "C+s·d"
+        }
+      ],
+      "constraints": [
+        "d es desplazamiento total si s∈[0,1]; si d es dirección, debe añadirse una longitud independiente.",
+        "Perfil y tapas deben tener orientación y winding consistentes."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "C(u), s y d deben tener tipos coherentes: si s es longitud, d es dirección unitaria y s·d tiene L.",
+        "El parámetro de curva u es adimensional; C(u) conserva L.",
+        "C(u) y s·d deben compartir L; si d es unitario, s tiene L y la extrusión conserva dimensión espacial."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:5",
+      "name": "Sweep por curva",
+      "variables": [
+        {
+          "symbol": "s,θ",
+          "meaning": "parámetros de barrido",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "s en intervalo de curva; θ periódico"
+        },
+        {
+          "symbol": "C(s)",
+          "meaning": "curva central",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "regular: |C′|>0"
+        },
+        {
+          "symbol": "r(s)",
+          "meaning": "radio",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r≥0; continuo"
+        },
+        {
+          "symbol": "N,B",
+          "meaning": "marco normal/binormal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ortonormal y perpendiculares a T"
+        },
+        {
+          "symbol": "P",
+          "meaning": "punto barrido",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito; evitar discontinuidades de marco"
+        }
+      ],
+      "constraints": [
+        "C′ no puede anularse; radio y marco deben ser continuos.",
+        "En curvatura casi nula, el marco debe transportarse evitando torsión arbitraria."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "C(s) y r(s) tienen L; el marco N/B es adimensional; el producto r·N conserva L.",
+        "Si s es arco, tiene L; la parametrización normalizada debe declararse para derivadas.",
+        "C(s) y r(s) tienen L; N y B son direcciones unitarias y rN/rB conservan L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:6",
+      "name": "Sweep con marco paralelo",
+      "variables": [
+        {
+          "symbol": "C′",
+          "meaning": "derivada de curva respecto a s",
+          "unit": "scene_length por unidad paramétrica",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no nula"
+        },
+        {
+          "symbol": "T,N,B",
+          "meaning": "marco ortonormal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "|T|=|N|=|B|=1; producto cruzado coherente"
+        },
+        {
+          "symbol": "Δs",
+          "meaning": "paso de transporte",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo; resolución suficiente para curvatura"
+        },
+        {
+          "symbol": "C(s)",
+          "meaning": "posición central",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "curva regular y muestreada ordenadamente"
+        }
+      ],
+      "constraints": [
+        "El transporte paralelo debe minimizar torsión y tratar tangentes opuestas como caso singular explícito.",
+        "Reinicializar marco en discontinuidades de curva."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "T,N,B son vectores unitarios adimensionales; C(s) tiene L.",
+        "La derivada respecto a longitud de arco tiene dimensión L⁻¹.",
+        "T,N,B son adimensionales y ortonormales; las derivadas se escalan de acuerdo con el parámetro de curva declarado."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:7",
+      "name": "Subdivision surfaces",
+      "variables": [
+        {
+          "symbol": "P_i",
+          "meaning": "posiciones de control",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas; topología manifold según variante"
+        },
+        {
+          "symbol": "w_ij",
+          "meaning": "pesos de subdivisión",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; regla Catmull–Clark específica; suma coherente con stencil"
+        },
+        {
+          "symbol": "P′_i",
+          "meaning": "vértices refinados",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "combinación afín de puntos; conservar continuidad definida por esquema"
+        },
+        {
+          "symbol": "n",
+          "meaning": "nivel de subdivisión",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0; limitar crecimiento de caras"
+        }
+      ],
+      "constraints": [
+        "Declarar variante y regla exacta de borde; no asumir Catmull–Clark en mallas no manifold.",
+        "Controlar explosión de polígonos aproximadamente por factor 4 por nivel en caras triangulares."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "Vértices nuevos son combinaciones afines de vértices con pesos adimensionales; conservan L.",
+        "El número de iteraciones y valence son conteos discretos.",
+        "Las reglas de subdivisión combinan coordenadas L mediante pesos adimensionales; los índices de caras son discretos."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:13",
+      "name": "Fractales geométricos",
+      "variables": [
+        {
+          "symbol": "P0",
+          "meaning": "punto inicial",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "transformaciones iteradas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "matrices afines finitas; contracción si se busca atractor estable"
+        },
+        {
+          "symbol": "n",
+          "meaning": "índice de iteración",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero finito ≥0"
+        },
+        {
+          "symbol": "P_n",
+          "meaning": "punto iterado",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "P_n=A_n∘…∘A_1(P0); controlar crecimiento"
+        }
+      ],
+      "constraints": [
+        "Cada A_i debe actuar en el mismo espacio afín y preservar unidades.",
+        "Para fractal acotado exigir contracciones o limitar iteraciones y magnitud."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "Transformaciones fractales tienen escala adimensional; traslaciones geométricas tienen L.",
+        "Cada iteración debe preservar tipo espacial y acotar crecimiento/overflow.",
+        "Las transformaciones fractales deben declarar escala adimensional y traslación L; cada iteración conserva el tipo geométrico."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:14",
+      "name": "Marching Cubes",
+      "variables": [
+        {
+          "symbol": "f_A,f_B,iso",
+          "meaning": "valores del campo e isovalor",
+          "unit": "field_unit",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "misma unidad escalar; finitos"
+        },
+        {
+          "symbol": "t",
+          "meaning": "fracción de interpolación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] si iso está entre fA y fB; fA≠fB"
+        },
+        {
+          "symbol": "p_A,p_B",
+          "meaning": "posiciones de extremos",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas; arista de celda"
+        },
+        {
+          "symbol": "Δx",
+          "meaning": "paso de rejilla",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo; topología consistente entre celdas"
+        }
+      ],
+      "constraints": [
+        "Campo, isovalor y valores de extremos deben compartir unidad; t es adimensional.",
+        "Si fA=fB no dividir: resolver vértice exacto/omitir arista según política consistente."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "Valores escalares y isolevel comparten unidad de campo; t de interpolación es adimensional.",
+        "Vértices interpolados conservan L; el denominador v_b−v_a no puede ser cero sin regla de caso.",
+        "El parámetro de interpolación t es adimensional; los vértices emitidos conservan L y el isovalor conserva unidad del campo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D02:15",
+      "name": "Stop-motion procedural con microjitter determinista",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "tiempo de animación",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0; reloj monotónico"
+        },
+        {
+          "symbol": "f_s",
+          "meaning": "frecuencia de muestreo de pose",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "8–18 Hz en receta; >0"
+        },
+        {
+          "symbol": "A_p",
+          "meaning": "amplitud de jitter posicional",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0–0.005·escala_personaje"
+        },
+        {
+          "symbol": "A_θ",
+          "meaning": "amplitud angular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0–1.5°; finita"
+        },
+        {
+          "symbol": "k,seed",
+          "meaning": "índice discreto y semilla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k entero; semilla determinista"
+        }
+      ],
+      "constraints": [
+        "Jitter se deriva de hash determinista y no debe depender del orden de render.",
+        "Frecuencia y amplitudes se limitan; interpolación temporal opcional debe conservar semilla y continuidad definida."
+      ],
+      "valid_domain": [
+        "Dominio de parámetros y coordenadas finito, declarado y coherente con la formulación de la ficha."
+      ],
+      "boundary_conditions": [
+        "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "t y fps tienen T y T⁻¹; t·fps es adimensional; t_q conserva T.",
+        "El jitter posicional tiene L y el angular radianes; no sumar ambas magnitudes.",
+        "t·fps es adimensional; jitter de posición tiene L y jitter angular se expresa en radianes."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "11/16 registros no protegidos incluidos; 5 claves protegidas excluidas",
+      "Todos los registros incluidos contienen variables, restricciones, dominio, condiciones límite y al menos dos comprobaciones dimensionales",
+      "Cada comprobación distingue unidades geométricas, parámetros, índices y tiempo según la técnica",
+      "Se añadió una segunda comprobación dimensional específica a cada registro D02 para completar la matriz de validación."
+    ],
+    "limitations": [
+      "Las cinco técnicas protegidas no se reauditan. Derivaciones completas y pruebas numéricas pertenecen a puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

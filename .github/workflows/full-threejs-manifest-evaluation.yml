@@ -1,0 +1,237 @@
+name: Full Three.js Manifest Evaluation — 541 Techniques
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 14 * * *"
+  push:
+    paths:
+      - "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json"
+      - "docs/threejs/audit/r31-technical-specifications.json"
+      - "docs/threejs/audit/r31-symbol-dimension-audit.json"
+      - "docs/threejs/audit/crimson-loong-preserved-record-map.json"
+      - "docs/threejs/audit/point4-executable-validation-D35-D36.json"
+      - "docs/threejs/audit/external-implementation-research-D35-D36.json"
+      - "tools/threejs_full_manifest_evaluation.py"
+      - "tools/threejs_manifest_audit.py"
+      - "tests/threejs/**"
+      - "src/threejs/**"
+      - "examples/threejs/**"
+      - ".github/workflows/full-threejs-manifest-evaluation.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: full-threejs-manifest-evaluation-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  inventory:
+    name: Build complete domain matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      domains: ${{ steps.matrix.outputs.domains }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - id: matrix
+        name: Read all manifest domains
+        shell: bash
+        run: |
+          DOMAINS=$(python tools/threejs_full_manifest_evaluation.py --list-domains)
+          echo "domains=$DOMAINS" >> "$GITHUB_OUTPUT"
+          echo "Parallel domain workers: $(python -c 'import json,sys; print(len(json.loads(sys.argv[1])))' "$DOMAINS")"
+          echo "Domain matrix: $DOMAINS"
+
+  evaluate-domain:
+    name: Evaluate ${{ matrix.domain }}
+    needs: inventory
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        domain: ${{ fromJson(needs.inventory.outputs.domains) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Evaluate every technique in this domain
+        run: |
+          python tools/threejs_full_manifest_evaluation.py \
+            --domain "${{ matrix.domain }}" \
+            --output "domain-${{ matrix.domain }}.json"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: domain-${{ matrix.domain }}
+          path: domain-${{ matrix.domain }}.json
+          if-no-files-found: error
+          retention-days: 30
+
+  global-validation:
+    name: Run global math, implementation and Three.js tests
+    needs: inventory
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install pinned Three.js runtime
+        run: npm install --no-save --no-audit --no-fund three@0.180.0
+      - name: Execute all current global validations and preserve every exit code
+        shell: bash
+        run: |
+          set +e
+          python -m json.tool docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json > /dev/null
+          JSON_EXIT=$?
+          python -m unittest discover -s tests/threejs -p "test_*.py" -v > python-tests.log 2>&1
+          PY_EXIT=$?
+          node --test \
+            tests/threejs/r31_kernels.test.mjs \
+            tests/threejs/r31_completion_kernels.test.mjs \
+            examples/threejs/r31-validation-scenes.test.mjs \
+            examples/threejs/r31-core-scenes.test.mjs \
+            tests/threejs/r31-production-algorithms.test.mjs \
+            tests/threejs/d35-d36-point4.test.mjs \
+            tests/threejs/d36-real-implementations.test.mjs \
+            tests/threejs/d35-real-fft.test.mjs \
+            tests/threejs/d35-control-implementations.test.mjs \
+            tests/threejs/d35-scalar-methods.test.mjs \
+            tests/threejs/d35-optimization-roots.test.mjs \
+            tests/threejs/d35-kalman.test.mjs \
+            tests/threejs/d01-spatial-grid.test.mjs \
+            tests/threejs/d01-demand-render-scheduler.test.mjs \
+            tests/threejs/d01-core-techniques.test.mjs \
+            tests/threejs/d02-procedural-geometry.test.mjs \
+            tests/threejs/d03-character-geometry.test.mjs \
+            tests/threejs/d04-motion-simulation.test.mjs \
+            tests/threejs/d05-vegetation-ecology.test.mjs \
+            tests/threejs/d06-terrain-erosion.test.mjs \
+            tests/threejs/d07-architecture.test.mjs > javascript-tests.log 2>&1
+          JS_EXIT=$?
+          python tools/threejs_manifest_audit.py \
+            --manifest docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json \
+            --report threejs-manifest-audit.json > structural-audit.log 2>&1
+          STRUCT_EXIT=$?
+          python tests/threejs/implementation_readiness_gate.py \
+            --manifest docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json \
+            --r31 docs/threejs/audit/r31-technical-specifications.json \
+            --preservation docs/threejs/audit/crimson-loong-preserved-record-map.json \
+            --dimensions docs/threejs/audit/r31-symbol-dimension-audit.json \
+            --report threejs-readiness-report.json > readiness-gate.log 2>&1
+          READY_EXIT=$?
+          export JSON_EXIT PY_EXIT JS_EXIT STRUCT_EXIT READY_EXIT
+          python - <<'PY'
+          import json,os
+          codes={"json":int(os.environ["JSON_EXIT"]),"python_tests":int(os.environ["PY_EXIT"]),
+                 "javascript_tests":int(os.environ["JS_EXIT"]),"structural_audit":int(os.environ["STRUCT_EXIT"]),
+                 "readiness_gate":int(os.environ["READY_EXIT"])}
+          result={"status":"PASS" if all(v==0 for v in codes.values()) else "FAIL",
+                  "exit_codes":codes}
+          open("global-test-status.json","w").write(json.dumps(result,indent=2)+"\n")
+          print(json.dumps(result,indent=2))
+          PY
+          cat python-tests.log
+          cat javascript-tests.log
+          cat structural-audit.log
+          cat readiness-gate.log
+      - name: Upload global test evidence even when tests fail
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: global-validation
+          path: |
+            global-test-status.json
+            python-tests.log
+            javascript-tests.log
+            structural-audit.log
+            readiness-gate.log
+            threejs-manifest-audit.json
+            threejs-readiness-report.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  consolidate:
+    name: Consolidate all 541 technique records
+    if: always()
+    needs: [inventory, evaluate-domain, global-validation]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Download all domain reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: domain-*
+          path: domain-results
+          merge-multiple: true
+      - name: Download global validation result
+        uses: actions/download-artifact@v4
+        with:
+          name: global-validation
+          path: global-results
+      - name: Build consolidated report and pending-work queue
+        id: consolidate
+        shell: bash
+        run: |
+          python tools/threejs_full_manifest_evaluation.py \
+            --merge domain-results/domain-*.json \
+            --global-test-status global-results/global-test-status.json \
+            --report full-manifest-evaluation.json
+          mkdir -p docs/threejs/audit
+          cp full-manifest-evaluation.json docs/threejs/audit/full-manifest-evaluation-latest.json
+          cp full-manifest-evaluation.md docs/threejs/audit/full-manifest-evaluation-latest.md
+      - name: Publish durable report to the current branch
+        if: github.event_name != 'pull_request'
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/threejs/audit/full-manifest-evaluation-latest.json docs/threejs/audit/full-manifest-evaluation-latest.md
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish full Three.js manifest evaluation"
+            git push origin "HEAD:${GITHUB_REF_NAME}"
+          fi
+      - name: Upload consolidated evaluation
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: full-threejs-manifest-evaluation
+          path: |
+            full-manifest-evaluation.json
+            full-manifest-evaluation.md
+            domain-results/domain-*.json
+            global-results/*
+          if-no-files-found: warn
+          retention-days: 90
+      - name: Fail workflow if any global validation failed or any domain result is missing
+        if: always()
+        shell: bash
+        run: |
+          python - <<'PY'
+          import json,glob,sys
+          report=json.load(open("full-manifest-evaluation.json"))
+          status=report["execution"]["global_test_status"]["status"]
+          if report["inventory"]["missing_records"] or report["inventory"]["duplicate_record_keys"] or status!="PASS":
+              print("Evaluation evidence incomplete or validation failure:",json.dumps(report["inventory"],indent=2))
+              sys.exit(1)
+          print("All manifest records inventoried; global tests passed. Certification remains per-technique and fail-closed.")
+          PY

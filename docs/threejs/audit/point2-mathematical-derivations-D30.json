@@ -1,0 +1,430 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D30 Señales, audio espacial y acústica",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D30",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D30 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D30:0",
+      "name": "Wave equation",
+      "starting_principles": [
+        "Small perturbations around equilibrium; homogeneous medium; sound speed c constant."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ρ_0∂u/∂t=−∇p",
+          "justification": "Linearized momentum equation for small acoustic perturbations."
+        },
+        {
+          "step": 2,
+          "equation": "∂ρ'/∂t+ρ_0∇·u=0",
+          "justification": "Linearized mass conservation."
+        },
+        {
+          "step": 3,
+          "equation": "p'=c²ρ'",
+          "justification": "Adiabatic equation of state for pressure-density perturbation."
+        },
+        {
+          "step": 4,
+          "equation": "∇²p−(1/c²)∂²p/∂t²=0",
+          "justification": "Combine momentum, continuity and state relation to obtain scalar wave equation."
+        }
+      ],
+      "assumptions": [
+        "Small perturbations around equilibrium; homogeneous medium; sound speed c constant."
+      ],
+      "result": "The acoustic wave equation derives from linearized momentum, continuity and compressibility.",
+      "limits": [
+        "Linear acoustics omits nonlinear high-amplitude effects and boundaries."
+      ],
+      "dimensional_verification": [
+        "p tiene Pa; ρ0 kg/m³; u m/s; c m/s.",
+        "∇²p y (1/c²)∂²p/∂t² tienen Pa/m²."
+      ]
+    },
+    {
+      "record_key": "D30:1",
+      "name": "Inverse square attenuation",
+      "starting_principles": [
+        "Point source isotropic; free field; no absorption/reflections."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Power P crosses sphere area A(r)=4πr²",
+          "justification": "For isotropic point source, energy spreads over spherical area."
+        },
+        {
+          "step": 2,
+          "equation": "I(r)=P/A(r)",
+          "justification": "Intensity is power per unit area."
+        },
+        {
+          "step": 3,
+          "equation": "I(r)=P/(4πr²)",
+          "justification": "Substitute sphere area to obtain inverse-square law."
+        }
+      ],
+      "assumptions": [
+        "Point source isotropic; free field; no absorption/reflections."
+      ],
+      "result": "Inverse-square attenuation derives from conservation of power over a sphere.",
+      "limits": [
+        "Reflections, absorption and directivity alter the law."
+      ],
+      "dimensional_verification": [
+        "P tiene W; r² m²; I tiene W/m².",
+        "4π es adimensional; la ley supone fuente puntual isotrópica."
+      ]
+    },
+    {
+      "record_key": "D30:2",
+      "name": "Doppler effect",
+      "starting_principles": [
+        "Uniform medium; source/receiver velocities along line of propagation; sign convention fixed."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "wavefront speed relative medium=c",
+          "justification": "Define sound speed in stationary medium."
+        },
+        {
+          "step": 2,
+          "equation": "T'=T(c−v_source)/(c+v_listener)",
+          "justification": "Compute observed period from relative wavefront spacing and receiver motion, with sign convention specified."
+        },
+        {
+          "step": 3,
+          "equation": "f'=1/T'=f(c+v_listener)/(c−v_source)",
+          "justification": "Invert period to frequency."
+        },
+        {
+          "step": 4,
+          "equation": "v_source<c",
+          "justification": "Require denominator positive for this convention."
+        }
+      ],
+      "assumptions": [
+        "Uniform medium; source/receiver velocities along line of propagation; sign convention fixed."
+      ],
+      "result": "Doppler shift derives from change in observed wavefront period due to relative motion.",
+      "limits": [
+        "Formula changes sign according to source/receiver direction; velocities are subsonic in this model."
+      ],
+      "dimensional_verification": [
+        "f y f' tienen Hz=T⁻¹; c,v_listener,v_source tienen L/T.",
+        "Los cocientes de velocidades son adimensionales; periodo T tiene s."
+      ]
+    },
+    {
+      "record_key": "D30:3",
+      "name": "Room impulse response",
+      "starting_principles": [
+        "Room approximated linear time-invariant over measurement; same position/orientation."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h_room(t)=impulse response",
+          "justification": "Define room response to unit impulse."
+        },
+        {
+          "step": 2,
+          "equation": "y(t)=∫x(τ)h_room(t−τ)dτ",
+          "justification": "For a linear time-invariant room, output is convolution."
+        },
+        {
+          "step": 3,
+          "equation": "Y(ω)=X(ω)H_room(ω)",
+          "justification": "Use Fourier transform property."
+        },
+        {
+          "step": 4,
+          "equation": "measure h with impulse/sweep",
+          "justification": "Estimate response from a known excitation and deconvolution."
+        }
+      ],
+      "assumptions": [
+        "Room approximated linear time-invariant over measurement; same position/orientation.",
+        "Para convolución continua, h_room tiene unidad inversa de tiempo cuando la transferencia global es adimensional; en tiempo discreto los coeficientes se normalizan según convención."
+      ],
+      "result": "Room response is convolution because a linear time-invariant acoustic space superposes delayed responses.",
+      "limits": [
+        "Room changes over time or moving sources require time-varying convolution."
+      ],
+      "dimensional_verification": [
+        "x,y tienen unidad de señal; h_room(t) tiene T⁻¹ para convolución continua con ganancia adimensional.",
+        "En frecuencia, H_room es adimensional si salida/entrada comparten unidad; y conserva unidad de x."
+      ]
+    },
+    {
+      "record_key": "D30:4",
+      "name": "Schroeder reverb time",
+      "starting_principles": [
+        "Diffuse late field; volume and equivalent absorption area in SI."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E(t)≈E_0e^(−t/τ_E)",
+          "justification": "Approximate late reverberant energy decay exponentially."
+        },
+        {
+          "step": 2,
+          "equation": "RT60: E(RT60)/E_0=10^(−6)",
+          "justification": "Define decay by 60 dB in energy level."
+        },
+        {
+          "step": 3,
+          "equation": "RT60=τ_E ln(10^6)",
+          "justification": "Solve exponential decay condition."
+        },
+        {
+          "step": 4,
+          "equation": "Sabine: RT60≈0.161V/A",
+          "justification": "Relate decay time to room volume V and equivalent absorption area A in SI units."
+        }
+      ],
+      "assumptions": [
+        "Diffuse late field; volume and equivalent absorption area in SI.",
+        "La constante 0.161 se expresa en s/m para V en m³ y A en m²."
+      ],
+      "result": "Schroeder/Sabine reverberation estimates derive from exponential energy decay and equivalent absorption.",
+      "limits": [
+        "Sabine is approximate and assumes sufficiently diffuse field; Eyring may be better at high absorption."
+      ],
+      "dimensional_verification": [
+        "V tiene m³; A absorción equivalente m²; V/A tiene m.",
+        "Constante Sabine 0.161 tiene s/m; RT60 queda en segundos."
+      ]
+    },
+    {
+      "record_key": "D30:5",
+      "name": "Binaural HRTF",
+      "starting_principles": [
+        "HRTF calibrated for listener/head; direction and sample rate known."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h_L(θ,t),h_R(θ,t)",
+          "justification": "Define direction-dependent left/right head-related impulse responses."
+        },
+        {
+          "step": 2,
+          "equation": "y_L=x*h_L; y_R=x*h_R",
+          "justification": "Filter source independently for each ear."
+        },
+        {
+          "step": 3,
+          "equation": "ITD=τ_L−τ_R; ILD=20log10(|Y_L|/|Y_R|)",
+          "justification": "Derive interaural time and level differences from filtered outputs."
+        },
+        {
+          "step": 4,
+          "equation": "interpolate HRTF over direction",
+          "justification": "Select or interpolate filter based on source direction."
+        }
+      ],
+      "assumptions": [
+        "HRTF calibrated for listener/head; direction and sample rate known.",
+        "ITD se mide en segundos; ILD se calcula con cociente de magnitudes adimensional antes del logaritmo."
+      ],
+      "result": "HRTF spatialization derives from filtering each ear with direction-dependent transfer functions.",
+      "limits": [
+        "HRTF varies by listener; generic HRTF may not localize accurately."
+      ],
+      "dimensional_verification": [
+        "ITD=τ_L−τ_R tiene s; ILD es dB de razón adimensional.",
+        "HRTF es transferencia presión/salida sobre entrada; convolución conserva la unidad de la señal."
+      ]
+    },
+    {
+      "record_key": "D30:6",
+      "name": "Ambisonics encoding",
+      "starting_principles": [
+        "Finite SH order; basis normalization and channel ordering fixed."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Y_lm(ω) orthonormal over sphere",
+          "justification": "Choose spherical harmonic basis."
+        },
+        {
+          "step": 2,
+          "equation": "a_lm=∫S(ω)Y_lm*(ω)dω",
+          "justification": "Project sound field onto basis."
+        },
+        {
+          "step": 3,
+          "equation": "S(ω)≈Σ_lm a_lmY_lm(ω)",
+          "justification": "Reconstruct directional field from finite coefficients."
+        },
+        {
+          "step": 4,
+          "equation": "rotate coefficients with Wigner-D or rotate sampling frame",
+          "justification": "Transform soundfield orientation."
+        }
+      ],
+      "assumptions": [
+        "Finite SH order; basis normalization and channel ordering fixed."
+      ],
+      "result": "Ambisonics encodes a soundfield as coefficients in a spherical harmonic basis.",
+      "limits": [
+        "Low SH order cannot represent sharp directional features."
+      ],
+      "dimensional_verification": [
+        "Y_lm y medida angular son adimensionales en SI; a_lm conserva unidad de S.",
+        "La suma SH reconstruye el mismo tipo/unidad de campo sonoro S."
+      ]
+    },
+    {
+      "record_key": "D30:7",
+      "name": "Equal-power crossfade",
+      "starting_principles": [
+        "u∈[0,1]; signals synchronized; power convention assumes uncorrelated/ideal channels."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "g_A=cos(πu/2); g_B=sin(πu/2)",
+          "justification": "Choose quarter-circle gains for u∈[0,1]."
+        },
+        {
+          "step": 2,
+          "equation": "g_A²+g_B²=cos²+sin²=1",
+          "justification": "Prove constant sum of squared gains."
+        },
+        {
+          "step": 3,
+          "equation": "y=g_Ax_A+g_Bx_B",
+          "justification": "Mix both signals through crossfade."
+        },
+        {
+          "step": 4,
+          "equation": "u=0→A; u=1→B",
+          "justification": "Check endpoint behavior."
+        }
+      ],
+      "assumptions": [
+        "u∈[0,1]; signals synchronized; power convention assumes uncorrelated/ideal channels."
+      ],
+      "result": "Equal-power crossfade derives from trigonometric gains whose squared sum is one.",
+      "limits": [
+        "Equal power does not guarantee constant perceived loudness for correlated signals."
+      ],
+      "dimensional_verification": [
+        "u, g_A y g_B son adimensionales; x_A,x_B,y comparten unidad de señal.",
+        "La potencia media constante requiere señales no correlacionadas o hipótesis estadísticas equivalentes."
+      ]
+    },
+    {
+      "record_key": "D30:8",
+      "name": "Low-pass filter",
+      "starting_principles": [
+        "f_s>0; cutoff below Nyquist; α in stable range."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "y[n]=αx[n]+(1−α)y[n−1]",
+          "justification": "Define first-order recursive low-pass."
+        },
+        {
+          "step": 2,
+          "equation": "H(z)=α/(1−(1−α)z⁻¹)",
+          "justification": "Take z-transform of recurrence."
+        },
+        {
+          "step": 3,
+          "equation": "α=1−exp(−2πf_c/f_s)",
+          "justification": "Choose coefficient from exponential pole matching for cutoff f_c and sample rate f_s."
+        },
+        {
+          "step": 4,
+          "equation": "0<α≤1",
+          "justification": "Ensure stable pole magnitude below one."
+        }
+      ],
+      "assumptions": [
+        "f_s>0; cutoff below Nyquist; α in stable range."
+      ],
+      "result": "A first-order low-pass derives from a one-pole recursive filter and exponential coefficient.",
+      "limits": [
+        "One-pole filter is not brick-wall; coefficient approximation depends on discretization."
+      ],
+      "dimensional_verification": [
+        "f_c y f_s tienen T⁻¹; f_c/f_s y α son adimensionales.",
+        "x[n], y[n] conservan unidad de señal."
+      ]
+    },
+    {
+      "record_key": "D30:9",
+      "name": "Envelope follower",
+      "starting_principles": [
+        "τ_attack,τ_release>0; input and envelope same amplitude scale."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a=exp(−1/(τ f_s))",
+          "justification": "Convert time constant τ to discrete smoothing coefficient."
+        },
+        {
+          "step": 2,
+          "equation": "e[n]=a e[n−1]+(1−a)|x[n]|",
+          "justification": "Apply exponential smoothing to magnitude."
+        },
+        {
+          "step": 3,
+          "equation": "τ=τ_attack if input>env else τ_release",
+          "justification": "Use faster/slower time constant for attack and release."
+        },
+        {
+          "step": 4,
+          "equation": "env[n] drives visual parameter",
+          "justification": "Map envelope to scale, emission or motion with a bounded transfer function."
+        }
+      ],
+      "assumptions": [
+        "τ_attack,τ_release>0; input and envelope same amplitude scale."
+      ],
+      "result": "Envelope follower derives from discrete exponential smoothing with separate attack/release constants.",
+      "limits": [
+        "Envelope smoothing is an amplitude follower, not a full loudness/perceptual model."
+      ],
+      "dimensional_verification": [
+        "τ_attack y τ_release tienen T; f_s T⁻¹; 1/(τ f_s) es adimensional.",
+        "a y env smoothing son adimensionales; env conserva unidad de |x|."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "10/10 técnicas D30 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Wave equation, inverse square y Doppler conservan unidades acústicas",
+      "RIR/HRTF distinguen convolución continua de discreta y tipan impulso",
+      "Sabine produce RT60 en segundos con constante SI",
+      "Ambisonics, crossfade, filtros y envelope follower mantienen escalas de señal coherentes"
+    ],
+    "limitations": [
+      "Los modelos son acústicos idealizados; respuesta real de sala, HRTF individual, absorción dependiente de frecuencia y percepción de loudness requieren calibración y pruebas."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

@@ -1,0 +1,1779 @@
+{
+  "title": "Auditoría dimensional punto 1 — D19 Atlas de estilos visuales v4",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D19",
+    "domain": "Estilos visuales y dirección de arte — 22 recetas explícitas visual_style_atlas_v4",
+    "record_count": 22,
+    "excluded_protected_records": 0,
+    "excluded_reason": "Las 22 recetas explícitas del atlas v4 no tienen exclusiones en el mapa Crimson Loong; no se confunden con las 13 etiquetas resumen de domains[D19].styles."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud de escena declarada; SI para magnitudes físicas.",
+    "angles": "Radianes; adimensionales en SI base.",
+    "pixels": "Unidad discreta de raster, no longitud física sin calibración.",
+    "color": "Separar RGB lineal relativo, radiancia calibrada y RGB codificado.",
+    "counts": "Índices, niveles, muestras y conteos son discretos."
+  },
+  "records": [
+    {
+      "record_key": "STYLE-CODE-01",
+      "name": "Realismo fotográfico",
+      "variables": [
+        {
+          "symbol": "scale",
+          "meaning": "escala geométrica",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "radiance",
+          "meaning": "radiancia relativa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "EV",
+          "meaning": "exposición",
+          "unit": "stop",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "La escala geométrica no determina por sí sola exposición ni profundidad de campo; declarar distancia focal, sensor, apertura y distancia de enfoque con unidades coherentes.",
+        "La radiancia de escena y la exposición deben transformarse antes de tone mapping; roughness pertenece al material y no es una longitud."
+      ],
+      "valid_domain": [
+        "Escena, cámara e iluminación físicamente plausibles; exposición finita y material dentro del dominio del BRDF elegido."
+      ],
+      "boundary_conditions": [
+        "Apertura→0 implica profundidad de campo idealmente nula; exposición EV=0 implica multiplicador 1; roughness mínima requiere regularización del lóbulo especular."
+      ],
+      "dimensional_checks": [
+        "EV es logarítmico adimensional; radiancia calibrada usa W·m⁻²·sr⁻¹; escala y distancias tienen L; roughness es adimensional.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-02",
+      "name": "Hiperrealismo",
+      "variables": [
+        {
+          "symbol": "microAmplitude",
+          "meaning": "microgeometría",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "wavelength",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "frequency",
+          "meaning": "frecuencia espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "La microamplitud y wavelength son longitudes; frecuencia espacial debe ser recíproca de longitud; microdetalle debe estar por debajo o dentro de la resolución de muestreo.",
+        "Evitar frecuencias sobre Nyquist de textura/pantalla; roughness y amplitud no son intercambiables."
+      ],
+      "valid_domain": [
+        "Frecuencias positivas, muestras finitas y amplitudes acotadas por escala del objeto."
+      ],
+      "boundary_conditions": [
+        "Amplitud microgeométrica cero elimina desplazamiento; frecuencia cero deja de representar detalle periódico."
+      ],
+      "dimensional_checks": [
+        "frequency·wavelength es adimensional; microAmplitude y wavelength tienen L; roughness es adimensional.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-03",
+      "name": "Animación cinematográfica estilizada",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "parámetro spline",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "P_i",
+          "meaning": "puntos de control",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "pesos de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Los pesos de spline deben sumar 1 si la curva es una combinación convexa; puntos de control comparten marco y unidad.",
+        "Tiempo debe mapearse a parámetro u mediante duración declarada; no sumar segundos a u normalizado."
+      ],
+      "valid_domain": [
+        "u∈[0,1], duración positiva, puntos y tangentes finitos."
+      ],
+      "boundary_conditions": [
+        "u=0 y u=1 corresponden a extremos; duración cero se rechaza; continuidad C0/C1 se declara según transición."
+      ],
+      "dimensional_checks": [
+        "P_i tiene L; u y pesos son adimensionales; t tiene T y el mapeo u=t/duración es adimensional.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-04",
+      "name": "Anime 2D simulado en 3D",
+      "variables": [
+        {
+          "symbol": "NdotL",
+          "meaning": "iluminación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "bands",
+          "meaning": "bandas",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥2"
+        },
+        {
+          "symbol": "outlineWidth",
+          "meaning": "contorno",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "fps",
+          "meaning": "cadencia",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "El contorno se mide en píxeles de salida o se convierte desde unidades de mundo mediante cámara; no mezclar ambas escalas.",
+        "Bandas de sombreado requieren umbrales ordenados en el dominio de N·L; pose 3D y lineart 2D deben compartir cámara/proyección."
+      ],
+      "valid_domain": [
+        "Resolución positiva, bandas enteras ≥2, normal unitaria y umbrales ordenados."
+      ],
+      "boundary_conditions": [
+        "Ancho de contorno cero elimina línea; N·L fuera del rango se satura al dominio definido; silueta de borde debe tener regla de desempate."
+      ],
+      "dimensional_checks": [
+        "N·L y umbrales son adimensionales; outlineWidth es raster px; fps tiene T⁻¹.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-05",
+      "name": "Cel shading",
+      "variables": [
+        {
+          "symbol": "NdotL",
+          "meaning": "iluminación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[-1,1]"
+        },
+        {
+          "symbol": "bands",
+          "meaning": "niveles",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥2"
+        },
+        {
+          "symbol": "thresholds",
+          "meaning": "umbrales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ordenados"
+        },
+        {
+          "symbol": "rimPower",
+          "meaning": "exponente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        }
+      ],
+      "constraints": [
+        "Los umbrales de cuantización deben ser monótonos y corresponder a la misma escala de iluminación; rimPower es exponente adimensional.",
+        "La normal y la dirección de luz deben normalizarse antes del producto escalar."
+      ],
+      "valid_domain": [
+        "Normal y luz unitarias; bands entero ≥2; rimPower positivo; thresholds ordenados."
+      ],
+      "boundary_conditions": [
+        "N·L≤0 y ≥1 deben asignarse a bandas extremas según convención; bandas=1 queda fuera del dominio declarado."
+      ],
+      "dimensional_checks": [
+        "N·L, thresholds y rimPower son adimensionales; bandas es conteo discreto.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-06",
+      "name": "Cartoon clásico",
+      "variables": [
+        {
+          "symbol": "scaleXYZ",
+          "meaning": "escala deformación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "pose",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "time",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "ease",
+          "meaning": "interpolación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Las escalas XYZ son factores sin unidad; la pose es posición con longitud; la interpolación ease es peso adimensional.",
+        "La interpolación debe operar entre poses en el mismo marco y usar el mismo tiempo de referencia."
+      ],
+      "valid_domain": [
+        "Factores de escala positivos; pesos ease en [0,1]; poses y tiempos finitos."
+      ],
+      "boundary_conditions": [
+        "ease=0 conserva pose inicial; ease=1 alcanza pose final; factor de escala 1 es identidad."
+      ],
+      "dimensional_checks": [
+        "La interpolación ponderada de posiciones conserva L; ease y escala son adimensionales; tiempo tiene T.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-07",
+      "name": "Low poly",
+      "variables": [
+        {
+          "symbol": "edgeLength",
+          "meaning": "arista",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "faceCount",
+          "meaning": "caras",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "normal",
+          "meaning": "normal de cara",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "paletteIndex",
+          "meaning": "índice paleta",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "índice válido"
+        }
+      ],
+      "constraints": [
+        "La longitud de arista y las coordenadas comparten unidad; normales se recalculan tras cambios topológicos; paleta se indexa discretamente.",
+        "No permitir caras degeneradas ni índices de paleta fuera de rango."
+      ],
+      "valid_domain": [
+        "edgeLength>0, faceCount entero positivo, normal unitaria y paletteIndex válido."
+      ],
+      "boundary_conditions": [
+        "FaceCount=0 produce malla vacía; triángulos de área cero se descartan o reparan explícitamente."
+      ],
+      "dimensional_checks": [
+        "edgeLength tiene L; normal y color normalizado son adimensionales; conteos e índices son discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-08",
+      "name": "High poly",
+      "variables": [
+        {
+          "symbol": "subdivisionLevel",
+          "meaning": "nivel subdivisión",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "vertexCount",
+          "meaning": "vértices",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "displacement",
+          "meaning": "desplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "curvature",
+          "meaning": "curvatura",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "El nivel de subdivisión incrementa topología; declarar esquema y reglas de borde; desplazamiento se aplica en unidad de escena.",
+        "Curvatura debe calcularse en geometría con unidades métricas y no confundirse con roughness de material."
+      ],
+      "valid_domain": [
+        "Nivel entero ≥0, malla manifold si el esquema lo requiere, desplazamiento y curvatura finitos."
+      ],
+      "boundary_conditions": [
+        "Nivel 0 conserva malla base; desplazamiento 0 conserva superficie; bordes abiertos siguen regla de crease/boundary."
+      ],
+      "dimensional_checks": [
+        "Curvature tiene L⁻¹; displacement y coordenadas tienen L; conteos son discretos.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-09",
+      "name": "Stop motion",
+      "variables": [
+        {
+          "symbol": "fps",
+          "meaning": "cadencia",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "jitter",
+          "meaning": "microdesplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "frameIndex",
+          "meaning": "fotograma",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "La cadencia fps define cuantización temporal; frameIndex=floor(t·fps) y jitter debe estar acotado respecto de escala del objeto.",
+        "Jitter espacial y angular se declaran por separado; no sumar grados a metros."
+      ],
+      "valid_domain": [
+        "fps>0; t≥0; jitter finito; frameIndex entero no negativo."
+      ],
+      "boundary_conditions": [
+        "t=0 selecciona primer frame; jitter=0 produce animación sin perturbación; último frame usa política de cierre declarada."
+      ],
+      "dimensional_checks": [
+        "t·fps es adimensional; jitter tiene L; fps tiene T⁻¹; frameIndex es discreto.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-10",
+      "name": "Claymation",
+      "variables": [
+        {
+          "symbol": "d",
+          "meaning": "campo SDF",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "k",
+          "meaning": "suavizado SDF",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "fingerprintAmplitude",
+          "meaning": "huella",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "El SDF y el ancho de huella comparten unidad de longitud; suavizado SDF k debe tener L; roughness es parámetro de material separado.",
+        "La deformación de arcilla no puede sumar campos normalizados directamente a distancias sin amplitud dimensional."
+      ],
+      "valid_domain": [
+        "k≥0, SDF finito, fingerprintAmplitude acotada y roughness∈[0,1]."
+      ],
+      "boundary_conditions": [
+        "k=0 desactiva unión suave; huella de amplitud cero elimina relieve; gradiente SDF nulo requiere normal alternativa."
+      ],
+      "dimensional_checks": [
+        "d, k y fingerprintAmplitude tienen L; roughness es adimensional.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-11",
+      "name": "Acuarela procedural",
+      "variables": [
+        {
+          "symbol": "pigment",
+          "meaning": "concentración",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "water",
+          "meaning": "agua normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "D",
+          "meaning": "difusión",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "D≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Difusión D usa L²/T solo si pigmento/agua se modelan en coordenadas físicas; en UV/píxeles hay que convertir el coeficiente.",
+        "Concentración de pigmento y cantidad de agua deben tener definición de estado y límites; la difusión conserva masa bajo borde no-flujo."
+      ],
+      "valid_domain": [
+        "D≥0; concentración no negativa; paso temporal y espaciamiento positivos; solver estable según Δt/Δx²."
+      ],
+      "boundary_conditions": [
+        "D=0 congela difusión; borde no-flujo conserva masa; concentración no puede hacerse negativa."
+      ],
+      "dimensional_checks": [
+        "D·t tiene L²; para PDE, D·t/Δx² es adimensional; pigmento normalizado es adimensional.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-12",
+      "name": "Pintura al óleo procedural",
+      "variables": [
+        {
+          "symbol": "strokeWidth",
+          "meaning": "ancho pincelada",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "direction",
+          "meaning": "dirección trazo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "impastoHeight",
+          "meaning": "altura impasto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "roughness",
+          "meaning": "rugosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Ancho de pincel en píxeles es distinto de altura física de impasto; dirección debe ser vector unitario en el plano de trazo.",
+        "La acumulación de impasto se mide en L y requiere una escala física o conversión explícita desde raster."
+      ],
+      "valid_domain": [
+        "strokeWidth>0 px; impastoHeight≥0; roughness∈[0,1]; dirección unitaria."
+      ],
+      "boundary_conditions": [
+        "impastoHeight=0 produce trazo sin relieve; strokeWidth=0 se rechaza; solapes deben tener regla de composición."
+      ],
+      "dimensional_checks": [
+        "strokeWidth pertenece a raster; impastoHeight tiene L; dirección y roughness son adimensionales.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-13",
+      "name": "Ilustración procedural",
+      "variables": [
+        {
+          "symbol": "P",
+          "meaning": "coordenadas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "lineWidth",
+          "meaning": "ancho línea",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "paletteSize",
+          "meaning": "colores",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "alpha",
+          "meaning": "opacidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Ancho de línea en píxeles depende de resolución; coordenadas geométricas en metros deben proyectarse antes de rasterizar.",
+        "Paleta es un conjunto discreto; alpha mezcla señales en el mismo espacio de color y con premultiplicación declarada."
+      ],
+      "valid_domain": [
+        "lineWidth>0 px; paletteSize entero ≥1; alpha∈[0,1]; coordenadas finitas."
+      ],
+      "boundary_conditions": [
+        "alpha=0 es transparente; paletteSize=1 limita a un solo color; recorte de formas en borde de lienzo declarado."
+      ],
+      "dimensional_checks": [
+        "P tiene L; lineWidth es raster px; paletteSize es conteo; alpha es adimensional.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-14",
+      "name": "Cómic y tinta",
+      "variables": [
+        {
+          "symbol": "depthThreshold",
+          "meaning": "umbral profundidad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "hatchSpacing",
+          "meaning": "trama",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "lineWidth",
+          "meaning": "ancho línea",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": ">0"
+        },
+        {
+          "symbol": "luma",
+          "meaning": "luminancia relativa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "señal finita"
+        }
+      ],
+      "constraints": [
+        "Umbral de profundidad requiere profundidad lineal en unidades de cámara; hatchSpacing y lineWidth son unidades raster independientes.",
+        "Luminancia debe calcularse en espacio lineal; la trama se orienta con la superficie o con la pantalla según convención."
+      ],
+      "valid_domain": [
+        "Depth finito positivo; hatchSpacing y lineWidth positivos; luminancia finita y rango definido."
+      ],
+      "boundary_conditions": [
+        "Sin discontinuidad de profundidad no se genera línea de contorno; umbral cero requiere política explícita; bordes del viewport se recortan."
+      ],
+      "dimensional_checks": [
+        "depthThreshold tiene L; spacing/width son px; luminancia relativa es adimensional.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-15",
+      "name": "Pixel art tridimensional",
+      "variables": [
+        {
+          "symbol": "virtualResolution",
+          "meaning": "resolución virtual",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": "enteros positivos"
+        },
+        {
+          "symbol": "pixelCell",
+          "meaning": "celda pixel",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "paletteSize",
+          "meaning": "colores",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "fps",
+          "meaning": "cadencia",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Resolución virtual y pixelCell son enteros raster; el escalado debe ser entero o declarar filtrado no entero.",
+        "La geometría 3D se cuantiza después de proyección; fps gobierna muestreo temporal, no tamaño de píxel."
+      ],
+      "valid_domain": [
+        "Resolución y pixelCell positivos; pixelCell divide resolución o regla de resto declarada; fps>0."
+      ],
+      "boundary_conditions": [
+        "pixelCell=1 conserva máxima resolución virtual; resolución inválida se rechaza; letterbox/crop de relación de aspecto definido."
+      ],
+      "dimensional_checks": [
+        "px es unidad raster discreta; fps tiene T⁻¹; paleta es conteo discreto.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-16",
+      "name": "Voxel art",
+      "variables": [
+        {
+          "symbol": "voxelSize",
+          "meaning": "arista voxel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "i,j,k",
+          "meaning": "índices voxel",
+          "unit": "enteros",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "discretos"
+        },
+        {
+          "symbol": "occupancy",
+          "meaning": "ocupación",
+          "unit": "booleano",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "true/false"
+        },
+        {
+          "symbol": "materialId",
+          "meaning": "material",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ID válido"
+        }
+      ],
+      "constraints": [
+        "voxelSize define escala física; índices i,j,k son enteros y posiciones se obtienen multiplicando por voxelSize.",
+        "Ocupación booleana y materialId son atributos discretos; no tratarlos como magnitudes continuas."
+      ],
+      "valid_domain": [
+        "voxelSize>0; índices enteros dentro de bounds; materialId existe en tabla."
+      ],
+      "boundary_conditions": [
+        "Ocupación false omite celda; tamaño cero se rechaza; límite de grid define vecinos ausentes."
+      ],
+      "dimensional_checks": [
+        "voxelSize y posición tienen L; índices y materialId son discretos; occupancy es booleano.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-17",
+      "name": "Fantasía oscura",
+      "variables": [
+        {
+          "symbol": "scale",
+          "meaning": "escala",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "fogExtinction",
+          "meaning": "extinción",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "saturation",
+          "meaning": "saturación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "lightIntensity",
+          "meaning": "intensidad luminosa",
+          "unit": "unidad radiométrica/fotométrica declarada",
+          "dimension": "según magnitud",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Coeficiente de extinción fogExtinction tiene L⁻¹ y se combina con distancia para formar opticalDepth adimensional.",
+        "La luz debe declarar si es radiométrica o fotométrica; saturación pertenece a señal de color y no a potencia física."
+      ],
+      "valid_domain": [
+        "Extinción≥0; escala positiva; luz finita no negativa; rango de saturación definido."
+      ],
+      "boundary_conditions": [
+        "Extinción cero elimina atenuación; distancia cero da transmitancia 1; señal fuera de gamut se mapea según política."
+      ],
+      "dimensional_checks": [
+        "fogExtinction·distance es adimensional; scale tiene L; luminancia/intensidad requiere unidad física declarada.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-18",
+      "name": "Ciencia ficción",
+      "variables": [
+        {
+          "symbol": "moduleSize",
+          "meaning": "módulo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "emission",
+          "meaning": "emisión relativa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "panelCount",
+          "meaning": "paneles",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "seamWidth",
+          "meaning": "junta",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Módulo y junta comparten L; conteo de paneles es discreto; emisión debe distinguirse como radiancia calibrada o señal HDR relativa.",
+        "No sumar seamWidth a un índice de panel; la emisión se transforma a espacio de color de salida."
+      ],
+      "valid_domain": [
+        "moduleSize>0; seamWidth≥0 y menor que dimensión mínima; panelCount entero ≥0; emisión finita."
+      ],
+      "boundary_conditions": [
+        "seamWidth=0 elimina junta; panelCount=0 no genera paneles; módulo de tamaño cero se rechaza."
+      ],
+      "dimensional_checks": [
+        "moduleSize/seamWidth tienen L; panelCount discreto; emisión radiométrica o relativa declarada.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-19",
+      "name": "Biomecánico",
+      "variables": [
+        {
+          "symbol": "tubeRadius",
+          "meaning": "radio tubo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "branchAngle",
+          "meaning": "ángulo rama",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "strain",
+          "meaning": "deformación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "stiffness",
+          "meaning": "rigidez",
+          "unit": "N/m",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "strain es razón ΔL/L adimensional; stiffness N/m solo aplica a respuesta lineal fuerza-desplazamiento; radio y ramas usan geometría L.",
+        "No inferir material biológico real desde estética; declarar si rigidez es parámetro visual o mecánico."
+      ],
+      "valid_domain": [
+        "tubeRadius>0; ángulos finitos; strain dentro de rango constitutivo; stiffness≥0."
+      ],
+      "boundary_conditions": [
+        "strain=0 implica deformación nula; rigidez cero implica ausencia de restitución elástica en modelo simplificado."
+      ],
+      "dimensional_checks": [
+        "strain es adimensional; stiffness tiene M·T⁻²; radio tiene L; ángulo rad es adimensional.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-20",
+      "name": "Surrealismo",
+      "variables": [
+        {
+          "symbol": "P",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "scaleRatio",
+          "meaning": "razón escala",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "A",
+          "meaning": "transformación afín",
+          "unit": "bloque lineal 1; traslación L",
+          "dimension": "tipado afín",
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "La transformación afín separa matriz lineal adimensional y traslación con L; scaleRatio debe ser positivo.",
+        "La composición puede ser deliberadamente no física, pero las operaciones deben respetar tipos y marcos."
+      ],
+      "valid_domain": [
+        "P finita; scaleRatio>0; matriz invertible si se requiere mapeo inverso; tiempo finito."
+      ],
+      "boundary_conditions": [
+        "scaleRatio=1 es identidad de escala; traslación cero no desplaza; singularidad de matriz requiere fallback."
+      ],
+      "dimensional_checks": [
+        "P y traslación tienen L; scaleRatio y bloque lineal son adimensionales; t tiene T.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-21",
+      "name": "Arte fractal",
+      "variables": [
+        {
+          "symbol": "iterations",
+          "meaning": "iteraciones",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "p",
+          "meaning": "coordenada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "frequency",
+          "meaning": "frecuencia espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "escapeRadius",
+          "meaning": "radio escape",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">1"
+        }
+      ],
+      "constraints": [
+        "La coordenada fractal p debe normalizarse con una escala L o multiplicarse por frecuencia L⁻¹ antes de iterar; escapeRadius se aplica en el espacio de estado elegido.",
+        "IterationCount es presupuesto discreto; distinguir fractal en coordenadas físicas de fractal complejo normalizado."
+      ],
+      "valid_domain": [
+        "Iteraciones enteras ≥0; frecuencia positiva; escapeRadius>1 si se usa criterio de escape clásico."
+      ],
+      "boundary_conditions": [
+        "Iteraciones=0 devuelve estado inicial; frecuencia cero desactiva detalle espacial; radio de escape se compara con norma del mismo espacio."
+      ],
+      "dimensional_checks": [
+        "frequency·p es adimensional; escapeRadius y estado complejo normalizado son adimensionales; conteo discreto.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "STYLE-CODE-22",
+      "name": "Abstracto generativo",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "posición/estado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "V",
+          "meaning": "campo velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "N_particles",
+          "meaning": "partículas",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Campo de velocidad requiere integración temporal para producir desplazamiento; no sumar V directamente a posición.",
+        "Partículas usan estados homogéneos y Δt común; presupuesto de partículas es entero."
+      ],
+      "valid_domain": [
+        "V y x finitos; Δt≥0; número de partículas entero ≥0; integrador y condiciones iniciales declarados."
+      ],
+      "boundary_conditions": [
+        "N_particles=0 produce sistema vacío; V=0 conserva posición; Δt=0 no actualiza estado."
+      ],
+      "dimensional_checks": [
+        "V·t tiene L y puede sumarse a x; V tiene L/T; tiempo T; conteo discreto.",
+        "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
+        "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "22/22 recetas STYLE-CODE-01 a STYLE-CODE-22 incluidas",
+      "Cada receta tiene variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
+      "Se distingue el atlas explícito de 22 recetas de las 13 etiquetas resumen del dominio D19",
+      "Las 22 recetas cuentan ahora con restricciones, dominios, límites y comprobaciones dimensionales específicas por técnica; se sustituyeron los textos genéricos repetidos."
+    ],
+    "limitations": [
+      "Las recetas son especificaciones artísticas; se tipan sus parámetros y operaciones sin atribuirles leyes físicas universales. Las fórmulas/algoritmos completos se desarrollan en puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

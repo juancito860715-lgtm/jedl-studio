@@ -1,0 +1,636 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D24 Óptica, lentes, cámaras físicas y transporte de luz",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D24",
+    "record_count": 17,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D24 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D24:0",
+      "name": "Rendering equation",
+      "starting_principles": [
+        "BRDF válida; direcciones unitarias; radiancia en misma medida angular."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L_o=L_e+L_r",
+          "justification": "Separar emisión de reflexión."
+        },
+        {
+          "step": 2,
+          "equation": "L_r=∫_Ω f_r L_i max(n·ω_i,0)dω_i",
+          "justification": "Sumar contribuciones incidentes ponderadas por BRDF y coseno."
+        },
+        {
+          "step": 3,
+          "equation": "L_o=L_e+∫_Ω f_rL_i(n·ω_i)dω_i",
+          "justification": "Sustituir la reflexión integral en la salida."
+        }
+      ],
+      "assumptions": [
+        "BRDF válida; direcciones unitarias; radiancia en misma medida angular."
+      ],
+      "result": "La ecuación de render es emisión más integral hemisférica de reflexión.",
+      "limits": [
+        "Requiere solución analítica o estimación numérica."
+      ],
+      "dimensional_verification": [
+        "L_i y L_o son radiancia W·m⁻²·sr⁻¹; f_r tiene sr⁻¹; cosθ es adimensional; dω aporta sr.",
+        "L_e y el término reflejado comparten unidad de radiancia."
+      ]
+    },
+    {
+      "record_key": "D24:1",
+      "name": "Monte Carlo integration",
+      "starting_principles": [
+        "PDF normalizada y soporte completo; varianza finita."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "I=∫f(x)dx",
+          "justification": "Definir integral objetivo."
+        },
+        {
+          "step": 2,
+          "equation": "x_i∼p(x); I=E_p[f(x)/p(x)]",
+          "justification": "Reescribir la integral como esperanza bajo PDF normalizada."
+        },
+        {
+          "step": 3,
+          "equation": "I_hat=(1/N)Σf(x_i)/p(x_i)",
+          "justification": "Promediar muestras para obtener estimador insesgado."
+        }
+      ],
+      "assumptions": [
+        "PDF normalizada y soporte completo; varianza finita.",
+        "Para integral I=∫f(x)dx, el estimador es (1/N)Σ f(x_i)/p(x_i); para esperanza E[f], el estimador es (1/N)Σf(x_i). No intercambiar ambos objetivos."
+      ],
+      "result": "El estimador MC deriva de la identidad de esperanza y muestreo por PDF.",
+      "limits": [
+        "Varianza alta produce ruido; error estándar general O(N^-1/2)."
+      ],
+      "dimensional_verification": [
+        "p(x) tiene unidad inversa a la medida dx; f(x)/p(x)·dx? Para estimador de integral, f/p conserva unidad de integral.",
+        "N es conteo adimensional; las muestras se extraen de una PDF normalizada."
+      ]
+    },
+    {
+      "record_key": "D24:2",
+      "name": "Path tracing",
+      "starting_principles": [
+        "BRDF y geometría válidas; terminación de caminos definida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L_o=L_e+∫f_rL_i cosθdω",
+          "justification": "Partir de ecuación de render."
+        },
+        {
+          "step": 2,
+          "equation": "L_i=L_o(next surface)",
+          "justification": "Sustituir radiancia incidente por salida de superficie previa."
+        },
+        {
+          "step": 3,
+          "equation": "L≈Σ_bounce β_bL_b",
+          "justification": "Expandir recursión como suma de caminos ponderados."
+        }
+      ],
+      "assumptions": [
+        "BRDF y geometría válidas; terminación de caminos definida."
+      ],
+      "result": "Path tracing estima la solución recursiva de transporte mediante caminos.",
+      "limits": [
+        "Truncamiento de rebotes y muestreo pueden introducir sesgo/ruido."
+      ],
+      "dimensional_verification": [
+        "β_b es throughput adimensional; L_b tiene radiancia; cada contribución y suma conservan radiancia.",
+        "Los factores de muestreo se incorporan en β_b con cocientes de PDFs adimensionales o correctamente tipados."
+      ]
+    },
+    {
+      "record_key": "D24:3",
+      "name": "Next event estimation",
+      "starting_principles": [
+        "PDF de luz en misma medida angular; visibilidad correcta."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "I=∫_light f_rL_e cosθdω",
+          "justification": "Separar contribución directa."
+        },
+        {
+          "step": 2,
+          "equation": "ω_i∼p_light(ω)",
+          "justification": "Muestrear luz explícitamente."
+        },
+        {
+          "step": 3,
+          "equation": "I_hat=f_rL_e cosθV/p_light",
+          "justification": "Dividir por PDF para estimador insesgado con visibilidad V."
+        }
+      ],
+      "assumptions": [
+        "PDF de luz en misma medida angular; visibilidad correcta."
+      ],
+      "result": "NEE estima explícitamente la integral de iluminación directa.",
+      "limits": [
+        "Combinar con BSDF sampling sin doble conteo."
+      ],
+      "dimensional_verification": [
+        "f_r tiene sr⁻¹; L_light radiancia; pdf_light sr⁻¹; cosθ adimensional.",
+        "f_r/pdf_light es adimensional y la contribución conserva unidad de radiancia."
+      ]
+    },
+    {
+      "record_key": "D24:4",
+      "name": "Multiple importance sampling",
+      "starting_principles": [
+        "PDFs compatibles y pesos normalizados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_1(x),p_2(x)",
+          "justification": "Definir PDFs de estrategias."
+        },
+        {
+          "step": 2,
+          "equation": "w_i=p_i²/Σ_jp_j²",
+          "justification": "Aplicar heurística de potencia cuadrática."
+        },
+        {
+          "step": 3,
+          "equation": "I_hat=Σ_iw_i f(x_i)/p_i(x_i)",
+          "justification": "Combinar estimadores con pesos normalizados."
+        }
+      ],
+      "assumptions": [
+        "PDFs compatibles y pesos normalizados."
+      ],
+      "result": "MIS combina estrategias de muestreo con pesos que reducen varianza.",
+      "limits": [
+        "PDFs de área y sólido angular deben convertirse correctamente."
+      ],
+      "dimensional_verification": [
+        "p_i son PDFs respecto a la misma medida y tienen misma unidad; w_i es adimensional.",
+        "Σw_i=1; no combinar PDFs por área y ángulo sólido sin Jacobiano."
+      ]
+    },
+    {
+      "record_key": "D24:5",
+      "name": "Lambertian BRDF",
+      "starting_principles": [
+        "Albedo ρ∈[0,1]; hemisferio definido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f_r=c",
+          "justification": "Suponer respuesta difusa constante."
+        },
+        {
+          "step": 2,
+          "equation": "∫_hemisphere cosθdω=π",
+          "justification": "Integrar coseno sobre hemisferio."
+        },
+        {
+          "step": 3,
+          "equation": "ρ=∫f_r cosθdω=cπ ⇒ f_r=ρ/π",
+          "justification": "Normalizar para que la reflectancia hemisférica sea albedo."
+        }
+      ],
+      "assumptions": [
+        "Albedo ρ∈[0,1]; hemisferio definido."
+      ],
+      "result": "Lambert se deriva de normalizar BRDF constante para albedo ρ.",
+      "limits": [
+        "No describe especularidad ni subsurface."
+      ],
+      "dimensional_verification": [
+        "ρ es reflectancia adimensional; π es adimensional; f_r tiene sr⁻¹.",
+        "La integral de Lambert sobre hemisferio normalizado conserva energía reflectante."
+      ]
+    },
+    {
+      "record_key": "D24:6",
+      "name": "GGX normal distribution",
+      "starting_principles": [
+        "α>0; normal y half-vector unitarios."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "D(h)=α²/[π((n·h)²(α²−1)+1)²]",
+          "justification": "Definir NDF GGX isotrópica."
+        },
+        {
+          "step": 2,
+          "equation": "α=roughness²",
+          "justification": "Relacionar control perceptual con parámetro de distribución."
+        },
+        {
+          "step": 3,
+          "equation": "∫D(h)(n·h)dω=1",
+          "justification": "Condición de normalización hemisférica."
+        }
+      ],
+      "assumptions": [
+        "α>0; normal y half-vector unitarios."
+      ],
+      "result": "GGX define distribución de microfacetas de colas largas.",
+      "limits": [
+        "La relación α=roughness² es convención de implementación."
+      ],
+      "dimensional_verification": [
+        "α y N·H son adimensionales; D_GGX tiene sr⁻¹.",
+        "La distribución microfacet normalizada conserva unidad angular."
+      ]
+    },
+    {
+      "record_key": "D24:7",
+      "name": "Smith masking-shadowing",
+      "starting_principles": [
+        "Hemisferio superior; α>0; variante Smith declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "G_1=1/(1+Λ)",
+          "justification": "Definir probabilidad de microfaceta visible."
+        },
+        {
+          "step": 2,
+          "equation": "Λ=½(√(1+α²tan²θ)−1)",
+          "justification": "Forma Smith para GGX."
+        },
+        {
+          "step": 3,
+          "equation": "G=G_1(L)G_1(V)",
+          "justification": "Aproximar visibilidad conjunta de entrada y salida."
+        }
+      ],
+      "assumptions": [
+        "Hemisferio superior; α>0; variante Smith declarada."
+      ],
+      "result": "Smith estima visibilidad de microfacetas para entrada y salida.",
+      "limits": [
+        "La forma separable es aproximación Smith."
+      ],
+      "dimensional_verification": [
+        "G_1 y G son factores adimensionales de masking-shadowing.",
+        "El producto G_1(N·V)G_1(N·L) conserva dimensión 1."
+      ]
+    },
+    {
+      "record_key": "D24:8",
+      "name": "Thin lens",
+      "starting_principles": [
+        "f>0; s>f; aproximación paraxial."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "1/f=1/s+1/s'",
+          "justification": "Ecuación de lente delgada."
+        },
+        {
+          "step": 2,
+          "equation": "s'=fs/(s−f)",
+          "justification": "Despejar distancia de imagen."
+        },
+        {
+          "step": 3,
+          "equation": "s=s_focus fija plano sensor; s≠s_focus produce desenfoque",
+          "justification": "Comparar imagen del objeto con plano de sensor."
+        }
+      ],
+      "assumptions": [
+        "f>0; s>f; aproximación paraxial."
+      ],
+      "result": "Thin lens deriva de geometría paraxial de lente delgada.",
+      "limits": [
+        "No incluye aberraciones ni espesor óptico."
+      ],
+      "dimensional_verification": [
+        "f,s,s' tienen L; 1/f,1/s,1/s' tienen L⁻¹.",
+        "La ecuación de lente delgada es dimensionalmente homogénea."
+      ]
+    },
+    {
+      "record_key": "D24:9",
+      "name": "Circle of confusion",
+      "starting_principles": [
+        "N>0; distancias desde plano principal; sensor fijo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "D=f/N",
+          "justification": "Relacionar apertura con focal y f-number."
+        },
+        {
+          "step": 2,
+          "equation": "s'=fs/(s−f); s'_f=fs_f/(s_f−f)",
+          "justification": "Calcular imágenes de objeto y plano enfocado."
+        },
+        {
+          "step": 3,
+          "equation": "c≈D|s'−s'_f|/s'",
+          "justification": "Proyectar diferencia de plano a círculo de confusión."
+        }
+      ],
+      "assumptions": [
+        "N>0; distancias desde plano principal; sensor fijo."
+      ],
+      "result": "El círculo de confusión deriva del cono de rayos fuera de foco.",
+      "limits": [
+        "Expresión aproximada; depende de convención de distancia y magnificación."
+      ],
+      "dimensional_verification": [
+        "A, s' y v tienen L; |s'−v|/s' es adimensional; CoC c tiene L.",
+        "La conversión de CoC físico a píxeles requiere densidad de píxeles del sensor px/L."
+      ]
+    },
+    {
+      "record_key": "D24:10",
+      "name": "Snell law",
+      "starting_principles": [
+        "Medios isotrópicos; índices positivos; ángulos desde normal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "k_{1,t}=k_{2,t}",
+          "justification": "La fase tangencial se conserva en interfaz."
+        },
+        {
+          "step": 2,
+          "equation": "|k|=nω/c",
+          "justification": "Relacionar magnitud del vector de onda con índice."
+        },
+        {
+          "step": 3,
+          "equation": "n_1sinθ_1=n_2sinθ_2",
+          "justification": "Igualar componentes tangenciales para obtener Snell."
+        }
+      ],
+      "assumptions": [
+        "Medios isotrópicos; índices positivos; ángulos desde normal."
+      ],
+      "result": "Snell deriva de continuidad de fase en la interfaz.",
+      "limits": [
+        "Argumento de arcsin fuera de [-1,1] produce TIR."
+      ],
+      "dimensional_verification": [
+        "n_1,n_2 y senos son adimensionales; ángulos son radianes.",
+        "La relación de Snell conserva unidades y exige índices positivos."
+      ]
+    },
+    {
+      "record_key": "D24:11",
+      "name": "Fresnel dielectric",
+      "starting_principles": [
+        "Medios dieléctricos transparentes; polarización definida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r_s,r_p from Maxwell boundary conditions",
+          "justification": "Aplicar continuidad de campos tangenciales."
+        },
+        {
+          "step": 2,
+          "equation": "F_0=((n_1−n_2)/(n_1+n_2))²",
+          "justification": "Reducir a incidencia normal."
+        },
+        {
+          "step": 3,
+          "equation": "F=½(|r_s|²+|r_p|²)",
+          "justification": "Promediar reflectancia de polarizaciones."
+        }
+      ],
+      "assumptions": [
+        "Medios dieléctricos transparentes; polarización definida."
+      ],
+      "result": "Fresnel deriva de condiciones de frontera electromagnéticas.",
+      "limits": [
+        "Metales requieren índice complejo; Schlick no es exacto."
+      ],
+      "dimensional_verification": [
+        "n_1,n_2 y F_0 son adimensionales; F_0 es reflectancia.",
+        "El cociente de diferencias de índices es adimensional."
+      ]
+    },
+    {
+      "record_key": "D24:12",
+      "name": "Total internal reflection",
+      "starting_principles": [
+        "n_1>n_2>0; medio ideal no absorbente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n_1sinθ_1=n_2sinθ_2",
+          "justification": "Partir de Snell."
+        },
+        {
+          "step": 2,
+          "equation": "sinθ_2≤1",
+          "justification": "Exigir ángulo transmitido real."
+        },
+        {
+          "step": 3,
+          "equation": "sinθ_c=n_2/n_1; θ_1>θ_c ⇒ TIR",
+          "justification": "En el límite rasante obtener ángulo crítico; por encima no hay rayo transmitido propagante."
+        }
+      ],
+      "assumptions": [
+        "n_1>n_2>0; medio ideal no absorbente."
+      ],
+      "result": "TIR deriva del límite de Snell cuando no existe rayo transmitido real.",
+      "limits": [
+        "Medios absorbentes requieren modelo de onda evanescente."
+      ],
+      "dimensional_verification": [
+        "n_1,n_2 y sinθ_c son adimensionales; θ_c es angular.",
+        "La condición n_1>n_2 define el dominio de ángulo crítico."
+      ]
+    },
+    {
+      "record_key": "D24:13",
+      "name": "Thin film interference",
+      "starting_principles": [
+        "d≥0; λ>0; coherencia y fase de interfaz declaradas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "δ=2πndcosθ_t/λ",
+          "justification": "Calcular fase de una pasada en película."
+        },
+        {
+          "step": 2,
+          "equation": "Δφ≈2δ+φ_r",
+          "justification": "Sumar ida/vuelta y cambios de fase de interfaces."
+        },
+        {
+          "step": 3,
+          "equation": "I=|E_1+E_2e^{iΔφ}|²",
+          "justification": "La interferencia resulta de sumar amplitudes complejas."
+        }
+      ],
+      "assumptions": [
+        "d≥0; λ>0; coherencia y fase de interfaz declaradas."
+      ],
+      "result": "La iridiscencia deriva de interferencia de amplitudes con diferencia de fase.",
+      "limits": [
+        "Múltiples reflexiones y absorción espectral pueden requerir modelo completo."
+      ],
+      "dimensional_verification": [
+        "n y cosθ son adimensionales; d y λ tienen L; phase es adimensional angular.",
+        "El argumento de interferencia 4πndcosθ/λ no tiene unidad."
+      ]
+    },
+    {
+      "record_key": "D24:14",
+      "name": "Dispersion",
+      "starting_principles": [
+        "λ en rango calibrado; coeficientes Cauchy compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n=n(λ)",
+          "justification": "Definir índice dependiente de longitud de onda."
+        },
+        {
+          "step": 2,
+          "equation": "n(λ)=A+B/λ²+C/λ⁴",
+          "justification": "Aproximación de Cauchy en rango transparente."
+        },
+        {
+          "step": 3,
+          "equation": "θ_2(λ)=asin((n_1/n_2(λ))sinθ_1)",
+          "justification": "Aplicar Snell a cada longitud de onda para separar colores."
+        }
+      ],
+      "assumptions": [
+        "λ en rango calibrado; coeficientes Cauchy compatibles."
+      ],
+      "result": "La dispersión deriva de aplicar Snell con índice dependiente de λ.",
+      "limits": [
+        "Cauchy falla cerca de bandas de absorción."
+      ],
+      "dimensional_verification": [
+        "n es adimensional; λ tiene L; dn/dλ tiene L⁻¹.",
+        "La dispersión espectral no asigna longitud a n."
+      ]
+    },
+    {
+      "record_key": "D24:15",
+      "name": "Atmospheric extinction",
+      "starting_principles": [
+        "β≥0 en L⁻¹; distancia y radiancia compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dL/ds=−β(L−L_atm)",
+          "justification": "Modelar relajación de radiancia hacia atmósfera."
+        },
+        {
+          "step": 2,
+          "equation": "d(L−L_atm)/(L−L_atm)=−βds",
+          "justification": "Separar variables."
+        },
+        {
+          "step": 3,
+          "equation": "L(d)=L_0e^(−βd)+L_atm(1−e^(−βd))",
+          "justification": "Integrar con condición inicial L(0)=L_0."
+        }
+      ],
+      "assumptions": [
+        "β≥0 en L⁻¹; distancia y radiancia compatibles."
+      ],
+      "result": "La perspectiva aérea deriva de atenuación exponencial e in-scattering aproximado.",
+      "limits": [
+        "No modela scattering angular ni variación espacial completa."
+      ],
+      "dimensional_verification": [
+        "β tiene L⁻¹; d tiene L; βd es adimensional.",
+        "L_0 y L_atmosphere comparten unidad de radiancia; L(d) conserva radiancia."
+      ]
+    },
+    {
+      "record_key": "D24:16",
+      "name": "Photon mapping",
+      "starting_principles": [
+        "Kernel normalizado; radio r>0; impactos en superficie común."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "K_r(x)=r⁻²K(||x||/r),  ∫_surface K_r dA=1",
+          "justification": "Escalar un kernel adimensional por el inverso del área de soporte para obtener densidad espacial superficial."
+        },
+        {
+          "step": 2,
+          "equation": "E(x)≈Σ_i Φ_i K_r(x−x_i)",
+          "justification": "Acumular potencia de fotones por densidad de área para estimar irradiancia."
+        },
+        {
+          "step": 3,
+          "equation": "L_o(x,ω_o)≈f_r(x,ω_i,ω_o)E(x)cosθ",
+          "justification": "Convertir irradiancia estimada en radiancia reflejada mediante BRDF y coseno de incidencia."
+        },
+        {
+          "step": 4,
+          "equation": "[K_r]=L⁻²; [Φ_i]=W ⇒ [E]=W·m⁻²",
+          "justification": "La unidad del kernel garantiza que la suma de potencias por área sea irradiancia."
+        }
+      ],
+      "assumptions": [
+        "El kernel se normaliza sobre área superficial 2D; r>0.",
+        "Φ_i representa potencia W; si representa energía J, dividir por intervalo temporal para obtener potencia.",
+        "La BRDF tiene sr⁻¹ y usa la misma convención angular que la ecuación de render."
+      ],
+      "result": "Photon mapping estima irradiancia mediante un kernel superficial normalizado y la convierte en radiancia reflejada mediante la BRDF.",
+      "limits": [
+        "La estimación tiene sesgo dependiente del radio r y varianza dependiente del número de fotones.",
+        "La normalización del kernel cambia si se estima volumen 3D en vez de superficie 2D."
+      ],
+      "dimensional_verification": [
+        "K_r tiene L⁻² para kernel normalizado sobre superficie; Φ_i en W produce irradiancia W/m².",
+        "Multiplicar irradiancia por BRDF sr⁻¹ produce radiancia W·m⁻²·sr⁻¹; si Φ_i es energía J, dividir por intervalo temporal."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "17/17 técnicas D24 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos, justificación, supuestos, límites y verificación dimensional",
+      "Monte Carlo distingue integral de esperanza y tipa la PDF según medida",
+      "NEE/MIS exigen PDFs expresadas respecto a la misma medida",
+      "Thin lens, CoC, Snell, Fresnel, TIR e interferencia mantienen unidades ópticas coherentes",
+      "Photon mapping normaliza kernel superficial y distingue potencia de energía"
+    ],
+    "limitations": [
+      "La formulación es geométrica/radiométrica; muestreo, convergencia, filtros, calibración espectral y rendimiento requieren validación posterior."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

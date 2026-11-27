@@ -1,0 +1,485 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D16 Audio procedural y sincronización audiovisual",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D16",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D16 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D16:0",
+      "name": "Oscilador sinusoidal",
+      "starting_principles": [
+        "f≥0; A finita; t en segundos; fase en radianes.",
+        "La señal se representa como amplitud relativa o calibrada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x''+ω²x=0",
+          "justification": "Modelo de oscilador armónico sin amortiguamiento."
+        },
+        {
+          "step": 2,
+          "equation": "x(t)=A sin(ωt+φ)",
+          "justification": "La solución general combina seno/coseno; amplitud y fase se fijan por condiciones iniciales."
+        },
+        {
+          "step": 3,
+          "equation": "ω=2πf",
+          "justification": "Relacionar frecuencia en ciclos por segundo con frecuencia angular."
+        },
+        {
+          "step": 4,
+          "equation": "T=1/f",
+          "justification": "El periodo corresponde a un ciclo completo."
+        }
+      ],
+      "assumptions": [
+        "f≥0; A finita; t en segundos; fase en radianes.",
+        "La señal se representa como amplitud relativa o calibrada."
+      ],
+      "result": "El tono sinusoidal es solución de una ecuación diferencial lineal de segundo orden.",
+      "limits": [
+        "No representa por sí solo timbres complejos; requiere suma de armónicos/ruido."
+      ],
+      "dimensional_verification": [
+        "A tiene unidad de amplitud/señal; f tiene T⁻¹; t tiene T; φ y argumento sinusoidal son adimensionales.",
+        "x(t) conserva la unidad de A."
+      ]
+    },
+    {
+      "record_key": "D16:1",
+      "name": "ADSR envelope",
+      "starting_principles": [
+        "T_a,T_d,T_r>0; S∈[0,1].",
+        "Tramos unidos con continuidad definida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "A(t)=t/T_a for 0≤t<T_a",
+          "justification": "Ataque lineal desde cero a uno."
+        },
+        {
+          "step": 2,
+          "equation": "A(t)=1−(1−S)(t−T_a)/T_d",
+          "justification": "Decaimiento desde pico a nivel sustain."
+        },
+        {
+          "step": 3,
+          "equation": "A(t)=S for sustain interval",
+          "justification": "Mantener nivel mientras la nota está activa."
+        },
+        {
+          "step": 4,
+          "equation": "A(t)=S·(1−(t−t_r)/T_r) for release",
+          "justification": "Reducir desde sustain a cero al soltar nota."
+        },
+        {
+          "step": 5,
+          "equation": "x_out(t)=A(t)x_synth(t)",
+          "justification": "Multiplicar la señal por la envolvente."
+        }
+      ],
+      "assumptions": [
+        "T_a,T_d,T_r>0; S∈[0,1].",
+        "Tramos unidos con continuidad definida.",
+        "La nota activa determina duración del sustain."
+      ],
+      "result": "ADSR se construye como función por tramos que controla amplitud temporal de una señal.",
+      "limits": [
+        "Las pendientes lineales pueden producir esquinas; curvas exponenciales requieren parámetros y límites propios."
+      ],
+      "dimensional_verification": [
+        "t, attack, decay y release tienen T; cocientes de tiempo son adimensionales.",
+        "La envolvente normalizada es adimensional; al multiplicar señal conserva su unidad."
+      ]
+    },
+    {
+      "record_key": "D16:2",
+      "name": "FM synthesis",
+      "starting_principles": [
+        "f_c,f_m≥0; I finito; fase en radianes.",
+        "Señales generadas en misma frecuencia de muestreo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ_c(t)=2πf_c t",
+          "justification": "Definir fase de portadora."
+        },
+        {
+          "step": 2,
+          "equation": "m(t)=sin(2πf_m t)",
+          "justification": "Generar señal moduladora."
+        },
+        {
+          "step": 3,
+          "equation": "φ(t)=2πf_c t+I m(t)",
+          "justification": "Desviar fase instantánea de portadora mediante índice I."
+        },
+        {
+          "step": 4,
+          "equation": "x(t)=sinφ(t)",
+          "justification": "Generar salida sinusoidal con fase modulada."
+        },
+        {
+          "step": 5,
+          "equation": "f_inst=(1/2π)dφ/dt=f_c+I f_m cos(2πf_m t)",
+          "justification": "Derivar fase para obtener frecuencia instantánea."
+        }
+      ],
+      "assumptions": [
+        "f_c,f_m≥0; I finito; fase en radianes.",
+        "Señales generadas en misma frecuencia de muestreo.",
+        "Evitar aliasing cuando la frecuencia instantánea supera Nyquist."
+      ],
+      "result": "FM se deriva al integrar una frecuencia instantánea modulada para obtener fase y evaluar seno.",
+      "limits": [
+        "El espectro contiene bandas laterales; el índice I controla complejidad espectral, no solo amplitud."
+      ],
+      "dimensional_verification": [
+        "f_c y f_m tienen T⁻¹; t tiene T; I y fase son adimensionales.",
+        "La señal de salida conserva la unidad de amplitud."
+      ]
+    },
+    {
+      "record_key": "D16:3",
+      "name": "Noise synthesis",
+      "starting_principles": [
+        "Semilla controlada si se requiere repetibilidad.",
+        "Filtro estable; frecuencia de muestreo declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x[n]∼i.i.d. zero-mean",
+          "justification": "Generar ruido blanco discreto de media cero."
+        },
+        {
+          "step": 2,
+          "equation": "y[n]=Σ_k h[k]x[n−k]",
+          "justification": "Filtrar ruido por respuesta impulsional h."
+        },
+        {
+          "step": 3,
+          "equation": "Y(e^{jω})=H(e^{jω})X(e^{jω})",
+          "justification": "La convolución temporal equivale a multiplicación espectral."
+        },
+        {
+          "step": 4,
+          "equation": "S_y(ω)=|H(e^{jω})|²S_x(ω)",
+          "justification": "El filtro moldea la densidad espectral de potencia."
+        }
+      ],
+      "assumptions": [
+        "Semilla controlada si se requiere repetibilidad.",
+        "Filtro estable; frecuencia de muestreo declarada.",
+        "Amplitud acotada para evitar clipping."
+      ],
+      "result": "El ruido coloreado resulta de filtrar ruido blanco con una respuesta impulsional diseñada.",
+      "limits": [
+        "No confundir ruido estadístico con sonido de un fenómeno físico específico."
+      ],
+      "dimensional_verification": [
+        "Ruido blanco normalizado es adimensional; filtros tienen transferencia adimensional.",
+        "Cutoff y sampleRate tienen T⁻¹; la ganancia fija unidad de salida."
+      ]
+    },
+    {
+      "record_key": "D16:4",
+      "name": "Reverb",
+      "starting_principles": [
+        "x y y comparten unidad; h continua tipada como T⁻¹ si se conserva unidad de x.",
+        "La respuesta impulsional y sample rate coinciden."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "y(t)=∫x(τ)h(t−τ)dτ",
+          "justification": "Definir convolución entre señal seca y respuesta impulsional del espacio."
+        },
+        {
+          "step": 2,
+          "equation": "y(t)=∫_{−∞}^{∞}x(τ)h(t−τ)dτ, [h]=T⁻¹ para ganancia adimensional",
+          "justification": "La convolución continua integra respecto al tiempo; el impulso debe tener unidad inversa de tiempo para que la salida conserve la unidad de entrada."
+        },
+        {
+          "step": 3,
+          "equation": "Y(ω)=X(ω)H(ω)",
+          "justification": "En frecuencia, la convolución se convierte en producto."
+        },
+        {
+          "step": 4,
+          "equation": "y[n]≈Σ_k x[n−k]h[k]",
+          "justification": "Implementar convolución discreta a frecuencia de muestreo declarada."
+        },
+        {
+          "step": 5,
+          "equation": "discrete: y[n]=Σ_k x[k]h[n−k]",
+          "justification": "En tiempo discreto, los pesos del filtro son adimensionales bajo la convención de normalización elegida."
+        }
+      ],
+      "assumptions": [
+        "x y y comparten unidad; h continua tipada como T⁻¹ si se conserva unidad de x.",
+        "La respuesta impulsional y sample rate coinciden.",
+        "La cola se trunca/ventanea según duración.",
+        "Se distingue respuesta impulsional continua h(t) de coeficientes discretos h[n]; no intercambiar sus unidades."
+      ],
+      "result": "La reverberación por convolución aplica a la señal la respuesta impulsional del recinto.",
+      "limits": [
+        "Una IR real debe medirse o diseñarse; una cola artificial no reproduce necesariamente un recinto real."
+      ],
+      "dimensional_verification": [
+        "Para convolución continua y sistema de ganancia adimensional, h(t) tiene T⁻¹ para que ∫x(τ)h(t−τ)dτ conserve unidad de x.",
+        "En convolución discreta, h[n] es adimensional bajo normalización de suma declarada; y conserva unidad de x."
+      ]
+    },
+    {
+      "record_key": "D16:5",
+      "name": "Delay",
+      "starting_principles": [
+        "τ≥0; f_s>0; g finito.",
+        "Señal y copia retardada comparten unidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "y(t)=x(t)+g x(t−τ)",
+          "justification": "Sumar señal original con una copia retardada y escalada."
+        },
+        {
+          "step": 2,
+          "equation": "τ=N/f_s",
+          "justification": "Convertir tiempo de retardo a muestras."
+        },
+        {
+          "step": 3,
+          "equation": "feedback: y(t)=x(t)+g y(t−τ)",
+          "justification": "En variante realimentada, cada eco incluye ecos previos."
+        },
+        {
+          "step": 4,
+          "equation": "|g|<1",
+          "justification": "La magnitud de realimentación menor que uno produce decaimiento en el caso ideal."
+        }
+      ],
+      "assumptions": [
+        "τ≥0; f_s>0; g finito.",
+        "Señal y copia retardada comparten unidad.",
+        "Feedback acotado para estabilidad."
+      ],
+      "result": "El eco se deriva de sumar una copia temporalmente desplazada; la realimentación genera repeticiones sucesivas.",
+      "limits": [
+        "El filtrado/feedback debe limitar acumulación y evitar clipping."
+      ],
+      "dimensional_verification": [
+        "τ tiene T; g es adimensional; x(t−τ) y x(t) tienen la misma unidad.",
+        "La suma y(t) conserva unidad de la señal x."
+      ]
+    },
+    {
+      "record_key": "D16:6",
+      "name": "Panning",
+      "starting_principles": [
+        "A finita; señales sincronizadas; θ en radianes.",
+        "Canales y ganancia en misma escala."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "θ∈[0,π/2]",
+          "justification": "Definir posición angular estéreo."
+        },
+        {
+          "step": 2,
+          "equation": "L=A cosθ; R=A sinθ",
+          "justification": "Asignar ganancias trigonométricas a canales izquierdo/derecho."
+        },
+        {
+          "step": 3,
+          "equation": "L²+R²=A²",
+          "justification": "Usar identidad cos²θ+sin²θ=1 para demostrar potencia total constante en el modelo ideal."
+        },
+        {
+          "step": 4,
+          "equation": "θ=0→(A,0); θ=π/2→(0,A)",
+          "justification": "Comprobar extremos de paneo."
+        }
+      ],
+      "assumptions": [
+        "A finita; señales sincronizadas; θ en radianes.",
+        "Canales y ganancia en misma escala.",
+        "Ley equal-power para señales no correlacionadas/idealización."
+      ],
+      "result": "El paneo equal-power deriva de parametrizar ganancias como componentes de un vector de norma constante.",
+      "limits": [
+        "La percepción depende de acústica, auriculares y correlación de canales."
+      ],
+      "dimensional_verification": [
+        "θ es angular adimensional; cosθ y sinθ son adimensionales.",
+        "L y R conservan unidad de A; L²+R²=A² en paneo de potencia constante."
+      ]
+    },
+    {
+      "record_key": "D16:7",
+      "name": "Audio event timeline",
+      "starting_principles": [
+        "Eventos ordenados; señales alineadas a reloj común.",
+        "Envolventes y sintetizadores deterministas para repetibilidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "event_i=(t_i,duration_i,parameters_i)",
+          "justification": "Definir evento con instante de inicio, duración y parámetros."
+        },
+        {
+          "step": 2,
+          "equation": "s_i(t)=envelope_i(t−t_i)·synth_i(t−t_i)",
+          "justification": "Generar señal local al tiempo del evento."
+        },
+        {
+          "step": 3,
+          "equation": "x(t)=Σ_i s_i(t)",
+          "justification": "Mezclar eventos por superposición lineal."
+        },
+        {
+          "step": 4,
+          "equation": "x_out=limiter(x)",
+          "justification": "Controlar picos para evitar clipping."
+        }
+      ],
+      "assumptions": [
+        "Eventos ordenados; señales alineadas a reloj común.",
+        "Envolventes y sintetizadores deterministas para repetibilidad.",
+        "La suma se procesa en amplitud lineal."
+      ],
+      "result": "Una línea temporal audiovisual se deriva de eventos temporizados cuya señal se genera localmente y se suma.",
+      "limits": [
+        "La suma de muchas fuentes puede exceder headroom; requiere mezcla/limitación."
+      ],
+      "dimensional_verification": [
+        "t, start_i, duration_i tienen T; envelope_i es adimensional.",
+        "synth_i y mix sum conservan unidad de señal; eventos se ordenan por tiempo."
+      ]
+    },
+    {
+      "record_key": "D16:8",
+      "name": "Beat synchronization",
+      "starting_principles": [
+        "BPM>0; reloj común en segundos.",
+        "Subdivisiones se obtienen dividiendo T_beat por entero."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T_beat=60/BPM",
+          "justification": "Convertir tempo en beats por minuto a periodo de beat en segundos."
+        },
+        {
+          "step": 2,
+          "equation": "t_n=t_0+nT_beat",
+          "justification": "Calcular tiempos de cada beat."
+        },
+        {
+          "step": 3,
+          "equation": "n*=round((t−t_0)/T_beat)",
+          "justification": "Encontrar beat más cercano a un evento."
+        },
+        {
+          "step": 4,
+          "equation": "t_snap=t_0+n*T_beat",
+          "justification": "Cuantizar evento al beat seleccionado."
+        }
+      ],
+      "assumptions": [
+        "BPM>0; reloj común en segundos.",
+        "Subdivisiones se obtienen dividiendo T_beat por entero.",
+        "Offset t_0 declara inicio de compás/beat.",
+        "BPM se interpreta como beats por minuto; el índice n cuenta beats y es adimensional."
+      ],
+      "result": "La sincronización se deriva de una rejilla temporal periódica determinada por BPM.",
+      "limits": [
+        "La cuantización rígida puede eliminar swing/groove; usar subdivisión y offsets cuando se necesite."
+      ],
+      "dimensional_verification": [
+        "BPM es beats/min; 60/BPM tiene s/beat y, con índice n de beats, beatTime tiene s.",
+        "n es conteo adimensional; todos los cortes/impactos se comparan en misma base temporal."
+      ]
+    },
+    {
+      "record_key": "D16:9",
+      "name": "Web Audio graph",
+      "starting_principles": [
+        "Nodos y sample rate compatibles.",
+        "Los nodos no lineales/no estacionarios no se describen por una única H(ω)."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "y_1=G_1 x",
+          "justification": "Cada nodo procesa señal de entrada mediante operador."
+        },
+        {
+          "step": 2,
+          "equation": "y_2=G_2 y_1",
+          "justification": "Encadenar nodos en serie."
+        },
+        {
+          "step": 3,
+          "equation": "H_total(ω)=Π_i H_i(ω)",
+          "justification": "Para sistemas LTI en serie, las funciones de transferencia se multiplican."
+        },
+        {
+          "step": 4,
+          "equation": "mix(y_a,y_b)=Σ_j g_j y_j",
+          "justification": "Los nodos conectados en paralelo se suman con ganancias."
+        },
+        {
+          "step": 5,
+          "equation": "F_total=F_n∘…∘F_2∘F_1",
+          "justification": "Para nodos no lineales o dependientes del estado, la composición de operadores es válida pero no se reduce al producto de funciones de transferencia."
+        }
+      ],
+      "assumptions": [
+        "Nodos y sample rate compatibles.",
+        "Los nodos no lineales/no estacionarios no se describen por una única H(ω).",
+        "Gains y buffers tienen rango válido.",
+        "El producto H_total=ΠH_i se aplica solo a nodos LTI en serie; nodos no lineales se describen por composición de operadores."
+      ],
+      "result": "Un grafo de audio representa composición de operadores en serie y paralelo.",
+      "limits": [
+        "La ecuación de transferencia aplica solo a sistemas lineales invariantes en el tiempo; waveshapers y compresores son no lineales.",
+        "Compresores, limitadores, waveshapers y automatización no lineal no tienen una única H(ω) independiente de la señal."
+      ],
+      "dimensional_verification": [
+        "Gain y transfer functions son adimensionales; el flujo conserva tipo/unidad de la señal.",
+        "Sample rate tiene T⁻¹; buffers y tiempos de AudioContext deben usar reloj coherente."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "10/10 técnicas D16 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Se distinguen unidades de convolución continua y discreta para reverberación",
+      "Frecuencias, tiempos, envolventes, señales y paneo estéreo conservan unidades",
+      "La sincronización BPM se convierte explícitamente a segundos",
+      "Web Audio graph distingue producto de transferencias para nodos LTI de composición general para nodos no lineales."
+    ],
+    "limitations": [
+      "La derivación cubre síntesis/procesamiento matemático; calidad sonora, latencia real, licencias de muestras y sincronización audiovisual se validan en etapas posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

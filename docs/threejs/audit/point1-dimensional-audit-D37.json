@@ -1,0 +1,1155 @@
+{
+  "title": "Auditoría dimensional punto 1 — D37 Anatomía procedural, biomecánica y deformación de personajes",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D37",
+    "domain": "Anatomía procedural, biomecánica y deformación de personajes",
+    "record_count": 13,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D37 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "rig": "Posiciones en unidad L; rotaciones radianes; escalas y pesos adimensionales.",
+    "biomechanics": "Fuerzas N, tensión Pa, longitudes m, tiempos s.",
+    "animation": "Los controles de morph se distinguen de magnitudes físicas."
+  },
+  "records": [
+    {
+      "record_key": "D37:0",
+      "name": "Jerarquía ósea y transformaciones homogéneas",
+      "variables": [
+        {
+          "symbol": "p_local,p_world",
+          "meaning": "puntos local/mundo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "M_i",
+          "meaning": "matrices óseas",
+          "unit": "afín tipada",
+          "dimension": "rotación 1; traslación L",
+          "domain": "invertibles"
+        },
+        {
+          "symbol": "q_i",
+          "meaning": "rotaciones",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "cuaterniones unitarios"
+        },
+        {
+          "symbol": "s_i",
+          "meaning": "escalas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        }
+      ],
+      "constraints": [
+        "Todos los huesos usan jerarquía y marcos consistentes; matrices locales y globales siguen orden de composición declarado.",
+        "Escala no uniforme puede requerir tratamiento especial de normales y dual quaternions."
+      ],
+      "valid_domain": [
+        "Árbol sin ciclos; matrices finitas; bind pose definido."
+      ],
+      "boundary_conditions": [
+        "Transformación identidad conserva punto local; raíz sin padre define espacio mundo."
+      ],
+      "dimensional_checks": [
+        "Rotaciones/escalas son adimensionales; traslaciones y puntos tienen L.",
+        "El producto de matrices conserva unidad de posición."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:1",
+      "name": "Linear Blend Skinning",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición bind",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "M_i",
+          "meaning": "skin matrices",
+          "unit": "afín tipada",
+          "dimension": "rotación 1; traslación L",
+          "domain": "válidas"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "pesos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "w_i≥0; suma 1"
+        },
+        {
+          "symbol": "p'",
+          "meaning": "posición deformada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Los pesos deben normalizarse por vértice; matrices y punto usan mismo marco.",
+        "Todos los huesos influyentes pertenecen al rig de la malla."
+      ],
+      "valid_domain": [
+        "Pesos finitos; topología y skin indices válidos."
+      ],
+      "boundary_conditions": [
+        "Peso único 1 reproduce transformación de ese hueso; todos pesos cero requieren fallback."
+      ],
+      "dimensional_checks": [
+        "w_iM_ip conserva L; suma de posiciones ponderadas conserva L.",
+        "Pesos son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:2",
+      "name": "Dual Quaternion Skinning",
+      "variables": [
+        {
+          "symbol": "q_r",
+          "meaning": "Parte real (rotación) del dual quaternion",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "q_d",
+          "meaning": "Parte dual que codifica traslación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita; derivada de t·q_r/2"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "Peso de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos y normalizados"
+        },
+        {
+          "symbol": "p",
+          "meaning": "Posición de vértice",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "p′",
+          "meaning": "Posición transformada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "q_r es adimensional; q_d codifica traslación y tiene longitud porque q_d=½(0,t)q_r.",
+        "La mezcla ponderada de partes reales conserva dimensión 1; la mezcla de partes duales conserva L; normalizar el dual quaternion no debe borrar el tipado de traslación.",
+        "Alinear signos hemisféricos antes de mezclar para evitar cancelación."
+      ],
+      "valid_domain": [
+        "Dual quaternions válidos; pesos finitos; parte real no nula."
+      ],
+      "boundary_conditions": [
+        "Una influencia reproduce transformación; cuaternión dual degenerado se rechaza."
+      ],
+      "dimensional_checks": [
+        "q_r y w_i son adimensionales; q_d y traslación tienen L.",
+        "La transformación de p produce p′ con L; no asignar unidad única al par dual quaternion."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:3",
+      "name": "Inverse Kinematics CCD",
+      "variables": [
+        {
+          "symbol": "p_i,target",
+          "meaning": "pivotes y objetivo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo marco"
+        },
+        {
+          "symbol": "θ_i",
+          "meaning": "ángulo articular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dentro de límites"
+        },
+        {
+          "symbol": "tol",
+          "meaning": "tolerancia posicional",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "n_iter",
+          "meaning": "iteraciones",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Ángulo se calcula entre vectores desde pivote; objetivo y efector usan misma unidad.",
+        "Límites articulares y convención de ejes se aplican tras cada rotación."
+      ],
+      "valid_domain": [
+        "Cadena articulada válida; pivotes finitos; iteraciones limitadas."
+      ],
+      "boundary_conditions": [
+        "Objetivo ya alcanzado da ángulo correctivo cero; tolerancia se mide en L."
+      ],
+      "dimensional_checks": [
+        "Vectores tienen L; producto angular es adimensional; θ es rad.",
+        "La distancia de error y tol comparten L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:4",
+      "name": "FABRIK",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "posiciones articulaciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "l_i",
+          "meaning": "longitudes segmento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "target",
+          "meaning": "objetivo efector",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "tol",
+          "meaning": "tolerancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Cada pasada conserva longitud entre articulaciones; raíz fija o libre se declara.",
+        "Objetivo fuera del alcance requiere extensión máxima o política definida."
+      ],
+      "valid_domain": [
+        "Segmentos positivos; cadena finita; objetivo válido."
+      ],
+      "boundary_conditions": [
+        "Si target coincide con raíz y longitudes no nulas, usar postura singular controlada; objetivo inalcanzable activa alcance máximo."
+      ],
+      "dimensional_checks": [
+        "p_i, l_i, target y tol tienen L.",
+        "La normalización de dirección es adimensional; p_next conserva L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:5",
+      "name": "Jacobian Damped Least Squares IK",
+      "variables": [
+        {
+          "symbol": "θ",
+          "meaning": "vector ángulos",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "J",
+          "meaning": "Jacobiano",
+          "unit": "m/rad",
+          "dimension": "L por ángulo",
+          "domain": "compatible"
+        },
+        {
+          "symbol": "e",
+          "meaning": "error efector",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "amortiguación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ≥0; λ²I se suma a JJᵀ, por lo que λ tiene unidad m"
+        },
+        {
+          "symbol": "Δθ",
+          "meaning": "incremento articular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "J=∂x/∂θ tiene m/rad (rad adimensional); JJᵀ tiene m².",
+        "Como la fórmula usa JJᵀ+λ²I, λ debe tener m; Δθ=Jᵀ(JJᵀ+λ²I)⁻¹e es adimensional angular."
+      ],
+      "valid_domain": [
+        "Jacobiano finito; sistema resoluble; límites articulares definidos."
+      ],
+      "boundary_conditions": [
+        "Error cero produce Δθ=0; λ alto reduce paso; singularidad requiere amortiguación."
+      ],
+      "dimensional_checks": [
+        "J tiene L; JJᵀ y λ²I tienen L²; inversa tiene L⁻².",
+        "Jᵀ (L)·inversa (L⁻²)·e (L) produce ángulo adimensional Δθ."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:6",
+      "name": "Curva fuerza-longitud muscular",
+      "variables": [
+        {
+          "symbol": "F_max",
+          "meaning": "fuerza máxima",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "l",
+          "meaning": "longitud muscular",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad contracción",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "a",
+          "meaning": "activación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F_m",
+          "meaning": "fuerza muscular",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Funciones f_l y f_v son adimensionales; F_passive y F_m tienen N.",
+        "Longitud y velocidad se miden respecto de longitud de referencia y tiempo declarados."
+      ],
+      "valid_domain": [
+        "F_max>0; longitud positiva; funciones constitutivas definidas."
+      ],
+      "boundary_conditions": [
+        "a=0 elimina fuerza activa pero puede conservar tensión pasiva; velocidad cero usa valor isométrico."
+      ],
+      "dimensional_checks": [
+        "aF_max f_l f_v tiene N; F_passive también N.",
+        "No sumar longitud o velocidad directamente a fuerza."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:7",
+      "name": "Modelo Hill músculo-tendón",
+      "variables": [
+        {
+          "symbol": "F_CE,F_PE,F_SE",
+          "meaning": "fuerzas contráctil/pasiva/tendón",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "l_f,l_t",
+          "meaning": "longitudes fascículo/tendón",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "v_f",
+          "meaning": "velocidad fascículo",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "a",
+          "meaning": "activación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Equilibrio de fuerzas exige F_CE+F_PE y F_SE en N; geometría determina proyección sobre tendón.",
+        "Rigidez tendinosa y curva fuerza-longitud deben usar escalas de referencia compatibles."
+      ],
+      "valid_domain": [
+        "Longitudes positivas; fuerzas finitas; parámetros constitutivos definidos."
+      ],
+      "boundary_conditions": [
+        "Tensión nula en reposo solo si modelo y pre-tensión lo permiten; longitud cero se rechaza."
+      ],
+      "dimensional_checks": [
+        "Todas las fuerzas tienen N; longitudes L; velocidad L/T.",
+        "La ecuación de equilibrio es homogénea en fuerza."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:8",
+      "name": "Volumen muscular conservado",
+      "variables": [
+        {
+          "symbol": "V",
+          "meaning": "volumen",
+          "unit": "m³",
+          "dimension": {
+            "L": 3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "A_1,A_2",
+          "meaning": "áreas transversales",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "L_1,L_2",
+          "meaning": "longitudes",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "scale",
+          "meaning": "factor de bulge",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "A_2=A_1L_1/L_2 requiere longitud y área en unidades coherentes; supone volumen aproximadamente constante.",
+        "La aproximación visual no garantiza conservación exacta en mallas arbitrarias."
+      ],
+      "valid_domain": [
+        "L_1,L_2,A_1 positivos; deformación acotada."
+      ],
+      "boundary_conditions": [
+        "L_2=L_1 conserva área; L_2→0 es singular y se rechaza."
+      ],
+      "dimensional_checks": [
+        "A_1·L_1/L_2 tiene L²; V tiene L³.",
+        "El factor de escala es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:9",
+      "name": "Fascia y deslizamiento de tejidos",
+      "variables": [
+        {
+          "symbol": "μ",
+          "meaning": "coeficiente fricción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "N",
+          "meaning": "fuerza normal",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "F_t",
+          "meaning": "fuerza tangencial",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "|F_t|≤μN"
+        },
+        {
+          "symbol": "d",
+          "meaning": "deslizamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "layers",
+          "meaning": "capas",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ordenadas"
+        }
+      ],
+      "constraints": [
+        "F_t y μN tienen N; desplazamiento relativo d tiene L y no se suma a fuerza.",
+        "Contacto y fricción son aproximaciones visuales salvo calibración material."
+      ],
+      "valid_domain": [
+        "μ≥0; N≥0; capas y contactos válidos."
+      ],
+      "boundary_conditions": [
+        "N=0 implica límite de fricción cero; μ=0 elimina fricción tangencial."
+      ],
+      "dimensional_checks": [
+        "μ adimensional; μN tiene N; d tiene L.",
+        "Índices de capas son discretos."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:10",
+      "name": "Corrective blendshape por pose",
+      "variables": [
+        {
+          "symbol": "p_skin",
+          "meaning": "posición tras skinning",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δp_k",
+          "meaning": "delta correctiva",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "misma topología"
+        },
+        {
+          "symbol": "c_k",
+          "meaning": "peso correctivo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "pose",
+          "meaning": "features articulares",
+          "unit": "rad y/o 1",
+          "dimension": "tipado",
+          "domain": "finita"
+        },
+        {
+          "symbol": "p'",
+          "meaning": "posición final",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Cada delta comparte topología y unidad; función c_k(pose) devuelve peso adimensional.",
+        "Correctivos se aplican en etapa definida del pipeline y no duplican deformación."
+      ],
+      "valid_domain": [
+        "Targets válidos; pesos finitos; pose dentro de dominio calibrado."
+      ],
+      "boundary_conditions": [
+        "c_k=0 elimina correctivo; pose neutra produce base si así se define."
+      ],
+      "dimensional_checks": [
+        "c_kΔp_k tiene L; p' conserva L.",
+        "Pose angular/normalizada se mantiene tipada."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:11",
+      "name": "Anatomía segmentaria de mano",
+      "variables": [
+        {
+          "symbol": "l_i",
+          "meaning": "longitudes falanges",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "θ_i",
+          "meaning": "ángulos articulaciones",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango del rig"
+        },
+        {
+          "symbol": "p_tip",
+          "meaning": "posición punta dedo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "T_i,R_i",
+          "meaning": "transformaciones",
+          "unit": "afín tipada",
+          "dimension": "rotación 1; traslación L",
+          "domain": "válidas"
+        }
+      ],
+      "constraints": [
+        "Cada cadena respeta longitud de falanges; ejes/pivotes y marco de palma declarados.",
+        "Acoplamiento tendinoso es relación angular/peso, no fuerza salvo modelo físico."
+      ],
+      "valid_domain": [
+        "Longitudes positivas; articulaciones dentro de límites."
+      ],
+      "boundary_conditions": [
+        "Ángulos cero reproducen pose neutra; contacto objetivo inalcanzable activa límite IK."
+      ],
+      "dimensional_checks": [
+        "l_i y p_tip tienen L; θ_i y rotaciones son adimensionales angulares.",
+        "La composición de transformaciones conserva L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D37:12",
+      "name": "Respiración torácica procedural",
+      "variables": [
+        {
+          "symbol": "A_disp",
+          "meaning": "Amplitud de desplazamiento torácico",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y acotada"
+        },
+        {
+          "symbol": "A_morph",
+          "meaning": "Amplitud de peso morph opcional",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango del morph"
+        },
+        {
+          "symbol": "f",
+          "meaning": "Frecuencia respiratoria",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "f>0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "Tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "φ",
+          "meaning": "Fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "r(t)",
+          "meaning": "Desplazamiento o control animado",
+          "unit": "m para desplazamiento; 1 para morph weight",
+          "dimension": "hereda de A_disp o A_morph según canal",
+          "domain": "canales separados"
+        }
+      ],
+      "constraints": [
+        "r(t)=r0+A_disp sin(2πft+φ) tiene L si r0 y A_disp son desplazamientos.",
+        "Si se controla un morph weight, usar A_morph adimensional en un canal separado; no mezclar m y 1."
+      ],
+      "valid_domain": [
+        "f>0; A finita; tiempo finito."
+      ],
+      "boundary_conditions": [
+        "A=0 elimina movimiento; f=0 produce señal constante y no respiración periódica."
+      ],
+      "dimensional_checks": [
+        "ft y φ son adimensionales; A_disp y r0 tienen L.",
+        "A_morph es adimensional y solo controla peso de morph. Separar canales evita ambigüedad."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "13/13 técnicas incluidas; ninguna protegida",
+      "Cada registro contiene variables, restricciones, dominios, condiciones límite y comprobaciones dimensionales específicas",
+      "Corregida dimensión de parte dual de dual-quaternion, λ de DLS y separación entre amplitud física y morph en respiración"
+    ],
+    "limitations": [
+      "Los rangos articulares y musculares requieren calibración anatómica/estilística; la auditoría dimensional no certifica biomecánica fisiológica."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

@@ -1,0 +1,485 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D17 Objetos, vehículos, maquinaria y mecanismos",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D17",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D17 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D17:0",
+      "name": "Vehículo por chasis jerárquico",
+      "starting_principles": [
+        "Matrices afines y convención de multiplicación fijas.",
+        "Offset en marco del chasis; ángulos radianes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "M_wheel,local=T(offset)R(steer)R(spin)",
+          "justification": "Construir transformación de rueda desde su pivote local."
+        },
+        {
+          "step": 2,
+          "equation": "M_wheel,world=M_vehicle,world M_wheel,local",
+          "justification": "Componer transformación local con chasis."
+        },
+        {
+          "step": 3,
+          "equation": "p_wheel=M_wheel,world p_geometry",
+          "justification": "Transformar vértices de rueda al mundo."
+        },
+        {
+          "step": 4,
+          "equation": "M_vehicle,world=M_parent M_vehicle,local",
+          "justification": "Integrar el vehículo en una jerarquía superior si existe."
+        }
+      ],
+      "assumptions": [
+        "Matrices afines y convención de multiplicación fijas.",
+        "Offset en marco del chasis; ángulos radianes.",
+        "El orden de giro y dirección está definido."
+      ],
+      "result": "El vehículo se construye con una transformación del chasis y subárboles locales para ruedas.",
+      "limits": [
+        "No representa deformación de neumático ni suspensión por sí sola."
+      ],
+      "dimensional_verification": [
+        "Matrices afines tienen bloque lineal adimensional y traslaciones L; offsets de ruedas tienen L.",
+        "Ángulos de dirección/rotación son radianes; la transformación conserva posición L."
+      ]
+    },
+    {
+      "record_key": "D17:1",
+      "name": "Rotación de rueda",
+      "starting_principles": [
+        "r>0 y constante; rodadura pura sin slip.",
+        "distance y r en misma unidad; θ en radianes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "v=distance/Δt",
+          "justification": "Definir velocidad lineal de avance."
+        },
+        {
+          "step": 2,
+          "equation": "v=rω",
+          "justification": "Condición de rodadura sin deslizamiento: velocidad tangencial del borde igual a velocidad del centro."
+        },
+        {
+          "step": 3,
+          "equation": "ω=v/r",
+          "justification": "Despejar velocidad angular."
+        },
+        {
+          "step": 4,
+          "equation": "θ=∫ωdt=distance/r",
+          "justification": "Integrar; para radio constante el ángulo es distancia recorrida dividida por radio."
+        }
+      ],
+      "assumptions": [
+        "r>0 y constante; rodadura pura sin slip.",
+        "distance y r en misma unidad; θ en radianes."
+      ],
+      "result": "La relación de rodadura se deriva de igualdad entre desplazamiento lineal y arco s=rθ.",
+      "limits": [
+        "Con deslizamiento, deformación o radio variable la relación debe modificarse."
+      ],
+      "dimensional_verification": [
+        "distance y r tienen L; θ=distance/r es adimensional angular.",
+        "v tiene L/T y ω=v/r tiene T⁻¹."
+      ]
+    },
+    {
+      "record_key": "D17:2",
+      "name": "Suspensión",
+      "starting_principles": [
+        "m>0; c,k≥0; x,y en longitud.",
+        "F_ext se distingue de y(t): fuerza y desplazamiento de carretera no son intercambiables."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_s=−k(x−y)",
+          "justification": "La fuerza elástica depende del desplazamiento relativo entre masa x y base de carretera y."
+        },
+        {
+          "step": 2,
+          "equation": "F_d=−c(x'−y')",
+          "justification": "El amortiguador depende de velocidad relativa."
+        },
+        {
+          "step": 3,
+          "equation": "m x''=F_s+F_d+F_ext",
+          "justification": "Aplicar segunda ley de Newton a la masa suspendida."
+        },
+        {
+          "step": 4,
+          "equation": "m x''+c(x'−y')+k(x−y)=F_ext",
+          "justification": "Reordenar para excitación de base y fuerza externa."
+        },
+        {
+          "step": 5,
+          "equation": "If y=0: m x''+c x'+kx=F_ext",
+          "justification": "Recuperar el oscilador forzado con base fija."
+        }
+      ],
+      "assumptions": [
+        "m>0; c,k≥0; x,y en longitud.",
+        "F_ext se distingue de y(t): fuerza y desplazamiento de carretera no son intercambiables.",
+        "Condiciones iniciales y unidades de tiempo declaradas.",
+        "RoadInput en la ecuación base es desplazamiento y(t) con L; F_ext es fuerza con N; no se intercambian ni suman directamente."
+      ],
+      "result": "La suspensión se deriva de fuerzas de resorte y amortiguador que dependen del movimiento relativo entre carrocería y base.",
+      "limits": [
+        "RoadInput debe tiparse como desplazamiento de base o fuerza externa; sumarlos directamente es dimensionalmente incorrecto."
+      ],
+      "dimensional_verification": [
+        "m tiene kg; c kg/s; k N/m=kg/s²; x,y tienen L.",
+        "m x'' , c(x'−y') y k(x−y) tienen N; y es desplazamiento de base, F_ext es fuerza."
+      ]
+    },
+    {
+      "record_key": "D17:3",
+      "name": "Dirección Ackermann simplificada",
+      "starting_principles": [
+        "L>0; W>0; R>W/2.",
+        "Modelo plano, ruedas rígidas y geometría ideal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "tanδ_i=L/(R−W/2)",
+          "justification": "La rueda interior sigue un círculo de radio menor R−W/2."
+        },
+        {
+          "step": 2,
+          "equation": "tanδ_o=L/(R+W/2)",
+          "justification": "La rueda exterior sigue un círculo de radio mayor R+W/2."
+        },
+        {
+          "step": 3,
+          "equation": "δ_i=atan(L/(R−W/2)); δ_o=atan(L/(R+W/2))",
+          "justification": "Despejar ángulos de dirección a partir de triángulos rectángulos formados por wheelbase y radios."
+        },
+        {
+          "step": 4,
+          "equation": "R→∞ ⇒ δ_i,δ_o→0",
+          "justification": "En trayectoria recta los ángulos convergen a cero."
+        }
+      ],
+      "assumptions": [
+        "L>0; W>0; R>W/2.",
+        "Modelo plano, ruedas rígidas y geometría ideal.",
+        "R medido desde centro del eje trasero según convención."
+      ],
+      "result": "Ackermann se deriva de que las ruedas interior y exterior deben ser tangentes a círculos concéntricos alrededor del mismo centro instantáneo de giro.",
+      "limits": [
+        "Es aproximación geométrica; no modela neumáticos, slip angle ni flexibilidad."
+      ],
+      "dimensional_verification": [
+        "L,W,R tienen L; cocientes L/(R±W/2) son adimensionales.",
+        "δ_i,δ_o son ángulos en radianes; condiciones R>W/2 evitan denominador no positivo."
+      ]
+    },
+    {
+      "record_key": "D17:4",
+      "name": "Hélice",
+      "starting_principles": [
+        "r,z en longitud; θ y φ en radianes.",
+        "ω constante por tramo o función temporal declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ(t)=θ_0+ωt",
+          "justification": "Definir fase angular del rotor."
+        },
+        {
+          "step": 2,
+          "equation": "R_z(φ)=[[cosφ,−sinφ,0],[sinφ,cosφ,0],[0,0,1]]",
+          "justification": "Construir rotación alrededor del eje z."
+        },
+        {
+          "step": 3,
+          "equation": "P(r,θ,t)=R_z(φ)(r cosθ,r sinθ,z)",
+          "justification": "Aplicar rotación a cada punto de pala."
+        },
+        {
+          "step": 4,
+          "equation": "ω=2πf",
+          "justification": "Relacionar velocidad angular con frecuencia de giro."
+        }
+      ],
+      "assumptions": [
+        "r,z en longitud; θ y φ en radianes.",
+        "ω constante por tramo o función temporal declarada.",
+        "Eje de rotación y origen definidos."
+      ],
+      "result": "La hélice/rotor se anima aplicando una matriz de rotación temporal a su geometría local.",
+      "limits": [
+        "No incluye deformación aerodinámica ni cargas del rotor."
+      ],
+      "dimensional_verification": [
+        "ω tiene T⁻¹; t tiene T; φ=θ0+ωt es adimensional angular.",
+        "r,z y puntos de pala tienen L; la matriz de rotación es adimensional."
+      ]
+    },
+    {
+      "record_key": "D17:5",
+      "name": "Engranajes",
+      "starting_principles": [
+        "Engranajes externos ideales; módulo y geometría compatibles.",
+        "Velocidades angulares y radios finitos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "v_t1=r_1ω_1; v_t2=r_2ω_2",
+          "justification": "Velocidad tangencial en cada círculo primitivo."
+        },
+        {
+          "step": 2,
+          "equation": "v_t1=−v_t2",
+          "justification": "En engrane externo ideal, las superficies de contacto tienen velocidades tangenciales opuestas."
+        },
+        {
+          "step": 3,
+          "equation": "r_1ω_1=−r_2ω_2",
+          "justification": "Obtener relación de velocidades."
+        },
+        {
+          "step": 4,
+          "equation": "r_1/r_2=N_1/N_2 ⇒ ω_1/ω_2=−N_2/N_1",
+          "justification": "Para módulo de diente común, radio primitivo es proporcional al número de dientes."
+        }
+      ],
+      "assumptions": [
+        "Engranajes externos ideales; módulo y geometría compatibles.",
+        "Velocidades angulares y radios finitos.",
+        "Pérdidas, elasticidad y holgura omitidas."
+      ],
+      "result": "La relación de transmisión deriva de igualdad de velocidades tangenciales en el punto de contacto.",
+      "limits": [
+        "Engranajes internos invierten la relación de signo; mecanismos compuestos requieren relaciones por etapa."
+      ],
+      "dimensional_verification": [
+        "r_1,r_2 tienen L; ω_1,ω_2 tienen T⁻¹; velocidades tangenciales rω tienen L/T.",
+        "N_1,N_2 son conteos adimensionales; relación de transmisión es adimensional."
+      ]
+    },
+    {
+      "record_key": "D17:6",
+      "name": "Pistón-biela",
+      "starting_principles": [
+        "l≥r≥0; radicando no negativo.",
+        "Mecanismo plano y biela rígida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "A=(r cosθ,r sinθ)",
+          "justification": "Ubicar muñón de manivela a radio r."
+        },
+        {
+          "step": 2,
+          "equation": "B=(x,0)",
+          "justification": "El pasador del pistón se desplaza sobre el eje x."
+        },
+        {
+          "step": 3,
+          "equation": "||B−A||²=l²",
+          "justification": "Imponer longitud constante de biela."
+        },
+        {
+          "step": 4,
+          "equation": "(x−r cosθ)²+r²sin²θ=l²",
+          "justification": "Expandir la distancia euclidiana."
+        },
+        {
+          "step": 5,
+          "equation": "x=r cosθ+√(l²−r²sin²θ)",
+          "justification": "Despejar la rama geométrica positiva para posición del pistón."
+        }
+      ],
+      "assumptions": [
+        "l≥r≥0; radicando no negativo.",
+        "Mecanismo plano y biela rígida.",
+        "θ en radianes."
+      ],
+      "result": "La posición del pistón se obtiene de la restricción geométrica de longitud constante de la biela.",
+      "limits": [
+        "La singularidad de alineación y la rama de ensamblaje deben manejarse según configuración del mecanismo."
+      ],
+      "dimensional_verification": [
+        "r,l,x tienen L; radicando l²−r²sin²θ tiene L² y raíz L.",
+        "θ es adimensional angular; la ecuación devuelve posición x con L."
+      ]
+    },
+    {
+      "record_key": "D17:7",
+      "name": "Cable o cadena",
+      "starting_principles": [
+        "Puntos y radios en misma unidad; r(u)>0.",
+        "Marco N,B ortonormal y estable."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(u)=CatmullRom(P_0,…,P_n,u)",
+          "justification": "Interpolar puntos de control para obtener línea central."
+        },
+        {
+          "step": 2,
+          "equation": "T=normalize(C'(u))",
+          "justification": "Calcular tangente local."
+        },
+        {
+          "step": 3,
+          "equation": "P(u,θ)=C(u)+r(u)(N cosθ+B sinθ)",
+          "justification": "Construir tubo alrededor de la curva usando marco local."
+        },
+        {
+          "step": 4,
+          "equation": "r(u)=interpolate(r_i,u)",
+          "justification": "Variar radio a lo largo de la ruta."
+        }
+      ],
+      "assumptions": [
+        "Puntos y radios en misma unidad; r(u)>0.",
+        "Marco N,B ortonormal y estable.",
+        "La cadena articulada real se aproxima visualmente por tubo continuo."
+      ],
+      "result": "Un cable/manguera se deriva como barrido de una sección circular a lo largo de una spline.",
+      "limits": [
+        "Para cadena articulada, la aproximación tubular no representa eslabones rígidos ni articulaciones."
+      ],
+      "dimensional_verification": [
+        "P_i,C(u),r(u) tienen L; u y θ son adimensionales angulares.",
+        "T,N,B son direcciones unitarias; P(u,θ) conserva L."
+      ]
+    },
+    {
+      "record_key": "D17:8",
+      "name": "Puertas y bisagras",
+      "starting_principles": [
+        "Pivot y punto comparten marco/unidad.",
+        "Eje unitario; θ en radianes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p'=p−pivot",
+          "justification": "Trasladar punto al marco con pivote en origen."
+        },
+        {
+          "step": 2,
+          "equation": "p''=R_axis(θ)p'",
+          "justification": "Rotar alrededor del eje de bisagra."
+        },
+        {
+          "step": 3,
+          "equation": "p_world=pivot+p''",
+          "justification": "Trasladar de vuelta al marco original."
+        },
+        {
+          "step": 4,
+          "equation": "M=T(pivot)R(θ)T(−pivot)",
+          "justification": "Componer las tres operaciones en matriz homogénea."
+        }
+      ],
+      "assumptions": [
+        "Pivot y punto comparten marco/unidad.",
+        "Eje unitario; θ en radianes.",
+        "Orden de matrices corresponde a vectores columna."
+      ],
+      "result": "La bisagra se deriva de una rotación alrededor de un punto arbitrario mediante traslación al origen y regreso.",
+      "limits": [
+        "Ejes deformables o bisagras con múltiples grados de libertad requieren articulación adicional."
+      ],
+      "dimensional_verification": [
+        "p y pivot tienen L; R(θ) es adimensional; traslaciones tienen L.",
+        "La composición T(pivot)R(θ)T(−pivot) conserva posición L."
+      ]
+    },
+    {
+      "record_key": "D17:9",
+      "name": "Rigidbody approximation",
+      "starting_principles": [
+        "m>0; tensor de inercia válido; fuerzas/torques finitos.",
+        "Tiempo y longitud coherentes; orientación unitaria."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_net=ΣF_i",
+          "justification": "Sumar fuerzas externas y de contacto."
+        },
+        {
+          "step": 2,
+          "equation": "m a=F_net ⇒ a=F_net/m",
+          "justification": "Aplicar segunda ley de Newton."
+        },
+        {
+          "step": 3,
+          "equation": "τ_body=Iα+ω×(Iω)",
+          "justification": "Aplicar la ecuación de Euler en marco del cuerpo: el primer término es aceleración angular ponderada por inercia y el segundo corrige el acoplamiento giroscópico cuando la velocidad angular no está alineada con un eje principal."
+        },
+        {
+          "step": 4,
+          "equation": "v_{n+1}=v_n+aΔt; p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar estado lineal."
+        },
+        {
+          "step": 5,
+          "equation": "ω_{n+1}=ω_n+αΔt; q_{n+1}=integrate(q_n,ω,Δt)",
+          "justification": "Integrar estado angular y actualizar orientación."
+        },
+        {
+          "step": 6,
+          "equation": "si I es escalar/isotrópico o ω×(Iω)=0: τ=Iα",
+          "justification": "Recuperar la aproximación escalar del catálogo bajo sus condiciones explícitas."
+        }
+      ],
+      "assumptions": [
+        "m>0; tensor de inercia válido; fuerzas/torques finitos.",
+        "Tiempo y longitud coherentes; orientación unitaria.",
+        "Contactos y restricciones se resuelven aparte.",
+        "Iα=τ se usa en eje principal o aproximación escalar; el caso 3D general requiere término giroscópico ω×(Iω).",
+        "La ecuación rotacional completa se expresa en marco del cuerpo; la simplificación Iα exige ejes principales, inercia isotrópica o término giroscópico nulo."
+      ],
+      "result": "La aproximación rígida se deriva de Newton–Euler: fuerza lineal y ecuación rotacional completa, con simplificación escalar solo bajo condiciones de simetría/alineación.",
+      "limits": [
+        "La integración explícita puede ser inestable con pasos grandes; colisiones y fricción requieren modelos separados."
+      ],
+      "dimensional_verification": [
+        "F tiene N; m kg; a L/T²; torque N·m; I kg·m²; α T⁻².",
+        "ω tiene T⁻¹; ω×(Iω) tiene kg·m²·s⁻²=N·m.",
+        "vΔt tiene L; aΔt tiene L/T; ωΔt es ángulo adimensional; quaternion es adimensional."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "10/10 técnicas D17 cubiertas; ninguna protegida",
+      "Cada derivación tiene pasos matemáticos justificados, supuestos, límites y verificación dimensional",
+      "Suspensión separa desplazamiento de carretera y fuerza externa",
+      "Ackermann, engranajes y pistón-biela conservan relaciones geométricas homogéneas",
+      "Newton–Euler tipa fuerza, torque, inercia, aceleración y velocidad angular",
+      "Newton–Euler incluye término giroscópico y delimita cuándo es válida la forma τ=Iα."
+    ],
+    "limitations": [
+      "Los modelos son aproximaciones para animación y simulación visual; no constituyen especificaciones de ingeniería mecánica certificada ni validación de un vehículo real."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

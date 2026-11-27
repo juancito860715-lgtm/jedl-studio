@@ -1,0 +1,465 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D25 Iluminación global, radiosidad y reflejos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D25",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D25 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D25:0",
+      "name": "Radiosity",
+      "starting_principles": [
+        "Superficies difusas; factores de forma y reflectancias definidos.",
+        "Sistema lineal con reflectancias en rango estable."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "B_i=E_i+ρ_iH_i",
+          "justification": "Balancear emisión propia y energía reflejada."
+        },
+        {
+          "step": 2,
+          "equation": "H_i=Σ_jF_{j→i}B_j",
+          "justification": "La irradiancia difusa que llega a i es suma de radiosidad de otras superficies ponderada por factor de forma."
+        },
+        {
+          "step": 3,
+          "equation": "B_i=E_i+ρ_iΣ_jF_{j→i}B_j",
+          "justification": "Sustituir H_i para obtener sistema lineal acoplado."
+        },
+        {
+          "step": 4,
+          "equation": "B=(I−R Fᵀ)^{-1}E",
+          "justification": "Escribir el sistema en forma matricial si la inversa existe."
+        }
+      ],
+      "assumptions": [
+        "Superficies difusas; factores de forma y reflectancias definidos.",
+        "Sistema lineal con reflectancias en rango estable."
+      ],
+      "result": "Radiosity se deriva del balance de energía difusa entre superficies y forma un sistema lineal.",
+      "limits": [
+        "La solución completa puede ser costosa; discretización de superficies introduce error."
+      ],
+      "dimensional_verification": [
+        "B_i,E_i,H_i tienen W/m²; ρ_i y F_ji son adimensionales.",
+        "La suma radiosidad emitida+reflejada conserva W/m²."
+      ]
+    },
+    {
+      "record_key": "D25:1",
+      "name": "Form factor",
+      "starting_principles": [
+        "Superficies y visibilidad definidas; cosenos no negativos.",
+        "Integración de área con unidad consistente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dF_{i→j}=cosθ_i cosθ_j V/(πr²)dA_j",
+          "justification": "La contribución diferencial depende de proyección geométrica, visibilidad y distancia."
+        },
+        {
+          "step": 2,
+          "equation": "F_{i→j}=(1/A_i)∫_{A_i}∫_{A_j}...dA_jdA_i",
+          "justification": "Promediar sobre área emisora y receptora."
+        },
+        {
+          "step": 3,
+          "equation": "A_iF_{i→j}=A_jF_{j→i}",
+          "justification": "Derivar reciprocidad al intercambiar pares de puntos y áreas."
+        },
+        {
+          "step": 4,
+          "equation": "Σ_jF_{i→j}=1 in closed enclosure",
+          "justification": "La energía que sale de i debe alcanzar alguna superficie en recinto cerrado."
+        }
+      ],
+      "assumptions": [
+        "Superficies y visibilidad definidas; cosenos no negativos.",
+        "Integración de área con unidad consistente.",
+        "F_ij es adimensional; la integración sobre ambas superficies incluye el promedio 1/A_i y usa la misma unidad de área."
+      ],
+      "result": "El factor de forma es una integral geométrica de visibilidad y cosenos sobre dos áreas.",
+      "limits": [
+        "El cálculo numérico es caro y requiere muestreo/visibilidad robustos."
+      ],
+      "dimensional_verification": [
+        "A_i,A_j,dA tienen m²; r² tiene m²; cosenos, V y π son adimensionales.",
+        "F_ij resulta adimensional; reciprocidad A_iF_ij=A_jF_ji tiene m²."
+      ]
+    },
+    {
+      "record_key": "D25:2",
+      "name": "Ambient cube",
+      "starting_principles": [
+        "Entorno representable por baja frecuencia; normales unitarias.",
+        "Irradiancia y radiancia en mismo espacio."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E(n)=∫_ΩL(ω)max(n·ω,0)dω",
+          "justification": "Definir irradiancia difusa ambiental."
+        },
+        {
+          "step": 2,
+          "equation": "L(ω)≈Σ_{l≤1,m}c_{lm}Y_{lm}(ω)",
+          "justification": "Aproximar entorno con armónicos de baja frecuencia."
+        },
+        {
+          "step": 3,
+          "equation": "E(n)≈Σ_{l≤1,m}k_lc_{lm}Y_{lm}(n)",
+          "justification": "La convolución con kernel coseno escala cada banda por factor k_l."
+        },
+        {
+          "step": 4,
+          "equation": "sample six directions / fit coefficients",
+          "justification": "Un ambient cube almacena aproximaciones direccionales en seis ejes y combina según normal."
+        }
+      ],
+      "assumptions": [
+        "Entorno representable por baja frecuencia; normales unitarias.",
+        "Irradiancia y radiancia en mismo espacio."
+      ],
+      "result": "Ambient cube aproxima irradiancia hemisférica mediante muestras direccionales discretas.",
+      "limits": [
+        "No representa alta frecuencia ni iluminación fuera de las direcciones almacenadas."
+      ],
+      "dimensional_verification": [
+        "L(ω) tiene radiancia W·m⁻²·sr⁻¹; dω sr; E(n) tiene W/m².",
+        "SH coefficients inherit radiance/irradiance scale according to projection; Y_lm and convolution factors are dimensionless under normalized angular measure."
+      ]
+    },
+    {
+      "record_key": "D25:3",
+      "name": "Spherical harmonics",
+      "starting_principles": [
+        "Iluminación cuadrado-integrable sobre esfera; base ortonormal.",
+        "Truncamiento finito de bandas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Y_lm form orthonormal basis on sphere",
+          "justification": "Usar funciones ortogonales sobre esfera."
+        },
+        {
+          "step": 2,
+          "equation": "c_lm=∫_{S²}L(ω)Y_lm(ω)dω",
+          "justification": "Proyectar iluminación sobre cada base."
+        },
+        {
+          "step": 3,
+          "equation": "L(ω)≈Σ_{l=0}^{Lmax}Σ_{m=−l}^l c_lmY_lm(ω)",
+          "justification": "Reconstruir señal truncada a un número finito de bandas."
+        },
+        {
+          "step": 4,
+          "equation": "higher l ⇒ higher angular frequency",
+          "justification": "Aumentar bandas permite representar variación angular más fina."
+        }
+      ],
+      "assumptions": [
+        "Iluminación cuadrado-integrable sobre esfera; base ortonormal.",
+        "Truncamiento finito de bandas."
+      ],
+      "result": "SH representa iluminación esférica como expansión en una base ortonormal.",
+      "limits": [
+        "Truncamiento a pocas bandas suaviza detalles de iluminación."
+      ],
+      "dimensional_verification": [
+        "Y_lm and solid-angle measure are dimensionless in SI base dimensions; c_lm inherits signal/radiance scale.",
+        "The truncated sum reconstructs L with same unit as coefficients."
+      ]
+    },
+    {
+      "record_key": "D25:4",
+      "name": "Reflection probe blending",
+      "starting_principles": [
+        "Probes y cubemaps alineados en mundo; pesos no negativos.",
+        "Suma de pesos positiva."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L_i(reflectDir)=sample(probe_i,reflectDir)",
+          "justification": "Consultar cada cubemap según dirección reflejada."
+        },
+        {
+          "step": 2,
+          "equation": "w_i(p)≥0",
+          "justification": "Definir peso espacial de cada probe."
+        },
+        {
+          "step": 3,
+          "equation": "w'_i=w_i/Σ_jw_j",
+          "justification": "Normalizar pesos."
+        },
+        {
+          "step": 4,
+          "equation": "L(p)=Σ_iw'_iL_i",
+          "justification": "Combinar probes sin cambiar escala de iluminación."
+        }
+      ],
+      "assumptions": [
+        "Probes y cubemaps alineados en mundo; pesos no negativos.",
+        "Suma de pesos positiva."
+      ],
+      "result": "Blending combina radiancia de probes locales con pesos espaciales normalizados.",
+      "limits": [
+        "Probes no representan oclusión/paralaje exactos fuera de sus volúmenes."
+      ],
+      "dimensional_verification": [
+        "L_i are radiances in same units/color space; w_i are dimensionless and sum to 1.",
+        "The weighted blend L preserves radiance units."
+      ]
+    },
+    {
+      "record_key": "D25:5",
+      "name": "Parallax-corrected cubemap",
+      "starting_principles": [
+        "Proxy box contiene el espacio representado; rayo no nulo.",
+        "Probe center y punto de superficie en mismo marco."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r=reflect(−v,n)",
+          "justification": "Calcular dirección de reflexión en superficie."
+        },
+        {
+          "step": 2,
+          "equation": "t_hit=intersectRay(proxyBox,p,r)",
+          "justification": "Intersectar rayo con caja proxy del recinto."
+        },
+        {
+          "step": 3,
+          "equation": "q=p+t_hit r",
+          "justification": "Obtener punto de intersección."
+        },
+        {
+          "step": 4,
+          "equation": "dir_probe=normalize(q−probeCenter)",
+          "justification": "Convertir punto de intersección a dirección desde centro de probe."
+        },
+        {
+          "step": 5,
+          "equation": "C=sample(cubemap,dir_probe)",
+          "justification": "Consultar cubemap con dirección corregida por paralaje."
+        }
+      ],
+      "assumptions": [
+        "Proxy box contiene el espacio representado; rayo no nulo.",
+        "Probe center y punto de superficie en mismo marco."
+      ],
+      "result": "Parallax correction aproxima punto de reflexión dentro de un volumen proxy antes de consultar cubemap.",
+      "limits": [
+        "Proxy box aproximada puede fallar en habitaciones no convexas o geometría compleja."
+      ],
+      "dimensional_verification": [
+        "p, q and probeCenter have L; r is unitless; t_hit has L.",
+        "dir_probe is normalized and dimensionless; cubemap coordinates are angular/normalized."
+      ]
+    },
+    {
+      "record_key": "D25:6",
+      "name": "Screen-space reflections",
+      "starting_principles": [
+        "Depth/color buffers sincronizados con cámara actual.",
+        "Rayo y depth usan misma proyección; paso y thickness definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r=reflect(−v,n)",
+          "justification": "Obtener dirección reflejada en view space."
+        },
+        {
+          "step": 2,
+          "equation": "p_{k+1}=p_k+Δs r",
+          "justification": "Avanzar rayo en pasos."
+        },
+        {
+          "step": 3,
+          "equation": "uv_k=Project(p_k)",
+          "justification": "Proyectar muestra al depth buffer."
+        },
+        {
+          "step": 4,
+          "equation": "hit iff z_ray crosses z_scene within thickness",
+          "justification": "Detectar intersección aproximada con profundidad de escena."
+        },
+        {
+          "step": 5,
+          "equation": "C_reflect=sample(colorBuffer,uv_hit)",
+          "justification": "Tomar color de punto de impacto en pantalla."
+        }
+      ],
+      "assumptions": [
+        "Depth/color buffers sincronizados con cámara actual.",
+        "Rayo y depth usan misma proyección; paso y thickness definidos.",
+        "El depth buffer debe linearizarse o compararse en su codificación original consistente; thickness comparte esa unidad."
+      ],
+      "result": "SSR estima reflejos trazando un rayo en profundidad visible de pantalla.",
+      "limits": [
+        "SSR no ve objetos fuera de pantalla ni superficies ocultas."
+      ],
+      "dimensional_verification": [
+        "p_k and Δs have L; r direction is unitless; projected uv is dimensionless.",
+        "z_ray, z_scene and thickness use same depth unit/encoding."
+      ]
+    },
+    {
+      "record_key": "D25:7",
+      "name": "Planar reflection",
+      "starting_principles": [
+        "Plano normalizado; transformación de cámara reflejada válida.",
+        "Clip plane configurado para evitar autorreflejo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "plane: n·x+d=0",
+          "justification": "Definir plano de reflexión con normal unitaria."
+        },
+        {
+          "step": 2,
+          "equation": "p'=p−2(n·p+d)n",
+          "justification": "Reflejar punto respecto al plano."
+        },
+        {
+          "step": 3,
+          "equation": "R=I−2nnᵀ; t=−2dn",
+          "justification": "Escribir transformación afín de reflexión."
+        },
+        {
+          "step": 4,
+          "equation": "view'=view·R_reflection or equivalent",
+          "justification": "Construir cámara reflejada y ajustar clipping para evitar geometría del lado opuesto."
+        }
+      ],
+      "assumptions": [
+        "Plano normalizado; transformación de cámara reflejada válida.",
+        "Clip plane configurado para evitar autorreflejo."
+      ],
+      "result": "Planar reflection se deriva de reflejar puntos/cámara respecto a un plano.",
+      "limits": [
+        "Solo es exacta para plano; objetos fuera del buffer/reflection clip no aparecen."
+      ],
+      "dimensional_verification": [
+        "n is unitless; p has L; plane offset d has L.",
+        "R is dimensionless; translation t has L; reflected point remains L."
+      ]
+    },
+    {
+      "record_key": "D25:8",
+      "name": "Light probes",
+      "starting_principles": [
+        "Probes en posiciones conocidas; SH de mismo orden/convenio.",
+        "Pesos normalizados y espacio de color coherente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L(ω)≈Σ_lm c_lmY_lm(ω)",
+          "justification": "Representar iluminación incidente por SH."
+        },
+        {
+          "step": 2,
+          "equation": "c_lm=Σ_iw_iL_iY_lm(ω_i)",
+          "justification": "Estimar coeficientes desde muestras de entorno/probe."
+        },
+        {
+          "step": 3,
+          "equation": "E(n)=Σ_lm k_lc_lmY_lm(n)",
+          "justification": "Convolucionar para irradiancia difusa."
+        },
+        {
+          "step": 4,
+          "equation": "blend probes with normalized weights",
+          "justification": "Interpolar coeficientes o irradiancias entre probes."
+        }
+      ],
+      "assumptions": [
+        "Probes en posiciones conocidas; SH de mismo orden/convenio.",
+        "Pesos normalizados y espacio de color coherente."
+      ],
+      "result": "Light probes almacenan coeficientes de iluminación y reconstruyen irradiancia difusa.",
+      "limits": [
+        "SH de bajo orden no reproduce reflejos especulares de alta frecuencia."
+      ],
+      "dimensional_verification": [
+        "SH basis and blend weights are dimensionless; coefficients retain irradiance W/m².",
+        "E(n) retains W/m² after cosine-kernel convolution."
+      ]
+    },
+    {
+      "record_key": "D25:9",
+      "name": "Caustics",
+      "starting_principles": [
+        "Rayos y superficie receptora parametrizables; flujo por rayo conocido.",
+        "Footprint no nulo; refracción y visibilidad coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ray_i refracts through interface",
+          "justification": "Obtener dirección transmitida por Snell."
+        },
+        {
+          "step": 2,
+          "equation": "x_i=map(ray_i,receiverSurface)",
+          "justification": "Mapear cada rayo a posición de recepción."
+        },
+        {
+          "step": 3,
+          "equation": "A_footprint≈|∂x/∂u×∂x/∂v|ΔuΔv",
+          "justification": "Calcular área local cubierta por un paquete de rayos."
+        },
+        {
+          "step": 4,
+          "equation": "E(x)≈Σ_iΦ_i/A_footprint,i",
+          "justification": "Conservar flujo por área para estimar concentración luminosa."
+        }
+      ],
+      "assumptions": [
+        "Rayos y superficie receptora parametrizables; flujo por rayo conocido.",
+        "Footprint no nulo; refracción y visibilidad coherentes.",
+        "Φ_i representa potencia radiométrica W; si se almacena energía por paquete, convertir a potencia por intervalo temporal."
+      ],
+      "result": "Caustics estima concentración de flujo como potencia por área de recepción.",
+      "limits": [
+        "Caustics requieren muestreo suficiente y filtro de footprint para evitar ruido."
+      ],
+      "dimensional_verification": [
+        "Φ_i has W; A_footprint has m²; Φ_i/A has W/m².",
+        "∂x/∂u and ∂x/∂v have L for dimensionless parameters; cross product gives area L²."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "10/10 técnicas D25 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Radiosity y form factors mantienen balance de energía y factores adimensionales",
+      "SH, ambient cube y probes conservan unidades de radiancia/irradiancia según su representación",
+      "SSR y parallax-corrected cubemap distinguen espacio mundo, vista, pantalla y profundidad",
+      "Caustics convierte potencia por footprint en irradiancia W/m²"
+    ],
+    "limitations": [
+      "La auditoría matemática no certifica convergencia de iluminación global, ausencia de sesgo, estabilidad de muestreo ni rendimiento; requieren pruebas posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

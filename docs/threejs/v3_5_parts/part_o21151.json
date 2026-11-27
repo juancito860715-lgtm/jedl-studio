@@ -1,0 +1,1321 @@
+    "code_only_implementation": "Implementar ramp lookup o cuantización en GLSL/TSL; añadir outline pass o inverted hull; mantener umbrales editables por material.",
+    "computational_profile": "Bajo-medio.",
+    "limitations_and_approximations": "Sombras por bandas pueden bandear; la interpolación y sombras de sombra real requieren integración específica.",
+    "source_ids": [
+     "SRC-THREE-WGPU"
+    ],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-06",
+    "name": "Cartoon clásico",
+    "family": "NPR y animación",
+    "construction": {
+     "geometry": "Primitivas redondeadas, volúmenes simples y silueta exagerada; deformadores por huesos y lattice.",
+     "materials": "Colores planos, specular amplio y controlado; contorno opcional.",
+     "lighting": "Luz amplia y sombras simples; separar planos de forma sin exceso de detalle.",
+     "color": "Paleta saturada pero organizada; contraste local fuerte.",
+     "camera": "Cámara con perspectiva moderada y encuadres que prioricen la silueta.",
+     "composition": "Poses en línea de acción; staging claro; fondos simplificados.",
+     "animation": "Squash/stretch, anticipación, arcos, overlap, follow-through, timing y spacing."
+    },
+    "mathematical_toolbox": [
+     "p'=p+Σ_i w_i Δp_i",
+     "s_x s_y s_z≈1 (aprox. conservación de volumen)",
+     "ease(u)=3u²−2u³"
+    ],
+    "code_only_implementation": "Construir rig y deformadores paramétricos; añadir curvas de pose; interpolar con Hermite/Bezier; generar secundarios con spring-damper.",
+    "computational_profile": "Medio.",
+    "limitations_and_approximations": "Conservar volumen exacto con escalas no uniformes es aproximado; demasiada deformación rompe articulaciones.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-07",
+    "name": "Low poly",
+    "family": "geometría estilizada",
+    "construction": {
+     "geometry": "Malla con pocos polígonos; triangulación deliberada; simplificación QEM; normales planas; variación controlada por vértice.",
+     "materials": "Colores por cara/vértice; roughness simple; sin microtextura obligatoria.",
+     "lighting": "Luz direccional amplia; sombras legibles; facetado visible por normales.",
+     "color": "Paletas discretas por altura, pendiente, región o semilla.",
+     "camera": "Cámara que revele facetas; focal media; evitar perspectiva que distorsione demasiado.",
+     "composition": "Grandes planos, masas geométricas y lectura de silueta.",
+     "animation": "Movimiento rígido por piezas o deformación de baja resolución; ciclos simplificados."
+    },
+    "mathematical_toolbox": [
+     "E(v)=Σ_(faces f) (n_f·v+d_f)^2",
+     "N_face=normalize((p1-p0)×(p2-p0))",
+     "C_face=palette(hash(faceId))"
+    ],
+    "code_only_implementation": "Generar malla paramétrica y decimar con QEM; recalcular normales flat; asignar color por cara mediante atributo.",
+    "computational_profile": "Bajo.",
+    "limitations_and_approximations": "Decimación puede destruir rasgos finos; low-poly no significa geometría arbitraria ni ausencia de buen diseño.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-08",
+    "name": "High poly",
+    "family": "geometría de alta resolución",
+    "construction": {
+     "geometry": "Subdivisión Catmull–Clark/Loop; remallado; desplazamiento; superficies NURBS/Bezier teseladas; topología densa donde la curvatura lo exige.",
+     "materials": "Materiales PBR o art-directed; detalle de alta frecuencia en normal/displacement.",
+     "lighting": "Iluminación que revele curvatura y microrelieve; sombras de contacto.",
+     "color": "Gradientes suaves y variación material controlada.",
+     "camera": "Cámara macro/close-up para justificar densidad; DOF física aproximada.",
+     "composition": "Detalle focal y silueta precisa; evitar densidad uniforme innecesaria.",
+     "animation": "Deformación con skinning y correctivos; simulación más costosa sobre mallas densas."
+    },
+    "mathematical_toolbox": [
+     "S(u,v)=Σ_iΣ_j N_i,p(u)M_j,q(v)P_ij",
+     "Catmull-Clark: subdivisión por reglas de vértice/arista/cara",
+     "P'=P+N·h(u,v)"
+    ],
+    "code_only_implementation": "Construir malla base, subdividir por niveles, generar desplazamiento en shader o CPU y conservar una versión de baja resolución para simulación.",
+    "computational_profile": "Alto en memoria y vértices; displacement puede trasladar coste a GPU.",
+    "limitations_and_approximations": "Más polígonos no garantizan mejor imagen; límites de memoria, animación y precisión numérica.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-09",
+    "name": "Stop motion",
+    "family": "estética temporal",
+    "construction": {
+     "geometry": "Geometría con pequeñas irregularidades deterministas; articulaciones y piezas con rig; microdeformación por fotograma.",
+     "materials": "Materiales mate o satinados; huellas y variaciones generadas por ruido temporal limitado.",
+     "lighting": "Luz de set estable, sombras visibles y caída de luz controlada.",
+     "color": "Paleta física de miniatura; contraste y saturación consistentes.",
+     "camera": "Cámara fija o movimientos discretos; profundidad de campo marcada como convención visual.",
+     "composition": "Composición de maqueta; escala aparente mediante DOF y paralaje.",
+     "animation": "Cuantizar tiempo a fotogramas; pequeñas variaciones de pose y posición entre exposiciones."
+    },
+    "mathematical_toolbox": [
+     "t_q=floor(t·fps_s)/fps_s",
+     "x_q(t)=x(t_q)+ε_k",
+     "ε_k~ruido determinista acotado"
+    ],
+    "code_only_implementation": "Evaluar pose a 12/15/18 fps aunque el render corra a 60; semilla temporal fija; microjitter y pequeñas deformaciones por índice de frame.",
+    "computational_profile": "Bajo-medio.",
+    "limitations_and_approximations": "Jitter excesivo parece error; la cuantización no sustituye una animación con buen timing.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-10",
+    "name": "Claymation",
+    "family": "estética material/temporal",
+    "construction": {
+     "geometry": "Volúmenes blandos; metaballs/SDF suaves; deformación local; huellas de dedos como campos gaussianos sobre superficie.",
+     "materials": "Roughness alta, specular amplio, variación de color y microrelieve procedural.",
+     "lighting": "Luz difusa de estudio; sombras de contacto; evitar brillo plástico excesivo.",
+     "color": "Pigmento mate y variación tonal de arcilla.",
+     "camera": "Cámara de maqueta; macro moderado y DOF controlada.",
+     "composition": "Set miniatura, objetos con peso visual, siluetas suaves.",
+     "animation": "Deformación no rígida por campos; stop-motion temporal opcional."
+    },
+    "mathematical_toolbox": [
+     "d_smoothmin(a,b,k)",
+     "P'=P+N·Σ_i A_i exp(-|P-c_i|²/σ_i²)",
+     "t_q=floor(t·fps)/fps"
+    ],
+    "code_only_implementation": "Unir SDFs con smooth-min; generar huellas por suma de gaussianas; calcular normales por gradiente; cuantizar pose opcional.",
+    "computational_profile": "Medio-alto si se hace raymarching SDF; moderado con malla extraída.",
+    "limitations_and_approximations": "SDF puede suavizar en exceso detalles; la arcilla real tiene plasticidad compleja no reproducida por un shader.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-11",
+    "name": "Acuarela procedural",
+    "family": "pintura simulada",
+    "construction": {
+     "geometry": "Geometría base simplificada; contornos con variación; trazos poligonales o campos de pigmento ligados a UV/proyección.",
+     "materials": "Campo de agua, pigmento suspendido/depositado, absorción de papel procedural y acumulación en bordes.",
+     "lighting": "Luz de ilustración plana; evitar especular PBR salvo papel húmedo simulado.",
+     "color": "Mezcla sustractiva aproximada; granulación, blooms y bordes oscuros por acumulación.",
+     "camera": "Cámara ortográfica o perspectiva suave; composición por manchas y contornos.",
+     "composition": "Manchas y trazos coherentes en el tiempo; difusión y secado progresivo.",
+     "animation": [
+      "∂c/∂t+u·∇c=D∇²c−kc",
+      "∂h/∂t+∇·(hu)=S−E",
+      "Beer-Lambert: T=exp(−σ_a l)"
+     ]
+    },
+    "mathematical_toolbox": "Crear buffers de agua/velocidad/pigmento; advectar con semi-Lagrangian; difundir; depositar pigmento según saturación; generar papel con ruido procedural.",
+    "code_only_implementation": "Alto en simulación multipaso y múltiples canales; moderado con trazos vectoriales simplificados.",
+    "computational_profile": "El modelo depende del papel, pigmento y agua; mezcla RGB no reproduce espectro ni capilaridad real. La publicación de DiVerdi et al. prioriza comportamiento plausible y eficiente, no identidad física exacta.",
+    "limitations_and_approximations": [
+     "SRC-DIVERDI-2013",
+     "SRC-WATERCOLOR-THIN-FILM"
+    ],
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-12",
+    "name": "Pintura al óleo procedural",
+    "family": "pintura simulada",
+    "construction": {
+     "geometry": "Geometría 3D original; pase de imagen con orientación de pinceladas derivada del tensor de estructura; relieve de impasto como displacement/bump.",
+     "materials": "Capas de pigmento opaco; trazo orientado; rugosidad y altura correlacionadas con pincelada.",
+     "lighting": "Luz rasante para revelar impasto; key amplia para lectura del color.",
+     "color": "Paleta de pintor; mezcla aproximada por pigmento; saturación local controlada.",
+     "camera": "Cámara y encuadre pictóricos; profundidad de campo reducida o nula según objetivo.",
+     "composition": "Pinceladas coherentes entre frames; orientación estable y temporalmente suavizada.",
+     "animation": [
+      "J=G_σ*(∇I∇Iᵀ)",
+      "θ=0.5 atan2(2J_xy,J_xx−J_yy)",
+      "h_stroke=A·g(distance_to_stroke)"
+     ]
+    },
+    "mathematical_toolbox": "Calcular estructura tensorial; orientar kernels anisotrópicos; elegir región de menor varianza; generar trazo/relieve desde saliencia y gradiente; estabilizar temporalmente.",
+    "code_only_implementation": "Medio-alto por múltiples kernels/pases.",
+    "computational_profile": "Un filtro 2D estiliza el render, pero no simula por sí solo la mezcla física de pintura. Gao et al. añaden multi-escala y relieve controlado.",
+    "limitations_and_approximations": [
+     "SRC-KYPRIANIDIS-2009",
+     "SRC-GAO-2019"
+    ],
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-13",
+    "name": "Ilustración procedural",
+    "family": "lenguaje gráfico",
+    "construction": {
+     "geometry": "Contornos, planos y geometría simplificada; subdivisión solo para curvas; capas de silueta y detalle.",
+     "materials": "Materiales planos, gradientes, tramas y patrones generados matemáticamente.",
+     "lighting": "Luz de lectura gráfica; sombras diseñadas en vez de físicamente completas.",
+     "color": "Paleta armónica, contraste figura-fondo y color local.",
+     "camera": "Cámara ortográfica o perspectiva controlada; encuadre tipo lámina/editorial.",
+     "composition": "Jerarquía de masas, espacios negativos y ritmo visual.",
+     "animation": "Animación de capas, deformación simple y transiciones gráficas."
+    },
+    "mathematical_toolbox": [
+     "C=Σ_i α_i C_i",
+     "paletteQuantize(C)=palette[argmin_j d(C,p_j)]",
+     "edge=|∇luma|"
+    ],
+    "code_only_implementation": "Generar formas vectoriales/mesh, paleta cuantizada, contornos y capas; usar composición ortográfica.",
+    "computational_profile": "Bajo-medio.",
+    "limitations_and_approximations": "Las reglas son artísticas; el filtro de imagen no sustituye diseño de formas ni composición.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-14",
+    "name": "Cómic y tinta",
+    "family": "NPR",
+    "construction": {
+     "geometry": "Contornos por silueta, curvas y aristas; líneas interiores por discontinuidad de profundidad/normales/curvatura.",
+     "materials": "Negros sólidos, tramado procedural, hachurado por campo direccional y Ben-Day dots.",
+     "lighting": "Luz convertida en masas de sombra; iluminación gráfica de alto contraste.",
+     "color": "Paleta limitada, separación CMYK opcional, puntos de semitono.",
+     "camera": "Cámara y composición de viñeta; focales dramáticas y planos gráficos.",
+     "composition": "Composición de panel; lectura secuencial y líneas de movimiento.",
+     "animation": "Speed lines, deformación gráfica, stepped timing y cambios de pose acentuados."
+    },
+    "mathematical_toolbox": [
+     "E=|∇z|+λ(1−n·n_neighbor)",
+     "H(p)=step(fract(dot(p,d)/s),τ)",
+     "D(x,y)=step(fract(x f)·fract(y f),threshold)"
+    ],
+    "code_only_implementation": "Generar contorno inverted-hull o pase screen-space; hachurado alineado con gradiente; halftone en espacio de pantalla o UV; controlar aliasing.",
+    "computational_profile": "Medio por múltiples passes y muestras.",
+    "limitations_and_approximations": "Los bordes screen-space pueden cambiar con cámara/resolución; hachurado puede producir moiré sin antialiasing.",
+    "source_ids": [
+     "SRC-KYPRIANIDIS-2009"
+    ],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-15",
+    "name": "Pixel art tridimensional",
+    "family": "estética raster",
+    "construction": {
+     "geometry": "Malla 3D normal; render a baja resolución interna; pixel grid fijo; cuantización de coordenadas de pantalla y opcional vertex snapping.",
+     "materials": "Paleta indexada limitada; nearest-neighbor; materiales planos o ramps discretas.",
+     "lighting": "Luz cuantizada a niveles; sombras discretas y coherentes con pixel grid.",
+     "color": "Paleta de 8–64 colores como control artístico, no requisito universal; dithering ordenado o error diffusion.",
+     "camera": "Cámara ortográfica o perspectiva con resolución virtual fija; movimiento subpixel controlado.",
+     "composition": "Silhouette-first, clusters de píxeles, evitar ruido y detalle menor a un píxel.",
+     "animation": "Animación a baja frecuencia; evitar jitter subpixel; ciclos de pose."
+    },
+    "mathematical_toolbox": [
+     "p_screen'=floor(p_screen·R)/R",
+     "C'=paletteQuantize(C)",
+     "dither=threshold(C−Bayer(x,y))"
+    ],
+    "code_only_implementation": "Renderizar a target pequeño; usar nearest filtering; cuantizar luz/color; componer a resolución final sin suavizado bilineal.",
+    "computational_profile": "Bajo.",
+    "limitations_and_approximations": "Un modelo 3D renderizado a baja resolución no adquiere automáticamente gramática de pixel art; requiere diseño de clusters y control temporal.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-16",
+    "name": "Voxel art",
+    "family": "geometría discreta",
+    "construction": {
+     "geometry": "Volumen en grid 3D; voxels como cubos expuestos o greedy meshing; extracción de superficie; octree para sparse data.",
+     "materials": "Material por voxel/celda; atlas procedural opcional; paleta limitada.",
+     "lighting": "Luz por cara o normal de cubo; sombras limpias; AO voxel aproximado.",
+     "color": "Paleta por bioma/material; gradientes discretos.",
+     "camera": "Cámara isométrica frecuente; ortográfica para lectura de bloques.",
+     "composition": "Composición modular y silueta escalonada.",
+     "animation": "Animación por grupos de voxels, deformación por bloques o reconstrucción de superficie."
+    },
+    "mathematical_toolbox": [
+     "voxel(i,j,k)=field(iΔ,jΔ,kΔ)",
+     "face exposed iff neighbor occupancy=0",
+     "greedy merge coplanar equal-material faces"
+    ],
+    "code_only_implementation": "Generar occupancy desde funciones/CSG; extraer caras expuestas; fusionar rectángulos coplanares; usar instancing para bloques móviles.",
+    "computational_profile": "Medio; greedy meshing reduce draw calls y triángulos.",
+    "limitations_and_approximations": "Resolución espacial fija; aliasing geométrico; animar muchos voxels individualmente puede ser costoso.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-17",
+    "name": "Fantasía oscura",
+    "family": "dirección de arte",
+    "construction": {
+     "geometry": "Arquitectura orgánica, siluetas quebradas, arcos, ruinas y criaturas mediante gramáticas, SDF y fractales.",
+     "materials": "Materiales erosionados, metal oxidado, piedra húmeda, piel/fibra; todos con mapas procedurales.",
+     "lighting": "Contraluz, niebla, luz local motivada, sombras profundas y volumetría aproximada.",
+     "color": "Paleta de baja saturación con acentos cromáticos limitados.",
+     "camera": "Gran angular para escala o teleobjetivo para compresión; cámara lenta y movimientos controlados.",
+     "composition": "Escala monumental, capas atmosféricas, puntos de interés y siluetas recortadas.",
+     "animation": "Movimiento pesado, inercia, pausas, secundarios y timing lento."
+    },
+    "mathematical_toolbox": [
+     "h(p)=fbm(p)+ridge(p)",
+     "ρ(x)=ρ_0 exp(−height/H)",
+     "contrast=exposure·toneMap(L)"
+    ],
+    "code_only_implementation": "Crear gramáticas de arquitectura y vegetación; erosionar por ruido y campos; controlar luz/niebla con parámetros de escena.",
+    "computational_profile": "Variable, alto si hay volumetría y partículas.",
+    "limitations_and_approximations": "Es una dirección artística, no un algoritmo único; evitar depender de assets de fantasía prefabricados.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-18",
+    "name": "Ciencia ficción",
+    "family": "dirección de arte",
+    "construction": {
+     "geometry": "Arquitectura modular paramétrica, paneles, repetición, superficies NURBS y geometría técnica.",
+     "materials": "Metales, polímeros, vidrio aproximado, emisivos y superficies anisotrópicas.",
+     "lighting": "Fuentes geométricas, luces emisivas, contraste de color y niebla volumétrica.",
+     "color": "Paleta por función: señalización, energía, ambiente y alerta visual.",
+     "camera": "Cámara con dolly/tracking, focales amplias y composición por líneas arquitectónicas.",
+     "composition": "Escala, simetría/asimetría funcional, repetición y puntos de fuga.",
+     "animation": "Máquinas articuladas, mecanismos, ciclos y efectos sincronizados."
+    },
+    "mathematical_toolbox": [
+     "P(u,v)=Σ_iΣ_j N_i,p(u)M_j,q(v)P_ij",
+     "panelMask=step(distanceToSeam, seamWidth)",
+     "emission=L_e·mask"
+    ],
+    "code_only_implementation": "Generar módulos con gramática y parámetros; construir seams desde distancias; animar mecanismos con jerarquías y curvas.",
+    "computational_profile": "Medio-alto según reflejos, transparencia y luces.",
+    "limitations_and_approximations": "La estética no garantiza plausibilidad funcional; reflejos y transparencias rasterizados tienen límites.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-19",
+    "name": "Biomecánico",
+    "family": "dirección de arte / morfología",
+    "construction": {
+     "geometry": "Combinar esqueletos, tubos ramificados, placas, tendones y cavidades mediante curvas, SDF y restricciones de continuidad.",
+     "materials": "Materiales híbridos: tejido húmedo, cerámica, metal y membrana; roughness por campo.",
+     "lighting": "Luz rasante para revelar estructura; subsurface aproximado en tejidos; reflejos controlados en placas.",
+     "color": "Paleta orgánico-mineral con códigos de color por función.",
+     "camera": "Macro/close-up; cámara que recorra articulaciones y relaciones anatómicas.",
+     "composition": "Repetición estructural con asimetría orgánica; lectura de articulaciones.",
+     "animation": "Contracción, tensión, pulso, flexión y respuesta secundaria sincronizada."
+    },
+    "mathematical_toolbox": [
+     "C(s)=spline(controlPoints)",
+     "r(s)=r0(1−s)^γ",
+     "F_tendon=k(l−l0)"
+    ],
+    "code_only_implementation": "Generar esqueletos/curvas de tensión; mallar tubos; conectar placas por constraints; usar campos para material y deformación.",
+    "computational_profile": "Medio-alto.",
+    "limitations_and_approximations": "Biomecánico es una familia de diseño especulativo; no debe confundirse con anatomía biológica validada.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-20",
+    "name": "Surrealismo",
+    "family": "dirección de arte / transformación",
+    "construction": {
+     "geometry": "Geometría imposible pero consistente en pantalla: deformaciones no euclidianas, instancing recursivo, SDF booleanos y escalas incompatibles.",
+     "materials": "Materiales que refuercen contradicción visual: mate/brillante, translúcido/opaco, sin requerir texturas.",
+     "lighting": "Iluminación coherente localmente aunque el espacio sea imposible.",
+     "color": "Paletas y contrastes simbólicos; cambios cromáticos por región.",
+     "camera": "Cámara con trayectorias que revelen paradojas; perspectiva forzada o proyección ortográfica.",
+     "composition": "Composición por sorpresa, escala contradictoria y continuidad visual deliberada.",
+     "animation": "Transformaciones temporales, morphs y transiciones de topología aparentes."
+    },
+    "mathematical_toolbox": [
+     "P'=A(P,t)",
+     "SDF smooth union",
+     "T_n=T_0∘T_1∘...∘T_n"
+    ],
+    "code_only_implementation": "Definir reglas espaciales por función; componer transformaciones y campos; separar lo imposible matemático de lo que solo es perspectiva engañosa.",
+    "computational_profile": "Variable.",
+    "limitations_and_approximations": "Una transformación no invertible puede colapsar geometría; preservar continuidad visual exige control de cámara y topología.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-21",
+    "name": "Arte fractal",
+    "family": "sistemas iterativos",
+    "construction": {
+     "geometry": "Geometría por iteración de transformaciones, IFS, L-systems, Mandelbulb/Julia distance estimators o fractales de superficie.",
+     "materials": "Material por iteración, distancia, curvatura y escape-time; patrones multiescala.",
+     "lighting": "Iluminación por normales derivadas del campo; AO y sombras aproximadas en ray marching.",
+     "color": "Paletas por iteración/escape time; gradientes cíclicos o discretos.",
+     "camera": "Cámara orbital o travelling que muestre escala autosimilar; clipping y near/far ajustados.",
+     "composition": "Repetición con variación, jerarquía de escalas y regiones focales.",
+     "animation": "Animación de parámetros de iteración, rotación, morphing de Julia y zoom."
+    },
+    "mathematical_toolbox": [
+     "z_(n+1)=z_n²+c",
+     "escape if |z_n|>R",
+     "F(p)=Σ_i a^i noise(2^i p)"
+    ],
+    "code_only_implementation": "Iterar en CPU para mallas o GPU para campos; estimar distancia; raymarch con límite de pasos; calcular normales por gradiente.",
+    "computational_profile": "Alto en ray marching profundo; moderado en fractales geométricos de baja iteración.",
+    "limitations_and_approximations": "Estimadores de distancia no siempre son cotas exactas; aliasing y coste crecen con zoom/detalle.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   },
+   {
+    "style_id": "STYLE-CODE-22",
+    "name": "Abstracto generativo",
+    "family": "sistemas matemáticos",
+    "construction": {
+     "geometry": "Campos vectoriales, superficies paramétricas, curvas, partículas, instancing y geometría topológica.",
+     "materials": "Color por función escalar/vectorial; materiales emisivos, mates o microfacet según objetivo.",
+     "lighting": "Luz que revele volumen y ritmo; sombras opcionales para mantener abstracción.",
+     "color": "Paletas derivadas de funciones, armonías y gradientes; control por semilla.",
+     "camera": "Cámara ortográfica/orbital; movimientos coreografiados con el sistema.",
+     "composition": "Ritmo, repetición, contraste, densidad y vacío; reglas de composición explícitas.",
+     "animation": "Animación como evolución de sistema dinámico o respuesta a señales."
+    },
+    "mathematical_toolbox": [
+     "dx/dt=V(x,t)",
+     "P(u,v)=Σ_iΣ_j B_i(u)B_j(v)P_ij",
+     "x_(n+1)=F(x_n,μ)"
+    ],
+    "code_only_implementation": "Definir campo y semilla; integrar partículas/curvas; mapear magnitudes a geometría/material; renderizar determinísticamente por tiempo.",
+    "computational_profile": "Variable; puede escalar linealmente con partículas y complejidad de campo.",
+    "limitations_and_approximations": "El resultado puede ser visualmente complejo pero carecer de jerarquía; hace falta controlar densidad y composición.",
+    "source_ids": [],
+    "evidence_status": "receta técnica derivada; validar visualmente con prototipo procedural"
+   }
+  ],
+  "combination_model": {
+   "principle": "Los estilos son ejes combinables, no clases excluyentes.",
+   "axes": [
+    "densidad_geométrica",
+    "modelo_material",
+    "modelo_iluminación",
+    "cuantización_visual",
+    "gramática_de_formas",
+    "temporalidad",
+    "lenguaje_cinematográfico"
+   ],
+   "example": "Escena de ciencia ficción + geometría low-poly + materiales PBR + composición cinematográfica."
+  },
+  "requested_style_names": [
+   "Realismo fotográfico",
+   "Hiperrealismo",
+   "Animación cinematográfica estilizada",
+   "Anime 2D simulado en 3D",
+   "Cel shading",
+   "Cartoon clásico",
+   "Low poly",
+   "High poly",
+   "Stop motion",
+   "Claymation",
+   "Acuarela procedural",
+   "Pintura al óleo procedural",
+   "Ilustración procedural",
+   "Cómic y tinta",
+   "Pixel art tridimensional",
+   "Voxel art",
+   "Fantasía oscura",
+   "Ciencia ficción",
+   "Biomecánico",
+   "Surrealismo",
+   "Arte fractal",
+   "Abstracto generativo"
+  ],
+  "count_note": "22 entradas explícitas solicitadas por el usuario; subfamilias pueden añadirse sin fusionar nombres.",
+  "styles_synced_to_D19": true
+ },
+ "original_request_coverage": {
+  "basis": "Alcance A–I recuperado del encargo original y ampliaciones explícitas del usuario en esta conversación.",
+  "coverage": [
+   {
+    "id": "A",
+    "area": "Matemáticas y simulación",
+    "domains": [
+     "D35",
+     "D36"
+    ],
+    "subtopics": [
+     "álgebra lineal",
+     "cálculo diferencial/integral",
+     "EDO/EDP",
+     "sistemas caóticos",
+     "campos vectoriales",
+     "métodos numéricos",
+     "FK/IK",
+     "optimización",
+     "constraints"
+    ],
+    "status": "presente en base; profundización y fichas de implementación en curso"
+   },
+   {
+    "id": "B",
+    "area": "Anatomía y biomecánica",
+    "domains": [
+     "D03",
+     "D37"
+    ],
+    "subtopics": [
+     "esqueleto y articulaciones",
+     "músculos/tendones",
+     "deformación de piel",
+     "rigging facial",
+     "marcha",
+     "inercia secundaria"
+    ],
+    "status": "presente en base; completar modelos constitutivos y validación"
+   },
+   {
+    "id": "C",
+    "area": "Criaturas y comportamiento",
+    "domains": [
+     "D03",
+     "D04",
+     "D27",
+     "D41"
+    ],
+    "subtopics": [
+     "bípedos/cuadrúpedos",
+     "vuelo/aerodinámica",
+     "natación",
+     "serpientes",
+     "alas articuladas",
+     "enjambres",
+     "máquinas de estados",
+     "agentes"
+    ],
+    "status": "presente en base; nuevas fichas boids/hash espacial/XPBD/FABRIK"
+   },
+   {
+    "id": "D",
+    "area": "Materiales y óptica",
+    "domains": [
+     "D08",
+     "D24",
+     "D38"
+    ],
+    "subtopics": [
+     "microfacet BRDF",
+     "Fresnel",
+     "GGX",
+     "Beckmann",
+     "SSS",
+     "translucidez",
+     "refracción/reflexión",
+     "volumetría",
+     "caústicas",
+     "anisotropía",
+     "pelo/plumas/escamas",
+     "vidrio/líquido/metal"
+    ],
+    "status": "presente en base; añadir expresiones completas y validación por material"
+   },
+   {
+    "id": "E",
+    "area": "Naturaleza y medioambiente",
+    "domains": [
+     "D05",
+     "D06",
+     "D10",
+     "D11",
+     "D12",
+     "D39",
+     "D41"
+    ],
+    "subtopics": [
+     "Gerstner",
+     "espuma",
+     "ríos/cascadas",
+     "humo/fuego",
+     "nubes/tormentas",
+     "niebla/atmósfera",
+     "vegetación/crecimiento",
+     "viento",
+     "erosión/sedimentación",
+     "ecosistemas"
+    ],
+    "status": "presente en base; erosión orientada por flujo añadida"
+   },
+   {
+    "id": "F",
+    "area": "Geometría y modelado procedural",
+    "domains": [
+     "D02",
+     "D07",
+     "D28",
+     "D31",
+     "D40"
+    ],
+    "subtopics": [
+     "paramétricas",
+     "CSG",
+     "Marching Cubes",
+     "Dual Contouring",
+     "voxels",
+     "subdivisión",
+     "NURBS",
+     "Bezier/splines",
+     "fractales",
+     "topología/remeshing",
+     "arquitectura procedural"
+    ],
+    "status": "presente en base; Dual Contouring y greedy meshing añadidos"
+   },
+   {
+    "id": "G",
+    "area": "Renderizado y GPU",
+    "domains": [
+     "D09",
+     "D14",
+     "D15",
+     "D24",
+     "D25",
+     "D34"
+    ],
+    "subtopics": [
+     "rasterización",
+     "ray/path tracing",
+     "ray marching",
+     "deferred/forward",
+     "AO",
+     "sombras",
+     "volumetría",
+     "compute/GPGPU",
+     "TAA/FXAA/SMAA",
+     "HDR/tone mapping"
+    ],
+    "status": "presente en base; compatibilidad separada WebGL2/WebGPU"
+   },
+   {
+    "id": "H",
+    "area": "Cinematografía",
+    "domains": [
+     "D13",
+     "D29"
+    ],
+    "subtopics": [
+     "gramática de planos",
+     "composición",
+     "lentes/focal",
+     "DOF",
+     "tracking",
+     "cámara procedural",
+     "continuidad espacial",
+     "montaje/ritmo",
+     "audio sync"
+    ],
+    "status": "presente en base; cámara con marco estable añadida"
+   },
+   {
+    "id": "I",
+    "area": "Audio y producción",
+    "domains": [
+     "D16",
+     "D30"
+    ],
+    "subtopics": [
+     "síntesis procedural",
+     "audio espacial",
+     "reverb",
+     "ambientes",
+     "sincronización AV",
+     "timeline",
+     "easing",
+     "eventos/secuenciación",
+     "render/export"
+    ],
+    "status": "presente en base; faltan fichas profundas de síntesis/acústica y export"
+   }
+  ],
+  "rule": "No declarar una categoría cerrada mientras existan subtemas sin ficha técnica, ecuación/algoritmo y estado de evidencia."
+ },
+ "research_expansion_v3_1": {
+  "code_only_rule": {
+   "included_as_knowledge_sources": [
+    "papers",
+    "equations",
+    "open repositories",
+    "experiments",
+    "source code inspected",
+    "official documentation"
+   ],
+   "excluded_as_demo_dependencies": [
+    "downloaded 3D models",
+    "photo textures",
+    "HDRI",
+    "stock video",
+    "prebuilt animation",
+    "audio files",
+    "external image maps"
+   ],
+   "allowed_generated_outputs": [
+    "geometry",
+    "materials",
+    "lighting",
+    "shaders",
+    "motion",
+    "camera",
+    "particles",
+    "procedural audio",
+    "postprocess"
+   ]
+  },
+  "style_count": 22,
+  "new_deep_technique_count": 23,
+  "new_technique_ids": [
+   "R31-ADVECCI-N-SEMI-LAGRANGIANA-DE-PIGMENTO",
+   "R31-TENSOR-DE-ESTRUCTURA-PARA-ORIENTACI-N-DE",
+   "R31-KUWAHARA-ANISOTR-PICO-MULTIESCALA",
+   "R31-RELIEVE-DE-IMPASTO-DERIVADO-DE-PINCELADA",
+   "R31-CONTORNO-POR-DISCONTINUIDAD-DE-PROFUNDID",
+   "R31-HALFTONE-BEN-DAY-PROCEDURAL",
+   "R31-HACHURADO-ORIENTADO-POR-CAMPO-VECTORIAL",
+   "R31-CUANTIZACI-N-TEMPORAL-DE-ANIMACI-N",
+   "R31-VOXEL-GREEDY-MESHING",
+   "R31-DUAL-CONTOURING",
+   "R31-XPBD-RESTRICCIONES-CON-COMPLIANCE",
+   "R31-FABRIK-PARA-CADENAS-ARTICULADAS",
+   "R31-SKINNING-POR-DUAL-QUATERNIONS",
+   "R31-MODELO-DE-DISPERSI-N-MICROFACET-PARA-CAB",
+   "R31-RUIDO-DE-EROSI-N-ORIENTADO-POR-FLUJO-Y-P",
+   "R31-FRESNEL-SCHLICK-Y-REFLECTANCIA-ANGULAR",
+   "R31-INTEGRACI-N-VOLUM-TRICA-BEER-LAMBERT",
+   "R31-CAMPOS-VECTORIALES-PARA-TRAYECTORIAS-Y-P",
+   "R31-BOIDS-CON-SEPARACI-N-ALINEACI-N-Y-COHESI",
+   "R31-HASH-ESPACIAL-UNIFORME-PARA-VECINOS",
+   "R31-STOP-MOTION-PROCEDURAL-CON-MICROJITTER-D",
+   "R31-SDF-SMOOTH-UNION-Y-MODELADO-IMPL-CITO",
+   "R31-CURVAS-DE-C-MARA-CON-MARCO-DE-ORIENTACI-"
+  ],
+  "sources": [
+   {
+    "id": "SRC-THREE-WGPU",
+    "name": "Three.js WebGPURenderer manual",
+    "type": "documentación oficial",
+    "url": "https://threejs.org/manual/pages/webgpurenderer",
+    "supports": [
+     "WebGPURenderer como renderer moderno",
+     "fallback WebGL2",
+     "TSL y materiales por nodos",
+     "migración desde ShaderMaterial/onBeforeCompile",
+     "estado experimental y limitaciones"
+    ],
+    "evidence": "documentación oficial consultada 2026-11-26"
+   },
+   {
+    "id": "SRC-THREE-WEBGL",
+    "name": "Three.js WebGLRenderer API",
+    "type": "documentación oficial",
+    "url": "https://threejs.org/docs/pages/WebGLRenderer.html",
+    "supports": [
+     "WebGL2 como backend de WebGLRenderer",
+     "WebGL1 no soportado desde r163"
+    ],
+    "evidence": "documentación API consultada 2026-11-26"
+   },
+   {
+    "id": "SRC-KYPRIANIDIS-2009",
+    "name": "Image and Video Abstraction by Anisotropic Kuwahara Filtering",
+    "type": "artículo científico",
+    "url": "https://doi.org/10.1111/j.1467-8659.2009.01574.x",
+    "supports": [
+     "tensor de estructura suavizado",
+     "Kuwahara anisotrópico",
+     "orientación local de rasgos",
+     "abstracción pictórica temporalmente coherente"
+    ],
+    "evidence": "resumen editorial y metadatos consultados"
+   },
+   {
+    "id": "SRC-DIVERDI-2013",
+    "name": "Painting with Polygons: A Procedural Watercolor Engine",
+    "type": "artículo científico",
+    "url": "https://doi.org/10.1109/TVCG.2012.295",
+    "supports": [
+     "representación vectorial de trazos",
+     "advección procedural de pigmentos",
+     "comportamiento dinámico de acuarela"
+    ],
+    "evidence": "PubMed/IEEE metadata and abstract consulted"
+   },
+   {
+    "id": "SRC-GAO-2019",
+    "name": "Oil Painting Style Rendering Based on Kuwahara Filter",
+    "type": "artículo científico",
+    "url": "https://doi.org/10.1109/ACCESS.2019.2931037",
+    "supports": [
+     "Kuwahara anisotrópico multiescala",
+     "tamaño de pincel controlado por saliencia",
+     "relieve de impasto mediante bump mapping"
+    ],
+    "evidence": "IEEE abstract and metadata consulted"
+   },
+   {
+    "id": "SRC-HUANG-2022",
+    "name": "A Microfacet-based Hair Scattering Model",
+    "type": "artículo científico",
+    "url": "https://doi.org/10.1111/cgf.14588",
+    "supports": [
+     "cilindro rugoso y cutículas inclinadas",
+     "modelo microfacet para cabello",
+     "lóbulo reflejado GGX",
+     "muestreo de importancia"
+    ],
+    "evidence": "KIT/Eurographics publisher abstract consulted"
+   },
+   {
+    "id": "SRC-GRENIER-2023",
+    "name": "Real-time Terrain Enhancement with Controlled Procedural Patterns",
+    "type": "artículo científico",
+    "url": "https://doi.org/10.1111/cgf.14992",
+    "supports": [
+     "ruido estructurado para patrones de erosión",
+     "orientación ligada a pendiente y flujo",
+     "detalle de terreno procedural en tiempo real"
+    ],
+    "evidence": "publisher abstract consulted"
+   },
+   {
+    "id": "SRC-WATERCOLOR-THIN-FILM",
+    "name": "Dripping Thin Films for Real-time Digital Painting",
+    "type": "investigación académica",
+    "url": "https://research.adobe.com/publication/dripping-thin-films-for-real-time-digital-painting/",
+    "supports": [
+     "película líquida",
+     "interfaz fluido-aire",
+     "advección/difusión de pigmento",
+     "goteo"
+    ],
+    "evidence": "referencia identificada; texto completo y detalles de discretización pendientes de inspección"
+   },
+   {
+    "id": "SRC-KIT-HAIR",
+    "name": "Eurographics Digital Library: A Microfacet-based Hair Scattering Model",
+    "type": "repositorio académico primario",
+    "url": "https://diglib.eg.org/handle/10.1111/cgf14588",
+    "supports": [
+     "versión editorial y resumen del modelo microfacet de cabello"
+    ],
+    "evidence": "registro editorial consultado"
+   }
+  ],
+  "evidence_legend": {
+   "verified_source": "La fuente primaria o documentación respalda el método descrito; no implica que nuestro código haya sido reproducido.",
+   "documented": "El método se describe en una fuente identificada, pero la implementación no ha sido reproducida.",
+   "derived": "Ecuación o algoritmo reconstruido desde fundamentos; debe validarse con pruebas.",
+   "experimental": "Propuesta de implementación aún sin validación.",
+   "unverified": "Afirmación sin soporte suficiente; no se presenta como hecho."
+  },
+  "validation_gates": [
+   "Verificar la ecuación y definir unidades, convenciones y supuestos.",
+   "Implementar una versión mínima reproducible sin recursos externos.",
+   "Comparar con casos analíticos o referencias del artículo cuando existan.",
+   "Medir error, estabilidad numérica, coste temporal y memoria.",
+   "Probar continuidad temporal, determinismo y sensibilidad a resolución.",
+   "Comprobar WebGL2 y WebGPU por separado.",
+   "Guardar parámetros, semilla y versión de Three.js para reproducibilidad."
+  ],
+  "open_work_remaining": [
+   "Inspección de texto completo de cada artículo citado antes de afirmar reproducción fiel.",
+   "Derivación completa de los BRDF de pelo, SSS, vidrio y medios participantes.",
+   "Implementaciones verificadas de los 22 estilos; las recetas actuales son especificaciones, no renders validados.",
+   "Cobertura exhaustiva de audio procedural, acústica, reverberación y exportación.",
+   "Matriz por versión exacta de Three.js y capacidades del navegador/dispositivo.",
+   "Pruebas automatizadas de las nuevas técnicas y demos HTML reproducibles."
+  ]
+ },
+ "counts_v3_1": {
+  "baseline_domains_preserved": 41,
+  "baseline_techniques": 518,
+  "new_deep_techniques_added": 23,
+  "total_domain_technique_records": 541,
+  "existing_style_presets_v3": 44,
+  "new_explicit_style_recipes": 22,
+  "total_reference_sources": 33
+ },
+ "character_pipeline": {
+  "name": "Procedural Character Creation, Regeneration and Performance Pipeline",
+  "domains": [
+   "D03",
+   "D26",
+   "D33",
+   "D37"
+  ],
+  "stages": [
+   {
+    "stage": 1,
+    "name": "Character specification and deterministic seed",
+    "inputs": [
+     "character archetype",
+     "proportions",
+     "style constraints",
+     "seed"
+    ],
+    "outputs": [
+     "canonical parameter set",
+     "stable feature IDs"
+    ],
+    "checks": [
+     "same seed and parameters reproduce same topology and parameters"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   },
+   {
+    "stage": 2,
+    "name": "Procedural anatomy and surface",
+    "inputs": [
+     "proportions",
+     "anatomical landmarks",
+     "SDF/metaball/profile parameters"
+    ],
+    "outputs": [
+     "watertight or explicitly layered meshes",
+     "UV/material regions",
+     "landmark map"
+    ],
+    "checks": [
+     "manifold/degenerate-triangle checks",
+     "silhouette and proportion constraints"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   },
+   {
+    "stage": 3,
+    "name": "Skeleton and rig",
+    "inputs": [
+     "landmarks",
+     "joint hierarchy",
+     "joint limits"
+    ],
+    "outputs": [
+     "bind pose",
+     "inverse bind matrices",
+     "IK/FK controls"
+    ],
+    "checks": [
+     "hierarchy acyclic",
+     "bone lengths positive",
+     "bind pose identity skinning"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   },
+   {
+    "stage": 4,
+    "name": "Deformation and biomechanics",
+    "inputs": [
+     "weights",
+     "muscle/tendon parameters",
+     "corrective shapes"
+    ],
+    "outputs": [
+     "skinned mesh",
+     "pose-space corrections"
+    ],
+    "checks": [
+     "weights sum to one",
+     "finite transforms",
+     "joint-limit compliance",
+     "volume/error bounds"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   },
+   {
+    "stage": 5,
+    "name": "Body actions and contacts",
+    "inputs": [
+     "motion clips/procedural action goals",
+     "ground/contact geometry"
+    ],
+    "outputs": [
+     "root motion",
+     "joint trajectories",
+     "foot/hand contacts"
+    ],
+    "checks": [
+     "foot sliding metric",
+     "penetration depth",
+     "joint velocity/acceleration limits"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   },
+   {
+    "stage": 6,
+    "name": "Hands and manipulation",
+    "inputs": [
+     "finger chains",
+     "grasp target",
+     "contact points"
+    ],
+    "outputs": [
+     "finger poses",
+     "grasp/contact state"
+    ],
+    "checks": [
+     "reachability",
+     "collision-free fingers",
+     "contact distance tolerance"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   },
+   {
+    "stage": 7,
+    "name": "Face, eyes, lips and expression",
+    "inputs": [
+     "FACS-like controls",
+     "viseme sequence",
+     "gaze target",
+     "blink schedule"
+    ],
+    "outputs": [
+     "blendshape weights",
+     "jaw/eye transforms",
+     "viseme timeline"
+    ],
+    "checks": [
+     "weights bounded",
+     "jaw hinge limits",
+     "eye convergence",
+     "viseme timing continuity"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   },
+   {
+    "stage": 8,
+    "name": "Capture, retarget and temporal filtering",
+    "inputs": [
+     "source skeleton/mocap",
+     "target bind pose",
+     "timestamps"
+    ],
+    "outputs": [
+     "retargeted pose stream",
+     "filtered curves"
+    ],
+    "checks": [
+     "bind-pose alignment",
+     "quaternion normalization",
+     "no time reversal"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   },
+   {
+    "stage": 9,
+    "name": "Regeneration and continuity",
+    "inputs": [
+     "seed",
+     "dependency graph",
+     "protected anchors",
+     "previous state"
+    ],
+    "outputs": [
+     "partial regenerated assets/motion"
+    ],
+    "checks": [
+     "unchanged IDs remain stable",
+     "protected silhouette/pose anchors preserved"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   },
+   {
+    "stage": 10,
+    "name": "Three.js runtime and validation",
+    "inputs": [
+     "skeleton",
+     "SkinnedMesh",
+     "morph targets",
+     "animation clips"
+    ],
+    "outputs": [
+     "renderable character and diagnostics"
+    ],
+    "checks": [
+     "CPU/GPU parity within tolerance",
+     "frame-time budget",
+     "asset serialization round trip"
+    ],
+    "implementation_status": "pendiente",
+    "pseudocode_status": "pendiente"
+   }
+  ],
+  "global_invariants": [
+   "all transforms finite",
+   "quaternions normalized",
+   "bone graph acyclic",
+   "skin weights normalized",
+   "morph weights in declared bounds",
+   "units and coordinate convention explicit",
+   "deterministic seed reproducibility",
+   "all contacts have tolerances"
+  ],
+  "threejs_modules": [
+   "Bone",
+   "Skeleton",
+   "SkinnedMesh",
+   "SkeletonUtils",
+   "AnimationMixer",
+   "AnimationClip",
+   "KeyframeTrack",
+   "BufferGeometry.morphAttributes",
+   "MeshStandardMaterial",
+   "Matrix4",
+   "Quaternion",
+   "Vector3"
+  ],
+  "status": "contrato_regeneracion_definido; implementación_y_pruebas_pendientes",
+  "regeneration_contract": {
+   "deterministic_prng": {
+    "name": "mulberry32 (PRNG determinista de 32 bits)",
+    "pseudocode": "FUNCIÓN mulberry32(seed):\n  a = seed (uint32)\n  DEVOLVER función que en cada llamada:\n    a = a + 0x6D2B79F5 (mod 2^32)\n    t = a\n    t = (t XOR (t >> 15)) * (t | 1)\n    t = t XOR (t + ((t XOR (t >> 7)) * (t | 61)))\n    RETORNAR ((t XOR (t >> 14)) >>> 0) / 4294967296",
+    "use": "misma semilla -> mismas topologías, pesos y poses"
+   },
+   "stable_ids": {
+    "rule": "id = hash(id_padre, rol, índice); no usar índices de array como identidad.",
+    "pseudocode": "id = fnv1a32(concatenar(id_padre, rol, índice))"
+   },
+   "dirty_graph": {
+    "rule": "Cada etapa declara dependencias. Al cambiar un parámetro se recalculan solo las etapas dependientes; el resto conserva ids y geometría.",
+    "pseudocode": "marcar_sucias(nodo): nodo.dirty=true; PARA hijo en dependientes(nodo): marcar_sucias(hijo)\nregenerar: SOLO nodos dirty en orden topológico"
+   },
+   "protected_anchors": "Landmarks y poses marcados como protegidos no se modifican al regenerar; se re-proyectan a la nueva silueta.",
+   "validation_per_regeneration": [
+    "bind pose igual que antes si no cambió la anatomía",
+    "pesos de skinning suman 1",
+    "ids estables verificados",
+    "cuaterniones normalizados"
+   ],
+   "status": "contrato definido; implementación y pruebas pendientes"
+  }
+ },
+ "certification_matrix": {
+  "D03": {
+   "technique_count": 19,
+   "methodology_fields_added": true,
+   "individual_math_review": "pending",
+   "threejs_runtime_tests": "not_executed",
+   "certified": false
+  },
+  "D13": {
+   "technique_count": 76,
+   "methodology_fields_added": true,
+   "individual_math_review": "pending",
+   "threejs_runtime_tests": "not_executed",
+   "certified": false
+  },
+  "D26": {
+   "technique_count": 10,
+   "methodology_fields_added": true,
+   "individual_math_review": "pending",
+   "threejs_runtime_tests": "not_executed",
+   "certified": false
+  },
+  "D33": {
+   "technique_count": 10,
+   "methodology_fields_added": true,
+   "individual_math_review": "pending",
+   "threejs_runtime_tests": "not_executed",
+   "certified": false
+  },
+  "D35": {
+   "technique_count": 15,
+   "methodology_fields_added": true,
+   "individual_math_review": "pending",
+   "threejs_runtime_tests": "not_executed",
+   "certified": false
+  },
+  "D36": {
+   "technique_count": 15,
+   "methodology_fields_added": true,
+   "individual_math_review": "pending",
+   "threejs_runtime_tests": "not_executed",
+   "certified": false
+  },
+  "D37": {
+   "technique_count": 13,
+   "methodology_fields_added": true,
+   "individual_math_review": "pending",
+   "threejs_runtime_tests": "not_executed",
+   "certified": false
+  }
+ },
+ "counts_v3_2": {
+  "D13_techniques": 76,
+  "D03": 19,
+  "D26": 10,
+  "D33": 10,
+  "D35": 15,
+  "D36": 15,
+  "D37": 13,
+  "character_pipeline_stages": 10,
+  "certified_domains": 0
+ },
+ "counts_v3_3": {
+  "D35_techniques_mathematically_completed": 15,
+  "D36_techniques_mathematically_completed": 15,
+  "D35_D36_total": 30,
+  "D13_pending": 76,
+  "character_domains_pending": {
+   "D03": 19,
+   "D26": 10,
+   "D33": 10,
+   "D37": 13
+  },
+  "certification": "no_certificado; pendiente de ejecución y revisión"
+ },
+ "counts_actual_v3_4": {
+  "domains": 42,
+  "techniques": 616,
+  "styles_D19": 22,
+  "techniques_with_real_derivation": 43,
+  "techniques_plantilla_pendiente": 115,
+  "techniques_no_evaluadas": 444,
+  "audio_domain_techniques": 14
+ },
+ "pendientes_v3_5": {
+  "nota": "Lista única de trabajo pendiente. Una IA que tome este documento debe completar cada punto abierto o reportar cuál no pudo completar y por qué. No puede cerrar un punto sin evidencia.",
+  "items": [
+   {
+    "id": "P1",
+    "titulo": "Derivaciones de plantilla",
+    "detalle": "115 técnicas en D03, D13, D26 y D33 con derivación de plantilla: reescribir con derivación real símbolo a símbolo, por dominio.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P2",
+    "titulo": "Técnicas sin derivación evaluada",
+    "detalle": "444 técnicas con derivation_status no_evaluada: derivar o marcar la limitación.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P3",
+    "titulo": "Pseudocódigo verificado",
+    "detalle": "Revisar pseudocode_steps de los 22 estilos contra sus ecuaciones. Completar pseudocódigo de técnicas sin él.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P4",
+    "titulo": "Pruebas de propiedad por familia",
+    "detalle": "Pruebas genéricas por familia (sin NaN, determinismo, rango, pico de audio, duración, instancias), aplicadas a cada técnica. No pruebas escritas a mano por elemento.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P5",
+    "titulo": "Pruebas de runtime",
+    "detalle": "Ejecutar en navegador headless y en Node. Registrar pass/fail con motivo en threejs_runtime_tests.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P6",
+    "titulo": "Política de audio por código",
+    "detalle": "Toda muestra calculada por código del proyecto. Permitido: AudioContext, transporte de buffers, AudioBuffer. Nodos nativos de efecto solo con justificación. Sin Math.random: PRNG con semilla.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P7",
+    "titulo": "Audio procedural amplio (D42)",
+    "detalle": "Cubrir síntesis, efectos, espacio, música, ambientes/foley y medición. No limitar a percusión ni ritmo. Incorporar de la referencia: síntesis en Worker, FDN con mezcla Householder, limitador con sobremuestreo x4, panorámica desde pantalla, cuerda con interpolación allpass.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P8",
+    "titulo": "Voz, subtítulos y sincronía",
+    "detalle": "Reloj maestro (AudioContext.currentTime o contador de muestras). Cues con inicio, fin y texto, sin solapamiento. Exportación WebVTT y SRT desde la misma tabla. Visemas con transiciones. Compensación de latencia (outputLatency). Diseñar desde cero; la referencia no los incluye.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P9",
+    "titulo": "Pipeline de personajes",
+    "detalle": "Implementar las 10 etapas del pipeline y sus validaciones. Aplicar el contrato de regeneración (mulberry32, ids FNV-1a, grafo sucio, anclas protegidas).",
+    "estado": "abierto"
+   },
+   {
+    "id": "P10",
+    "titulo": "Estilos visuales",
+    "detalle": "Completar el pseudocódigo y las pruebas de los 22 estilos canónicos de D19. Los 13 previos quedan en legacy_styles_v3_preserved.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P11",
+    "titulo": "Exportación MP4 y botones",
+    "detalle": "Implementar Reproducir, Pausar y Descargar MP4 según exportacion_mp4_v1, con formatos 1280x720 obligatorio y vertical/cuadrado opcionales, captura determinista, share en iOS y Android, y fallbacks con aviso. Probar en iPhone y Android.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P12",
+    "titulo": "Especificación de escena: ejecución",
+    "detalle": "Usar production_method_v1 para escenas nuevas. Cada escena entrega el informe de verificación completo.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P13",
+    "titulo": "Fuentes de referencia",
+    "detalle": "Crimson Loong: revisión de src/ hecha (18 módulos). Sin licencia declarada: solo referencia de arquitectura y técnicas, sin copiar código. Revisión línea por línea pendiente para cualquier técnica que se cite como base.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P14",
+    "titulo": "Conteos y metadatos",
+    "detalle": "Mantener counts_actual_v3_4 al día al agregar o derivar técnicas.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P15",
+    "titulo": "Certificación",
+    "detalle": "Solo con derivación real, pruebas ejecutadas y revisión por un revisor distinto del autor. Cambiar certified por técnica.",
+    "estado": "abierto"
+   },
+   {
+    "id": "P16",
+    "titulo": "Dispositivo",
+    "detalle": "Rendimiento, memoria, latencia de audio y exportación en iPhone y Android: pendiente de medición real. La prueba en Three.js Code Play solo confirma carga, audio tras toque y descarga.",
+    "estado": "abierto"
+   }
+  ]
+ }
+}

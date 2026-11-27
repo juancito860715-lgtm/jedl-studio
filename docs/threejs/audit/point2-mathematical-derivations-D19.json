@@ -1,0 +1,916 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D19 Atlas de estilos visuales v4",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D19",
+    "record_count": 22,
+    "record_type": "22 recetas explícitas visual_style_atlas_v4",
+    "excluded_protected_records": 0,
+    "excluded_reason": "Las 13 etiquetas resumen de domains[D19].styles no se cuentan como recetas adicionales; las 22 recetas STYLE-CODE se cubren exactamente."
+  },
+  "records": [
+    {
+      "record_key": "STYLE-CODE-01",
+      "name": "Realismo fotográfico",
+      "starting_principles": [
+        "Direcciones unitarias; BRDF normalizada; color lineal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h=normalize(L+V)",
+          "justification": "Obtener half-vector de luz y vista."
+        },
+        {
+          "step": 2,
+          "equation": "f_r=D(h)G(L,V,h)F(V,h)/(4(N·L)(N·V))",
+          "justification": "Construir BRDF Cook–Torrance."
+        },
+        {
+          "step": 3,
+          "equation": "L_o=∫f_r L_i max(N·L,0)dω",
+          "justification": "Integrar radiancia incidente."
+        },
+        {
+          "step": 4,
+          "equation": "C_display=ToneMap(exposure·L_o)",
+          "justification": "Aplicar exposición y respuesta de pantalla."
+        }
+      ],
+      "assumptions": [
+        "Direcciones unitarias; BRDF normalizada; color lineal."
+      ],
+      "result": "La receta se deriva de transporte de luz, microfacetas y respuesta de cámara.",
+      "limits": [
+        "Raster PBR no calcula toda la iluminación indirecta."
+      ],
+      "dimensional_verification": [
+        "N,L,V,H son direcciones adimensionales; D tiene sr⁻¹; F y G son adimensionales; BRDF tiene sr⁻¹.",
+        "L_i y L_o son radiancias W·m⁻²·sr⁻¹; la integral angular conserva radiancia."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-02",
+      "name": "Hiperrealismo",
+      "starting_principles": [
+        "Frecuencias y amplitudes tipadas; detalle correlacionado con material."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "σ_total=σ_macro+σ_micro",
+          "justification": "Separar variación de forma y microdetalle."
+        },
+        {
+          "step": 2,
+          "equation": "P(m)=D(m)(N·m)",
+          "justification": "Usar distribución de normales microfacet."
+        },
+        {
+          "step": 3,
+          "equation": "L_sensor=∫L(λ)S(λ)dλ",
+          "justification": "Modelar respuesta espectral simplificada."
+        },
+        {
+          "step": 4,
+          "equation": "detail=Σ_i a_i noise(λ_i p)",
+          "justification": "Añadir microdetalle multiescala."
+        }
+      ],
+      "assumptions": [
+        "Frecuencias y amplitudes tipadas; detalle correlacionado con material."
+      ],
+      "result": "Combina geometría multiescala, microfacetas y respuesta de sensor.",
+      "limits": [
+        "No existe fórmula universal de hiperrealismo; depende de referencias y validación."
+      ],
+      "dimensional_verification": [
+        "σ_macro y σ_micro son parámetros de rugosidad/varianza adimensionales si se usan como escalas microfacet.",
+        "D tiene sr⁻¹; L(λ) es radiancia espectral por longitud de onda; integrar dλ (L) produce radiancia; a_i hereda unidad de detalle."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-03",
+      "name": "Animación cinematográfica estilizada",
+      "starting_principles": [
+        "Pesos y canales compatibles; rotaciones usan interpolación angular adecuada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "B(t)=Σ_i C(n,i)(1−t)^(n−i)t^iP_i",
+          "justification": "Construir trayectoria Bezier."
+        },
+        {
+          "step": 2,
+          "equation": "p'=Σ_j w_j(t)P_j",
+          "justification": "Mezclar poses."
+        },
+        {
+          "step": 3,
+          "equation": "s_xs_ys_z≈1",
+          "justification": "Aproximar conservación de volumen en squash/stretch."
+        },
+        {
+          "step": 4,
+          "equation": "ease(u)=3u²−2u³",
+          "justification": "Suavizar extremos temporales."
+        }
+      ],
+      "assumptions": [
+        "Pesos y canales compatibles; rotaciones usan interpolación angular adecuada."
+      ],
+      "result": "Combina curvas, poses, easing y deformación controlada.",
+      "limits": [
+        "La fórmula no sustituye staging, timing ni dirección artística."
+      ],
+      "dimensional_verification": [
+        "t,u y pesos de pose son adimensionales; puntos Bezier y canales de pose conservan sus unidades.",
+        "s_x,s_y,s_z son factores adimensionales; easing adimensional."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-04",
+      "name": "Anime 2D simulado en 3D",
+      "starting_principles": [
+        "Depth linealizado; normales unitarias; umbrales ordenados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "I=max(N·L,0)",
+          "justification": "Calcular iluminación escalar."
+        },
+        {
+          "step": 2,
+          "equation": "C=Σ_k c_k 1[t_k≤I<t_(k+1)]",
+          "justification": "Cuantizar iluminación por bandas."
+        },
+        {
+          "step": 3,
+          "equation": "E=|∇z|+λ(1−n_0·n_1)",
+          "justification": "Detectar discontinuidades de profundidad y normal."
+        },
+        {
+          "step": 4,
+          "equation": "outline=step(τ,E)",
+          "justification": "Generar máscara de contorno."
+        }
+      ],
+      "assumptions": [
+        "Depth linealizado; normales unitarias; umbrales ordenados."
+      ],
+      "result": "Combina volúmenes 3D, rampas de color y contornos.",
+      "limits": [
+        "Screen-space edges pueden parpadear o detectar bordes no deseados."
+      ],
+      "dimensional_verification": [
+        "I=N·L es adimensional; depth z tiene L si está linealizado; normales son unitarias.",
+        "λ debe compensar unidad de ∇z si depth lineal; E y umbral comparten unidad; máscara adimensional."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-05",
+      "name": "Cel shading",
+      "starting_principles": [
+        "N_bands≥2; vectores unitarios; p>0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "I=max(N·L,0)",
+          "justification": "Obtener intensidad."
+        },
+        {
+          "step": 2,
+          "equation": "b=floor(I·N_bands)/N_bands",
+          "justification": "Cuantizar en bandas."
+        },
+        {
+          "step": 3,
+          "equation": "C=R(b)",
+          "justification": "Mapear banda a rampa de color."
+        },
+        {
+          "step": 4,
+          "equation": "rim=(1−max(N·V,0))^p",
+          "justification": "Añadir realce rasante."
+        }
+      ],
+      "assumptions": [
+        "N_bands≥2; vectores unitarios; p>0."
+      ],
+      "result": "La receta deriva de cuantización de iluminación y rim light.",
+      "limits": [
+        "Los umbrales pueden producir popping."
+      ],
+      "dimensional_verification": [
+        "I, bandas, rim y exponent p son adimensionales.",
+        "La rampa de color conserva el espacio/escala de señal de entrada."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-06",
+      "name": "Cartoon clásico",
+      "starting_principles": [
+        "Targets compatibles; escalas positivas; rotaciones con slerp."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p'=p+Σ_iw_iΔp_i",
+          "justification": "Aplicar deformaciones correctivas."
+        },
+        {
+          "step": 2,
+          "equation": "s_xs_ys_z≈1",
+          "justification": "Compensar escalas para volumen aproximado."
+        },
+        {
+          "step": 3,
+          "equation": "ease(u)=3u²−2u³",
+          "justification": "Suavizar parámetro temporal."
+        },
+        {
+          "step": 4,
+          "equation": "x(t)=x_0+(x_1−x_0)ease(u)",
+          "justification": "Interpolar canal."
+        }
+      ],
+      "assumptions": [
+        "Targets compatibles; escalas positivas; rotaciones con slerp."
+      ],
+      "result": "Combina morph targets, escalado y curvas temporales.",
+      "limits": [
+        "Conservación exacta de volumen requiere más que producto de escalas."
+      ],
+      "dimensional_verification": [
+        "Δp_i tiene L; pesos w_i y escalas s_i son adimensionales.",
+        "La suma p'=p+Σw_iΔp_i conserva L; el producto de escalas es adimensional."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-07",
+      "name": "Low poly",
+      "starting_principles": [
+        "Malla válida; triángulos no degenerados; bordes protegidos si son importantes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Q_f(x)=xᵀA_fx+2b_fᵀx+c_f",
+          "justification": "Representar error de planos por quadric."
+        },
+        {
+          "step": 2,
+          "equation": "Q(v)=Σ_fQ_f(v)",
+          "justification": "Acumular error de vértice."
+        },
+        {
+          "step": 3,
+          "equation": "v*=argmin_xQ(x)",
+          "justification": "Elegir colapso de menor error."
+        },
+        {
+          "step": 4,
+          "equation": "N_face=normalize((p_1−p_0)×(p_2−p_0))",
+          "justification": "Calcular normal plana."
+        }
+      ],
+      "assumptions": [
+        "Malla válida; triángulos no degenerados; bordes protegidos si son importantes.",
+        "QEM se construye a partir de planos normalizados n·x+d=0; por ello Q tiene unidad L²."
+      ],
+      "result": "Deriva de simplificación QEM y sombreado facetado.",
+      "limits": [
+        "QEM puede eliminar rasgos finos."
+      ],
+      "dimensional_verification": [
+        "QEM residual (n·v+d) tiene L; Q tiene L²; A es adimensional, b L y c L².",
+        "El minimizador v* tiene L; normal de cara normalizada es adimensional."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-08",
+      "name": "High poly",
+      "starting_principles": [
+        "Bases NURBS válidas; desplazamiento en unidad L; malla regular."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S(u,v)=Σ_iΣ_jN_i(u)M_j(v)P_ij",
+          "justification": "Definir superficie NURBS."
+        },
+        {
+          "step": 2,
+          "equation": "P'=P+N·h(u,v)",
+          "justification": "Aplicar displacement."
+        },
+        {
+          "step": 3,
+          "equation": "subdivide(mesh)",
+          "justification": "Refinar aproximación de superficie."
+        },
+        {
+          "step": 4,
+          "equation": "error≈κ·edgeLength²",
+          "justification": "Relacionar error local con curvatura y tamaño de elemento."
+        }
+      ],
+      "assumptions": [
+        "Bases NURBS válidas; desplazamiento en unidad L; malla regular."
+      ],
+      "result": "Combina superficies suaves, subdivisión y desplazamiento.",
+      "limits": [
+        "Más polígonos no garantizan mejor imagen y elevan memoria/coste."
+      ],
+      "dimensional_verification": [
+        "P_ij y P(u,v) tienen L; bases N_i,M_j son adimensionales; h tiene L.",
+        "κ tiene L⁻¹ y edgeLength² L²; error estimado tiene L."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-09",
+      "name": "Stop motion",
+      "starting_principles": [
+        "fps_s>0; semilla fija; amplitud con unidad del canal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "k=floor(t·fps_s)",
+          "justification": "Cuantizar tiempo a índice de fotograma."
+        },
+        {
+          "step": 2,
+          "equation": "t_q=k/fps_s",
+          "justification": "Obtener instante de muestreo."
+        },
+        {
+          "step": 3,
+          "equation": "ε_k=hash(seed,k,channel)·A",
+          "justification": "Generar jitter determinista acotado."
+        },
+        {
+          "step": 4,
+          "equation": "x_q(t)=x(t_q)+ε_k",
+          "justification": "Aplicar pose cuantizada y variación."
+        }
+      ],
+      "assumptions": [
+        "fps_s>0; semilla fija; amplitud con unidad del canal."
+      ],
+      "result": "Deriva de sample-and-hold temporal más microvariación por frame.",
+      "limits": [
+        "Jitter excesivo parece error."
+      ],
+      "dimensional_verification": [
+        "t y t_q tienen T; fps_s tiene T⁻¹; t·fps_s y k son adimensionales/discretos.",
+        "ε_k hereda unidad del canal; x_q conserva unidad del canal."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-10",
+      "name": "Claymation",
+      "starting_principles": [
+        "SDF y k en L; huellas acotadas; gradiente definido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d_union=min_i d_i",
+          "justification": "Combinar volúmenes por SDF."
+        },
+        {
+          "step": 2,
+          "equation": "smin(a,b,k)=min(a,b)−(k/4)h²",
+          "justification": "Suavizar uniones."
+        },
+        {
+          "step": 3,
+          "equation": "h_surface=Σ_iA_i exp(−||p−c_i||²/σ_i²)",
+          "justification": "Crear huellas gaussianas."
+        },
+        {
+          "step": 4,
+          "equation": "N'=normalize(N−s∇h_surface)",
+          "justification": "Perturbar normal por relieve."
+        }
+      ],
+      "assumptions": [
+        "SDF y k en L; huellas acotadas; gradiente definido."
+      ],
+      "result": "Combina volúmenes suaves, huellas y relieve superficial.",
+      "limits": [
+        "No reproduce plasticidad real ni memoria material."
+      ],
+      "dimensional_verification": [
+        "d_i, k, σ_i y h_surface tienen L; h smooth-min es adimensional.",
+        "∇h_surface es adimensional si se deriva respecto a coordenadas físicas L; N' conserva unidad vectorial 1."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-11",
+      "name": "Acuarela procedural",
+      "starting_principles": [
+        "D≥0; u L/T; D L²/T; modelo 2D aproximado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "∂c/∂t+u·∇c=D∇²c−kc",
+          "justification": "Ecuación de advección-difusión-reacción para pigmento."
+        },
+        {
+          "step": 2,
+          "equation": "∂h/∂t+∇·(hu)=S−E",
+          "justification": "Balance simplificado de película de agua."
+        },
+        {
+          "step": 3,
+          "equation": "T=exp(−σ_aℓ)",
+          "justification": "Atenuación de pigmento."
+        },
+        {
+          "step": 4,
+          "equation": "C_out=palette(c,h,paper)",
+          "justification": "Mapear pigmento, agua y papel a color."
+        }
+      ],
+      "assumptions": [
+        "D≥0; u L/T; D L²/T; modelo 2D aproximado.",
+        "c tiene unidad de concentración declarada; S y E tienen unidad c/s. h es espesor de agua en L y el flujo h·u en L²/T."
+      ],
+      "result": "Deriva de transporte simplificado de agua/pigmento y absorción.",
+      "limits": [
+        "No reproduce capilaridad real ni mezcla espectral completa."
+      ],
+      "dimensional_verification": [
+        "c es concentración tipada; D tiene L²/T; u L/T; k T⁻¹; cada término de la PDE tiene c/T.",
+        "h tiene L; flujo h·u tiene L²/T; divergencia tiene L/T; S y E tienen L/T; σ_aℓ es adimensional."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-12",
+      "name": "Pintura al óleo procedural",
+      "starting_principles": [
+        "Tensor simétrico; sectores finitos; altura y distancia tipadas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "J=G_σ*(∇I∇Iᵀ)",
+          "justification": "Construir tensor de estructura."
+        },
+        {
+          "step": 2,
+          "equation": "θ=0.5atan2(2J_xy,J_xx−J_yy)",
+          "justification": "Obtener orientación dominante."
+        },
+        {
+          "step": 3,
+          "equation": "μ_k=mean(C_k); σ_k²=mean(||C−μ_k||²)",
+          "justification": "Calcular media/varianza por sectores."
+        },
+        {
+          "step": 4,
+          "equation": "C_out=Σw_kμ_k/Σw_k; h=ΣA_iφ(d_i)",
+          "justification": "Combinar sectores y crear relieve de trazos."
+        }
+      ],
+      "assumptions": [
+        "Tensor simétrico; sectores finitos; altura y distancia tipadas."
+      ],
+      "result": "Combina orientación, filtro anisotrópico y relieve de pincelada.",
+      "limits": [
+        "No simula mezcla química ni espesor real de pintura."
+      ],
+      "dimensional_verification": [
+        "∇I tiene unidad de color por longitud; tensor J tiene color²/L²; autovalores comparten esa unidad.",
+        "θ y pesos w_k son adimensionales; μ_k conserva unidad de color; σ²_k tiene color²; altura h tiene L."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-13",
+      "name": "Ilustración procedural",
+      "starting_principles": [
+        "Paleta y métrica de color declaradas; gradientes filtrados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C_q=argmin_{c∈palette}d(C,c)",
+          "justification": "Cuantizar color a paleta."
+        },
+        {
+          "step": 2,
+          "equation": "edge=||∇luma||",
+          "justification": "Detectar bordes."
+        },
+        {
+          "step": 3,
+          "equation": "shape=vectorForms(parameters)",
+          "justification": "Generar formas por reglas."
+        },
+        {
+          "step": 4,
+          "equation": "C_out=compose(shape,C_q,edge)",
+          "justification": "Componer contorno y relleno."
+        }
+      ],
+      "assumptions": [
+        "Paleta y métrica de color declaradas; gradientes filtrados."
+      ],
+      "result": "Deriva de generación geométrica, cuantización de color y bordes.",
+      "limits": [
+        "No sustituye composición y jerarquía visual."
+      ],
+      "dimensional_verification": [
+        "C y palette entries comparten señal/espacio; distancia d(C,c) se calcula en métrica declarada.",
+        "∇luma tiene L⁻¹ si coordenadas físicas o px⁻¹ en pantalla; edge y máscaras deben normalizarse."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-14",
+      "name": "Cómic y tinta",
+      "starting_principles": [
+        "Depth linealizado; normal unitaria; d unitario; s>0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E=|∇z|+λ(1−n·n_neighbor)",
+          "justification": "Combinar discontinuidad de profundidad y normal."
+        },
+        {
+          "step": 2,
+          "equation": "H(p)=fract(dot(p,d)/s)",
+          "justification": "Generar fase periódica de hachurado."
+        },
+        {
+          "step": 3,
+          "equation": "D(x,y)=pattern(x,y)",
+          "justification": "Crear trama de semitono."
+        },
+        {
+          "step": 4,
+          "equation": "mask=threshold(E,H,D,luma)",
+          "justification": "Convertir señales a máscara de tinta."
+        }
+      ],
+      "assumptions": [
+        "Depth linealizado; normal unitaria; d unitario; s>0."
+      ],
+      "result": "Combina contorno, hachurado y semitono.",
+      "limits": [
+        "Umbrales screen-space pueden parpadear y producir moiré."
+      ],
+      "dimensional_verification": [
+        "∇z es adimensional si z y coordenadas son longitudes lineales; λ es adimensional; n·n_neighbor adimensional.",
+        "p y spacing tienen misma unidad; phase y semitono son adimensionales; tinta/coverage son máscaras adimensionales."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-15",
+      "name": "Pixel art tridimensional",
+      "starting_principles": [
+        "R>0; paleta finita; dithering acotado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_virtual=floor(p_screen·R)/R, [R]=px⁻¹",
+          "justification": "Convertir coordenadas de pantalla a índices de bloque mediante una frecuencia espacial de píxel y devolver el centro de bloque en píxeles."
+        },
+        {
+          "step": 2,
+          "equation": "C_q=argmin_{c∈palette}d(C,c)",
+          "justification": "Cuantizar color."
+        },
+        {
+          "step": 3,
+          "equation": "η=Bayer(x,y)−0.5",
+          "justification": "Generar umbral ordenado."
+        },
+        {
+          "step": 4,
+          "equation": "C_out=quantize(C+ηΔ)",
+          "justification": "Dither antes de cuantizar y usar nearest sampling."
+        }
+      ],
+      "assumptions": [
+        "R>0; paleta finita; dithering acotado.",
+        "R es resolución inversa de bloque en px⁻¹; no confundir con número de bloques adimensional."
+      ],
+      "result": "Deriva de baja resolución virtual, cuantización y nearest filtering.",
+      "limits": [
+        "Requiere diseño de clusters/siluetas; render bajo por sí solo no basta."
+      ],
+      "dimensional_verification": [
+        "p_screen tiene px; R tiene px⁻¹; floor(p_screen·R)/R devuelve px.",
+        "η es adimensional; Δ tiene unidad de color; C_out conserva unidad/escala de color."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-16",
+      "name": "Voxel art",
+      "starting_principles": [
+        "voxelSize>0; grid finito; materiales válidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "i=floor((p−origin)/voxelSize)",
+          "justification": "Convertir posición a índice entero."
+        },
+        {
+          "step": 2,
+          "equation": "occupancy(i)∈{0,1}",
+          "justification": "Definir ocupación."
+        },
+        {
+          "step": 3,
+          "equation": "face exposed iff occupancy(neighbor)=0",
+          "justification": "Emitir solo caras expuestas."
+        },
+        {
+          "step": 4,
+          "equation": "merge coplanar equal-material faces",
+          "justification": "Combinar caras mediante greedy meshing."
+        }
+      ],
+      "assumptions": [
+        "voxelSize>0; grid finito; materiales válidos."
+      ],
+      "result": "Deriva de un campo discreto de ocupación y extracción de superficies.",
+      "limits": [
+        "La resolución fija limita detalle y produce aliasing geométrico."
+      ],
+      "dimensional_verification": [
+        "p y origin tienen L; voxelSize L; el cociente produce índice entero adimensional.",
+        "occupancy y faceCount son discretos; posición reconstruida conserva L."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-17",
+      "name": "Fantasía oscura",
+      "starting_principles": [
+        "λ>1; 0≤a<1; k≥0; campos acotados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F(p)=Σ_i a^i noise(λ^i p)",
+          "justification": "Construir ruido fractal."
+        },
+        {
+          "step": 2,
+          "equation": "R(p)=ridge(noise(p))",
+          "justification": "Extraer crestas."
+        },
+        {
+          "step": 3,
+          "equation": "ρ(y)=ρ_0exp(−k(y−y_0))",
+          "justification": "Crear niebla por altura."
+        },
+        {
+          "step": 4,
+          "equation": "C=palette(F,R,ρ)",
+          "justification": "Mapear campos a color y atmósfera."
+        }
+      ],
+      "assumptions": [
+        "λ>1; 0≤a<1; k≥0; campos acotados."
+      ],
+      "result": "Combina fractales, crestas, niebla y paleta.",
+      "limits": [
+        "Es dirección artística, no un algoritmo único."
+      ],
+      "dimensional_verification": [
+        "p tiene L; frecuencia espacial λ tiene L⁻¹; argumento noise es adimensional; a y F son adimensionales.",
+        "k tiene L⁻¹; y−y0 L; ρ0 y ρ(y) tienen L⁻¹ si representan extinción; palette es señal visual."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-18",
+      "name": "Ciencia ficción",
+      "starting_principles": [
+        "Bases válidas; seamWidth en L; color lineal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P(u,v)=Σ_iΣ_jN_i(u)M_j(v)P_ij",
+          "justification": "Generar superficies paramétricas."
+        },
+        {
+          "step": 2,
+          "equation": "d_seam=distanceToSeam(p)",
+          "justification": "Calcular distancia a junta."
+        },
+        {
+          "step": 3,
+          "equation": "panelMask=step(d_seam,seamWidth)",
+          "justification": "Crear máscara de panel."
+        },
+        {
+          "step": 4,
+          "equation": "emission=L_e·mask",
+          "justification": "Añadir emisión localizada."
+        }
+      ],
+      "assumptions": [
+        "Bases válidas; seamWidth en L; color lineal."
+      ],
+      "result": "Combina módulos, superficies y máscaras emisivas.",
+      "limits": [
+        "La apariencia no implica funcionalidad física."
+      ],
+      "dimensional_verification": [
+        "P(u,v), d_seam y seamWidth tienen L; u,v adimensionales; mask es adimensional.",
+        "Emisión L_e tiene unidad de radiancia o señal lineal declarada; multiplicar por mask conserva unidad."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-19",
+      "name": "Biomecánico",
+      "starting_principles": [
+        "r_0>0; γ>0; marcos estables; unidades coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(s)=spline(controlPoints)",
+          "justification": "Definir curvas orgánicas."
+        },
+        {
+          "step": 2,
+          "equation": "r(s)=r_0(1−s)^γ",
+          "justification": "Generar taper."
+        },
+        {
+          "step": 3,
+          "equation": "F_t=k(l−l_0)",
+          "justification": "Definir tensión elástica visual si se usa modelo físico."
+        },
+        {
+          "step": 4,
+          "equation": "P(s,θ)=C(s)+r(s)(Ncosθ+Bsinθ)",
+          "justification": "Construir tubos/estructuras ramificadas."
+        }
+      ],
+      "assumptions": [
+        "r_0>0; γ>0; marcos estables; unidades coherentes.",
+        "k en F_t=k(l−l0) tiene N/m; la fuerza elástica es N y no una magnitud adimensional."
+      ],
+      "result": "Combina geometría orgánica tubular y restricciones de tensión visual.",
+      "limits": [
+        "No es anatomía ni biomecánica médica validada."
+      ],
+      "dimensional_verification": [
+        "C(s), r0, r(s), l y l0 tienen L; s y γ son adimensionales.",
+        "k elástico tiene N/m; k(l−l0) tiene N; la geometría barrida conserva L."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-20",
+      "name": "Surrealismo",
+      "starting_principles": [
+        "Matrices tipadas; SDF compatibles; transformaciones controladas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P'=A(t)P+b(t)",
+          "justification": "Aplicar transformación espacial temporal."
+        },
+        {
+          "step": 2,
+          "equation": "d_union=min(d_A,d_B)",
+          "justification": "Combinar campos implícitos."
+        },
+        {
+          "step": 3,
+          "equation": "T_n=T_0∘T_1∘…∘T_n",
+          "justification": "Componer transformaciones."
+        },
+        {
+          "step": 4,
+          "equation": "camera(t)=lookAt(path(t),target(t))",
+          "justification": "Coreografiar cámara para revelar la paradoja espacial."
+        }
+      ],
+      "assumptions": [
+        "Matrices tipadas; SDF compatibles; transformaciones controladas."
+      ],
+      "result": "Deriva de composición de transformaciones y campos implícitos.",
+      "limits": [
+        "Transformaciones singulares pueden colapsar geometría."
+      ],
+      "dimensional_verification": [
+        "P y b tienen L; matriz A(t) es adimensional; transformaciones compuestas preservan L.",
+        "SDF d_A,d_B tienen L y deben compartir marco/signo; cámara path tiene L."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-21",
+      "name": "Arte fractal",
+      "starting_principles": [
+        "R>1; iteraciones finitas; precisión numérica declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "z_0=0; z_{n+1}=z_n²+c",
+          "justification": "Definir iteración compleja."
+        },
+        {
+          "step": 2,
+          "equation": "escape if |z_n|>R",
+          "justification": "Clasificar por radio de escape."
+        },
+        {
+          "step": 3,
+          "equation": "n_escape=first n with |z_n|>R",
+          "justification": "Registrar tiempo de escape."
+        },
+        {
+          "step": 4,
+          "equation": "color=palette(n_escape,|z_n|)",
+          "justification": "Mapear iteración a color."
+        }
+      ],
+      "assumptions": [
+        "R>1; iteraciones finitas; precisión numérica declarada."
+      ],
+      "result": "Deriva de una recurrencia compleja y criterio de escape.",
+      "limits": [
+        "Zoom profundo exige mayor precisión; distancia estimada es aproximada."
+      ],
+      "dimensional_verification": [
+        "z y c son complejos adimensionales; R y |z| adimensionales; n es conteo discreto.",
+        "El color de salida es señal RGB normalizada adimensional."
+      ]
+    },
+    {
+      "record_key": "STYLE-CODE-22",
+      "name": "Abstracto generativo",
+      "starting_principles": [
+        "Campo V definido; Δt y unidades compatibles; semilla estable."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dx/dt=V(x,t)",
+          "justification": "Definir sistema dinámico."
+        },
+        {
+          "step": 2,
+          "equation": "x_{n+1}=x_n+V(x_n,t_n)Δt",
+          "justification": "Integrar estado."
+        },
+        {
+          "step": 3,
+          "equation": "P(u,v)=Σ_iΣ_jB_i(u)B_j(v)P_ij",
+          "justification": "Generar superficies paramétricas."
+        },
+        {
+          "step": 4,
+          "equation": "C=palette(F(x),seed)",
+          "justification": "Mapear estado a color de forma reproducible."
+        }
+      ],
+      "assumptions": [
+        "Campo V definido; Δt y unidades compatibles; semilla estable."
+      ],
+      "result": "Deriva de sistemas dinámicos, geometría paramétrica y mapeo de atributos.",
+      "limits": [
+        "La complejidad no garantiza jerarquía visual; controlar densidad y composición."
+      ],
+      "dimensional_verification": [
+        "x tiene L; V tiene L/T; VΔt tiene L; integración conserva L.",
+        "P(u,v) tiene L; u,v y seed son adimensionales/discretos; color conserva señal declarada."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "22/22 recetas visual_style_atlas_v4 cubiertas exactamente",
+      "Cada receta incluye derivación, supuestos, límites y verificación dimensional",
+      "Se distinguen magnitudes físicas (radiancia, fuerza, longitud) de parámetros artísticos adimensionales",
+      "QEM, blur, acuarela, hachurado, pixel art, atmósfera y biomecánica tienen unidades explícitas",
+      "Las 13 etiquetas resumen domains[D19].styles no se cuentan como recetas adicionales"
+    ],
+    "limitations": [
+      "Una receta artística no tiene una única ecuación universal ni garantiza un resultado perceptual; las derivaciones explican los operadores matemáticos seleccionados y sus dominios."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

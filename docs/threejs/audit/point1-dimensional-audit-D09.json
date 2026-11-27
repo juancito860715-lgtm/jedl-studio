@@ -1,0 +1,1414 @@
+{
+  "title": "Auditoría dimensional punto 1 — D09 Iluminación, sombreado y color",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D09",
+    "domain": "Iluminación, sombras y exposición",
+    "record_count": 13,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D09 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "radiometry": "Separar radiancia, reflectancia, BRDF y color display-referred; declarar unidades y espacio de color.",
+    "depth": "Profundidad métrica y depth buffer normalizado no son intercambiables.",
+    "scene_length": "Unidad global de longitud; SI si se declara."
+  },
+  "records": [
+    {
+      "record_key": "D09:0",
+      "name": "Lambert diffuse",
+      "variables": [
+        {
+          "symbol": "albedo",
+          "meaning": "reflectancia difusa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o RGB lineal"
+        },
+        {
+          "symbol": "lightColor",
+          "meaning": "radiancia/color de luz",
+          "unit": "radiometric units",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "N,L",
+          "meaning": "normal y dirección de luz",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "I_d",
+          "meaning": "radiancia reflejada aproximada",
+          "unit": "radiometric units",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        }
+      ],
+      "constraints": [
+        "N y L deben estar normalizados; max(N·L,0) es adimensional.",
+        "Albedo no debe exceder rango físico; color de luz conserva unidad radiométrica."
+      ],
+      "valid_domain": [
+        "Vectores no nulos y albedo/radiancia finitos."
+      ],
+      "boundary_conditions": [
+        "N·L≤0 produce contribución difusa cero.",
+        "Albedo cero produce salida difusa cero."
+      ],
+      "dimensional_checks": [
+        "albedo is dimensionless reflectance; N and L are unit directions and max(N·L,0) is dimensionless.",
+        "lightColor and I_d must use the same radiometric quantity and units; if using physical radiance, radiance has W·m⁻²·sr⁻¹ (SI base dimensions M·T⁻³).",
+        "The Lambert factor multiplies incident radiance by dimensionless albedo and cosine; output retains radiance units."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:1",
+      "name": "Phong specular",
+      "variables": [
+        {
+          "symbol": "R,V",
+          "meaning": "direcciones reflejada y vista",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "k_s",
+          "meaning": "coeficiente especular",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        },
+        {
+          "symbol": "n",
+          "meaning": "exponente Phong",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n≥0"
+        },
+        {
+          "symbol": "I_s",
+          "meaning": "radiancia especular incidente por lóbulo normalizado",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "L_i",
+          "meaning": "radiancia incidente de la luz",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y no negativa"
+        },
+        {
+          "symbol": "S_s",
+          "meaning": "coeficiente especular normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        }
+      ],
+      "constraints": [
+        "S_s=k_s·max(dot,0)^n es adimensional; I_s=L_i·S_s tiene unidades de radiancia.",
+        "I_d e I_s solo se suman después de multiplicar los lóbulos normalizados por radiancias incidentes compatibles."
+      ],
+      "valid_domain": [
+        "R,V unitarios; k_s,n finitos."
+      ],
+      "boundary_conditions": [
+        "R·V≤0 produce cero.",
+        "n=0 da lóbulo constante en hemisferio positivo según fórmula."
+      ],
+      "dimensional_checks": [
+        "k_s, cosenos y exponentes son adimensionales; S_s es adimensional.",
+        "L_i·S_s e I_d tienen W·m⁻²·sr⁻¹; su suma conserva radiancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:2",
+      "name": "Blinn-Phong",
+      "variables": [
+        {
+          "symbol": "N,H",
+          "meaning": "normal y half-vector",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarios"
+        },
+        {
+          "symbol": "k_s",
+          "meaning": "coeficiente especular",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "n",
+          "meaning": "exponente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "I_s",
+          "meaning": "radiancia especular incidente por lóbulo normalizado",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "L_i",
+          "meaning": "radiancia incidente de la luz",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y no negativa"
+        },
+        {
+          "symbol": "S_s",
+          "meaning": "coeficiente especular normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        }
+      ],
+      "constraints": [
+        "S_s=k_s·max(dot,0)^n es adimensional; I_s=L_i·S_s tiene unidades de radiancia.",
+        "I_d e I_s solo se suman después de multiplicar los lóbulos normalizados por radiancias incidentes compatibles."
+      ],
+      "valid_domain": [
+        "Vectores unitarios y half-vector definido."
+      ],
+      "boundary_conditions": [
+        "N·H≤0 produce cero.",
+        "Si L+V≈0, contribución especular cero o fallback."
+      ],
+      "dimensional_checks": [
+        "k_s, cosenos y exponentes son adimensionales; S_s es adimensional.",
+        "L_i·S_s e I_d tienen W·m⁻²·sr⁻¹; su suma conserva radiancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:3",
+      "name": "PBR microfacet",
+      "variables": [
+        {
+          "symbol": "D",
+          "meaning": "distribución microfacet",
+          "unit": "sr⁻¹ (microfacet normal distribution convention)",
+          "dimension": "inverse solid angle; sr dimensionless in SI but retained as angular measure",
+          "domain": "normalizada según convención"
+        },
+        {
+          "symbol": "F",
+          "meaning": "Fresnel",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "G",
+          "meaning": "máscara geométrica",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "N·L,N·V",
+          "meaning": "cosenos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos en hemisferio visible"
+        },
+        {
+          "symbol": "BRDF",
+          "meaning": "reflectancia bidireccional",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y energética"
+        }
+      ],
+      "constraints": [
+        "Denominador 4(N·L)(N·V) solo en hemisferio válido y con epsilon numérico.",
+        "D,F,G deben corresponder al mismo modelo microfacet y convención de rugosidad."
+      ],
+      "valid_domain": [
+        "N·L>0 y N·V>0; microfacet parameters válidos."
+      ],
+      "boundary_conditions": [
+        "Fuera de hemisferio visible, BRDF=0.",
+        "Cosenos próximos a cero requieren límite numérico estable."
+      ],
+      "dimensional_checks": [
+        "F and G are dimensionless; N·L and N·V are dimensionless positive cosines.",
+        "Microfacet distribution D and BRDF have inverse-steradian convention; the denominator is dimensionless.",
+        "The BRDF output must integrate consistently with incident radiance and projected solid angle; D cannot be dimensionless under the standard microfacet convention."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:4",
+      "name": "Fresnel Schlick",
+      "variables": [
+        {
+          "symbol": "F0",
+          "meaning": "reflectancia frontal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] RGB"
+        },
+        {
+          "symbol": "cosθ",
+          "meaning": "coseno ángulo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F",
+          "meaning": "reflectancia Fresnel",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Todas las magnitudes son adimensionales; cosθ debe corresponder a ángulo entre dirección y normal."
+      ],
+      "valid_domain": [
+        "F0 y cosθ dentro de [0,1]."
+      ],
+      "boundary_conditions": [
+        "cosθ=1 devuelve F0.",
+        "cosθ=0 devuelve 1 según Schlick."
+      ],
+      "dimensional_checks": [
+        "F0, cosθ and F are dimensionless; (1−cosθ)^5 is dimensionless.",
+        "cosθ must be clamped to [0,1] for the usual entering/exiting interface convention.",
+        "F remains a reflectance ratio in [0,1], not radiance."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:5",
+      "name": "Shadow mapping",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "punto en mundo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "d_light",
+          "meaning": "profundidad desde luz",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "proyección coherente"
+        },
+        {
+          "symbol": "d_map",
+          "meaning": "profundidad almacenada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio/proyección"
+        },
+        {
+          "symbol": "visibility",
+          "meaning": "visibilidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Profundidades deben compararse en la misma convención, espacio y rango de proyección.",
+        "Bias evita acne pero debe mantenerse pequeño respecto a escala."
+      ],
+      "valid_domain": [
+        "Punto dentro del frustum de luz y mapa de profundidad válido."
+      ],
+      "boundary_conditions": [
+        "Fuera del frustum aplicar visibilidad declarada (normalmente 1).",
+        "En igualdad de profundidad aplicar regla de comparación consistente."
+      ],
+      "dimensional_checks": [
+        "World position p has L; depth comparisons are valid only when receiver depth and sampled depth use the same light projection and encoding.",
+        "If depth is linear world distance, both d_light and d_map have L and bias has L; if hardware depth is normalized, all three are dimensionless.",
+        "visibility is dimensionless in [0,1]; depth comparison is a visibility test, not a physical subtraction across encodings."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:6",
+      "name": "PCF soft shadows",
+      "variables": [
+        {
+          "symbol": "d",
+          "meaning": "profundidad del receptor",
+          "unit": "m o depth normalizado",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "misma codificación"
+        },
+        {
+          "symbol": "d_i",
+          "meaning": "muestras depth",
+          "unit": "misma unidad/codificación",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vecindad finita"
+        },
+        {
+          "symbol": "b",
+          "meaning": "bias",
+          "unit": "misma unidad depth",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        },
+        {
+          "symbol": "visibility",
+          "meaning": "promedio comparaciones",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Todas las muestras y bias deben usar la misma codificación de profundidad.",
+        "Promedio divide por número de muestras positivo."
+      ],
+      "valid_domain": [
+        "Kernel de muestras no vacío; depth finito."
+      ],
+      "boundary_conditions": [
+        "Una muestra equivale a comparación simple.",
+        "Kernel fuera del mapa requiere clamp/border policy explícita."
+      ],
+      "dimensional_checks": [
+        "d, d_i and bias must share the same depth encoding and units (all L for linear depth or all dimensionless for normalized depth).",
+        "Each comparison yields a dimensionless 0/1 visibility sample; averaging preserves dimensionless visibility.",
+        "The PCF kernel radius is in texels/pixels and is separate from the depth bias."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:7",
+      "name": "Hemisphere lighting",
+      "variables": [
+        {
+          "symbol": "N_y",
+          "meaning": "componente vertical normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[-1,1]"
+        },
+        {
+          "symbol": "t",
+          "meaning": "factor de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "clamp(0.5N_y+0.5,0,1)"
+        },
+        {
+          "symbol": "groundColor,skyColor",
+          "meaning": "colores",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio"
+        },
+        {
+          "symbol": "L",
+          "meaning": "color resultante",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "interpolación"
+        }
+      ],
+      "constraints": [
+        "N debe ser unitario para que N_y tenga significado coseno.",
+        "Mezclar en espacio lineal."
+      ],
+      "valid_domain": [
+        "Colores finitos; normal unitaria."
+      ],
+      "boundary_conditions": [
+        "N_y=−1 usa groundColor; N_y=1 usa skyColor."
+      ],
+      "dimensional_checks": [
+        "N_y and t=0.5N_y+0.5 are dimensionless; t lies in [0,1] for unit normal N.",
+        "groundColor, skyColor and L must share the same linear color/radiance representation.",
+        "lerp preserves the units and color space of its endpoints."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:8",
+      "name": "Volumetric light",
+      "variables": [
+        {
+          "symbol": "s",
+          "meaning": "distancia sobre rayo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,D]"
+        },
+        {
+          "symbol": "T(s)",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "σ_s",
+          "meaning": "coeficiente dispersión",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "phase",
+          "meaning": "función de fase",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        },
+        {
+          "symbol": "L",
+          "meaning": "radiancia integrada",
+          "unit": "radiancia integrada W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "L_i",
+          "meaning": "radiancia incidente de la fuente",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y no negativa"
+        },
+        {
+          "symbol": "σ_t",
+          "meaning": "coeficiente de extinción total",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "σ_t≥σ_s≥0 en medio pasivo"
+        },
+        {
+          "symbol": "dω_i",
+          "meaning": "medida angular de direcciones incidentes",
+          "unit": "sr",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "sobre esfera o hemisferio declarado"
+        },
+        {
+          "symbol": "L_bg",
+          "meaning": "radiancia de fondo al final del rayo",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "D",
+          "meaning": "distancia total de integración",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "D≥0"
+        }
+      ],
+      "constraints": [
+        "T(s)=exp(−∫₀ˢσ_t(u)du); σ_t ds es adimensional.",
+        "La fuente de dispersión es σ_s∫p(ω_i,ω_o)L_i(ω_i)dω_i; p tiene sr⁻¹ y dω_i sr, por lo que la integral angular conserva radiancia.",
+        "La integral espacial multiplica σ_s ds (adimensional) y conserva radiancia; sumar L_bgT(D) requiere la misma unidad de radiancia."
+      ],
+      "valid_domain": [
+        "D≥0; coeficientes no negativos y campos integrables."
+      ],
+      "boundary_conditions": [
+        "D=0 produce contribución cero.",
+        "T=0 anula contribución posterior al punto opaco."
+      ],
+      "dimensional_checks": [
+        "σ_t,σ_s tienen L⁻¹; ds tiene L; la transmitancia es adimensional.",
+        "p(sr⁻¹)·L_i(radiancia)·dω_i(sr) tiene radiancia; σ_s ds no altera unidades.",
+        "L_o y L_bg tienen W·m⁻²·sr⁻¹."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:9",
+      "name": "ACES-like tone mapping",
+      "variables": [
+        {
+          "symbol": "C_HDR",
+          "meaning": "color HDR",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "componentes finitas no negativas"
+        },
+        {
+          "symbol": "exposure",
+          "meaning": "exposición",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "ToneMap",
+          "meaning": "operador",
+          "unit": "mapeo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "salida display-referred"
+        },
+        {
+          "symbol": "C_out",
+          "meaning": "color salida",
+          "unit": "RGB display",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango destino"
+        },
+        {
+          "symbol": "a,b,c,d,e",
+          "meaning": "coeficientes de curva racional ACES-like normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; denominador no nulo en dominio de entrada"
+        },
+        {
+          "symbol": "whitePoint",
+          "meaning": "blanco de referencia en escala HDR normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "whitePoint>0"
+        }
+      ],
+      "constraints": [
+        "La curva racional opera sobre RGB lineal HDR normalizado; x, coeficientes a–e y whitePoint son adimensionales.",
+        "Si la entrada es radiancia física, dividir por una radiancia de referencia antes de la curva o declarar los coeficientes con unidades compatibles."
+      ],
+      "valid_domain": [
+        "Color y exposición finitos; exposición>0."
+      ],
+      "boundary_conditions": [
+        "C_HDR=0 produce negro.",
+        "Valores altos se comprimen según curva; no asumir clipping lineal."
+      ],
+      "dimensional_checks": [
+        "exposure·C_HDR conserva la unidad de C_HDR; en la convención normalizada todos son adimensionales.",
+        "La curva y la normalización por whitePoint producen señal display-linear adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:10",
+      "name": "Exposure",
+      "variables": [
+        {
+          "symbol": "EV",
+          "meaning": "valor de exposición",
+          "unit": "stops",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "C",
+          "meaning": "color lineal",
+          "unit": "RGB",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "C′",
+          "meaning": "color expuesto",
+          "unit": "RGB",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "2^EV·C"
+        }
+      ],
+      "constraints": [
+        "EV es log₂ adimensional; 2^EV factor sin dimensión.",
+        "Aplicar a color lineal, no a valores sRGB codificados."
+      ],
+      "valid_domain": [
+        "EV finito dentro de rango numérico; C finito."
+      ],
+      "boundary_conditions": [
+        "EV=0 deja C sin cambio.",
+        "EV→−∞ tiende a negro; límites prácticos deben evitar under/overflow."
+      ],
+      "dimensional_checks": [
+        "EV is a logarithmic exposure value in stops and dimensionless; 2^EV is a dimensionless multiplier.",
+        "C and C′ share the same linear color/radiance units; multiplication by 2^EV preserves them.",
+        "The reference exposure convention (EV=0) must be defined; EV changes do not alter physical units."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:11",
+      "name": "Color temperature",
+      "variables": [
+        {
+          "symbol": "T_color",
+          "meaning": "temperatura de color",
+          "unit": "K",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 1,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "warm,neutral,cool",
+          "meaning": "colores",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "w",
+          "meaning": "pesos de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos; suma 1"
+        },
+        {
+          "symbol": "C",
+          "meaning": "color final",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ>0"
+        },
+        {
+          "symbol": "h_P",
+          "meaning": "constante de Planck",
+          "unit": "J·s",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "constante física"
+        },
+        {
+          "symbol": "c_0",
+          "meaning": "velocidad de la luz",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "constante física"
+        },
+        {
+          "symbol": "k_B",
+          "meaning": "constante de Boltzmann",
+          "unit": "J/K",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": -1,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "constante física"
+        },
+        {
+          "symbol": "B_λ",
+          "meaning": "radiancia espectral de cuerpo negro",
+          "unit": "W·m⁻³·sr⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "T>0; λ>0"
+        },
+        {
+          "symbol": "x̄,ȳ,z̄",
+          "meaning": "funciones de igualación CIE",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "curvas espectrales declaradas"
+        },
+        {
+          "symbol": "XYZ",
+          "meaning": "triestímulos integrados",
+          "unit": "W·m⁻²·sr⁻¹ (o escala relativa normalizada)",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "integración espectral"
+        }
+      ],
+      "constraints": [
+        "El exponente hc/(λk_BT) debe ser adimensional.",
+        "B_λ tiene radiancia por longitud de onda; integrar B_λ·x̄(λ)dλ produce triestímulo con radiancia o escala relativa normalizada.",
+        "La matriz XYZ→RGB es adimensional y depende de primarias/white point declarados."
+      ],
+      "valid_domain": [
+        "T_color>0 si se usa como temperatura; colores finitos."
+      ],
+      "boundary_conditions": [
+        "Peso único selecciona su color; transición continua entre muestras."
+      ],
+      "dimensional_checks": [
+        "h_Pc_0/(λk_BT) es adimensional; B_λ tiene W·m⁻³·sr⁻¹.",
+        "Integrar respecto a λ (m) produce W·m⁻²·sr⁻¹; los coeficientes de mezcla RGB son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D09:12",
+      "name": "Ruido de erosión orientado por flujo y pendiente",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición de terreno",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "flow",
+          "meaning": "dirección de flujo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector normalizado"
+        },
+        {
+          "symbol": "slope",
+          "meaning": "pendiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "gradiente"
+        },
+        {
+          "symbol": "amplitude",
+          "meaning": "amplitud de ruido",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0–5% altura local inicial"
+        },
+        {
+          "symbol": "octaves",
+          "meaning": "octavas",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "2–6"
+        },
+        {
+          "symbol": "orientation_strength",
+          "meaning": "fuerza orientación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Amplitud es longitud; pendiente y orientación strength son adimensionales.",
+        "La orientación debe derivarse de flujo/pendiente sin normalizar vectores nulos."
+      ],
+      "valid_domain": [
+        "Campos de flujo y pendiente finitos; octavas enteras."
+      ],
+      "boundary_conditions": [
+        "Amplitud cero elimina perturbación.",
+        "Pendiente/flujo nulo usa orientación neutra determinista."
+      ],
+      "dimensional_checks": [
+        "p has L; amplitude has L; flow direction, slope and orientation_strength are dimensionless; octave count is discrete.",
+        "If noise is sampled spatially, each frequency has L^-1 so frequency·p is dimensionless.",
+        "The perturbation amplitude times normalized structured noise has L and can be added to terrain height; gradient direction requires nonzero gradient."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "13/13 técnicas incluidas; ninguna protegida",
+      "Cada registro incluye variables, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "Corregida dimensión termodinámica de temperatura de color y tipado radiométrico de microfacet/volumetría",
+      "Phong/Blinn separan lóbulo adimensional de radiancia incidente",
+      "Volumetric light incorpora integral angular, extinción y radiancia de fondo",
+      "Color temperature incluye constantes físicas y variables espectrales de Planck/CIE",
+      "ACES-like declara coeficientes y escala HDR normalizada"
+    ],
+    "limitations": [
+      "Las ecuaciones de iluminación simplificadas no especifican todos los factores radiométricos; se documentan las convenciones necesarias sin atribuirles precisión física no demostrada."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

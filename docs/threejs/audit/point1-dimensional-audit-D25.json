@@ -1,0 +1,838 @@
+{
+  "title": "Auditoría dimensional punto 1 — D25 Iluminación global, radiosidad y reflejos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D25",
+    "domain": "Iluminación global, radiosidad y reflejos",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D25 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "radiometry": "Radiancia W·m⁻²·sr⁻¹; irradiancia W·m⁻²; potencia radiante W.",
+    "angles": "sr es unidad de ángulo sólido (adimensional en SI base).",
+    "color": "Separar magnitudes radiométricas de RGB relativo/codificado."
+  },
+  "records": [
+    {
+      "record_key": "D25:0",
+      "name": "Radiosity",
+      "variables": [
+        {
+          "symbol": "B_i,E_i",
+          "meaning": "radiosidad y emisión",
+          "unit": "W/m²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "ρ_i",
+          "meaning": "reflectancia difusa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F_ij",
+          "meaning": "factor de forma",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "área de parche",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "A_i>0"
+        }
+      ],
+      "constraints": [
+        "B_i y E_i tienen irradiancia/radiosidad W/m²; ρ y F son adimensionales.",
+        "La suma sobre parches debe usar factores de forma consistentes y conservación recíproca."
+      ],
+      "valid_domain": [
+        "Áreas positivas; reflectancias físicas; factores de forma finitos."
+      ],
+      "boundary_conditions": [
+        "ρ=0 elimina rebotes difusos.",
+        "Parche sin intercambio visible tiene F=0."
+      ],
+      "dimensional_checks": [
+        "Todos los términos B_i tienen W/m².",
+        "ρ_i y F_ij son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D25:1",
+      "name": "Form factor",
+      "variables": [
+        {
+          "symbol": "A_i,A_j",
+          "meaning": "áreas",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "r",
+          "meaning": "separación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r>0"
+        },
+        {
+          "symbol": "θ_i,θ_j",
+          "meaning": "ángulos",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango hemisférico"
+        },
+        {
+          "symbol": "F_ij",
+          "meaning": "factor forma",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "El integrando cosθ_i cosθ_j/(πr²) dA_i dA_j / A_i es adimensional.",
+        "La integral requiere visibilidad V y superficies con orientación definida."
+      ],
+      "valid_domain": [
+        "Áreas no degeneradas; separación singular tratada; superficies definidas."
+      ],
+      "boundary_conditions": [
+        "Superficies no enfrentadas dan F=0 bajo convención.",
+        "Autovisibilidad y contacto deben evitar r=0 singular."
+      ],
+      "dimensional_checks": [
+        "dA_i dA_j tienen L⁴; r² y A_i aportan L³ neto? revisar integral: dividir por A_i (L²), r² (L²), dA_i dA_j (L⁴) -> adimensional.",
+        "F_ij es adimensional y satisface A_iF_ij=A_jF_ji en reciprocidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D25:2",
+      "name": "Ambient cube",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "dirección normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "c_lm",
+          "meaning": "coeficientes ambientales",
+          "unit": "radiancia relativa o W·m⁻²·sr⁻¹",
+          "dimension": "tipado según señal",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "Y_lm",
+          "meaning": "armónicos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "base ortonormal"
+        },
+        {
+          "symbol": "L_ambient",
+          "meaning": "radiancia/irradiancia aproximada",
+          "unit": "misma unidad de c",
+          "dimension": "heredada",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Coeficientes y salida deben usar misma convención: radiancia entrante o irradiancia convolucionada.",
+        "Los armónicos son adimensionales; dirección unitaria."
+      ],
+      "valid_domain": [
+        "Coeficientes finitos; orden de SH y normalización declarados."
+      ],
+      "boundary_conditions": [
+        "Coeficientes cero producen iluminación ambiental cero.",
+        "Normal inválida requiere normalización/fallback."
+      ],
+      "dimensional_checks": [
+        "Y_lm y n son adimensionales; salida conserva unidad de coeficientes.",
+        "No mezclar coeficientes radiométricos con color RGB codificado."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D25:3",
+      "name": "Spherical harmonics",
+      "variables": [
+        {
+          "symbol": "ω",
+          "meaning": "dirección",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "c_lm",
+          "meaning": "coeficientes",
+          "unit": "unidad de L(ω)",
+          "dimension": "heredada",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "Y_lm",
+          "meaning": "base SH",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        },
+        {
+          "symbol": "L",
+          "meaning": "función iluminante",
+          "unit": "unidad de c",
+          "dimension": "heredada",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "La suma conserva la unidad de los coeficientes; Y_lm adimensionales.",
+        "Orden l y m, normalización y dominio angular deben fijarse."
+      ],
+      "valid_domain": [
+        "Coeficientes finitos; base ortonormal."
+      ],
+      "boundary_conditions": [
+        "Todos c_lm=0 produce L=0.",
+        "Truncamiento de orden alto requiere política de reconstrucción."
+      ],
+      "dimensional_checks": [
+        "c_lm y L comparten unidad; Y_lm no tiene dimensión.",
+        "La suma es dimensionalmente homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D25:4",
+      "name": "Reflection probe blending",
+      "variables": [
+        {
+          "symbol": "w_i",
+          "meaning": "peso de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "w_i≥0; Σw_i=1"
+        },
+        {
+          "symbol": "L_i",
+          "meaning": "radiancia de probe",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": -2,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "p",
+          "meaning": "posición de consulta",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "r",
+          "meaning": "dirección reflejada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        }
+      ],
+      "constraints": [
+        "La mezcla Σw_iL_i conserva radiancia si probes usan mismo espacio/escala.",
+        "Pesos deben normalizarse y probes tener convención de exposición compatible."
+      ],
+      "valid_domain": [
+        "Probes válidos; pesos no negativos; suma positiva."
+      ],
+      "boundary_conditions": [
+        "Sin probe válido, fallback ambiental declarado.",
+        "Peso único 1 reproduce ese probe."
+      ],
+      "dimensional_checks": [
+        "w_i adimensional; L_i radiancia; L conserva radiancia.",
+        "p tiene L y dirección reflejada es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D25:5",
+      "name": "Parallax-corrected cubemap",
+      "variables": [
+        {
+          "symbol": "ro",
+          "meaning": "origen rayo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "rd",
+          "meaning": "dirección rayo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "boxMin,boxMax",
+          "meaning": "límites proxy",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "boxMax>boxMin"
+        },
+        {
+          "symbol": "t_hit",
+          "meaning": "parámetro de intersección",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t_hit≥0"
+        },
+        {
+          "symbol": "uv",
+          "meaning": "coordenada cubemap",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        }
+      ],
+      "constraints": [
+        "ro+t·rd tiene L si rd es unitario y t tiene L.",
+        "La caja proxy debe estar en el mismo marco que el origen; intersección paralela a caras requiere tratamiento."
+      ],
+      "valid_domain": [
+        "Caja no degenerada; dirección normalizada; origen finito."
+      ],
+      "boundary_conditions": [
+        "Rayo paralelo sin intersección usa dirección reflejada original o fallback.",
+        "Origen fuera de caja debe resolverse con regla explícita."
+      ],
+      "dimensional_checks": [
+        "t_hit·rd tiene L; punto de intersección tiene L.",
+        "UV final es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D25:6",
+      "name": "Screen-space reflections",
+      "variables": [
+        {
+          "symbol": "z",
+          "meaning": "profundidad lineal",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "rd",
+          "meaning": "dirección reflejada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "Δs",
+          "meaning": "paso de raymarch",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "N_steps",
+          "meaning": "pasos",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "L_hit",
+          "meaning": "radiancia muestreada",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": -2,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Avance espacial Δs·rd tiene L; profundidad y ray position deben compartir espacio de vista.",
+        "SSR solo ve contenido del buffer actual; misses y fuera de pantalla requieren fallback."
+      ],
+      "valid_domain": [
+        "Depth buffer válido; matrices de cámara coherentes; paso positivo."
+      ],
+      "boundary_conditions": [
+        "Rayo fuera de pantalla produce miss, no dato arbitrario.",
+        "Profundidad de fondo debe excluirse."
+      ],
+      "dimensional_checks": [
+        "Δs y z tienen L; rd adimensional; N_steps conteo.",
+        "La radiancia de salida conserva unidad de buffer color."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D25:7",
+      "name": "Planar reflection",
+      "variables": [
+        {
+          "symbol": "plane",
+          "meaning": "plano espejo",
+          "unit": "normal 1 y distancia L",
+          "dimension": "normal adimensional; offset L",
+          "domain": "normal unitaria"
+        },
+        {
+          "symbol": "M_reflect",
+          "meaning": "transformación reflejo",
+          "unit": "afín tipada",
+          "dimension": "bloque lineal 1; traslación L",
+          "domain": "finita"
+        },
+        {
+          "symbol": "view",
+          "meaning": "matriz cámara",
+          "unit": "transformación",
+          "dimension": "bloque lineal 1; traslación L",
+          "domain": "invertible"
+        },
+        {
+          "symbol": "p",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "El plano debe estar normalizado; distancia firmada tiene L.",
+        "Transformación reflejada debe mantener marco/unidades y corregir orientación/culling según determinante."
+      ],
+      "valid_domain": [
+        "Normal unitaria; matriz cámara válida; plano finito."
+      ],
+      "boundary_conditions": [
+        "Puntos sobre plano permanecen invariantes.",
+        "Plano degenerado se rechaza."
+      ],
+      "dimensional_checks": [
+        "Normal y bloque lineal adimensionales; distancia y traslación tienen L.",
+        "Transformación conserva posición L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D25:8",
+      "name": "Light probes",
+      "variables": [
+        {
+          "symbol": "c_lm",
+          "meaning": "coeficientes de irradiancia",
+          "unit": "W/m²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "Y_lm",
+          "meaning": "armónicos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        },
+        {
+          "symbol": "n",
+          "meaning": "normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "E(n)",
+          "meaning": "irradiancia",
+          "unit": "W/m²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "La expansión SH conserva unidades de irradiancia si c_lm están almacenados como tales.",
+        "Declarar orden de armónicos, normalización y espacio de color."
+      ],
+      "valid_domain": [
+        "Coeficientes y normales válidos."
+      ],
+      "boundary_conditions": [
+        "Normal inválida requiere fallback.",
+        "Coeficientes nulos producen irradiancia cero."
+      ],
+      "dimensional_checks": [
+        "Y_lm adimensional; E conserva W/m².",
+        "No confundir irradiancia con radiancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D25:9",
+      "name": "Caustics",
+      "variables": [
+        {
+          "symbol": "P_i",
+          "meaning": "potencia radiante de rayo",
+          "unit": "W",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "área de huella",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "A_i>0"
+        },
+        {
+          "symbol": "E",
+          "meaning": "irradiancia",
+          "unit": "W/m²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "N",
+          "meaning": "número de rayos",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        }
+      ],
+      "constraints": [
+        "E≈ΣP_i/A_i requiere potencia y área; huella debe representar área efectiva y normalización del muestreo.",
+        "Si se estima radiancia, se requiere BRDF/medida angular adicional."
+      ],
+      "valid_domain": [
+        "Áreas positivas; potencia finita; rayos y superficie válidos."
+      ],
+      "boundary_conditions": [
+        "Sin rayos depositados, E=0.",
+        "Área de huella cero es singular; regularizar con kernel de área positiva."
+      ],
+      "dimensional_checks": [
+        "P_i/A_i tiene W/m².",
+        "La salida es irradiancia, no radiancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "10/10 técnicas incluidas; ninguna protegida",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
+      "Se distingue irradiancia, radiancia y potencia radiante"
+    ],
+    "limitations": [
+      "Las aproximaciones de probes/SSR/cáusticas dependen de medidas, normalización y buffers; se especifican las convenciones sin atribuir exactitud física no contenida en las fichas."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

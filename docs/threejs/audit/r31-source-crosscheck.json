@@ -293,6 +293,92 @@
         "R31-VOXEL-GREEDY-MESHING"
       ],
       "status": "PRIMARY_IMPLEMENTATION_SOURCE_VERIFIED; not peer-reviewed publication"
+    },
+    {
+      "id": "REF-FABRIK-2011-FULL-PDF",
+      "title": "FABRIK: A fast, iterative solver for the Inverse Kinematics problem",
+      "authors": "Andreas Aristidou; Joan Lasenby",
+      "year": 2011,
+      "doi": "10.1016/j.gmod.2011.05.003",
+      "url": "https://www.andreasaristidou.com/publications/papers/FABRIK.pdf",
+      "supports": [
+        "Algorithm 1: unreachable-target straight extension",
+        "Algorithm 1: backward pass from end effector and forward pass from fixed root",
+        "segment-distance invariants and tolerance/max-iteration termination"
+      ],
+      "source_locators": [
+        "pp. 245-247, Algorithm 1 and Section 4"
+      ],
+      "records": [
+        "R31-FABRIK-PARA-CADENAS-ARTICULADAS"
+      ],
+      "status": "FULL_PAPER_OPENED; ALGORITHM_1_AND_SECTION_4_FORMULA_LOCATORS_VERIFIED; joint-specific constraints and pole-vector production integration remain unverified"
+    },
+    {
+      "id": "REF-DQ-2007-FULL-PDF",
+      "title": "Skinning with Dual Quaternions",
+      "authors": "Ladislav Kavan; Steven Collins; Jiří Žára; Carol O'Sullivan",
+      "year": 2007,
+      "doi": null,
+      "url": "https://dcgi.fel.cvut.cz/home/zara/papers/KavanEtAll-I3D07a.pdf",
+      "supports": [
+        "dual-quaternion algebra and Study condition",
+        "rigid transform encoding and matrix conversion",
+        "antipodal hemisphere sign alignment",
+        "weighted dual-quaternion linear blend followed by normalization",
+        "GPU vertex position and normal transform outline"
+      ],
+      "source_locators": [
+        "Section 3.2, pp. 4-5, dual-quaternion representation and transform conversion",
+        "Section 3.3, p. 5, DLB normalization and antipodal sign selection",
+        "Section 3.4, pp. 6-7, GPU implementation"
+      ],
+      "records": [
+        "R31-SKINNING-POR-DUAL-QUATERNIONS"
+      ],
+      "status": "FULL_PAPER_OPENED; CORE_FORMULAS_AND_ALGORITHM_LOCATORS_VERIFIED; repository implementation still lacks matrix-to-DQ conversion parity and actual GPU vertex shader integration"
+    },
+    {
+      "id": "REF-STOP-MOTION-AUTHORED",
+      "title": "Project-authored deterministic microjitter convention",
+      "authors": "JEDL Studio audit team",
+      "year": 2026,
+      "doi": null,
+      "url": null,
+      "supports": [
+        "hash-derived repeatable per-frame and per-channel offset",
+        "bounded amplitude mapping from unsigned 32-bit hash to [-A,A)",
+        "deterministic output for fixed frame, seed and channel"
+      ],
+      "source_locators": [
+        "tests/threejs/r31_kernels.mjs: deterministicJitter",
+        "tests/threejs/r31_kernels.test.mjs: deterministic jitter reference"
+      ],
+      "records": [
+        "R31-STOP-MOTION-PROCEDURAL-CON-MICROJITTER-D"
+      ],
+      "status": "AUTHORED_RULE_NOT_A_PUBLISHED_FORMULA; source attribution intentionally limited to project implementation; statistical quality and long-sequence perceptual behavior remain to be tested"
+    },
+    {
+      "id": "REF-TEMPORAL-SAMPLE-HOLD-AUTHORED",
+      "title": "Fixed-rate temporal sample-and-hold quantization convention",
+      "authors": "JEDL Studio audit team",
+      "year": 2026,
+      "doi": null,
+      "url": null,
+      "supports": [
+        "floor-based mapping from continuous time to fixed sample index",
+        "quantized time t_q=floor(t f_s)/f_s",
+        "explicit distinction between sample-and-hold and interpolation policy"
+      ],
+      "source_locators": [
+        "tests/threejs/r31_kernels.mjs: quantizedTime",
+        "tests/threejs/r31_kernels.test.mjs: temporal quantization parity"
+      ],
+      "records": [
+        "R31-CUANTIZACI-N-TEMPORAL-DE-ANIMACI-N"
+      ],
+      "status": "AUTHORED_IMPLEMENTATION_CONVENTION; not presented as a novel published algorithm; channel interpolation/hold and full rig evaluator integration remain open"
     }
   ],
   "source_gaps": [
@@ -312,6 +398,8 @@
     "The matrix's 13 passed tests are isolated numeric kernels, not proof of browser rendering.",
     "Added source records for spatial hashing, periodic halftoning, hatching, depth/normal edges, brush height fields, volumetric Beer-Lambert integration, RK methods and Schlick Fresnel.",
     "Source coverage is improved but not complete at formula-transcription level for all 23 records. A topic-level paper reference is not evidence for every coefficient or implementation convention.",
-    "Greedy meshing currently has a primary implementation source, not a peer-reviewed paper."
+    "Greedy meshing currently has a primary implementation source, not a peer-reviewed paper.",
+    "2026-11-27 formula-level pass: opened the full FABRIK paper PDF and verified Algorithm 1 plus Section 4 locators; opened the full Kavan et al. dual-quaternion paper and verified Study condition, rigid-transform encoding, antipodal sign selection, DLB normalization and GPU algorithm outline. This verifies source equations, not the completeness of the repository implementation.",
+    "Stop-motion microjitter and temporal sample-and-hold are explicitly classified as project-authored implementation conventions. No external paper is attributed to the exact hash recipe or the chosen floor-quantization policy."
   ]
 }

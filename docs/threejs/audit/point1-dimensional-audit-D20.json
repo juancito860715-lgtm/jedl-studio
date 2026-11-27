@@ -1,0 +1,871 @@
+{
+  "title": "Auditoría dimensional punto 1 — D20 Optimización, pruebas y producción",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D20",
+    "domain": "Optimización, pruebas y producción",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D20 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "time": "Tiempos expresados en s o ms con conversión explícita.",
+    "pixels": "px es unidad discreta raster.",
+    "memory": "byte es unidad de información, no dimensión mecánica SI.",
+    "counts": "Conteos, índices, seeds y estados categóricos son discretos."
+  },
+  "records": [
+    {
+      "record_key": "D20:0",
+      "name": "Instancing first",
+      "variables": [
+        {
+          "symbol": "N",
+          "meaning": "número de instancias",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "M_i",
+          "meaning": "transformación por instancia",
+          "unit": "afín tipada",
+          "dimension": "bloque lineal 1; traslación L",
+          "domain": "finita"
+        },
+        {
+          "symbol": "materialId",
+          "meaning": "material",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "válido"
+        }
+      ],
+      "constraints": [
+        "Instancias agrupadas comparten geometría/material compatibles; cada matriz mantiene tipado afín.",
+        "Draw calls dependen de batches/materiales y límites GPU; no equivalen exactamente a uno en todos los casos."
+      ],
+      "valid_domain": [
+        "N finito; matrices válidas; buffers dentro de límites."
+      ],
+      "boundary_conditions": [
+        "N=0 no emite draw de instancias.",
+        "Al superar capacidad de buffer, dividir batch o ampliar buffer con límite declarado."
+      ],
+      "dimensional_checks": [
+        "N e índices son conteos; traslaciones tienen L; bloques lineales son adimensionales.",
+        "La cantidad de draw calls es conteo, no magnitud geométrica."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:1",
+      "name": "GPU deformation",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "posición de vértice",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "u",
+          "meaning": "uniformes",
+          "unit": "tipos por parámetro",
+          "dimension": "tipado individual",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "p'_i",
+          "meaning": "posición deformada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "La función F debe preservar unidades de posición; amplitudes de desplazamiento tienen L y fases temporales son adimensionales.",
+        "La misma deformación debe evaluarse coherentemente en pases de color, profundidad y sombra."
+      ],
+      "valid_domain": [
+        "Buffers y uniformes válidos; desplazamientos acotados."
+      ],
+      "boundary_conditions": [
+        "Amplitud cero reproduce p_i.",
+        "En t inicial, pose de referencia definida; evitar NaN/Inf."
+      ],
+      "dimensional_checks": [
+        "p_i y p'_i tienen L; t tiene T; parámetros conservan sus unidades.",
+        "Argumentos trigonométricos deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:2",
+      "name": "Bake static complexity",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "punto de evaluación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "F(p)",
+          "meaning": "campo costoso",
+          "unit": "unidad de salida declarada",
+          "dimension": "tipado según campo",
+          "domain": "finito"
+        },
+        {
+          "symbol": "texel",
+          "meaning": "muestra almacenada",
+          "unit": "unidad de F",
+          "dimension": "misma que salida",
+          "domain": "finita"
+        },
+        {
+          "symbol": "resolution",
+          "meaning": "resolución de bake",
+          "unit": "conteo/píxeles",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "enteros positivos"
+        }
+      ],
+      "constraints": [
+        "El bake debe preservar rango, precisión y espacio de coordenadas del campo original.",
+        "La textura/mesh horneada requiere metadatos de escala, bounds, filtro y formato."
+      ],
+      "valid_domain": [
+        "Dominio de bake acotado; resolución positiva; función determinista o semilla guardada."
+      ],
+      "boundary_conditions": [
+        "En bounds, muestreo debe cubrir bordes y costuras.",
+        "Si cambia geometría/parámetros fuente, invalidar o versionar el bake."
+      ],
+      "dimensional_checks": [
+        "p tiene L; texel hereda unidad de F; resolución es conteo discreto.",
+        "La interpolación de textura conserva unidades del campo muestreado."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:3",
+      "name": "Adaptive quality",
+      "variables": [
+        {
+          "symbol": "targetMs",
+          "meaning": "presupuesto objetivo",
+          "unit": "ms",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "measuredMs",
+          "meaning": "tiempo medido",
+          "unit": "ms",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "scale",
+          "meaning": "escala de calidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[min,max]"
+        },
+        {
+          "symbol": "scale_next",
+          "meaning": "escala siguiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        }
+      ],
+      "constraints": [
+        "targetMs/measuredMs es adimensional; escala y límites deben ser adimensionales.",
+        "Filtrar mediciones y limitar variación por frame para evitar oscilación."
+      ],
+      "valid_domain": [
+        "targetMs>0; measuredMs>0; min≤max."
+      ],
+      "boundary_conditions": [
+        "Si measuredMs=targetMs, factor de ajuste neutro.",
+        "En medición inválida, conservar última escala válida."
+      ],
+      "dimensional_checks": [
+        "Ambos tiempos tienen T; su cociente es adimensional.",
+        "scale_next conserva tipo adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:4",
+      "name": "Dynamic resolution",
+      "variables": [
+        {
+          "symbol": "displayWidth,displayHeight",
+          "meaning": "dimensiones de pantalla",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": "enteros positivos"
+        },
+        {
+          "symbol": "scale",
+          "meaning": "escala de render",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<scale≤1 o rango declarado"
+        },
+        {
+          "symbol": "renderWidth,renderHeight",
+          "meaning": "dimensiones internas",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": "enteros positivos"
+        }
+      ],
+      "constraints": [
+        "Multiplicar píxeles por escala adimensional; redondeo y alineación a múltiplos de tile deben declararse.",
+        "No reducir a dimensión cero; mantener relación de aspecto según política."
+      ],
+      "valid_domain": [
+        "Display dimensions positivas; scale positivo y finito."
+      ],
+      "boundary_conditions": [
+        "scale=1 conserva resolución nativa.",
+        "Si redondeo produce dimensión <1, clamp a 1 px."
+      ],
+      "dimensional_checks": [
+        "scale es adimensional; anchos/altos permanecen en px.",
+        "No tratar px como metros ni convertir sin calibración."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:5",
+      "name": "Budget per frame",
+      "variables": [
+        {
+          "symbol": "FPS_target",
+          "meaning": "frecuencia objetivo",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "T_frame",
+          "meaning": "tiempo por frame",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "CPU_ms,GPU_ms",
+          "meaning": "tiempos de trabajo",
+          "unit": "ms",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos"
+        },
+        {
+          "symbol": "B",
+          "meaning": "presupuesto",
+          "unit": "ms",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "T_frame=1/FPS_target; CPU y GPU no siempre se suman secuencialmente si hay solapamiento, por lo que declarar modelo de pipeline.",
+        "Comparar tiempos en la misma unidad y distinguir promedio, percentil y peor caso."
+      ],
+      "valid_domain": [
+        "FPS_target>0; mediciones finitas y no negativas."
+      ],
+      "boundary_conditions": [
+        "Si CPU_ms o GPU_ms excede presupuesto, se marca incumplimiento.",
+        "En datos ausentes, no certificar presupuesto."
+      ],
+      "dimensional_checks": [
+        "FPS tiene T⁻¹; 1/FPS tiene T; CPU/GPU y presupuesto tienen T.",
+        "La desigualdad usa magnitudes temporales homogéneas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:6",
+      "name": "Profiling",
+      "variables": [
+        {
+          "symbol": "frameTime",
+          "meaning": "tiempo de frame",
+          "unit": "ms",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito y no negativo"
+        },
+        {
+          "symbol": "drawCalls",
+          "meaning": "llamadas de dibujo",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "triangles",
+          "meaning": "triángulos",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "textureMemory",
+          "meaning": "memoria de texturas",
+          "unit": "byte",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        }
+      ],
+      "constraints": [
+        "Métricas de CPU, GPU y memoria deben distinguirse; draw calls y triángulos son conteos, no tiempos.",
+        "Medición requiere reloj monotónico y ventana de muestreo declarada."
+      ],
+      "valid_domain": [
+        "Muestras finitas; contadores no negativos."
+      ],
+      "boundary_conditions": [
+        "Sin frames medidos, resultado es no disponible, no cero.",
+        "Picos deben conservarse en percentiles o máximo según informe."
+      ],
+      "dimensional_checks": [
+        "frameTime tiene T; contadores son adimensionales discretos; memoria usa bytes.",
+        "No sumar ni comparar métricas de unidades diferentes."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:7",
+      "name": "Deterministic seeds",
+      "variables": [
+        {
+          "symbol": "seed",
+          "meaning": "semilla",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "representable"
+        },
+        {
+          "symbol": "index",
+          "meaning": "índice de muestra",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "random_i",
+          "meaning": "muestra pseudoaleatoria",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "PRNG_state",
+          "meaning": "estado generador",
+          "unit": "estructura discreta",
+          "dimension": "no magnitud física",
+          "domain": "válido"
+        }
+      ],
+      "constraints": [
+        "PRNG(seed,index) debe definir algoritmo, ancho de palabra y conversión a flotante.",
+        "No depender del reloj, orden de ejecución o estado global mutable."
+      ],
+      "valid_domain": [
+        "Semilla e índice válidos; PRNG versionado."
+      ],
+      "boundary_conditions": [
+        "Misma pareja seed/index y versión produce misma salida.",
+        "Cambio de versión debe versionar secuencias para preservar reproducibilidad."
+      ],
+      "dimensional_checks": [
+        "seed/index son discretos; random_i es adimensional.",
+        "La aleatoriedad no introduce unidad física; los resultados heredan la unidad del parámetro al que se apliquen."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:8",
+      "name": "Golden frame tests",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "tiempo de captura",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "I_ref,I_test",
+          "meaning": "imágenes",
+          "unit": "matriz de señal",
+          "dimension": "dimensión por canal declarada",
+          "domain": "mismo tamaño/formato"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "tolerancia",
+          "unit": "unidad de métrica",
+          "dimension": "según error elegido",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "E",
+          "meaning": "error de comparación",
+          "unit": "unidad de métrica",
+          "dimension": "igual que ε",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Referencia y render deben compartir resolución, color space, exposición y configuración de cámara.",
+        "Tolerancia debe corresponder a métrica declarada (error absoluto, relativo, SSIM u otra); no comparar métricas incompatibles."
+      ],
+      "valid_domain": [
+        "Frames deterministas o variación controlada; archivos válidos."
+      ],
+      "boundary_conditions": [
+        "E=0 indica igualdad exacta bajo comparación definida.",
+        "Si resolución o perfil difieren, prueba inválida en vez de fallo numérico."
+      ],
+      "dimensional_checks": [
+        "t tiene T; E y ε heredan unidad/escala de métrica; píxeles son raster.",
+        "La comparación se hace en el mismo espacio y codificación."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:9",
+      "name": "Numerical tests",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "entrada",
+          "unit": "unidad de dominio declarada",
+          "dimension": "tipado por función",
+          "domain": "dentro de dominio"
+        },
+        {
+          "symbol": "f(x)",
+          "meaning": "resultado",
+          "unit": "unidad de salida declarada",
+          "dimension": "tipado por función",
+          "domain": "finito"
+        },
+        {
+          "symbol": "expected",
+          "meaning": "valor esperado",
+          "unit": "misma unidad que f(x)",
+          "dimension": "igual a salida",
+          "domain": "finito"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "tolerancia",
+          "unit": "misma unidad que salida",
+          "dimension": "igual a salida",
+          "domain": "ε≥0"
+        }
+      ],
+      "constraints": [
+        "La tolerancia absoluta debe tener unidad de salida; tolerancia relativa es adimensional y debe declararse.",
+        "Puntos de prueba deben incluir interior, extremos, singularidades y casos límite del dominio."
+      ],
+      "valid_domain": [
+        "Entradas dentro del dominio y expected con referencia independiente."
+      ],
+      "boundary_conditions": [
+        "En límite, comparar con límite analítico o comportamiento especificado.",
+        "NaN/Inf o salida fuera de dominio produce fallo explícito."
+      ],
+      "dimensional_checks": [
+        "f(x), expected y ε_abs deben compartir dimensión.",
+        "Error relativo es adimensional solo si denominador no nulo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:10",
+      "name": "Device capability tiers",
+      "variables": [
+        {
+          "symbol": "limits",
+          "meaning": "límites GPU/API",
+          "unit": "conteos, bytes y capacidades tipadas",
+          "dimension": "varios tipos",
+          "domain": "obtenidos del dispositivo"
+        },
+        {
+          "symbol": "extensions",
+          "meaning": "extensiones",
+          "unit": "conjunto discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "disponibilidad booleana"
+        },
+        {
+          "symbol": "frameCost",
+          "meaning": "coste de frame",
+          "unit": "ms",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "medido"
+        },
+        {
+          "symbol": "tier",
+          "meaning": "nivel de capacidad",
+          "unit": "categoría discreta",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "enum finito"
+        }
+      ],
+      "constraints": [
+        "No sumar capacidades heterogéneas; clasificación usa reglas explícitas y versión de perfil.",
+        "No inferir compatibilidad solo por nombre de GPU; validar límites y extensiones reales."
+      ],
+      "valid_domain": [
+        "Datos de dispositivo disponibles y válidos; clasificación versionada."
+      ],
+      "boundary_conditions": [
+        "Si faltan datos, usar tier conservador/desconocido.",
+        "Cambios de contexto o pérdida de dispositivo invalidan clasificación previa."
+      ],
+      "dimensional_checks": [
+        "frameCost tiene T; límites pueden ser conteos o bytes; tier es categórico.",
+        "No asignar dimensión física única al objeto heterogéneo limits."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D20:11",
+      "name": "Resource lifecycle",
+      "variables": [
+        {
+          "symbol": "resource",
+          "meaning": "recurso GPU/CPU",
+          "unit": "objeto tipado",
+          "dimension": "tipo de recurso",
+          "domain": "válido mientras no esté disposed"
+        },
+        {
+          "symbol": "refCount",
+          "meaning": "referencias",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "bytes",
+          "meaning": "memoria",
+          "unit": "byte",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "state",
+          "meaning": "estado de ciclo de vida",
+          "unit": "enum discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "allocated/used/disposed"
+        }
+      ],
+      "constraints": [
+        "Liberar solo cuando no existan referencias activas; propiedad y compartición deben declararse.",
+        "Dispose es transición de estado, no operación dimensional; no acceder al recurso tras liberar."
+      ],
+      "valid_domain": [
+        "Recurso creado y estado coherente; contadores sin underflow."
+      ],
+      "boundary_conditions": [
+        "refCount=0 permite liberar si la política lo autoriza.",
+        "Doble liberación debe ser idempotente o producir error controlado."
+      ],
+      "dimensional_checks": [
+        "bytes es unidad de información; refCount es conteo; state es categórico.",
+        "No mezclar bytes con unidades físicas ni tratar la liberación como magnitud numérica."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "12/12 técnicas incluidas; ninguna protegida",
+      "Cada técnica contiene variables, dimensiones, unidades, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Separadas magnitudes temporales, memoria, conteos, píxeles y estados categóricos"
+    ],
+    "limitations": [
+      "Auditoría dimensional y de dominio; el perfilado real, pruebas automatizadas, rendimiento por dispositivo y decisiones de producción se validan en puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

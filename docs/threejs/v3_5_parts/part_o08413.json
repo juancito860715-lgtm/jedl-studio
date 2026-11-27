@@ -1,0 +1,1507 @@
+      "Transformar coordenadas a espacio de pantalla o UV.",
+      "Calcular luminancia.",
+      "Evaluar patrón periódico o matriz Bayer.",
+      "Umbralizar y mezclar con tinta/paleta.",
+      "Aplicar antialiasing según derivadas."
+     ],
+     "pseudocode": "q=screenUV*frequency; pattern=0.5+0.5*sin(PI*q.x)*sin(PI*q.y); ink=step(pattern,luma);",
+     "threejs_adaptation": "Fragment shader con fwidth para suavizar bordes; TSL equivalente.",
+     "compatibility": {
+      "javascript_cpu": "sí",
+      "webgl2_glsl_es_300": "sí, shader propio",
+      "webgpu_wgsl": "requiere portar shader",
+      "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+      "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+     },
+     "parameters": {
+      "frequency": "4–32 celdas por 100 px",
+      "angle": "0–180°",
+      "threshold": "0–1"
+     },
+     "computational_cost": "O(N) por píxel.",
+     "limitations": "Moiré y aliasing; patrón debe adaptarse a resolución y cámara.",
+     "source_ids": [],
+     "evidence_status": "derivado/pendiente de prototipo",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Hachurado orientado por campo vectorial",
+     "research_id": "R31-HACHURADO-ORIENTADO-POR-CAMPO-VECTORIAL",
+     "category": "NPR / línea",
+     "foundation": "Traza líneas repetidas orientadas por un campo derivado de tangentes, gradientes o dirección artística.",
+     "equations": [
+      "h(p)=fract(dot(p,d)/s)",
+      "line=1−smoothstep(w,w+aa,abs(h−0.5))"
+     ],
+     "algorithm_steps": [
+      "Definir dirección tangente.",
+      "Proyectar posición sobre la dirección.",
+      "Repetir fase con módulo.",
+      "Modular densidad por luminancia.",
+      "Combinar varias familias para cross-hatching."
+     ],
+     "pseudocode": "phase=fract(dot(p,dir)/spacing); line=1-smoothstep(width,width+aa,abs(phase-0.5));",
+     "threejs_adaptation": "Shader de fragmento; campo puede provenir de normales, tensor de estructura o atributo.",
+     "compatibility": {
+      "javascript_cpu": "sí",
+      "webgl2_glsl_es_300": "sí, shader propio",
+      "webgpu_wgsl": "requiere portar shader",
+      "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+      "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+     },
+     "parameters": {
+      "spacing": "2–12 px",
+      "width": "0.05–0.25 de periodo",
+      "families": "1–3"
+     },
+     "computational_cost": "O(N·familias).",
+     "limitations": "En superficies 3D UV puede estirarse; usar triplanar o espacio de pantalla según objetivo.",
+     "source_ids": [],
+     "evidence_status": "derivado/pendiente de prototipo",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D15",
+   "domain": "Postproducción cinematográfica",
+   "techniques": [
+    {
+     "name": "HDR rendering",
+     "equation": "store radiance above 1.0 in floating-point targets",
+     "use": "conservar altas luces",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Ambient occlusion",
+     "equation": "AO≈1-average(occlusion samples around surface)",
+     "use": "contacto y cavidades",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Screen-space AO",
+     "equation": "AO=F(depth, reconstructedNormal, sampleKernel)",
+     "use": "sombreado de contacto",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Bloom",
+     "equation": "glow=blur(max(C-threshold,0)); output=C+strength·glow",
+     "use": "luces intensas y magia",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Gaussian blur",
+     "equation": "G(x)=exp(-x²/(2sigma²))/(sqrt(2pi)sigma)",
+     "use": "bloom, niebla y desenfoque",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "God rays",
+     "equation": "R= sum_i sample(lightUV+(uv-lightUV)·i·decay)·weight",
+     "use": "rayos solares",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Color grading",
+     "equation": "C_out=3D LUT(C_in)",
+     "use": "look cinematográfico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Vignette",
+     "equation": "v=1-strength·smoothstep(r0,r1,distance(uv,center))",
+     "use": "énfasis visual",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Chromatic aberration",
+     "equation": "R,G,B sampled at uv+channelOffset",
+     "use": "aberración óptica sutil",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Film grain",
+     "equation": "C'=C+noise(uv,time)·grainAmount",
+     "use": "textura fotoquímica",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Sharpen",
+     "equation": "C'=C+k(C-neighborBlur)",
+     "use": "nitidez moderada",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Tone mapping",
+     "equation": "C_display=ToneMap(exposure·C_HDR)",
+     "use": "paso de HDR a pantalla",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Lens distortion",
+     "equation": "uv'=uv·(1+k1 r²+k2 r⁴)",
+     "use": "distorsión de lente",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Output color management",
+     "equation": "linear radiance -> display transform -> output color space",
+     "use": "evitar colores incorrectos",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D16",
+   "domain": "Audio procedural y sincronización audiovisual",
+   "techniques": [
+    {
+     "name": "Oscilador sinusoidal",
+     "equation": "x(t)=A sin(2pi f t+phi)",
+     "use": "tonos, drones y bases musicales",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "ADSR envelope",
+     "equation": "A(t)=attack-decay-sustain-release piecewise",
+     "use": "envolvente de instrumentos sintetizados",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "FM synthesis",
+     "equation": "x(t)=sin(2pi fc t+I sin(2pi fm t))",
+     "use": "timbres metálicos y efectos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Noise synthesis",
+     "equation": "n(t)=random filtered by low/high-pass",
+     "use": "viento, lluvia, rugidos estilizados",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Reverb",
+     "equation": "y(t)=x(t)*h(t)",
+     "use": "espacio acústico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Delay",
+     "equation": "y(t)=x(t)+g x(t-tau)",
+     "use": "ecos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Panning",
+     "equation": "L=A cos(theta); R=A sin(theta)",
+     "use": "posición estéreo",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Audio event timeline",
+     "equation": "sound_i(t)=envelope_i(t)·synth_i(t)",
+     "use": "golpes, rugidos, tormenta y música sincronizados",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Beat synchronization",
+     "equation": "beatTime=n·60/BPM",
+     "use": "sincronizar cortes, impactos y música",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Web Audio graph",
+     "equation": "source -> gain/filter/effect -> destination",
+     "use": "síntesis en navegador",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D17",
+   "domain": "Objetos, vehículos, maquinaria y mecanismos",
+   "techniques": [
+    {
+     "name": "Vehículo por chasis jerárquico",
+     "equation": "M_wheel=M_vehicle·T(offset)·R(steer)·R(spin)",
+     "use": "ruedas vinculadas al cuerpo",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Rotación de rueda",
+     "equation": "theta=distance/radius",
+     "use": "rodadura sin deslizamiento",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Suspensión",
+     "equation": "m x''+c x'+k x=roadInput(t)",
+     "use": "respuesta de ruedas y carrocería",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Dirección Ackermann simplificada",
+     "equation": "tan(delta_inner)=L/(R-W/2); tan(delta_outer)=L/(R+W/2)",
+     "use": "orientación de ruedas delanteras",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Hélice",
+     "equation": "blade(r,theta,t)=rotate(theta+omega t)",
+     "use": "ventiladores y rotores",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Engranajes",
+     "equation": "omega1/omega2=-N2/N1",
+     "use": "transmisiones",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Pistón-biela",
+     "equation": "x=r cos(theta)+sqrt(l²-r²sin²(theta))",
+     "use": "mecanismos alternativos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Cable o cadena",
+     "equation": "curve=CatmullRom(points); tube radius varies",
+     "use": "cables, cadenas y mangueras",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Puertas y bisagras",
+     "equation": "M(t)=T(pivot)·R(theta(t))·T(-pivot)",
+     "use": "mecanismos articulados",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Rigidbody approximation",
+     "equation": "F=m a; torque=I alpha",
+     "use": "movimiento físico simplificado",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D18",
+   "domain": "Escalas microscópicas y macroscópicas",
+   "techniques": [
+    {
+     "name": "Hormiga / insecto",
+     "equation": "body segments + six leg IK chains + antenna curves",
+     "use": "criaturas pequeñas con anatomía articulada",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Colonia / enjambre",
+     "equation": "agent_i'=F(localNeighbors,food,obstacles)",
+     "use": "comportamiento colectivo",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Célula",
+     "equation": "membrane=SDF deforme; organelles=instancias internas",
+     "use": "visualización microscópica",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Cristal",
+     "equation": "lattice point=A·integerVector",
+     "use": "redes cristalinas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Átomo estilizado",
+     "equation": "orbital density aproximada por función radial y angular",
+     "use": "visualización conceptual; no sustituye modelos cuánticos rigurosos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Planeta",
+     "equation": "sphere + heightField(latitude,longitude)",
+     "use": "superficie planetaria",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Atmósfera planetaria",
+     "equation": "density(h)=rho0 exp(-h/H)",
+     "use": "halo atmosférico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Sistema orbital",
+     "equation": "r=a(1-e²)/(1+e cos(nu)); Kepler: M=E-e sin(E)",
+     "use": "órbitas keplerianas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Galaxia espiral",
+     "equation": "theta(r)=theta0+ln(r/r0)/tan(pitch)",
+     "use": "brazos espirales estilizados",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Nebulosa",
+     "equation": "density=fbm(p)+filamentNoise(p)",
+     "use": "nubes interestelares artísticas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Campo de estrellas",
+     "equation": "p_i=sampleUniformSphere(radius,seed_i)",
+     "use": "cielo profundo",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Universo procedural",
+     "equation": "hierarchical seeds + distributions + scale-aware LOD",
+     "use": "mundos enormes sin construir todo al máximo detalle",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D19",
+   "domain": "Estilos visuales y dirección de arte",
+   "styles": [
+    {
+     "style_id": "STYLE-CODE-01",
+     "name": "Realismo fotográfico",
+     "family": "representación física",
+     "construction": {
+      "geometry": "Superficies paramétricas o mallas trianguladas con normales coherentes; microdetalle por ruido multiescala y desplazamiento; bevels para romper aristas matemáticamente perfectas; densidad geométrica concentrada en silueta y zonas cercanas.",
+      "materials": "BRDF microfacet Cook–Torrance; distribución GGX; Fresnel Schlick; mapas de roughness/normal/height generados por funciones; variación por curvatura, humedad y desgaste.",
+      "lighting": "Iluminación basada en energía; key/fill/rim justificados por fuentes; sombras con PCF/VSM o ray queries si disponibles; exposición física y ambiente aproximado. No confundir PBR con path tracing.",
+      "color": "Trabajar en espacio lineal; reflectancia y emisión separadas; respuesta tonal con tone mapping; evitar saturación arbitraria.",
+      "camera": "Cámara perspectiva con focal equivalente, apertura, foco y exposición; profundidad de campo como aproximación de lente; movimiento con aceleración y damping.",
+      "composition": "Escala, perspectiva, oclusión y jerarquía focal; detalle alto solo donde la cámara lo resuelve; continuidad de líneas y masas.",
+      "animation": "Movimiento con física o curvas temporales; inercia secundaria; blur temporal solo si el pipeline lo soporta."
+     },
+     "mathematical_toolbox": [
+      "f_r = D(h) G(l,v) F(v,h) / (4 max(n·l,ε) max(n·v,ε))",
+      "F(θ)=F0+(1-F0)(1-cosθ)^5",
+      "L_o=∫_Ω f_r L_i max(n·l,0) dω"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Construir una escena desde primitivas/superficies",
+      "PASO 2: generar mapas con shader o canvas procedural",
+      "PASO 3: usar MeshPhysicalMaterial o nodo equivalente",
+      "PASO 4: configurar luces/exposición/cámara",
+      "PASO 5: validar energía y aliasing"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Alto con sombras múltiples, transparencias y postproceso; geometría/instancias y resolución dominan.",
+     "limitations_and_approximations": "PBR rasterizado no calcula toda la iluminación indirecta; sin path tracing los reflejos fuera de pantalla y rebotes son aproximados.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-02",
+     "name": "Hiperrealismo",
+     "family": "representación física y percepción",
+     "construction": {
+      "geometry": "Geometría de alta frecuencia donde cambia la silueta; microgeometría estadística para detalle subpíxel; imperfecciones correlacionadas y no ruido uniforme.",
+      "materials": "Distribuciones de microfacetas; capas dieléctricas/conductoras; SSS o aproximaciones difusas; fibras, poros y anisotropía modelados por campos.",
+      "lighting": "Iluminación de gran rango dinámico, fuentes de área aproximadas, penumbra y rebotes; control estricto de exposición.",
+      "color": "Pequeñas variaciones cromáticas físicas; balance de blancos; respuesta de cámara y curva de exposición coherentes.",
+      "camera": "Óptica de lente, distorsión y aberraciones sutiles; focal y foco seleccionados por escala; evitar DOF excesiva.",
+      "composition": "Imperfecciones y asimetrías a escala coherente; composición que preserve escala y referencia espacial.",
+      "animation": "Micro-movimiento y variación temporal no repetitiva, con ruido limitado y determinista."
+     },
+     "mathematical_toolbox": [
+      "σ_total=σ_macro+σ_micro",
+      "P(m)=D(m)(n·m)",
+      "L_sensor=∫ L(λ) S(λ) dλ (modelo espectral simplificado)"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Generar capas de detalle por dominios de frecuencia",
+      "PASO 2: modular roughness/normal con curvatura y exposición",
+      "PASO 3: mantener una semilla reproducible",
+      "PASO 4: añadir óptica en postprocesado"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Muy alto si se intenta resolver microdetalle geométricamente; moderado si se representa con BRDF.",
+     "limitations_and_approximations": "El hiperrealismo no es una ecuación ni una garantía de realismo; depende de escala, iluminación, referencias físicas y ausencia de artefactos.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-03",
+     "name": "Animación cinematográfica estilizada",
+     "family": "animación y dirección de arte",
+     "construction": {
+      "geometry": "Mallas con silueta diseñada; topología que favorezca deformación; curvas Bezier para perfiles y rasgos; subdivisión controlada y deformadores no lineales.",
+      "materials": "Materiales simplificados con roughness art-directed; SSS moderado opcional; highlights colocados para lectura, no necesariamente físicos.",
+      "lighting": "Key/fill/rim estilizados; sombras suaves o gráficas; control de contraste por plano.",
+      "color": "Paletas armónicas y separación figura/fondo; valores legibles en escala de grises.",
+      "camera": "Cámara con focal elegida por emoción/espacio; dolly y tracking con curvas suaves; DOF selectiva.",
+      "composition": "Regla de tercios, silueta, líneas de acción, profundidad por planos y staging.",
+      "animation": "Timing/spacing, anticipación, overshoot, follow-through, squash/stretch conservando volumen aproximado."
+     },
+     "mathematical_toolbox": [
+      "B(t)=Σ_i C(n,i)(1-t)^(n-i)t^i P_i",
+      "squash: sx sy sz≈1",
+      "p(t)=Σ_j w_j(t)P_j"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Crear perfiles y proporciones paramétricas",
+      "PASO 2: rig FK/IK",
+      "PASO 3: curvas de actuación",
+      "PASO 4: materiales por nodos",
+      "PASO 5: cámara con spline y look-at amortiguado"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Medio-alto según rig, sombras y deformaciones.",
+     "limitations_and_approximations": "El estilo es dirección artística compuesta; no existe una fórmula universal para imitar una película concreta.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-04",
+     "name": "Anime 2D simulado en 3D",
+     "family": "NPR y animación",
+     "construction": {
+      "geometry": "Volúmenes 3D simplificados con planos faciales; cabello por mechones extruidos o curvas; normales editadas por región; contornos interiores derivados de UV/curvatura.",
+      "materials": "Rampas discretas, highlights dibujados por funciones, materiales por región; contorno como geometría o pase de pantalla.",
+      "lighting": "Iluminación cuantizada; sombras por bandas; sombras proyectadas controladas para evitar ruido.",
+      "color": "Paletas por personaje/escena; sombras cálidas/frías; gradientes limitados.",
+      "camera": "Perspectiva moderada; cámara ortográfica o perspectiva controlada; encuadres gráficos y DOF reducida.",
+      "composition": "Lectura por silueta, espacios negativos, planos y composición semejante a viñeta.",
+      "animation": "Animación en 2s/3s opcional (12/8 muestras por segundo a 24fps), poses clave fuertes y deformación facial."
+     },
+     "mathematical_toolbox": [
+      "I= max(n·l,0)",
+      "C=Σ_k c_k 1[t_k≤I<t_(k+1)]",
+      "edge=step(τ, |∇z|+α(1-n_0·n_1))"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Generar ramp texture o función por umbrales",
+      "PASO 2: invertir hull para contorno exterior",
+      "PASO 3: usar depth/normal edge pass para interiores",
+      "PASO 4: controlar frame sampling por material/parte"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Medio; contorno screen-space y múltiples pases cuestan ancho de banda.",
+     "limitations_and_approximations": "Los contornos inverted-hull dependen de escala y pueden fallar en uniones; screen-space edges pueden parpadear y detectar discontinuidades no deseadas.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-05",
+     "name": "Cel shading",
+     "family": "NPR",
+     "construction": {
+      "geometry": "Geometría con silueta limpia; bevels selectivos; normales suavizadas o facetadas según el diseño.",
+      "materials": "Shader toon con rampas discretas; specular estilizado separado; rim light por función.",
+      "lighting": "Iluminación cuantizada y sombras en 2–5 bandas; controlar umbrales y suavizado.",
+      "color": "Paleta limitada y valores separados; color por región.",
+      "camera": "Cámara estable; perspectiva/ortográfica según lenguaje gráfico; evitar DOF que desdibuje bordes.",
+      "composition": "Bloques de color y siluetas de lectura clara; contornos opcionales.",
+      "animation": "Poses legibles, timing gráfico y stepped animation opcional."
+     },
+     "mathematical_toolbox": [
+      "b= floor(clamp(n·l,0,1)·N)/N",
+      "C=R(b)",
+      "rim=(1-max(n·v,0))^p"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Implementar ramp lookup o cuantización en GLSL/TSL",
+      "PASO 2: añadir outline pass o inverted hull",
+      "PASO 3: mantener umbrales editables por material"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Bajo-medio.",
+     "limitations_and_approximations": "Sombras por bandas pueden bandear; la interpolación y sombras de sombra real requieren integración específica.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-06",
+     "name": "Cartoon clásico",
+     "family": "NPR y animación",
+     "construction": {
+      "geometry": "Primitivas redondeadas, volúmenes simples y silueta exagerada; deformadores por huesos y lattice.",
+      "materials": "Colores planos, specular amplio y controlado; contorno opcional.",
+      "lighting": "Luz amplia y sombras simples; separar planos de forma sin exceso de detalle.",
+      "color": "Paleta saturada pero organizada; contraste local fuerte.",
+      "camera": "Cámara con perspectiva moderada y encuadres que prioricen la silueta.",
+      "composition": "Poses en línea de acción; staging claro; fondos simplificados.",
+      "animation": "Squash/stretch, anticipación, arcos, overlap, follow-through, timing y spacing."
+     },
+     "mathematical_toolbox": [
+      "p'=p+Σ_i w_i Δp_i",
+      "s_x s_y s_z≈1 (aprox. conservación de volumen)",
+      "ease(u)=3u²−2u³"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Construir rig y deformadores paramétricos",
+      "PASO 2: añadir curvas de pose",
+      "PASO 3: interpolar con Hermite/Bezier",
+      "PASO 4: generar secundarios con spring-damper"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Medio.",
+     "limitations_and_approximations": "Conservar volumen exacto con escalas no uniformes es aproximado; demasiada deformación rompe articulaciones.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-07",
+     "name": "Low poly",
+     "family": "geometría estilizada",
+     "construction": {
+      "geometry": "Malla con pocos polígonos; triangulación deliberada; simplificación QEM; normales planas; variación controlada por vértice.",
+      "materials": "Colores por cara/vértice; roughness simple; sin microtextura obligatoria.",
+      "lighting": "Luz direccional amplia; sombras legibles; facetado visible por normales.",
+      "color": "Paletas discretas por altura, pendiente, región o semilla.",
+      "camera": "Cámara que revele facetas; focal media; evitar perspectiva que distorsione demasiado.",
+      "composition": "Grandes planos, masas geométricas y lectura de silueta.",
+      "animation": "Movimiento rígido por piezas o deformación de baja resolución; ciclos simplificados."
+     },
+     "mathematical_toolbox": [
+      "E(v)=Σ_(faces f) (n_f·v+d_f)^2",
+      "N_face=normalize((p1-p0)×(p2-p0))",
+      "C_face=palette(hash(faceId))"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Generar malla paramétrica y decimar con QEM",
+      "PASO 2: recalcular normales flat",
+      "PASO 3: asignar color por cara mediante atributo"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Bajo.",
+     "limitations_and_approximations": "Decimación puede destruir rasgos finos; low-poly no significa geometría arbitraria ni ausencia de buen diseño.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-08",
+     "name": "High poly",
+     "family": "geometría de alta resolución",
+     "construction": {
+      "geometry": "Subdivisión Catmull–Clark/Loop; remallado; desplazamiento; superficies NURBS/Bezier teseladas; topología densa donde la curvatura lo exige.",
+      "materials": "Materiales PBR o art-directed; detalle de alta frecuencia en normal/displacement.",
+      "lighting": "Iluminación que revele curvatura y microrelieve; sombras de contacto.",
+      "color": "Gradientes suaves y variación material controlada.",
+      "camera": "Cámara macro/close-up para justificar densidad; DOF física aproximada.",
+      "composition": "Detalle focal y silueta precisa; evitar densidad uniforme innecesaria.",
+      "animation": "Deformación con skinning y correctivos; simulación más costosa sobre mallas densas."
+     },
+     "mathematical_toolbox": [
+      "S(u,v)=Σ_iΣ_j N_i,p(u)M_j,q(v)P_ij",
+      "Catmull-Clark: subdivisión por reglas de vértice/arista/cara",
+      "P'=P+N·h(u,v)"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Construir malla base, subdividir por niveles, generar desplazamiento en shader o CPU y conservar una versión de baja resolución para simulación"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Alto en memoria y vértices; displacement puede trasladar coste a GPU.",
+     "limitations_and_approximations": "Más polígonos no garantizan mejor imagen; límites de memoria, animación y precisión numérica.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-09",
+     "name": "Stop motion",
+     "family": "estética temporal",
+     "construction": {
+      "geometry": "Geometría con pequeñas irregularidades deterministas; articulaciones y piezas con rig; microdeformación por fotograma.",
+      "materials": "Materiales mate o satinados; huellas y variaciones generadas por ruido temporal limitado.",
+      "lighting": "Luz de set estable, sombras visibles y caída de luz controlada.",
+      "color": "Paleta física de miniatura; contraste y saturación consistentes.",
+      "camera": "Cámara fija o movimientos discretos; profundidad de campo marcada como convención visual.",
+      "composition": "Composición de maqueta; escala aparente mediante DOF y paralaje.",
+      "animation": "Cuantizar tiempo a fotogramas; pequeñas variaciones de pose y posición entre exposiciones."
+     },
+     "mathematical_toolbox": [
+      "t_q=floor(t·fps_s)/fps_s",
+      "x_q(t)=x(t_q)+ε_k",
+      "ε_k~ruido determinista acotado"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Evaluar pose a 12/15/18 fps aunque el render corra a 60",
+      "PASO 2: semilla temporal fija",
+      "PASO 3: microjitter y pequeñas deformaciones por índice de frame"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Bajo-medio.",
+     "limitations_and_approximations": "Jitter excesivo parece error; la cuantización no sustituye una animación con buen timing.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-10",
+     "name": "Claymation",
+     "family": "estética material/temporal",
+     "construction": {
+      "geometry": "Volúmenes blandos; metaballs/SDF suaves; deformación local; huellas de dedos como campos gaussianos sobre superficie.",
+      "materials": "Roughness alta, specular amplio, variación de color y microrelieve procedural.",
+      "lighting": "Luz difusa de estudio; sombras de contacto; evitar brillo plástico excesivo.",
+      "color": "Pigmento mate y variación tonal de arcilla.",
+      "camera": "Cámara de maqueta; macro moderado y DOF controlada.",
+      "composition": "Set miniatura, objetos con peso visual, siluetas suaves.",
+      "animation": "Deformación no rígida por campos; stop-motion temporal opcional."
+     },
+     "mathematical_toolbox": [
+      "d_smoothmin(a,b,k)",
+      "P'=P+N·Σ_i A_i exp(-|P-c_i|²/σ_i²)",
+      "t_q=floor(t·fps)/fps"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Unir SDFs con smooth-min",
+      "PASO 2: generar huellas por suma de gaussianas",
+      "PASO 3: calcular normales por gradiente",
+      "PASO 4: cuantizar pose opcional"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Medio-alto si se hace raymarching SDF; moderado con malla extraída.",
+     "limitations_and_approximations": "SDF puede suavizar en exceso detalles; la arcilla real tiene plasticidad compleja no reproducida por un shader.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-11",
+     "name": "Acuarela procedural",
+     "family": "pintura simulada",
+     "construction": {
+      "geometry": "Geometría base simplificada; contornos con variación; trazos poligonales o campos de pigmento ligados a UV/proyección.",
+      "materials": "Campo de agua, pigmento suspendido/depositado, absorción de papel procedural y acumulación en bordes.",
+      "lighting": "Luz de ilustración plana; evitar especular PBR salvo papel húmedo simulado.",
+      "color": "Mezcla sustractiva aproximada; granulación, blooms y bordes oscuros por acumulación.",
+      "camera": "Cámara ortográfica o perspectiva suave; composición por manchas y contornos.",
+      "composition": "Manchas y trazos coherentes en el tiempo; difusión y secado progresivo.",
+      "animation": [
+       "∂c/∂t+u·∇c=D∇²c−kc",
+       "∂h/∂t+∇·(hu)=S−E",
+       "Beer-Lambert: T=exp(−σ_a l)"
+      ]
+     },
+     "mathematical_toolbox": "Crear buffers de agua/velocidad/pigmento; advectar con semi-Lagrangian; difundir; depositar pigmento según saturación; generar papel con ruido procedural.",
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Alto en simulación multipaso y múltiples canales",
+      "PASO 2: moderado con trazos vectoriales simplificados"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "El modelo depende del papel, pigmento y agua; mezcla RGB no reproduce espectro ni capilaridad real. La publicación de DiVerdi et al. prioriza comportamiento plausible y eficiente, no identidad física exacta.",
+     "limitations_and_approximations": [
+      "SRC-DIVERDI-2013",
+      "SRC-WATERCOLOR-THIN-FILM"
+     ],
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-12",
+     "name": "Pintura al óleo procedural",
+     "family": "pintura simulada",
+     "construction": {
+      "geometry": "Geometría 3D original; pase de imagen con orientación de pinceladas derivada del tensor de estructura; relieve de impasto como displacement/bump.",
+      "materials": "Capas de pigmento opaco; trazo orientado; rugosidad y altura correlacionadas con pincelada.",
+      "lighting": "Luz rasante para revelar impasto; key amplia para lectura del color.",
+      "color": "Paleta de pintor; mezcla aproximada por pigmento; saturación local controlada.",
+      "camera": "Cámara y encuadre pictóricos; profundidad de campo reducida o nula según objetivo.",
+      "composition": "Pinceladas coherentes entre frames; orientación estable y temporalmente suavizada.",
+      "animation": [
+       "J=G_σ*(∇I∇Iᵀ)",
+       "θ=0.5 atan2(2J_xy,J_xx−J_yy)",
+       "h_stroke=A·g(distance_to_stroke)"
+      ]
+     },
+     "mathematical_toolbox": "Calcular estructura tensorial; orientar kernels anisotrópicos; elegir región de menor varianza; generar trazo/relieve desde saliencia y gradiente; estabilizar temporalmente.",
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Medio-alto por múltiples kernels/pases"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Un filtro 2D estiliza el render, pero no simula por sí solo la mezcla física de pintura. Gao et al. añaden multi-escala y relieve controlado.",
+     "limitations_and_approximations": [
+      "SRC-KYPRIANIDIS-2009",
+      "SRC-GAO-2019"
+     ],
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-13",
+     "name": "Ilustración procedural",
+     "family": "lenguaje gráfico",
+     "construction": {
+      "geometry": "Contornos, planos y geometría simplificada; subdivisión solo para curvas; capas de silueta y detalle.",
+      "materials": "Materiales planos, gradientes, tramas y patrones generados matemáticamente.",
+      "lighting": "Luz de lectura gráfica; sombras diseñadas en vez de físicamente completas.",
+      "color": "Paleta armónica, contraste figura-fondo y color local.",
+      "camera": "Cámara ortográfica o perspectiva controlada; encuadre tipo lámina/editorial.",
+      "composition": "Jerarquía de masas, espacios negativos y ritmo visual.",
+      "animation": "Animación de capas, deformación simple y transiciones gráficas."
+     },
+     "mathematical_toolbox": [
+      "C=Σ_i α_i C_i",
+      "paletteQuantize(C)=palette[argmin_j d(C,p_j)]",
+      "edge=|∇luma|"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Generar formas vectoriales/mesh, paleta cuantizada, contornos y capas",
+      "PASO 2: usar composición ortográfica"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Bajo-medio.",
+     "limitations_and_approximations": "Las reglas son artísticas; el filtro de imagen no sustituye diseño de formas ni composición.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-14",
+     "name": "Cómic y tinta",
+     "family": "NPR",
+     "construction": {
+      "geometry": "Contornos por silueta, curvas y aristas; líneas interiores por discontinuidad de profundidad/normales/curvatura.",
+      "materials": "Negros sólidos, tramado procedural, hachurado por campo direccional y Ben-Day dots.",
+      "lighting": "Luz convertida en masas de sombra; iluminación gráfica de alto contraste.",
+      "color": "Paleta limitada, separación CMYK opcional, puntos de semitono.",
+      "camera": "Cámara y composición de viñeta; focales dramáticas y planos gráficos.",
+      "composition": "Composición de panel; lectura secuencial y líneas de movimiento.",
+      "animation": "Speed lines, deformación gráfica, stepped timing y cambios de pose acentuados."
+     },
+     "mathematical_toolbox": [
+      "E=|∇z|+λ(1−n·n_neighbor)",
+      "H(p)=step(fract(dot(p,d)/s),τ)",
+      "D(x,y)=step(fract(x f)·fract(y f),threshold)"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Generar contorno inverted-hull o pase screen-space",
+      "PASO 2: hachurado alineado con gradiente",
+      "PASO 3: halftone en espacio de pantalla o UV",
+      "PASO 4: controlar aliasing"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Medio por múltiples passes y muestras.",
+     "limitations_and_approximations": "Los bordes screen-space pueden cambiar con cámara/resolución; hachurado puede producir moiré sin antialiasing.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-15",
+     "name": "Pixel art tridimensional",
+     "family": "estética raster",
+     "construction": {
+      "geometry": "Malla 3D normal; render a baja resolución interna; pixel grid fijo; cuantización de coordenadas de pantalla y opcional vertex snapping.",
+      "materials": "Paleta indexada limitada; nearest-neighbor; materiales planos o ramps discretas.",
+      "lighting": "Luz cuantizada a niveles; sombras discretas y coherentes con pixel grid.",
+      "color": "Paleta de 8–64 colores como control artístico, no requisito universal; dithering ordenado o error diffusion.",
+      "camera": "Cámara ortográfica o perspectiva con resolución virtual fija; movimiento subpixel controlado.",
+      "composition": "Silhouette-first, clusters de píxeles, evitar ruido y detalle menor a un píxel.",
+      "animation": "Animación a baja frecuencia; evitar jitter subpixel; ciclos de pose."
+     },
+     "mathematical_toolbox": [
+      "p_screen'=floor(p_screen·R)/R",
+      "C'=paletteQuantize(C)",
+      "dither=threshold(C−Bayer(x,y))"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Renderizar a target pequeño",
+      "PASO 2: usar nearest filtering",
+      "PASO 3: cuantizar luz/color",
+      "PASO 4: componer a resolución final sin suavizado bilineal"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Bajo.",
+     "limitations_and_approximations": "Un modelo 3D renderizado a baja resolución no adquiere automáticamente gramática de pixel art; requiere diseño de clusters y control temporal.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-16",
+     "name": "Voxel art",
+     "family": "geometría discreta",
+     "construction": {
+      "geometry": "Volumen en grid 3D; voxels como cubos expuestos o greedy meshing; extracción de superficie; octree para sparse data.",
+      "materials": "Material por voxel/celda; atlas procedural opcional; paleta limitada.",
+      "lighting": "Luz por cara o normal de cubo; sombras limpias; AO voxel aproximado.",
+      "color": "Paleta por bioma/material; gradientes discretos.",
+      "camera": "Cámara isométrica frecuente; ortográfica para lectura de bloques.",
+      "composition": "Composición modular y silueta escalonada.",
+      "animation": "Animación por grupos de voxels, deformación por bloques o reconstrucción de superficie."
+     },
+     "mathematical_toolbox": [
+      "voxel(i,j,k)=field(iΔ,jΔ,kΔ)",
+      "face exposed iff neighbor occupancy=0",
+      "greedy merge coplanar equal-material faces"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Generar occupancy desde funciones/CSG",
+      "PASO 2: extraer caras expuestas",
+      "PASO 3: fusionar rectángulos coplanares",
+      "PASO 4: usar instancing para bloques móviles"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Medio; greedy meshing reduce draw calls y triángulos.",
+     "limitations_and_approximations": "Resolución espacial fija; aliasing geométrico; animar muchos voxels individualmente puede ser costoso.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-17",
+     "name": "Fantasía oscura",
+     "family": "dirección de arte",
+     "construction": {
+      "geometry": "Arquitectura orgánica, siluetas quebradas, arcos, ruinas y criaturas mediante gramáticas, SDF y fractales.",
+      "materials": "Materiales erosionados, metal oxidado, piedra húmeda, piel/fibra; todos con mapas procedurales.",
+      "lighting": "Contraluz, niebla, luz local motivada, sombras profundas y volumetría aproximada.",
+      "color": "Paleta de baja saturación con acentos cromáticos limitados.",
+      "camera": "Gran angular para escala o teleobjetivo para compresión; cámara lenta y movimientos controlados.",
+      "composition": "Escala monumental, capas atmosféricas, puntos de interés y siluetas recortadas.",
+      "animation": "Movimiento pesado, inercia, pausas, secundarios y timing lento."
+     },
+     "mathematical_toolbox": [
+      "h(p)=fbm(p)+ridge(p)",
+      "ρ(x)=ρ_0 exp(−height/H)",
+      "contrast=exposure·toneMap(L)"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Crear gramáticas de arquitectura y vegetación",
+      "PASO 2: erosionar por ruido y campos",
+      "PASO 3: controlar luz/niebla con parámetros de escena"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Variable, alto si hay volumetría y partículas.",
+     "limitations_and_approximations": "Es una dirección artística, no un algoritmo único; evitar depender de assets de fantasía prefabricados.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-18",
+     "name": "Ciencia ficción",
+     "family": "dirección de arte",
+     "construction": {
+      "geometry": "Arquitectura modular paramétrica, paneles, repetición, superficies NURBS y geometría técnica.",
+      "materials": "Metales, polímeros, vidrio aproximado, emisivos y superficies anisotrópicas.",
+      "lighting": "Fuentes geométricas, luces emisivas, contraste de color y niebla volumétrica.",
+      "color": "Paleta por función: señalización, energía, ambiente y alerta visual.",
+      "camera": "Cámara con dolly/tracking, focales amplias y composición por líneas arquitectónicas.",
+      "composition": "Escala, simetría/asimetría funcional, repetición y puntos de fuga.",
+      "animation": "Máquinas articuladas, mecanismos, ciclos y efectos sincronizados."
+     },
+     "mathematical_toolbox": [
+      "P(u,v)=Σ_iΣ_j N_i,p(u)M_j,q(v)P_ij",
+      "panelMask=step(distanceToSeam, seamWidth)",
+      "emission=L_e·mask"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Generar módulos con gramática y parámetros",
+      "PASO 2: construir seams desde distancias",
+      "PASO 3: animar mecanismos con jerarquías y curvas"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Medio-alto según reflejos, transparencia y luces.",
+     "limitations_and_approximations": "La estética no garantiza plausibilidad funcional; reflejos y transparencias rasterizados tienen límites.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-19",
+     "name": "Biomecánico",
+     "family": "dirección de arte / morfología",
+     "construction": {
+      "geometry": "Combinar esqueletos, tubos ramificados, placas, tendones y cavidades mediante curvas, SDF y restricciones de continuidad.",
+      "materials": "Materiales híbridos: tejido húmedo, cerámica, metal y membrana; roughness por campo.",
+      "lighting": "Luz rasante para revelar estructura; subsurface aproximado en tejidos; reflejos controlados en placas.",
+      "color": "Paleta orgánico-mineral con códigos de color por función.",
+      "camera": "Macro/close-up; cámara que recorra articulaciones y relaciones anatómicas.",
+      "composition": "Repetición estructural con asimetría orgánica; lectura de articulaciones.",
+      "animation": "Contracción, tensión, pulso, flexión y respuesta secundaria sincronizada."
+     },
+     "mathematical_toolbox": [
+      "C(s)=spline(controlPoints)",
+      "r(s)=r0(1−s)^γ",
+      "F_tendon=k(l−l0)"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Generar esqueletos/curvas de tensión",
+      "PASO 2: mallar tubos",
+      "PASO 3: conectar placas por constraints",
+      "PASO 4: usar campos para material y deformación"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Medio-alto.",
+     "limitations_and_approximations": "Biomecánico es una familia de diseño especulativo; no debe confundirse con anatomía biológica validada.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-20",
+     "name": "Surrealismo",
+     "family": "dirección de arte / transformación",
+     "construction": {
+      "geometry": "Geometría imposible pero consistente en pantalla: deformaciones no euclidianas, instancing recursivo, SDF booleanos y escalas incompatibles.",
+      "materials": "Materiales que refuercen contradicción visual: mate/brillante, translúcido/opaco, sin requerir texturas.",
+      "lighting": "Iluminación coherente localmente aunque el espacio sea imposible.",
+      "color": "Paletas y contrastes simbólicos; cambios cromáticos por región.",
+      "camera": "Cámara con trayectorias que revelen paradojas; perspectiva forzada o proyección ortográfica.",
+      "composition": "Composición por sorpresa, escala contradictoria y continuidad visual deliberada.",
+      "animation": "Transformaciones temporales, morphs y transiciones de topología aparentes."
+     },
+     "mathematical_toolbox": [
+      "P'=A(P,t)",
+      "SDF smooth union",
+      "T_n=T_0∘T_1∘...∘T_n"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Definir reglas espaciales por función",
+      "PASO 2: componer transformaciones y campos",
+      "PASO 3: separar lo imposible matemático de lo que solo es perspectiva engañosa"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Variable.",
+     "limitations_and_approximations": "Una transformación no invertible puede colapsar geometría; preservar continuidad visual exige control de cámara y topología.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-21",
+     "name": "Arte fractal",
+     "family": "sistemas iterativos",
+     "construction": {
+      "geometry": "Geometría por iteración de transformaciones, IFS, L-systems, Mandelbulb/Julia distance estimators o fractales de superficie.",
+      "materials": "Material por iteración, distancia, curvatura y escape-time; patrones multiescala.",
+      "lighting": "Iluminación por normales derivadas del campo; AO y sombras aproximadas en ray marching.",
+      "color": "Paletas por iteración/escape time; gradientes cíclicos o discretos.",
+      "camera": "Cámara orbital o travelling que muestre escala autosimilar; clipping y near/far ajustados.",
+      "composition": "Repetición con variación, jerarquía de escalas y regiones focales.",
+      "animation": "Animación de parámetros de iteración, rotación, morphing de Julia y zoom."
+     },
+     "mathematical_toolbox": [
+      "z_(n+1)=z_n²+c",
+      "escape if |z_n|>R",
+      "F(p)=Σ_i a^i noise(2^i p)"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Iterar en CPU para mallas o GPU para campos",
+      "PASO 2: estimar distancia",
+      "PASO 3: raymarch con límite de pasos",
+      "PASO 4: calcular normales por gradiente"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Alto en ray marching profundo; moderado en fractales geométricos de baja iteración.",
+     "limitations_and_approximations": "Estimadores de distancia no siempre son cotas exactas; aliasing y coste crecen con zoom/detalle.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    },
+    {
+     "style_id": "STYLE-CODE-22",
+     "name": "Abstracto generativo",
+     "family": "sistemas matemáticos",
+     "construction": {
+      "geometry": "Campos vectoriales, superficies paramétricas, curvas, partículas, instancing y geometría topológica.",
+      "materials": "Color por función escalar/vectorial; materiales emisivos, mates o microfacet según objetivo.",
+      "lighting": "Luz que revele volumen y ritmo; sombras opcionales para mantener abstracción.",
+      "color": "Paletas derivadas de funciones, armonías y gradientes; control por semilla.",
+      "camera": "Cámara ortográfica/orbital; movimientos coreografiados con el sistema.",
+      "composition": "Ritmo, repetición, contraste, densidad y vacío; reglas de composición explícitas.",
+      "animation": "Animación como evolución de sistema dinámico o respuesta a señales."
+     },
+     "mathematical_toolbox": [
+      "dx/dt=V(x,t)",
+      "P(u,v)=Σ_iΣ_j B_i(u)B_j(v)P_ij",
+      "x_(n+1)=F(x_n,μ)"
+     ],
+     "techniques_from_construction": [
+      "animation",
+      "camera",
+      "color",
+      "composition",
+      "geometry",
+      "lighting",
+      "materials"
+     ],
+     "pseudocode_steps": [
+      "PASO 1: Definir campo y semilla",
+      "PASO 2: integrar partículas/curvas",
+      "PASO 3: mapear magnitudes a geometría/material",
+      "PASO 4: renderizar determinísticamente por tiempo"
+     ],
+     "pseudocode_origin": "derivado_de_code_only_implementation; pendiente de revisión contra ecuaciones",
+     "computational_profile": "Variable; puede escalar linealmente con partículas y complejidad de campo.",
+     "limitations_and_approximations": "El resultado puede ser visualmente complejo pero carecer de jerarquía; hace falta controlar densidad y composición.",
+     "derivation_status": "receta_pendiente_verificacion",
+     "certified": false
+    }
+   ],
+   "legacy_styles_v3_preserved": [
+    {
+     "name": "Fotorrealismo",
+     "principles": "PBR, escala física, geometría de silueta, iluminación coherente, exposición, materiales calibrados, imperfecciones y atmósfera."
+    },
+    {
+     "name": "Cinematográfico estilizado",
+     "principles": "composición, contraste controlado, color script, profundidad atmosférica, exageración selectiva y movimiento legible."
+    },
+    {
+     "name": "Anime / cel shading",
+     "principles": "bandas de iluminación, contornos, sombras gráficas, paletas limitadas y formas limpias."
+    },
+    {
+     "name": "Toon procedural",
+     "principles": "ramp texture o cuantización de N·L, outline por normales y profundidad."
+    },
+    {
+     "name": "Low poly",
+     "principles": "pocos polígonos, normales planas, silueta clara y paleta reducida."
+    },
+    {
+     "name": "Voxel",
+     "principles": "rejilla discreta, bloques, greedy meshing y atlas de materiales."
+    },
+    {
+     "name": "Isométrico",
+     "principles": "proyección ortográfica y cámara con ángulos constantes."
+    },
+    {
+     "name": "Realismo pictórico",
+     "principles": "formas grandes, bordes selectivos, variación cromática y pincelada procedural."
+    },
+    {
+     "name": "Stop motion",
+     "principles": "cadencia discreta, pequeñas irregularidades de pose y movimiento por fotogramas."
+    },
+    {
+     "name": "Surrealismo",
+     "principles": "escala alterada, metamorfosis, geometría imposible y reglas visuales consistentes."
+    },
+    {
+     "name": "Macro fotografía",
+     "principles": "escala pequeña, profundidad de campo, luz rasante y microdetalle."
+    },
+    {
+     "name": "Sci-fi",
+     "principles": "materiales técnicos, emisión, interfaces, geometría modular y atmósfera controlada."
+    },
+    {
+     "name": "Fantástico oriental",
+     "principles": "siluetas orgánicas, tejados curvos, montañas verticales, vegetación cromática, niebla y composición por capas."
+    }
+   ],
+   "styles_count": 22,
+   "note": "22 estilos canónicos (STYLE-CODE-01..22) sincronizados desde visual_style_atlas_v4. Los 13 estilos previos se conservan en legacy_styles_v3_preserved por trazabilidad."
+  },
+  {
+   "id": "D20",
+   "domain": "Optimización, pruebas y producción",
+   "techniques": [
+    {
+     "name": "Instancing first",
+     "equation": "drawCalls≈1 per instanced batch/material",
+     "use": "vegetación, hojas, rocas y elementos repetidos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "GPU deformation",
+     "equation": "vertex_i(t)=F(vertex_i,uniforms)",
+     "use": "evitar actualizar cada vértice en CPU",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Bake static complexity",
+     "equation": "expensiveField(p) evaluated once -> texture/mesh",
+     "use": "capas de nube, mapas de detalle y datos estáticos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Adaptive quality",
+     "equation": "scale_next=clamp(scale·sqrt(targetMs/measuredMs),min,max)",
+     "use": "ajustar resolución y efectos según tiempo real",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Dynamic resolution",
+     "equation": "renderWidth=displayWidth·scale; renderHeight=displayHeight·scale",
+     "use": "preservar fluidez en móviles",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Budget per frame",
+     "equation": "CPU_ms+GPU_ms<=1000/FPS_target",
+     "use": "presupuesto de rendimiento",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Profiling",
+     "equation": "measure(frameTime,drawCalls,triangles,textureMemory)",
+     "use": "identificar cuellos de botella",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Deterministic seeds",
+     "equation": "random_i=PRNG(seed,index)",
+     "use": "repetibilidad y depuración",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Golden frame tests",
+     "equation": "compare(render(t),reference(t),tolerance)",
+     "use": "detectar regresiones visuales",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Numerical tests",
+     "equation": "assert(abs(f(x)-expected)<epsilon)",
+     "use": "validar curvas, transformaciones y simulación",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Device capability tiers",
+     "equation": "tier=classify(GPU,extensions,limits,frameCost)",
+     "use": "calidad por capacidades reales",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Resource lifecycle",
+     "equation": "dispose(resource) when no longer referenced",
+     "use": "liberar geometrías, materiales, texturas y render targets",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D21",
+   "domain": "Mecánica de fluidos avanzada: líquidos, gases y humo",
+   "techniques": [
+    {
+     "name": "Ecuación de continuidad",
+     "equation": "∂ρ/∂t + ∇·(ρu)=0",
+     "use": "conservación de masa en fluidos",
+     "model": "físico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Navier–Stokes incomprensible",
+     "equation": "∂u/∂t+(u·∇)u=-(1/ρ)∇p+ν∇²u+f; ∇·u=0",
+     "use": "agua, aire y humo con densidad aproximadamente constante",
+     "model": "físico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Euler inviscido",
+     "equation": "∂u/∂t+(u·∇)u=-(1/ρ)∇p+f",
+     "use": "flujos donde se omite viscosidad",
+     "model": "físico aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Ecuación de energía térmica",
+     "equation": "ρc_p(∂T/∂t+u·∇T)=k∇²T+Q",
+     "use": "convección, humo caliente y transferencia de calor",
+     "model": "físico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Advección semi-Lagrangiana",
+     "equation": "q^{n+1}(x)=q^n(x-u(x)Δt)",
+     "use": "transportar velocidad, densidad, temperatura y color",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Proyección de presión",
+     "equation": "∇²p=(ρ/Δt)∇·u*; u^{n+1}=u*-(Δt/ρ)∇p",
+     "use": "hacer divergencia cero en fluidos incomprensibles",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Vorticity confinement",
+     "equation": "N=∇|ω|/(|∇|ω||+ε); f_conf=ε_c(N×ω)",
+     "use": "recuperar remolinos perdidos por disipación numérica",
+     "model": "numérico/artístico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "SPH kernel density",
+     "equation": "ρ_i=Σ_j m_j W(|x_i-x_j|,h)",
+     "use": "fluidos lagrangianos por partículas",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "SPH pressure force",
+     "equation": "a_i^p=-Σ_j m_j(p_i/ρ_i²+p_j/ρ_j²)∇W_ij",
+     "use": "presión entre partículas SPH",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "PBF position constraint",
+     "equation": "C_i=ρ_i/ρ_0-1; Δx_i=Σ_j(λ_i+λ_j)∇W_ij",
+     "use": "Position Based Fluids estable para efectos visuales",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Shallow water equations",
+     "equation": "∂h/∂t+∇·(hu)=0; ∂(hu)/∂t+∇·(hu⊗u+½gh²I)=gh(S_0-S_f)",
+     "use": "ríos, inundaciones, olas poco profundas",
+     "model": "físico reducido",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Lattice Boltzmann",
+     "equation": "f_i(x+c_iΔt,t+Δt)=f_i-(Δt/τ)(f_i-f_i^{eq})",
+     "use": "simulación de fluidos mediante distribución cinética discreta",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Level set",
+     "equation": "∂φ/∂t+u·∇φ=0; superficie φ=0",
+     "use": "interfaz entre líquidos y gases",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Volume of Fluid",
+     "equation": "∂α/∂t+∇·(αu)=0",
+     "use": "fracción volumétrica de fases y superficie libre",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "FLIP",
+     "equation": "v_grid^{n+1}=P2G(v_particles); v_p+=G2P(v_grid^{n+1}-v_grid^n)",
+     "use": "fluidos con menor disipación de movimiento",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "PIC",
+     "equation": "v_p^{n+1}=G2P(v_grid^{n+1})",
+     "use": "transferencia partícula-malla estable pero disipativa",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "MacCormack advection",
+     "equation": "q_corr=q_fwd+½(q_old-q_back)",
+     "use": "advección con menor difusión y limitadores anti-oscilación",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Buoyancy force",
+     "equation": "f_b=β(T-T_amb)g",
+     "use": "humo y gases calientes ascendentes",
+     "model": "físico aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Divergence-free noise",
+     "equation": "u=∇×A",
+     "use": "campos turbulentos con divergencia cero",
+     "model": "matemático",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Kelvin–Helmholtz instability",
+     "equation": "crecimiento perturbación ~exp(γt), γ depende del salto de velocidad y densidades",
+     "use": "pliegues en interfaces de fluidos",
+     "model": "físico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Rayleigh–Taylor instability",
+     "equation": "γ²≈A g k para interfaz idealizada",
+     "use": "columnas, penachos y mezcla por densidad",
+     "model": "físico idealizado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Advección semi-Lagrangiana de pigmento",

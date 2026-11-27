@@ -1,0 +1,1066 @@
+{
+  "title": "Auditoría dimensional punto 1 — D23 Destrucción, fractura, granularidad y sólidos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D23",
+    "domain": "Destrucción, fractura, granularidad y sólidos",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D23 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "stress": "Pa=kg·m⁻¹·s⁻².",
+    "energy": "J=kg·m²·s⁻².",
+    "impulse": "N·s=kg·m·s⁻¹.",
+    "angles": "Radianes; adimensionales en SI base."
+  },
+  "records": [
+    {
+      "record_key": "D23:0",
+      "name": "Voronoi fracture",
+      "variables": [
+        {
+          "symbol": "p,s_i",
+          "meaning": "punto y semillas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "d_i",
+          "meaning": "distancias",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativas"
+        },
+        {
+          "symbol": "cellId",
+          "meaning": "identificador de celda",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "determinista"
+        },
+        {
+          "symbol": "ε_geom",
+          "meaning": "tolerancia geométrica",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Comparar distancias en la misma métrica y unidad.",
+        "Semillas y desempates deben ser deterministas; tolerancia tiene unidad L."
+      ],
+      "valid_domain": [
+        "Semillas finitas; número de sitios finito; dominio geométrico declarado."
+      ],
+      "boundary_conditions": [
+        "Sitios coincidentes requieren desempate estable.",
+        "Bordes de dominio deben extender o truncar celdas explícitamente."
+      ],
+      "dimensional_checks": [
+        "p,s_i,d_i,ε_geom tienen L; cellId es discreto.",
+        "La comparación d_i≤d_j es dimensionalmente homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:1",
+      "name": "Stress-based fracture",
+      "variables": [
+        {
+          "symbol": "σ",
+          "meaning": "tensión máxima",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "σ_critical",
+          "meaning": "tensión crítica",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "ε_strain",
+          "meaning": "deformación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "n",
+          "meaning": "normal de plano",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        }
+      ],
+      "constraints": [
+        "σ_max y σ_critical deben usar mismo tensor/criterio y unidad Pa.",
+        "La condición σ_max>σ_critical es solo criterio de inicio; evolución requiere ley de fractura adicional."
+      ],
+      "valid_domain": [
+        "Tensión y umbral finitos; material y criterio declarados."
+      ],
+      "boundary_conditions": [
+        "σ_max=σ_critical es umbral; por debajo no inicia fractura.",
+        "Tensión indefinida en elemento degenerado invalida el criterio."
+      ],
+      "dimensional_checks": [
+        "Ambas tensiones tienen M·L⁻¹·T⁻².",
+        "Deformación y normal son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:2",
+      "name": "Griffith crack criterion",
+      "variables": [
+        {
+          "symbol": "G",
+          "meaning": "tasa de liberación de energía",
+          "unit": "J/m²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "G_c",
+          "meaning": "tenacidad energética crítica",
+          "unit": "J/m²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "a",
+          "meaning": "longitud de grieta",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "a>0"
+        },
+        {
+          "symbol": "E",
+          "meaning": "módulo elástico",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "E>0"
+        }
+      ],
+      "constraints": [
+        "G y G_c tienen J/m²=N/m=kg·s⁻².",
+        "La geometría, modo de carga y espesor deben coincidir con la formulación que define G."
+      ],
+      "valid_domain": [
+        "G≥0; G_c>0; grieta y material definidos."
+      ],
+      "boundary_conditions": [
+        "G=G_c es inicio ideal de propagación.",
+        "G<G_c no propaga bajo criterio ideal."
+      ],
+      "dimensional_checks": [
+        "G y G_c comparten M·T⁻².",
+        "a tiene L; E tiene Pa."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:3",
+      "name": "Cohesive zone",
+      "variables": [
+        {
+          "symbol": "T",
+          "meaning": "tracción",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "δ",
+          "meaning": "apertura/desplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "δ≥0"
+        },
+        {
+          "symbol": "T(δ)",
+          "meaning": "ley cohesiva",
+          "unit": "Pa",
+          "dimension": {
+            "L": -1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "definida"
+        },
+        {
+          "symbol": "G_c",
+          "meaning": "energía de fractura",
+          "unit": "J/m²",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "Integral ∫T dδ tiene J/m² y debe igualar energía de fractura definida por ley.",
+        "La ley tracción-apertura debe declarar tracción normal/tangencial y modo mixto."
+      ],
+      "valid_domain": [
+        "Ley integrable; tracción y apertura finitas."
+      ],
+      "boundary_conditions": [
+        "δ=0 define interfaz cerrada; tracción máxima según ley.",
+        "Apertura final donde T=0 debe ser finita."
+      ],
+      "dimensional_checks": [
+        "T tiene Pa y δ tiene m; integral tiene Pa·m=J/m².",
+        "G_c tiene misma unidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:4",
+      "name": "Rigid body translation",
+      "variables": [
+        {
+          "symbol": "m",
+          "meaning": "masa",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "m>0"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "F",
+          "meaning": "fuerza",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "I",
+          "meaning": "tensor de inercia",
+          "unit": "kg·m²",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo definido"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "velocidad angular",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "τ",
+          "meaning": "torque",
+          "unit": "N·m",
+          "dimension": {
+            "L": 2,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "m v'=ΣF usa derivada temporal de velocidad como aceleración; Iω' requiere marco apropiado y término giroscópico en general.",
+        "Masa e inercia deben ser positivas/definidas; torque no se confunde con fuerza."
+      ],
+      "valid_domain": [
+        "Estados finitos; masa positiva; tensor válido."
+      ],
+      "boundary_conditions": [
+        "F=0 conserva velocidad lineal si no hay otras fuerzas.",
+        "τ=0 conserva momento angular en modelo ideal aislado."
+      ],
+      "dimensional_checks": [
+        "m dv/dt tiene N; I dω/dt tiene N·m.",
+        "I tiene M·L²; ω tiene T⁻¹."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:5",
+      "name": "Impulse collision",
+      "variables": [
+        {
+          "symbol": "J",
+          "meaning": "impulso",
+          "unit": "N·s",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "e",
+          "meaning": "restitución",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤e≤1 para contacto pasivo"
+        },
+        {
+          "symbol": "v_rel",
+          "meaning": "velocidad relativa",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "n",
+          "meaning": "normal contacto",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "m1,m2",
+          "meaning": "masas",
+          "unit": "kg",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        }
+      ],
+      "constraints": [
+        "J=−(1+e)(v_rel·n)/(1/m1+1/m2) tiene kg·m/s.",
+        "La fórmula da magnitud escalar de impulso normal; dirección se aplica sobre n y signo según convención."
+      ],
+      "valid_domain": [
+        "Masas positivas; normal definida; velocidades finitas."
+      ],
+      "boundary_conditions": [
+        "Velocidad relativa normal cero produce impulso cero.",
+        "Masas nulas o normal indefinida se rechazan."
+      ],
+      "dimensional_checks": [
+        "v_rel/(1/m1+1/m2) tiene kg·m/s.",
+        "J tiene impulso M·L·T⁻¹."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:6",
+      "name": "Coulomb friction",
+      "variables": [
+        {
+          "symbol": "F_t,F_n",
+          "meaning": "fuerzas tangencial/normal",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "F_n≥0"
+        },
+        {
+          "symbol": "μ",
+          "meaning": "coeficiente fricción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "μ≥0"
+        },
+        {
+          "symbol": "v_t",
+          "meaning": "velocidad tangencial",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "n",
+          "meaning": "normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        }
+      ],
+      "constraints": [
+        "|F_t|≤μF_n compara fuerzas N; μ es adimensional.",
+        "Distinguir fricción estática (desigualdad) y dinámica (ley de deslizamiento)."
+      ],
+      "valid_domain": [
+        "F_n≥0; μ≥0; normal y tangente válidas."
+      ],
+      "boundary_conditions": [
+        "F_n=0 implica límite de fricción cero.",
+        "v_t=0 no determina por sí solo fuerza estática; requiere solver de contacto."
+      ],
+      "dimensional_checks": [
+        "μF_n tiene N y coincide con |F_t|.",
+        "μ es adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:7",
+      "name": "DEM granular contact",
+      "variables": [
+        {
+          "symbol": "δ",
+          "meaning": "penetración",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "δ≥0"
+        },
+        {
+          "symbol": "k_n,k_t",
+          "meaning": "rigideces de contacto",
+          "unit": "N/m",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "c_n",
+          "meaning": "amortiguamiento",
+          "unit": "kg/s",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "v_n",
+          "meaning": "velocidad normal",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "F_n,F_t",
+          "meaning": "fuerzas",
+          "unit": "N",
+          "dimension": {
+            "L": 1,
+            "M": 1,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        }
+      ],
+      "constraints": [
+        "k_nδ y c_nv_n tienen N.",
+        "La fuerza tangencial −k_tξ requiere ξ en metros y estado histórico de contacto."
+      ],
+      "valid_domain": [
+        "Rigideces/amortiguamiento no negativos; contactos y normales válidos."
+      ],
+      "boundary_conditions": [
+        "δ=0 sin cohesión produce fuerza normal elástica nula.",
+        "Separación elimina contacto y estado tangencial según política."
+      ],
+      "dimensional_checks": [
+        "k tiene N/m; δ y ξ L; c_n tiene kg/s; velocidades L/T.",
+        "F_n y F_t tienen N."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:8",
+      "name": "Angle of repose",
+      "variables": [
+        {
+          "symbol": "θ_r",
+          "meaning": "ángulo de reposo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤θ<π/2"
+        },
+        {
+          "symbol": "μ",
+          "meaning": "coeficiente fricción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "μ≥0"
+        },
+        {
+          "symbol": "g",
+          "meaning": "gravedad",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "g≥0"
+        }
+      ],
+      "constraints": [
+        "tan(θ_r)≈μ compara magnitudes adimensionales.",
+        "La relación es aproximación de material granular ideal; humedad/cohesión alteran el umbral."
+      ],
+      "valid_domain": [
+        "Ángulo en radianes; μ finito."
+      ],
+      "boundary_conditions": [
+        "μ=0 da θ_r≈0 en modelo simple.",
+        "μ→∞ se aproxima a límite vertical; no usar como valor finito práctico."
+      ],
+      "dimensional_checks": [
+        "tan(θ_r) y μ son adimensionales.",
+        "g no aparece en relación estática simplificada."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:9",
+      "name": "Rigid cluster approximation",
+      "variables": [
+        {
+          "symbol": "M_i",
+          "meaning": "transformación rígida",
+          "unit": "afín tipada",
+          "dimension": "bloque lineal 1; traslación L",
+          "domain": "finita"
+        },
+        {
+          "symbol": "p0",
+          "meaning": "posición inicial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Transformación conserva tipado afín; bloque lineal representa rotación/escala adimensional y traslación L.",
+        "Fragmentos precalculados requieren unidades y marco de referencia compartidos."
+      ],
+      "valid_domain": [
+        "M_i invertible cuando se requiera; trayectorias finitas."
+      ],
+      "boundary_conditions": [
+        "Transformación identidad reproduce fragmento inicial.",
+        "Fragmento sin estado de movimiento conserva pose base."
+      ],
+      "dimensional_checks": [
+        "p0 y traslaciones tienen L; rotaciones son adimensionales.",
+        "Tiempo y velocidad conservan T y L/T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:10",
+      "name": "Bond break graph",
+      "variables": [
+        {
+          "symbol": "x_i,x_j",
+          "meaning": "posiciones nodales",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "d_ij",
+          "meaning": "distancia de enlace",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "threshold",
+          "meaning": "umbral de rotura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "active",
+          "meaning": "estado de enlace",
+          "unit": "booleano",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "true/false"
+        }
+      ],
+      "constraints": [
+        "Comparación |x_i−x_j|>threshold usa longitudes homogéneas.",
+        "El criterio geométrico no modela por sí solo energía/fatiga; si se requiere, añadir variable y ley constitutiva."
+      ],
+      "valid_domain": [
+        "Nodos finitos; grafo finito; umbral positivo."
+      ],
+      "boundary_conditions": [
+        "Distancia igual al umbral conserva o rompe según convención explícita.",
+        "Enlace roto no se reactiva salvo regla de curación declarada."
+      ],
+      "dimensional_checks": [
+        "Distancia y threshold tienen L; active es discreto.",
+        "El estado de grafo no es magnitud física."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D23:11",
+      "name": "Crack branching",
+      "variables": [
+        {
+          "symbol": "direction",
+          "meaning": "dirección de grieta",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "angle",
+          "meaning": "ángulo ramificación",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "semilla aleatoria",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "estable"
+        },
+        {
+          "symbol": "P",
+          "meaning": "trayectoria",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Rotación de dirección usa ángulo adimensional; no cambia unidad espacial de P.",
+        "Ángulo aleatorio debe estar acotado y semilla fijada para reproducibilidad."
+      ],
+      "valid_domain": [
+        "Dirección unitaria; ángulo y trayectoria finitos."
+      ],
+      "boundary_conditions": [
+        "Ángulo cero conserva dirección principal.",
+        "Si dirección es nula, rechazar o usar tangente previa."
+      ],
+      "dimensional_checks": [
+        "Dirección y ángulo son adimensionales; P tiene L.",
+        "La rotación conserva norma/dimensión de dirección."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "12/12 técnicas incluidas; ninguna protegida",
+      "Cada técnica tiene variables, restricciones, dominio, condiciones límite y verificaciones dimensionales específicas",
+      "Se distinguen tensión, energía de fractura, impulso, fuerza y torque"
+    ],
+    "limitations": [
+      "La auditoría tipa las fórmulas declaradas; no valida material constitutivo, solver de contacto ni fidelidad experimental, que corresponden a puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

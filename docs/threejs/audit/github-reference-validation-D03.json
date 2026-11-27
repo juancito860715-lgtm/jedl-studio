@@ -1,0 +1,431 @@
+{
+  "document": "Investigación GitHub y adaptación ejecutable — D03 Personajes, criaturas y anatomía procedural",
+  "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+  "manifest_version": "3.1",
+  "domain_id": "D03",
+  "domain_name": "Personajes, criaturas y anatomía procedural",
+  "reference_projects": [
+    {
+      "repository": "mrdoob/three.js",
+      "commit": "0de0346de82a0d01923ffeb27f33240ad8b4863f",
+      "license": "MIT",
+      "url": "https://github.com/mrdoob/three.js/tree/0de0346de82a0d01923ffeb27f33240ad8b4863f"
+    },
+    {
+      "repository": "sketchpunklabs/ossos",
+      "commit": "d1325d878f4875d0eafe42f8861a853263d57081",
+      "license": "MIT",
+      "url": "https://github.com/sketchpunklabs/ossos/tree/d1325d878f4875d0eafe42f8861a853263d57081"
+    },
+    {
+      "repository": "jdthaler/forte",
+      "commit": "c1d9343e783da1926e59ff71bd18186ef96a5cb4",
+      "license": "MIT",
+      "url": "https://github.com/jdthaler/forte/tree/c1d9343e783da1926e59ff71bd18186ef96a5cb4"
+    }
+  ],
+  "protected_records": {
+    "excluded_keys": [
+      "D03:2",
+      "D03:4",
+      "D03:5",
+      "D03:6",
+      "D03:7",
+      "D03:8",
+      "D03:9",
+      "D03:10",
+      "D03:11",
+      "D03:12",
+      "D03:15"
+    ],
+    "reason": "Once fichas preservadas por Crimson Loong; no se repite investigación ni se reescribe su contenido."
+  },
+  "records": [
+    {
+      "record_key": "D03:0",
+      "technique": "Anatomía por volúmenes",
+      "mathematics": "d_union=min_i d_i; h_s=max(k−|d_1−d_2|,0)/k; d_smooth=min(d_1,d_2)−k h_s²/4; S={p:d_union(p)=0}",
+      "inputs": [
+        "Primitivas anatómicas con SDF d_i(p)",
+        "Marco espacial y convención de signo común",
+        "Parámetro de suavizado k≥0",
+        "Bounds y resolución de muestreo"
+      ],
+      "outputs": [
+        "Campo combinado d_union",
+        "Malla de isosuperficie d_union=0",
+        "Normales de superficie"
+      ],
+      "preconditions": [
+        "Todos los SDF usan el mismo marco, unidad de longitud y signo: negativo dentro, cero en frontera, positivo fuera.",
+        "k=0 selecciona unión dura; k>0 selecciona smooth-min polinómico.",
+        "Bounds finitos que contienen las primitivas y resolución espacial h>0.",
+        "La lista de primitivas tiene orden estable por identificador."
+      ],
+      "algorithm": [
+        "Validar que cada primitiva tiene parámetros finitos y un evaluador SDF válido.",
+        "Construir la rejilla 3D sobre bounds con paso h y añadir margen de al menos una celda.",
+        "Para cada punto de rejilla p, evaluar d_1(p) y combinar secuencialmente con el resto de campos.",
+        "Si k=0, usar d←min(d,d_i); si k>0, calcular h_s=max(k−|d−d_i|,0)/k y d←min(d,d_i)−k·h_s²/4.",
+        "Guardar d_union(p) en el volumen escalar y registrar valores no finitos como fallo de evaluación.",
+        "Extraer la isosuperficie cero con Marching Cubes usando la misma rejilla y convención de signo.",
+        "Calcular normales mediante gradiente del campo o gradientes interpolados; normalizar solo si la magnitud supera tolerancia.",
+        "Validar que los vértices quedan dentro de bounds y que no hay índices inválidos; publicar el resultado de forma atómica."
+      ],
+      "pseudocode": "function buildAnatomicalUnion(primitives, k, bounds, h):\n  require primitives not empty and h > 0 and k >= 0\n  sort primitives by stableId\n  grid = makeGrid(expand(bounds, h), h)\n  for p in grid.nodes:\n    d = primitives[0].sdf(p)\n    for primitive in primitives[1:]:\n      di = primitive.sdf(p)\n      if k == 0:\n        d = min(d, di)\n      else:\n        hs = max(k - abs(d - di), 0) / k\n        d = min(d, di) - k * hs * hs / 4\n    require finite(d)\n    grid.value[p] = d\n  mesh = marchingCubes(grid, iso=0)\n  for vertex in mesh.vertices:\n    g = gradient(grid, vertex.position)\n    vertex.normal = normalizeOrFallback(g)\n  validateMeshIndicesBoundsAndFiniteValues(mesh)\n  return mesh",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/jsm/objects/MarchingCubes.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js MarchingCubes addon permite extraer una isosuperficie de un campo volumétrico; la combinación smooth-min de campos SDF se implementa localmente y recibe evaluadores SDF inyectados. No se copió código de un proyecto sin licencia verificada.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d03-character-geometry.mjs",
+        "tests/threejs/d03-character-geometry.test.mjs"
+      ],
+      "implementation_note": "La suite d03-character-geometry.test.mjs pasó: 11 pruebas D03 dentro de 178 pruebas JavaScript globales, 0 fallos. El evaluador de dominio D03 también terminó success. Esto acredita pruebas locales de algoritmo, no integración de producción del rig completo."
+    },
+    {
+      "record_key": "D03:1",
+      "technique": "Metaballs",
+      "mathematics": "r_i(p)=||p−c_i||; F(p)=Σ_i R_i²/r_i(p)²; S={p:F(p)=iso}",
+      "inputs": [
+        "Centros c_i y radios R_i>0",
+        "Umbral iso>0",
+        "Bounds y rejilla de muestreo",
+        "Modo de singularidad: singular exacto o regularizado con ε>0"
+      ],
+      "outputs": [
+        "Campo metaball F(p)",
+        "Malla F(p)=iso"
+      ],
+      "preconditions": [
+        "Centros y radios finitos; radios estrictamente positivos.",
+        "iso>0; bounds finitos; paso de rejilla h>0.",
+        "El modo de núcleo queda fijado antes de evaluar: exacto o regularizado."
+      ],
+      "algorithm": [
+        "Validar centros, radios, umbral, bounds y resolución.",
+        "Para cada nodo p inicializar F=0.",
+        "Para cada metaball calcular r²=||p−c_i||².",
+        "En modo exacto, si r²=0 asignar contribución +∞; en otro caso sumar R_i²/r².",
+        "En modo regularizado, exigir ε>0 y sumar R_i²/(r²+ε²); registrar que esta variante cambia el campo.",
+        "Guardar F y rechazar NaN; los infinitos permitidos solo se usan como interior y no se escriben como NaN.",
+        "Extraer la isosuperficie F=iso con Marching Cubes y validar la malla."
+      ],
+      "pseudocode": "function buildMetaballs(centers, radii, iso, bounds, h, epsilon):\n  require len(centers) == len(radii) and len(centers) > 0\n  require iso > 0 and h > 0\n  regularized = epsilon is not null\n  if regularized: require epsilon > 0\n  grid = makeGrid(bounds, h)\n  for p in grid.nodes:\n    F = 0\n    for i in 0..len(centers)-1:\n      r2 = squaredDistance(p, centers[i])\n      if regularized:\n        F += radii[i]^2 / (r2 + epsilon^2)\n      else if r2 == 0:\n        F = +infinity\n        break\n      else:\n        F += radii[i]^2 / r2\n    grid.value[p] = F\n  return validateMesh(marchingCubes(grid, iso))",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/jsm/objects/MarchingCubes.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/webgl_marchingcubes.html",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "El addon oficial MarchingCubes contiene addBall y update: añade contribuciones al campo y triangula la isosuperficie. La adaptación expone campo metaball inverso-cuadrático con regularización ε explícita.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d03-character-geometry.mjs",
+        "tests/threejs/d03-character-geometry.test.mjs"
+      ],
+      "implementation_note": "La suite d03-character-geometry.test.mjs pasó: 11 pruebas D03 dentro de 178 pruebas JavaScript globales, 0 fallos. El evaluador de dominio D03 también terminó success. Esto acredita pruebas locales de algoritmo, no integración de producción del rig completo."
+    },
+    {
+      "record_key": "D03:3",
+      "technique": "Perfil anatómico longitudinal",
+      "mathematics": "u=(s−s_i)/(s_{i+1}−s_i); r(s)=h00r_i+h10Δs m_i+h01r_{i+1}+h11Δs m_{i+1}; r(s)≥0",
+      "inputs": [
+        "Claves ordenadas (s_i,r_i)",
+        "Pendientes m_i=dr/ds opcionales",
+        "Longitud de eje L_body",
+        "Modo de extrapolación: clamp"
+      ],
+      "outputs": [
+        "Radio r(s)",
+        "Sección transversal por muestra s"
+      ],
+      "preconditions": [
+        "L_body>0; claves finitas con s_i estrictamente crecientes.",
+        "Radios r_i≥0; s_i dentro de [0,L_body].",
+        "Pendientes, si se suministran, tienen unidad de radio/longitud y son finitas.",
+        "Extrapolación fuera del rango se fija en clamp."
+      ],
+      "algorithm": [
+        "Ordenar las claves por s_i y rechazar duplicados.",
+        "Validar que todas las claves están dentro de [0,L_body] y que r_i≥0.",
+        "Si faltan pendientes, calcular secantes Δr_i/Δs_i y pendientes interiores con regla monótona para impedir overshoot.",
+        "Para cada consulta s, aplicar clamp al intervalo de claves.",
+        "Localizar el segmento [s_i,s_{i+1}] por búsqueda binaria y calcular u=(s−s_i)/Δs.",
+        "Evaluar la base Hermite h00,h10,h01,h11 y r(s)=h00r_i+h10Δs m_i+h01r_{i+1}+h11Δs m_{i+1}.",
+        "Aplicar la limitación monótona declarada y garantizar r(s)≥0; si no puede garantizarse, rechazar la configuración de pendientes.",
+        "Emitir radio y sección asociada."
+      ],
+      "pseudocode": "function radiusAt(s, keys, L_body):\n  require L_body > 0 and strictlyIncreasing(keys.s)\n  s = clamp(s, keys[0].s, keys[last].s)\n  i = binarySearchSegment(keys.s, s)\n  ds = keys[i+1].s - keys[i].s\n  u = (s - keys[i].s) / ds\n  m0,m1 = monotoneTangents(keys, i)\n  r = h00(u)*keys[i].r + h10(u)*ds*m0 + h01(u)*keys[i+1].r + h11(u)*ds*m1\n  if r < -tolerance: fail(\"negative radius overshoot\")\n  return max(0, r)",
+      "source_files": [
+        "https://github.com/jdthaler/forte/blob/c1d9343e783da1926e59ff71bd18186ef96a5cb4/carillon/src/bell-profile.js",
+        "https://github.com/jdthaler/forte/blob/c1d9343e783da1926e59ff71bd18186ef96a5cb4/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto MIT forte documenta interpolación cúbica de Hermite y una curva monótona Fritsch–Carlson para evitar overshoot; la adaptación local aplica una variante PCHIP con tangentes monótonas y clamp de dominio.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d03-character-geometry.mjs",
+        "tests/threejs/d03-character-geometry.test.mjs"
+      ],
+      "implementation_note": "La suite d03-character-geometry.test.mjs pasó: 11 pruebas D03 dentro de 178 pruebas JavaScript globales, 0 fallos. El evaluador de dominio D03 también terminó success. Esto acredita pruebas locales de algoritmo, no integración de producción del rig completo."
+    },
+    {
+      "record_key": "D03:13",
+      "technique": "Skinning lineal",
+      "mathematics": "M_skin,j=M_world,j M_bind,j⁻¹; p'=Σ_j w_j M_skin,j p; Σ_j w_j=1",
+      "inputs": [
+        "Posiciones p_bind por vértice",
+        "Pesos w_ij por hueso",
+        "Matrices M_world,j y M_bind,j",
+        "Normales y tangentes opcionales"
+      ],
+      "outputs": [
+        "Posiciones deformadas p'",
+        "Normales deformadas",
+        "Estado de pesos inválidos"
+      ],
+      "preconditions": [
+        "Matrices finitas y misma convención de coordenadas/orden.",
+        "M_bind,j invertibles; pesos w_ij≥0 y suma 1 por vértice.",
+        "Número de influencias dentro del límite de datos/shader.",
+        "La transformación usada es afín; posición homogénea con w=1."
+      ],
+      "algorithm": [
+        "Precalcular M_skin,j=M_world,j·inverse(M_bind,j) para cada hueso.",
+        "Para cada vértice, recopilar influencias válidas y eliminar pesos negativos o no finitos con error explícito.",
+        "Si la suma de pesos es cero, aplicar política declarada: rechazar vértice o asignar influencia de respaldo.",
+        "Normalizar pesos para que sumen 1 dentro de tolerancia.",
+        "Calcular p'_bind=Σ_j w_ij·(M_skin,j·p_bind) en coordenadas homogéneas.",
+        "Para normales, transformar cada normal con la matriz normal inversa-transpuesta del bloque lineal correspondiente, ponderar y normalizar; si degenerada, usar normal geométrica.",
+        "Validar que p' y normales son finitos; publicar buffers actualizados."
+      ],
+      "pseudocode": "function skinLBS(vertices, influences, bones):\n  for bone in bones:\n    require finite(bone.world) and invertible(bone.bind)\n    bone.skin = bone.world * inverse(bone.bind)\n  for v in vertices:\n    valid = filterFiniteNonnegative(influences[v])\n    total = sum(valid.weights)\n    if total <= weightEpsilon: failVertex(v)\n    normalizeWeights(valid, total)\n    p = vec4(v.bindPosition, 1)\n    out = vec4(0,0,0,0)\n    nOut = vec3(0)\n    for inf in valid:\n      out += inf.weight * bones[inf.bone].skin * p\n      nOut += inf.weight * normalMatrix(bones[inf.bone].skin) * v.normal\n    v.position = out.xyz / out.w\n    v.normal = normalizeOrGeometricFallback(nOut)\n  validateFiniteBuffers(vertices)",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/SkinnedMesh.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/Skeleton.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/test/unit/src/objects/SkinnedMesh.tests.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "SkinnedMesh/Skeleton de Three.js definen atributos skinIndex/skinWeight, matrices de hueso y el pipeline de skinning lineal. La adaptación CPU implementa explícitamente el blend de matrices y el cálculo de normales.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d03-character-geometry.mjs",
+        "tests/threejs/d03-character-geometry.test.mjs"
+      ],
+      "implementation_note": "La suite d03-character-geometry.test.mjs pasó: 11 pruebas D03 dentro de 178 pruebas JavaScript globales, 0 fallos. El evaluador de dominio D03 también terminó success. Esto acredita pruebas locales de algoritmo, no integración de producción del rig completo."
+    },
+    {
+      "record_key": "D03:14",
+      "technique": "Dual quaternion skinning",
+      "mathematics": "q_d=0.5 t_quat⊗q_r; Q_bar=Σ_i w_i s_i Q_i; q_r'=q_bar,r/||q_bar,r||; q_d'=q_bar,d/||q_bar,r||−q_r'(q_r'·q_bar,d/||q_bar,r||); p'=q_r p q_r*+2(q_d q_r*)_vector",
+      "inputs": [
+        "Posiciones bind",
+        "Pesos por vértice",
+        "Transformaciones rígidas de huesos",
+        "Convención quaternion y dual quaternion"
+      ],
+      "outputs": [
+        "Posiciones deformadas",
+        "Normales transformadas",
+        "Diagnóstico de mezcla degenerada"
+      ],
+      "preconditions": [
+        "Cada transformación es rígida: rotación unitaria y traslación; no escala no uniforme ni cizalla.",
+        "Pesos no negativos y normalizados por vértice.",
+        "Todos los cuaterniones usan el mismo orden y convención.",
+        "Cada parte real tiene norma cercana a 1."
+      ],
+      "algorithm": [
+        "Convertir cada transformación skin a Q_j=q_r,j+εq_d,j con q_d,j=0.5·t_quat,j⊗q_r,j.",
+        "Elegir como referencia el dual quaternion de mayor peso para cada vértice.",
+        "Para cada influencia, si dot(q_r,j,q_r,ref)<0, multiplicar ambas partes real y dual por −1.",
+        "Calcular Q_bar=Σ_j w_j s_j Q_j.",
+        "Calcular n=||q_bar,r||; si n≤ε_q, usar transformación de mayor peso y registrar fallback.",
+        "Normalizar q_r=q_bar,r/n y q_d0=q_bar,d/n.",
+        "Ortonormalizar q_d=q_d0−q_r·dot(q_r,q_d0) para imponer q_r·q_d=0.",
+        "Transformar p mediante q_r p q_r* + 2(q_d q_r*)_vector; transformar normal solo con q_r y normalizar.",
+        "Validar finitud y ortogonalidad real-dual."
+      ],
+      "pseudocode": "function skinDQS(vertex, influences, dualBones):\n  valid = normalizeInfluences(influences)\n  ref = dualBones[argMaxWeight(valid)]\n  realSum = 0; dualSum = 0\n  for inf in valid:\n    Q = dualBones[inf.bone]\n    if dot(Q.real, ref.real) < 0:\n      Q.real = -Q.real; Q.dual = -Q.dual\n    realSum += inf.weight * Q.real\n    dualSum += inf.weight * Q.dual\n  n = length(realSum)\n  if n <= quatEpsilon: return transformByHighestWeight(vertex)\n  qr = realSum / n\n  qd0 = dualSum / n\n  qd = qd0 - qr * dot(qr, qd0)\n  pOut = rotate(qr, vertex.position) + 2 * vectorPart(qd * conjugate(qr))\n  nOut = normalize(rotate(qr, vertex.normal))\n  return finite(pOut, nOut)",
+      "source_files": [
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/src/armature/skins/SkinDQ.ts",
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/src/maths/DualQuatUtil.ts",
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/examples/threejs/_lib/SkinDQMaterial.js",
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/LICENSE"
+      ],
+      "verified_source_behavior": "OSSOS implementa SkinDQ/SkinDQT y material GLSL de ejemplo para Three.js; el código local separa la construcción de dual quaternions, alineación de signos, normalización/ortogonalización, transformación rígida y recorte estable de influencias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d03-character-geometry.mjs",
+        "tests/threejs/d03-character-geometry.test.mjs"
+      ],
+      "implementation_note": "La suite d03-character-geometry.test.mjs pasó: 11 pruebas D03 dentro de 178 pruebas JavaScript globales, 0 fallos. El evaluador de dominio D03 también terminó success. Esto acredita pruebas locales de algoritmo, no integración de producción del rig completo."
+    },
+    {
+      "record_key": "D03:16",
+      "technique": "Ojos y pupilas",
+      "mathematics": "g=normalize(target−eye); g_t=g−(g·n)n; u=normalize(g_t); p_pupil=eye+r_p u",
+      "inputs": [
+        "Centro ocular e",
+        "Objetivo g",
+        "Normal ocular n unitaria",
+        "Radio de pupila r_p",
+        "Contorno de iris/abertura"
+      ],
+      "outputs": [
+        "Posición de pupila p_pupil",
+        "Dirección tangencial de mirada"
+      ],
+      "preconditions": [
+        "e,g finitos y en el mismo marco.",
+        "n unitaria; radio r_p≥0 y limitado por contorno.",
+        "Tolerancia ε_L tiene unidad de longitud.",
+        "Existe dirección tangencial previa o marco local de respaldo."
+      ],
+      "algorithm": [
+        "Calcular v=g−e y su longitud.",
+        "Si ||v||≤ε_L, conservar última dirección válida; no normalizar vector nulo.",
+        "Normalizar g_dir=v/||v||.",
+        "Proyectar g_dir al plano ocular: t=g_dir−(g_dir·n)n.",
+        "Si ||t||≤ε_dir, usar la última dirección tangencial válida o el eje local de respaldo.",
+        "Normalizar u=t/||t||.",
+        "Calcular desplazamiento r_p u y limitarlo al contorno válido del iris mediante clamp radial/ellíptico.",
+        "Emitir p_pupil=e+r_p u_clamped y actualizar dirección válida."
+      ],
+      "pseudocode": "function updatePupil(e, target, n, radius, contour, lastDir):\n  v = target - e\n  if length(v) <= epsilonLength: return keepPrevious(e, lastDir)\n  g = normalize(v)\n  t = g - dot(g,n)*n\n  if length(t) <= epsilonDirection: t = fallbackTangent(n,lastDir)\n  u = normalize(t)\n  offset = clampToContour(radius*u, contour)\n  return {position:e+offset, direction:normalize(offset or u)}",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/Vector3.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "OSSOS implementa SkinDQ/SkinDQT y material GLSL de ejemplo para Three.js; el código local separa la construcción de dual quaternions, alineación de signos, normalización/ortogonalización, transformación rígida y recorte estable de influencias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d03-character-geometry.mjs",
+        "tests/threejs/d03-character-geometry.test.mjs"
+      ],
+      "implementation_note": "La suite d03-character-geometry.test.mjs pasó: 11 pruebas D03 dentro de 178 pruebas JavaScript globales, 0 fallos. El evaluador de dominio D03 también terminó success. Esto acredita pruebas locales de algoritmo, no integración de producción del rig completo."
+    },
+    {
+      "record_key": "D03:17",
+      "technique": "FABRIK para cadenas articuladas",
+      "mathematics": "R=Σ_i l_i; p_i←p_{i+1}+l_i normalize(p_i−p_{i+1}); p_{i+1}←p_i+l_i normalize(p_{i+1}−p_i)",
+      "inputs": [
+        "Raíz fija p_0",
+        "Longitudes l_i>0",
+        "Objetivo p_target",
+        "Tolerancia ε_L",
+        "Máximo de iteraciones",
+        "Direcciones previas de respaldo"
+      ],
+      "outputs": [
+        "Posiciones de articulaciones p_i",
+        "Error de efector final",
+        "Estado alcanzable/no alcanzable"
+      ],
+      "preconditions": [
+        "Al menos un segmento; todas las longitudes finitas y positivas.",
+        "Raíz y objetivo finitos; ε_L>0; maxIterations entero positivo.",
+        "Las posiciones iniciales respetan aproximadamente longitudes o pueden inicializarse en línea.",
+        "La política para objetivo inalcanzable queda definida."
+      ],
+      "algorithm": [
+        "Calcular R=Σ_i l_i y d=||p_target−p_0||.",
+        "Si d>R, extender todos los segmentos hacia el objetivo conservando cada longitud y devolver estado UNREACHABLE.",
+        "Si d≤ε_L, conservar configuración válida o usar dirección previa para evitar vector nulo.",
+        "Para objetivo alcanzable, fijar efector final p_n=p_target.",
+        "Backward pass: para i=n−1…0, fijar p_i=p_{i+1}+l_i·normalize(p_i−p_{i+1}); usar dirección previa si el vector es degenerado.",
+        "Fijar raíz p_0 al ancla original.",
+        "Forward pass: para i=0…n−1, fijar p_{i+1}=p_i+l_i·normalize(p_{i+1}−p_i); usar fallback si es degenerado.",
+        "Calcular error ||p_n−p_target|| y comprobar longitudes de todos los segmentos.",
+        "Repetir hasta error≤ε_L o maxIterations; devolver convergencia explícita."
+      ],
+      "pseudocode": "function fabrik(root, target, lengths, positions, epsilon, maxIter):\n  R = sum(lengths)\n  d = distance(root, target)\n  if d > R:\n    dir = normalizeOrFallback(target-root)\n    positions[0] = root\n    for i in 0..len(lengths)-1:\n      positions[i+1] = positions[i] + lengths[i]*dir\n    return {positions, reachable:false}\n  for iter in 1..maxIter:\n    positions[last] = target\n    for i from last-1 downto 0:\n      dir = normalizeOrPrevious(positions[i]-positions[i+1])\n      positions[i] = positions[i+1] + lengths[i]*dir\n    positions[0] = root\n    for i in 0..last-1:\n      dir = normalizeOrPrevious(positions[i+1]-positions[i])\n      positions[i+1] = positions[i] + lengths[i]*dir\n    if distance(positions[last],target) <= epsilon:\n      return {positions, reachable:true, converged:true}\n  return {positions, reachable:true, converged:false}",
+      "source_files": [
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/src/ikrig/solvers/FabrikSolver.ts",
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/LICENSE"
+      ],
+      "verified_source_behavior": "OSSOS contiene un FabrikSolver usado en su sistema de rigs y cadenas IK. La adaptación CPU reproduce los pases backward/forward, alcance máximo, tolerancia y límites de iteración con pruebas deterministas.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d03-character-geometry.mjs",
+        "tests/threejs/d03-character-geometry.test.mjs"
+      ],
+      "implementation_note": "La suite d03-character-geometry.test.mjs pasó: 11 pruebas D03 dentro de 178 pruebas JavaScript globales, 0 fallos. El evaluador de dominio D03 también terminó success. Esto acredita pruebas locales de algoritmo, no integración de producción del rig completo."
+    },
+    {
+      "record_key": "D03:18",
+      "technique": "Skinning por dual quaternions",
+      "mathematics": "1≤n_b≤n_max; Σ_j w_j=1; Q_bar=Σ_j w_j s_j Q_j; Normalización dual quaternion y transformación de punto",
+      "inputs": [
+        "Posiciones bind",
+        "Influencias (boneId,weight)",
+        "Límite n_max",
+        "Dual quaternions de skin por hueso"
+      ],
+      "outputs": [
+        "Posiciones DQS deformadas",
+        "Pesos compactados",
+        "Diagnóstico de fallback"
+      ],
+      "preconditions": [
+        "1≤n_max≤límite real del formato/shader.",
+        "Pesos finitos y no negativos; transformaciones rígidas.",
+        "Convención de quaternion consistente y bind pose válida."
+      ],
+      "algorithm": [
+        "Para cada vértice, ordenar influencias por peso descendente con desempate estable por boneId.",
+        "Conservar las primeras n_max influencias y descartar el resto; registrar peso descartado para diagnóstico.",
+        "Si la suma retenida es cero, rechazar vértice o usar fallback explícito.",
+        "Renormalizar pesos retenidos para que sumen 1.",
+        "Elegir dual quaternion de referencia de mayor peso y alinear signos antipodales.",
+        "Mezclar partes reales y duales; normalizar parte real y ortogonalizar dual.",
+        "Transformar posición y normal como en DQS rígido.",
+        "Validar el resultado y guardar conteo efectivo de influencias."
+      ],
+      "pseudocode": "function skinDQSBounded(vertex, influences, dualBones, nMax):\n  require 1 <= nMax <= shaderInfluenceLimit\n  kept = stableSortByWeightThenBoneId(influences).take(nMax)\n  total = sum(kept.weights)\n  if total <= weightEpsilon: failVertex(vertex)\n  normalizeWeights(kept,total)\n  return dqsBlendAndTransform(vertex, kept, dualBones)",
+      "source_files": [
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/src/armature/skins/SkinDQ.ts",
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/src/armature/skins/SkinDQT.ts",
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/examples/threejs/_lib/SkinDQMaterial.js",
+        "https://github.com/sketchpunklabs/ossos/blob/d1325d878f4875d0eafe42f8861a853263d57081/LICENSE"
+      ],
+      "verified_source_behavior": "OSSOS implementa SkinDQ/SkinDQT y material GLSL de ejemplo para Three.js; el código local separa la construcción de dual quaternions, alineación de signos, normalización/ortogonalización, transformación rígida y recorte estable de influencias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d03-character-geometry.mjs",
+        "tests/threejs/d03-character-geometry.test.mjs"
+      ],
+      "implementation_note": "La suite d03-character-geometry.test.mjs pasó: 11 pruebas D03 dentro de 178 pruebas JavaScript globales, 0 fallos. El evaluador de dominio D03 también terminó success. Esto acredita pruebas locales de algoritmo, no integración de producción del rig completo."
+    }
+  ],
+  "overall_status": "D03_LOCAL_IMPLEMENTATIONS_TESTED_CERTIFICATION_PENDING",
+  "summary": {
+    "records_in_scope": 8,
+    "protected_records_preserved": 11,
+    "records_with_reference_research": 8,
+    "local_adaptations_implemented": 8,
+    "local_adaptations_tested": 8,
+    "pending_local_ci": 0,
+    "certified_as_locally_operational": 0,
+    "global_javascript_tests": 178,
+    "global_javascript_failures": 0
+  },
+  "limitations": [
+    "D03:0 acepta funciones SDF externas y realiza smooth union; no duplica primitivas SDF protegidas de D02.",
+    "D03:1 usa campo metaball inverso-cuadrático regularizado por epsilon>0; no confundirlo con SDF exacto.",
+    "D03:3 aplica PCHIP/Fritsch–Carlson a perfiles escalares, no un spline C2 general.",
+    "D03:13 es LBS CPU de referencia; el renderizado Three.js estándar usa su pipeline de shader.",
+    "D03:14 y D03:18 requieren transformaciones rígidas; escala no uniforme y cizalla quedan fuera de DQS.",
+    "D03:18 limita influencias por vértice y registra peso descartado antes de renormalizar.",
+    "Los resultados de unidad/algoritmo no certifican todavía el montaje completo del rig ni su uso en la aplicación."
+  ]
+}

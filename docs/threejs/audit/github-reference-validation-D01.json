@@ -1,0 +1,242 @@
+{
+  "document": "GitHub reference validation — D01",
+  "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+  "manifest_version": "3.1",
+  "domain_id": "D01",
+  "domain_name": "Fundamentos de escena y arquitectura",
+  "reference_project": {
+    "repository": "mrdoob/three.js",
+    "url": "https://github.com/mrdoob/three.js",
+    "commit": "0de0346de82a0d01923ffeb27f33240ad8b4863f",
+    "license": "MIT",
+    "license_url": "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE",
+    "workflow": {
+      "name": "Report E2E",
+      "run_id": 46015390100,
+      "run_url": "https://github.com/mrdoob/three.js/actions/runs/46015390100",
+      "head_sha": "0de0346de82a0d01923ffeb27f33240ad8b4863f",
+      "conclusion": "success",
+      "scope_note": "El run está asociado al commit de referencia. No se afirma que ese workflow ejecute cada test unitario citado; las pruebas unitarias se identifican por separado."
+    }
+  },
+  "records": [
+    {
+      "record_key": "D01:0",
+      "technique": "Scene graph jerárquico",
+      "mathematics": "M_world(child)=M_world(parent)·M_local(child). Para una cadena de nodos, M_world(n)=M_world(root)·Π M_local(k), en orden raíz→nodo.",
+      "algorithm": [
+        "Construir nodos Object3D y asignar transformaciones locales.",
+        "Adjuntar cada hijo a su padre mediante add().",
+        "Actualizar matrices de mundo desde la raíz.",
+        "Consumir matrixWorld para transformar puntos y renderizar."
+      ],
+      "pseudocode": "function attach(parent, child, localTransform): child.matrix/local transform = localTransform; parent.add(child); parent.updateMatrixWorld(true); return child.matrixWorld",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/core/Object3D.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/test/unit/src/core/Object3D.tests.js"
+      ],
+      "verified_source_behavior": "Object3D mantiene parent/children, matrix y matrixWorld; su suite cubre transformaciones y comportamiento de objetos.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d01-core-techniques.mjs",
+        "tests/threejs/d01-core-techniques.test.mjs"
+      ],
+      "implementation_note": "Las suites locales D01 pasaron en el workflow global: pruebas D01 incluidas dentro de 167 pruebas JavaScript, 0 fallos. El estado acredita pruebas unitarias de la adaptación, no integración de producción en la aplicación."
+    },
+    {
+      "record_key": "D01:1",
+      "technique": "Instanciación de objetos",
+      "mathematics": "p_i=M_parent·M_i·p_local. La geometría y material se comparten; cada instancia almacena su matriz 4×4.",
+      "algorithm": [
+        "Crear una geometría y un material compartidos.",
+        "Crear InstancedMesh(geometry, material, count).",
+        "Asignar una matriz por índice con setMatrixAt(i, M_i).",
+        "Marcar instanceMatrix.needsUpdate=true tras modificar datos."
+      ],
+      "pseudocode": "mesh = new InstancedMesh(sharedGeometry, sharedMaterial, N); for i in 0..N-1: mesh.setMatrixAt(i, transform[i]); mesh.instanceMatrix.needsUpdate=true; scene.add(mesh)",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/InstancedMesh.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/test/unit/src/objects/InstancedMesh.tests.js"
+      ],
+      "verified_source_behavior": "InstancedMesh implementa matrices por instancia, transformaciones y límites espaciales; la suite unitaria citada cubre construcción/tipo/disposición, no constituye por sí sola benchmark de draw calls.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d01-core-techniques.mjs",
+        "tests/threejs/d01-core-techniques.test.mjs"
+      ],
+      "implementation_note": "Las suites locales D01 pasaron en el workflow global: pruebas D01 incluidas dentro de 167 pruebas JavaScript, 0 fallos. El estado acredita pruebas unitarias de la adaptación, no integración de producción en la aplicación."
+    },
+    {
+      "record_key": "D01:2",
+      "technique": "Geometría compartida",
+      "mathematics": "G_1=G_2=...=G_n=G; cada objeto usa su matriz de transformación M_i y el mismo recurso geométrico G.",
+      "algorithm": [
+        "Crear una geometría una sola vez.",
+        "Crear varios Mesh que referencien esa geometría compartida.",
+        "Asignar transformaciones independientes a cada Mesh.",
+        "Liberar la geometría compartida cuando ya no existan consumidores."
+      ],
+      "pseudocode": "geometry = buildGeometry(); for each transform M_i: object = new Mesh(geometry, material); object.matrix = M_i; scene.add(object)",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/Mesh.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/InstancedMesh.js"
+      ],
+      "verified_source_behavior": "Mesh consume BufferGeometry como recurso y InstancedMesh opera explícitamente con una geometría compartida entre instancias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d01-core-techniques.mjs",
+        "tests/threejs/d01-core-techniques.test.mjs"
+      ],
+      "implementation_note": "Las suites locales D01 pasaron en el workflow global: pruebas D01 incluidas dentro de 167 pruebas JavaScript, 0 fallos. El estado acredita pruebas unitarias de la adaptación, no integración de producción en la aplicación."
+    },
+    {
+      "record_key": "D01:3",
+      "technique": "LOD",
+      "mathematics": "k(d)=max{i | d_i≤d}, con niveles ordenados por distancia; se muestra la representación k(d). La histéresis modifica el umbral efectivo para reducir parpadeo.",
+      "algorithm": [
+        "Crear representaciones de detalle alto, medio y bajo.",
+        "Añadir cada representación con su distancia mediante addLevel().",
+        "Calcular distancia cámara-objeto.",
+        "Activar el nivel cuyo umbral sea el mayor que no exceda la distancia, aplicando histéresis si está configurada."
+      ],
+      "pseudocode": "lod.addLevel(high, d0); lod.addLevel(mid, d1); lod.addLevel(low, d2); lod.update(camera)",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/LOD.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/test/unit/src/objects/LOD.tests.js"
+      ],
+      "verified_source_behavior": "LOD ordena niveles por distancia, elige el nivel según distancia de cámara y contempla histéresis; la suite verifica inserción, umbrales y selección.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d01-core-techniques.mjs",
+        "tests/threejs/d01-core-techniques.test.mjs"
+      ],
+      "implementation_note": "Las suites locales D01 pasaron en el workflow global: pruebas D01 incluidas dentro de 167 pruebas JavaScript, 0 fallos. El estado acredita pruebas unitarias de la adaptación, no integración de producción en la aplicación."
+    },
+    {
+      "record_key": "D01:4",
+      "technique": "Frustum culling",
+      "mathematics": "Un volumen delimitador es visible si intersecta el volumen de visión. Para una esfera (c,r) y plano normalizado (n,d), se rechaza si n·c+d < -r para cualquiera de los seis planos.",
+      "algorithm": [
+        "Construir la matriz de proyección-vista.",
+        "Extraer los seis planos del frustum.",
+        "Obtener el volumen delimitador del objeto en el espacio correspondiente.",
+        "Rechazar el objeto si queda completamente fuera de cualquier plano."
+      ],
+      "pseudocode": "frustum.setFromProjectionMatrix(projectionView); for object in renderables: if not frustum.intersectsObject(object): skipDraw(object)",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/Frustum.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/renderers/WebGLRenderer.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/test/unit/src/math/Frustum.tests.js"
+      ],
+      "verified_source_behavior": "Three.js incluye Frustum con seis planos, pruebas de puntos/volúmenes y el renderer usa frustum culling para objetos renderizables.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d01-core-techniques.mjs",
+        "tests/threejs/d01-core-techniques.test.mjs"
+      ],
+      "implementation_note": "Las suites locales D01 pasaron en el workflow global: pruebas D01 incluidas dentro de 167 pruebas JavaScript, 0 fallos. El estado acredita pruebas unitarias de la adaptación, no integración de producción en la aplicación."
+    },
+    {
+      "record_key": "D01:5",
+      "technique": "Spatial partitioning",
+      "mathematics": "Para origen o y tamaño de celda h>0, la celda de p es c(p)=floor((p-o)/h) componente a componente. Para un AABB [b_min,b_max], se visitan todas las celdas entre floor((b_min-o)/h) y floor((b_max-o)/h). La consulta reúne candidatos por unión de buckets y filtra por intersección AABB exacta; la rejilla reduce candidatos, no reemplaza la prueba geométrica.",
+      "algorithm": [
+        "Fijar h>0 y origen o del espacio de mundo.",
+        "Para cada objeto registrar su AABB y calcular c_min=floor((b_min-o)/h), c_max=floor((b_max-o)/h).",
+        "Insertar el identificador en todos los buckets (x,y,z) comprendidos entre c_min y c_max.",
+        "Para una consulta AABB repetir el cálculo de celdas, unir identificadores candidatos y eliminar duplicados.",
+        "Aplicar intersección AABB exacta a cada candidato; actualizar o retirar un objeto eliminando su pertenencia anterior."
+      ],
+      "pseudocode": "cell(p)=floor((p-origin)/cellSize); insert(id,bounds): for c in cells(bounds): buckets[c].add(id); query(q): ids=union(buckets[c] for c in cells(q)); return [value(id) for id in ids if intersects(bounds[id],q)]",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/jsm/math/Octree.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/test/unit/addons/math/Octree.tests.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "verified_source_behavior": "La referencia oficial implementa un Octree 3D que subdivide recursivamente el espacio, limita profundidad y triángulos por hoja; las pruebas QUnit verifican límites de subdivisión y que la consulta de rayo conserva la intersección/distancia esperadas. La adaptación local no copia el Octree: implementa una rejilla espacial uniforme AABB, más sencilla y verificable para consultas de objetos.",
+      "implementation_files": [
+        "src/threejs/spatial-grid.mjs",
+        "tests/threejs/d01-spatial-grid.test.mjs"
+      ],
+      "implementation_note": "Las suites locales D01 pasaron en el workflow global: pruebas D01 incluidas dentro de 167 pruebas JavaScript, 0 fallos. El estado acredita pruebas unitarias de la adaptación, no integración de producción en la aplicación."
+    },
+    {
+      "record_key": "D01:6",
+      "technique": "Render on demand",
+      "mathematics": "Sea dirty∈{0,1} y active(t) la existencia de animación temporal. Se renderiza si dirty=1 o active(t)=1. La invalidación asigna dirty←1 y solicita como máximo un callback pendiente. Antes del render se limpia dirty; una nueva invalidación durante update/render vuelve a activarlo. Si active(t)=1 se programa el siguiente frame.",
+      "algorithm": [
+        "Inicializar dirty=true y solicitar el primer frame.",
+        "Ante cambios de escena, cámara, controles, carga de recursos o tamaño del viewport, marcar dirty=true.",
+        "Coalescer invalidaciones: si ya existe un requestAnimationFrame pendiente, no crear otro.",
+        "Al ejecutar el frame, limpiar el identificador pendiente; si dirty o hay animación activa, actualizar y renderizar.",
+        "Si durante el frame aparece otra invalidación o continúa la animación, programar el siguiente; de lo contrario permanecer inactivo.",
+        "Al destruir el visor, cancelar el frame pendiente e ignorar invalidaciones futuras."
+      ],
+      "pseudocode": "invalidate(): dirty=true; scheduleOnce(); frame(t): pending=null; shouldRender=dirty||animationActive(); dirty=false; if shouldRender: update(t); render(t); if dirty||animationActive(): scheduleOnce(); dispose(): cancel(pending)",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/manual/pages/rendering-on-demand.html",
+        "https://threejs.org/manual/pages/rendering-on-demand.html",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "verified_source_behavior": "El manual oficial Three.js muestra render inicial único, invalidación por cambios de OrbitControls y resize, y el uso de requestAnimationFrame solo cuando se necesita. También advierte que el damping requiere seguir actualizando controles y evitar bucles de eventos. La página es una guía reproducible, no una suite automatizada upstream; por eso se añaden pruebas locales del planificador.",
+      "implementation_files": [
+        "src/threejs/demand-render-scheduler.mjs",
+        "tests/threejs/d01-demand-render-scheduler.test.mjs"
+      ],
+      "implementation_note": "Las suites locales D01 pasaron en el workflow global: pruebas D01 incluidas dentro de 167 pruebas JavaScript, 0 fallos. El estado acredita pruebas unitarias de la adaptación, no integración de producción en la aplicación."
+    },
+    {
+      "record_key": "D01:7",
+      "technique": "Render loop temporal",
+      "mathematics": "Δt=t_n−t_(n−1); estado x_n=F(x_(n−1),Δt); render(scene,camera). Para simulación fija se acumula tiempo y se ejecutan pasos de tamaño h.",
+      "algorithm": [
+        "Obtener timestamp del frame.",
+        "Calcular delta temporal en segundos.",
+        "Actualizar simulación/animaciones usando delta o pasos fijos acumulados.",
+        "Renderizar escena y solicitar siguiente frame mientras sea necesario."
+      ],
+      "pseudocode": "function frame(now){dt=clamp((now-last)/1000,0,maxDt); last=now; update(dt); renderer.render(scene,camera); requestAnimationFrame(frame)}",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/core/Clock.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/test/unit/src/core/Clock.tests.js"
+      ],
+      "verified_source_behavior": "Clock mide delta/tiempo transcurrido y su suite verifica acumulación temporal y detención; el bucle requestAnimationFrame pertenece a la aplicación consumidora.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d01-core-techniques.mjs",
+        "tests/threejs/d01-core-techniques.test.mjs"
+      ],
+      "implementation_note": "Las suites locales D01 pasaron en el workflow global: pruebas D01 incluidas dentro de 167 pruebas JavaScript, 0 fallos. El estado acredita pruebas unitarias de la adaptación, no integración de producción en la aplicación."
+    }
+  ],
+  "overall_status": "D01_LOCAL_IMPLEMENTATIONS_TESTED_CERTIFICATION_PENDING",
+  "summary": {
+    "records": 8,
+    "records_with_source_code_and_tests": 8,
+    "records_with_source_code_but_test_evidence_incomplete": 0,
+    "not_yet_researched": 0,
+    "local_adaptations_implemented": 8,
+    "local_adaptations_tested": 8,
+    "pending_local_ci": 0,
+    "certified_as_locally_operational": 0,
+    "global_javascript_tests": 167,
+    "global_javascript_failures": 0
+  },
+  "limitations": [
+    "La ejecución upstream consultada terminó en success para el commit citado, pero no se ha demostrado aquí que ese workflow ejecute cada suite unitaria individual.",
+    "Las pruebas y el código upstream demuestran la implementación de referencia, no la adaptación dentro de jedl-studio.",
+    "No se declara certificación de producción local hasta integrar y ejecutar las pruebas de adaptación.",
+    "D01:5 y D01:6 tienen implementaciones locales y pruebas escritas; no se declaran probadas ni certificadas hasta que el workflow global las ejecute con éxito.",
+    "Las ocho fichas D01 cuentan ahora con una adaptación local y pruebas escritas; la certificación se mantiene pendiente hasta ejecutar y revisar el workflow global."
+  ]
+}

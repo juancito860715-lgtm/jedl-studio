@@ -1,0 +1,304 @@
+{
+  "title": "R31 executable oracle coverage map",
+  "version": "1.0.0",
+  "count": 23,
+  "scope": "Maps every R31 record to concrete Python and JavaScript tests. Coverage mapping is not itself a certification: source-level derivation and renderer validation remain separate gates.",
+  "records": [
+    {
+      "research_id": "R31-STOP-MOTION-PROCEDURAL-CON-MICROJITTER-D",
+      "python_tests": [
+        "test_stop_motion_jitter_is_deterministic_bounded_and_channel_specific"
+      ],
+      "javascript_tests": [
+        "stop-motion jitter deterministic and bounded"
+      ],
+      "oracle_basis": "deterministic hash bounds and fixed-seed fixtures"
+    },
+    {
+      "research_id": "R31-FABRIK-PARA-CADENAS-ARTICULADAS",
+      "python_tests": [
+        "test_fabrik_reaches_reachable_target_and_preserves_lengths",
+        "test_fabrik_unreachable_target_extends_chain_to_max_reach"
+      ],
+      "javascript_tests": [
+        "FABRIK preserves lengths and reaches target"
+      ],
+      "oracle_basis": "segment-length invariants and reachability geometry"
+    },
+    {
+      "research_id": "R31-SKINNING-POR-DUAL-QUATERNIONS",
+      "python_tests": [
+        "test_dual_quaternion_normalization_and_orthogonality",
+        "test_dual_quaternion_rejects_zero_real_part",
+        "test_dual_quaternion_blend_antipodal_and_weight_scale_invariant"
+      ],
+      "javascript_tests": [
+        "dual quaternion normalization matches Python reference",
+        "dual-quaternion blending corrects antipodal signs before normalization"
+      ],
+      "oracle_basis": "unit quaternion and Study-condition invariants; antipodal blend invariance"
+    },
+    {
+      "research_id": "R31-CUANTIZACI-N-TEMPORAL-DE-ANIMACI-N",
+      "python_tests": [
+        "test_temporal_quantization_floor"
+      ],
+      "javascript_tests": [
+        "temporal quantization matches Python references"
+      ],
+      "oracle_basis": "floor quantization boundary cases"
+    },
+    {
+      "research_id": "R31-XPBD-RESTRICCIONES-CON-COMPLIANCE",
+      "python_tests": [
+        "test_xpbd_rigid_distance_constraint_one_projection",
+        "test_xpbd_compliance_scaled_by_dt_matches_closed_form",
+        "test_xpbd_compliance_reduces_single_step_correction"
+      ],
+      "javascript_tests": [
+        "XPBD rigid projection matches Python reference",
+        "XPBD compliance scaling changes with dt exactly as alpha/dt^2"
+      ],
+      "oracle_basis": "closed-form scalar constraint projection and alpha/dt^2 dimensional relation"
+    },
+    {
+      "research_id": "R31-HASH-ESPACIAL-UNIFORME-PARA-VECINOS",
+      "python_tests": [
+        "test_spatial_hash_floor_including_negative_coordinates",
+        "test_spatial_hash_matches_published_integer_cell_hash"
+      ],
+      "javascript_tests": [
+        "spatial hash uses floor for negative coordinates",
+        "Teschner spatial hash maps integer cells into a bounded table bucket"
+      ],
+      "oracle_basis": "negative-coordinate floor oracle and published integer hash constants"
+    },
+    {
+      "research_id": "R31-MODELO-DE-DISPERSI-N-MICROFACET-PARA-CAB",
+      "python_tests": [
+        "test_hair_ggx_normal_distribution_reference",
+        "test_hair_microfacet_ggx_matches_published_appendix_a_eq41"
+      ],
+      "javascript_tests": [
+        "hair GGX NDF and tilted half-vector match Huang et al. Appendix A"
+      ],
+      "oracle_basis": "published Huang et al. Appendix A equations and limiting values"
+    },
+    {
+      "research_id": "R31-TENSOR-DE-ESTRUCTURA-PARA-ORIENTACI-N-DE",
+      "python_tests": [
+        "test_structure_tensor_orientation_axis_aligned",
+        "test_structure_tensor_features_distinguish_gradient_and_stroke_tangent",
+        "test_structure_tensor_rejects_non_positive_semidefinite_input"
+      ],
+      "javascript_tests": [
+        "structure tensor orientation matches reference",
+        "structure tensor separates gradient normal from brush tangent",
+        "structure tensor rejects non-positive-semidefinite matrices"
+      ],
+      "oracle_basis": "closed-form eigenvalues, eigenvectors, coherence and PSD determinant condition"
+    },
+    {
+      "research_id": "R31-KUWAHARA-ANISOTR-PICO-MULTIESCALA",
+      "python_tests": [
+        "test_anisotropic_kuwahara_matches_published_weight_rule",
+        "test_kuwahara_weighted_sector_mean_prefers_low_variance"
+      ],
+      "javascript_tests": [
+        "anisotropic Kuwahara matches published weight equation and Python oracle",
+        "weighted sector mean matches reference convention"
+      ],
+      "oracle_basis": "published sector weight equation and normalized weighted mean"
+    },
+    {
+      "research_id": "R31-RELIEVE-DE-IMPASTO-DERIVADO-DE-PINCELADA",
+      "python_tests": [
+        "test_segment_distance_projection_and_degenerate_segment",
+        "test_compact_stroke_profile_center_and_support",
+        "test_height_gradient_matches_independent_plane_oracle",
+        "test_perturbed_normal_is_unit_and_faces_upward",
+        "test_rejects_invalid_stroke_width"
+      ],
+      "javascript_tests": [
+        "impasto segment distance has analytic projection and endpoint cases",
+        "impasto compact profile has exact center and zero outside support",
+        "impasto central gradient and normal satisfy plane oracle"
+      ],
+      "oracle_basis": "analytic point-segment projection, compact profile support, exact plane gradient and unit-normal invariant"
+    },
+    {
+      "research_id": "R31-RUIDO-DE-EROSI-N-ORIENTADO-POR-FLUJO-Y-P",
+      "python_tests": [
+        "test_oriented_detail_is_periodic_along_flow",
+        "test_zero_slope_has_no_erosion_detail",
+        "test_detail_is_bounded_by_declared_amplitude",
+        "test_rejects_zero_flow_and_invalid_anisotropy"
+      ],
+      "javascript_tests": [
+        "flow-oriented detail repeats over its along-flow wavelength",
+        "erosion amplitude is bounded and zero slope leaves base unchanged"
+      ],
+      "oracle_basis": "periodicity, zero-slope limit and amplitude bound; explicitly authored anisotropic Fourier prototype, not Phasor-paper reproduction"
+    },
+    {
+      "research_id": "R31-SDF-SMOOTH-UNION-Y-MODELADO-IMPL-CITO",
+      "python_tests": [
+        "test_smooth_min_disjoint_and_midpoint"
+      ],
+      "javascript_tests": [
+        "smooth minimum matches Python reference"
+      ],
+      "oracle_basis": "closed-form smooth-min limiting cases"
+    },
+    {
+      "research_id": "R31-CURVAS-DE-C-MARA-CON-MARCO-DE-ORIENTACI-",
+      "python_tests": [
+        "test_camera_parallel_transport_keeps_normal_orthogonal",
+        "test_camera_double_reflection_frame_is_orthonormal",
+        "test_camera_double_reflection_preserves_reference_on_straight_line"
+      ],
+      "javascript_tests": [
+        "camera transported normal remains unit and orthogonal",
+        "double-reflection camera frame is orthonormal",
+        "double-reflection camera frame preserves straight-line orientation"
+      ],
+      "oracle_basis": "orthonormal frame and straight-line transport invariants"
+    },
+    {
+      "research_id": "R31-CONTORNO-POR-DISCONTINUIDAD-DE-PROFUNDID",
+      "python_tests": [
+        "test_depth_normal_edge_zero_for_identical_samples",
+        "test_depth_jump_has_closed_form_and_scale_invariance",
+        "test_normal_discontinuity_has_closed_form",
+        "test_identical_samples_and_smoothstep_boundaries",
+        "test_invalid_depth_normals_and_thresholds_are_rejected"
+      ],
+      "javascript_tests": [
+        "depth-normal contour score uses normalized dimensionless cues",
+        "depth-normal contour coverage has analytic smoothstep boundaries"
+      ],
+      "oracle_basis": "closed-form depth jump, normalized normal dot and smoothstep boundary conditions"
+    },
+    {
+      "research_id": "R31-HALFTONE-BEN-DAY-PROCEDURAL",
+      "python_tests": [
+        "test_halftone_pattern_has_expected_spatial_period",
+        "test_binary_threshold_and_antialias_midpoint",
+        "test_rejects_invalid_antialias_width"
+      ],
+      "javascript_tests": [
+        "halftone threshold coverage has binary and antialiased limits",
+        "sinusoidal halftone mask has period 2/f and remains in [0,1]"
+      ],
+      "oracle_basis": "analytic spatial period and binary/antialias limiting behavior"
+    },
+    {
+      "research_id": "R31-HACHURADO-ORIENTADO-POR-CAMPO-VECTORIAL",
+      "python_tests": [
+        "test_hatching_phase_repeats_after_one_spacing",
+        "test_periodic_line_coverage_closed_form",
+        "test_binary_limit_and_invalid_widths"
+      ],
+      "javascript_tests": [
+        "vector-field hatching repeats and antialiases around the stripe"
+      ],
+      "oracle_basis": "phase periodicity and closed-form stripe coverage"
+    },
+    {
+      "research_id": "R31-ADVECCI-N-SEMI-LAGRANGIANA-DE-PIGMENTO",
+      "python_tests": [
+        "test_semi_lagrangian_advection_preserves_constant_field",
+        "test_constant_field_is_preserved_for_any_velocity",
+        "test_linear_ramp_matches_exact_constant_velocity_backtrace",
+        "test_bilinear_sampling_preserves_convex_range",
+        "test_rejects_invalid_grid_and_time_step"
+      ],
+      "javascript_tests": [
+        "semi-Lagrangian advection preserves a constant field",
+        "semi-Lagrangian 2D advection backtraces and bilinearly samples"
+      ],
+      "oracle_basis": "constant-field preservation, exact linear backtrace and bilinear convexity"
+    },
+    {
+      "research_id": "R31-CAMPOS-VECTORIALES-PARA-TRAYECTORIAS-Y-P",
+      "python_tests": [
+        "test_rk4_exponential_decay_converges",
+        "test_rk4_harmonic_oscillator_converges_fourth_order",
+        "test_constant_vector_field_has_closed_form",
+        "test_zero_step_and_reverse_time",
+        "test_rejects_nonfinite_field_output"
+      ],
+      "javascript_tests": [
+        "RK4 exponential decay matches Python reference",
+        "RK4 harmonic oscillator converges at fourth order",
+        "RK4 constant vector field matches exact integral and reverse time"
+      ],
+      "oracle_basis": "analytic exponential and harmonic solutions plus fourth-order error ratio"
+    },
+    {
+      "research_id": "R31-BOIDS-CON-SEPARACI-N-ALINEACI-N-Y-COHESI",
+      "python_tests": [
+        "test_boids_components_point_toward_expected_behaviors"
+      ],
+      "javascript_tests": [
+        "boids steering vectors match reference directions"
+      ],
+      "oracle_basis": "closed-form neighbor centroid, mean velocity and separation vectors"
+    },
+    {
+      "research_id": "R31-VOXEL-GREEDY-MESHING",
+      "python_tests": [
+        "test_greedy_voxel_meshing_merges_equal_face_rectangle",
+        "test_rectangle_partition_preserves_all_keys_and_area",
+        "test_material_and_face_attributes_prevent_merging",
+        "test_empty_faces_and_invalid_masks"
+      ],
+      "javascript_tests": [
+        "greedy mesher merges equal rectangle and splits keys",
+        "greedy voxel rectangles partition mask without changing face keys",
+        "voxel face material/normal/AO key splits rectangles"
+      ],
+      "oracle_basis": "naive face-cell coverage equivalence, non-overlap and material/AO key preservation"
+    },
+    {
+      "research_id": "R31-INTEGRACI-N-VOLUM-TRICA-BEER-LAMBERT",
+      "python_tests": [
+        "test_beer_lambert_reference_value",
+        "test_volume_compositing_matches_constant_medium_transmittance",
+        "test_beer_lambert_subdivision_invariance"
+      ],
+      "javascript_tests": [
+        "Beer-Lambert transmittance matches Python reference",
+        "volume compositing matches Beer-Lambert reference",
+        "Beer-Lambert transmittance is invariant to homogeneous segment subdivision"
+      ],
+      "oracle_basis": "Beer-Lambert closed form and homogeneous segment subdivision invariance"
+    },
+    {
+      "research_id": "R31-FRESNEL-SCHLICK-Y-REFLECTANCIA-ANGULAR",
+      "python_tests": [
+        "test_fresnel_schlick_endpoints",
+        "test_schlick_fresnel_interior_value_and_monotonicity"
+      ],
+      "javascript_tests": [
+        "Schlick endpoints match Python reference",
+        "Schlick Fresnel interior value and monotonicity"
+      ],
+      "oracle_basis": "analytic endpoint values and monotonicity"
+    },
+    {
+      "research_id": "R31-DUAL-CONTOURING",
+      "python_tests": [
+        "test_dual_contouring_qef_minimizes_consistent_plane_constraints",
+        "test_dual_contouring_full_qef_solves_non_axis_aligned_planes",
+        "test_dual_contouring_qef_rejects_singular_unregularized_system"
+      ],
+      "javascript_tests": [
+        "regularized dual contour QEF recovers plane location",
+        "regularized dual contour QEF solves non-axis-aligned planes",
+        "dual contour QEF rejects singular unregularized normal systems"
+      ],
+      "oracle_basis": "analytic plane constraints, least-squares residual and singular-system rejection"
+    }
+  ]
+}

@@ -1,0 +1,433 @@
+{
+  "document": "Algoritmos completos, pseudocódigo, entradas, salidas y precondiciones — D05",
+  "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+  "manifest_version": "3.1",
+  "scope": {
+    "domain_id": "D05",
+    "domain": "Vegetación, distribución natural y fauna",
+    "record_count": 10,
+    "excluded_protected_records": 3,
+    "excluded_keys": [
+      "D05:6",
+      "D05:7",
+      "D05:9"
+    ],
+    "excluded_reason": "Tres fichas protegidas Crimson Loong se conservan sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D05:0",
+      "name": "Árbol recursivo",
+      "inputs": "Origen, dirección, longitud, profundidad, ángulo de ramificación, factor de escala y semilla.",
+      "outputs": "Lista jerárquica de segmentos con niveles y extremos 3D.",
+      "preconditions": "Longitud positiva; escala en (0,1); profundidad entera no negativa; dirección no nula.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "B_0=trunk",
+          "justification": "Definir el tronco como estructura inicial."
+        },
+        {
+          "step": 2,
+          "equation": "B_{n+1}^{(j)}=T_j(B_n;θ_j,s_j)",
+          "justification": "Aplicar transformaciones por rama para generar hijos con rotación θ_j y escala s_j."
+        },
+        {
+          "step": 3,
+          "equation": "B_{n+1}=⋃_j B_{n+1}^{(j)}",
+          "justification": "Unir las ramas generadas para formar el siguiente nivel."
+        },
+        {
+          "step": 4,
+          "equation": "length_{n+1}=s_j length_n",
+          "justification": "La escala de cada transformación determina la reducción/aumento de rama."
+        }
+      ],
+      "algorithm": "Emitir tronco inicial; visitar rama recursivamente; para cada hijo aplicar rotación y escala; emitir segmento; detener en profundidad cero.",
+      "pseudocode": "Emitir tronco inicial; visitar rama recursivamente; para cada hijo aplicar rotación y escala; emitir segmento; detener en profundidad cero.",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/dgreenheck/ez-tree/blob/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/tree.js",
+        "https://github.com/dgreenheck/ez-tree/blob/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/branch.js",
+        "https://github.com/dgreenheck/ez-tree/blob/dcf309bd86bd521083d9c70f01f2de45fdc7c457/LICENSE"
+      ]
+    },
+    {
+      "record_key": "D05:1",
+      "name": "L-system",
+      "inputs": "Axioma, reglas de producción, iteraciones, límite de símbolos, ángulo y longitud.",
+      "outputs": "Cadena reescrita y segmentos de turtle 3D.",
+      "preconditions": "Iteraciones enteras; reglas finitas; expansión dentro del límite; pila de ramas balanceada.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "Axiom_0=ω",
+          "justification": "Definir palabra inicial."
+        },
+        {
+          "step": 2,
+          "equation": "ω_{n+1}=rewrite(ω_n,R)",
+          "justification": "Aplicar simultáneamente reglas de producción a cada símbolo."
+        },
+        {
+          "step": 3,
+          "equation": "interpret(ω_n)→turtle commands",
+          "justification": "Convertir símbolos en avance, giro, ramificación y retorno de estado."
+        },
+        {
+          "step": 4,
+          "equation": "branch geometry = integrate turtle state",
+          "justification": "Acumular posición y orientación para emitir segmentos."
+        }
+      ],
+      "algorithm": "word=axiom; repetir n veces sustituyendo cada símbolo por su producción; interpretar F como avance, +/− como giro, [ como push y ] como pop; emitir segmentos.",
+      "pseudocode": "word=axiom; repetir n veces sustituyendo cada símbolo por su producción; interpretar F como avance, +/− como giro, [ como push y ] como pop; emitir segmentos.",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/nylki/lindenmayer/blob/94939c5f9de8de886665f382b4ea55b75192f3bf/lindenmayer.js",
+        "https://github.com/nylki/lindenmayer/blob/94939c5f9de8de886665f382b4ea55b75192f3bf/docs/examples/tree.html",
+        "https://github.com/nylki/lindenmayer/blob/94939c5f9de8de886665f382b4ea55b75192f3bf/LICENSE"
+      ]
+    },
+    {
+      "record_key": "D05:2",
+      "name": "Distribución Poisson disk",
+      "inputs": "Límites 2D, distancia mínima, intentos, semilla y presupuesto de puntos.",
+      "outputs": "Muestras 2D con separación mínima.",
+      "preconditions": "Área positiva; r>0; intentos y presupuesto enteros positivos.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "D={p_i}",
+          "justification": "Definir conjunto de muestras dentro del dominio."
+        },
+        {
+          "step": 2,
+          "equation": "∀i≠j: ||p_i−p_j||≥r_min",
+          "justification": "Imponer distancia mínima entre muestras."
+        },
+        {
+          "step": 3,
+          "equation": "candidate p∼Uniform(domain)",
+          "justification": "Generar candidato según muestreo del dominio."
+        },
+        {
+          "step": 4,
+          "equation": "accept(p) iff min_i ||p−p_i||≥r_min",
+          "justification": "Aceptar solo si satisface separación con todas las muestras previas."
+        },
+        {
+          "step": 5,
+          "equation": "repeat until budget/coverage",
+          "justification": "Terminar al agotar candidatos, presupuesto o cobertura objetivo."
+        }
+      ],
+      "algorithm": "Crear grid de celdas r/√2; insertar primera muestra; mientras haya puntos activos, proponer candidatos en anillo [r,2r]; verificar celdas vecinas; aceptar si todas las distancias son ≥r; retirar activo agotado.",
+      "pseudocode": "Crear grid de celdas r/√2; insertar primera muestra; mientras haya puntos activos, proponer candidatos en anillo [r,2r]; verificar celdas vecinas; aceptar si todas las distancias son ≥r; retirar activo agotado.",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/kchapelier/poisson-disk-sampling/blob/9536e50c682c8e1d5a5add44a729b7414a276c61/src/poisson-disk-sampling.js",
+        "https://github.com/kchapelier/poisson-disk-sampling/blob/9536e50c682c8e1d5a5add44a729b7414a276c61/src/implementations/fixed-density.js",
+        "https://github.com/kchapelier/poisson-disk-sampling/blob/9536e50c682c8e1d5a5add44a729b7414a276c61/src/neighbourhood.js",
+        "https://github.com/kchapelier/poisson-disk-sampling/blob/9536e50c682c8e1d5a5add44a729b7414a276c61/LICENSE"
+      ]
+    },
+    {
+      "record_key": "D05:3",
+      "name": "Phyllotaxis",
+      "inputs": "Cantidad N, espaciado c, ángulo áureo y origen.",
+      "outputs": "Puntos de phyllotaxis 2D/3D.",
+      "preconditions": "N entero no negativo; c≥0; ángulo finito.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "θ_n=n·γ",
+          "justification": "Asignar un giro constante γ por índice."
+        },
+        {
+          "step": 2,
+          "equation": "r_n=c√n",
+          "justification": "Aumentar radio proporcional a raíz cuadrada del índice."
+        },
+        {
+          "step": 3,
+          "equation": "p_n=(r_n cosθ_n,r_n sinθ_n)",
+          "justification": "Convertir coordenadas polares a plano."
+        },
+        {
+          "step": 4,
+          "equation": "γ≈π(3−√5)",
+          "justification": "Elegir ángulo áureo para distribuir direcciones sin repetición periódica simple."
+        }
+      ],
+      "algorithm": "Para n=0..N−1: theta=n*goldenAngle; radius=spacing*sqrt(n); p=(radius*cos(theta),radius*sin(theta),z0).",
+      "pseudocode": "Para n=0..N−1: theta=n*goldenAngle; radius=spacing*sqrt(n); p=(radius*cos(theta),radius*sin(theta),z0).",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/johnnyawesome/phyllotaxisP5JS/blob/d4f6751b8812cb7201218f4259f87daa1e1191d8/PhyllotaxisP5JS/PhyllotaxisP5JS/sketch.js",
+        "https://github.com/johnnyawesome/phyllotaxisP5JS/blob/d4f6751b8812cb7201218f4259f87daa1e1191d8/LICENSE"
+      ]
+    },
+    {
+      "record_key": "D05:4",
+      "name": "Curva de tallo",
+      "inputs": "Puntos de curva, radio base, exponente de taper y segmentos radiales.",
+      "outputs": "BufferGeometry de tallo tubular cónico.",
+      "preconditions": "Al menos dos puntos; radio>0; gamma>0; segmentos≥3.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "C(u)=Bezier/CatmullRom(u)",
+          "justification": "Definir eje central a partir de puntos de control."
+        },
+        {
+          "step": 2,
+          "equation": "r(u)=r_0(1−u)^γ",
+          "justification": "Definir taper decreciente desde base a punta."
+        },
+        {
+          "step": 3,
+          "equation": "T=normalize(C'(u))",
+          "justification": "Obtener tangente local."
+        },
+        {
+          "step": 4,
+          "equation": "P(u,θ)=C(u)+r(u)(N cosθ+B sinθ)",
+          "justification": "Construir sección transversal en marco perpendicular a la curva."
+        }
+      ],
+      "algorithm": "Muestrear curva central C(u); obtener marco paralelo T,N,B; radius=r0*(1-u)^gamma; emitir anillo C(u)+radius*(N cosθ+B sinθ); conectar anillos.",
+      "pseudocode": "Muestrear curva central C(u); obtener marco paralelo T,N,B; radius=r0*(1-u)^gamma; emitir anillo C(u)+radius*(N cosθ+B sinθ); conectar anillos.",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/TubeGeometry.js",
+        "https://github.com/dgreenheck/ez-tree/blob/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/branch.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ]
+    },
+    {
+      "record_key": "D05:5",
+      "name": "Forma de hoja",
+      "inputs": "Puntos de control, ancho máximo, exponente de forma y resolución paramétrica.",
+      "outputs": "BufferGeometry de hoja con centrolinea y dos bordes.",
+      "preconditions": "Al menos dos controles; ancho>0; exponente>0; resolución≥2.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "C(u)=centrolinea(u)",
+          "justification": "Definir nervio central como curva."
+        },
+        {
+          "step": 2,
+          "equation": "w(u)≥0",
+          "justification": "Definir semiancho variable a lo largo del nervio."
+        },
+        {
+          "step": 3,
+          "equation": "P(u,v)=C(u)+v w(u)N(u), v∈[−1,1]",
+          "justification": "Extender puntos a ambos lados de la línea central."
+        },
+        {
+          "step": 4,
+          "equation": "N(u)=normalize(cross(T(u),up))",
+          "justification": "Construir dirección transversal a partir de tangente y vector de referencia."
+        }
+      ],
+      "algorithm": "Crear curva central Catmull-Rom; evaluar tangente y normal transversal; width(u)=wmax*sin(pi*u)^gamma; emitir P(u,v)=C(u)+(2v−1)width(u)N(u); triangular rejilla.",
+      "pseudocode": "Crear curva central Catmull-Rom; evaluar tangente y normal transversal; width(u)=wmax*sin(pi*u)^gamma; emitir P(u,v)=C(u)+(2v−1)width(u)N(u); triangular rejilla.",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/dgreenheck/ez-tree/blob/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/tree.js",
+        "https://github.com/dgreenheck/ez-tree/blob/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/lib/branch.js",
+        "https://github.com/nylki/lindenmayer/blob/94939c5f9de8de886665f382b4ea55b75192f3bf/docs/examples/experimental_leaves.html",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ]
+    },
+    {
+      "record_key": "D05:8",
+      "name": "Hojas cayendo",
+      "inputs": "Posición y velocidad iniciales, gravedad, aceleración de viento, frecuencia, tiempo, velocidad angular y semilla.",
+      "outputs": "Posición y orientación deterministas de hoja caída.",
+      "preconditions": "Tiempo≥0; gravedad≥0; frecuencia finita; semilla entera.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "a_wind(t)=F_wind(t)/m",
+          "justification": "La segunda ley de Newton convierte la fuerza de viento en aceleración, siempre que F_wind esté expresada en newtons y m en kilogramos."
+        },
+        {
+          "step": 2,
+          "equation": "drift(t)=∫₀ᵗ(t−τ)a_wind(τ)dτ",
+          "justification": "Integrar dos veces la aceleración de viento con desplazamiento y velocidad de deriva iniciales nulos produce un desplazamiento de longitud."
+        },
+        {
+          "step": 3,
+          "equation": "p(t)=p0+v0t+½gt²+drift(t)",
+          "justification": "La trayectoria es la suma de posición inicial, movimiento con velocidad inicial, desplazamiento gravitatorio y desplazamiento adicional del viento."
+        },
+        {
+          "step": 4,
+          "equation": "si a_wind es constante: drift(t)=½a_wind t²",
+          "justification": "La integral doble de aceleración constante se reduce a la ecuación de movimiento uniformemente acelerado."
+        },
+        {
+          "step": 5,
+          "equation": "θ(t)=θ0+ωt; q(t)=axisAngle(axis,θ(t))",
+          "justification": "Integrar velocidad angular constante produce un ángulo; axisAngle construye una orientación unitaria alrededor de un eje normalizado."
+        }
+      ],
+      "algorithm": "Calcular posición balística con gravedad; integrar aceleración sinusoidal de viento para drift; sumar desplazamientos; calcular orientación desde velocidad angular y fase determinista.",
+      "pseudocode": "Calcular posición balística con gravedad; integrar aceleración sinusoidal de viento para drift; sumar desplazamientos; calcular orientación desde velocidad angular y fase determinista.",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/juancito860715-lgtm/jedl-studio/blob/audit/implementation-ready-manifest/src/threejs/d04-motion-simulation.mjs",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/MathUtils.js"
+      ]
+    },
+    {
+      "record_key": "D05:10",
+      "name": "Pasto procedural",
+      "inputs": "Base, altura, ancho, curvatura, amplitud/frecuencia de viento, tiempo, fase y resolución.",
+      "outputs": "BufferGeometry paramétrica de una hoja de pasto.",
+      "preconditions": "Altura/ancho positivos; valores finitos; resolución entera≥2.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "b(s)=base+s·height·up,  s∈[0,1]",
+          "justification": "Construir la línea central desde la base hasta la punta con altura física height y dirección up unitaria."
+        },
+        {
+          "step": 2,
+          "equation": "bend(s,t)=A(s)w(t)dir",
+          "justification": "Definir desplazamiento lateral de viento con amplitud espacial A(s), señal temporal w(t) y dirección unitaria dir."
+        },
+        {
+          "step": 3,
+          "equation": "P(s,v,t)=b(s)+bend(s,t)+v·width(s)N(s),  v∈[−1,1]",
+          "justification": "Extender la línea central a una lámina de ancho width(s) alrededor de su dirección transversal N(s)."
+        },
+        {
+          "step": 4,
+          "equation": "N(s)=normalize(T(s)×up_ref); T=normalize(∂b/∂s)",
+          "justification": "Construir marco local de la hoja; usar referencia alternativa si el producto cruzado es casi nulo."
+        },
+        {
+          "step": 5,
+          "equation": "n=normalize(P_s×P_v)",
+          "justification": "Obtener la normal geométrica de la lámina a partir de sus tangentes paramétricas."
+        }
+      ],
+      "algorithm": "Para u∈[0,1], center=base+height*u*up+bend(u)*wind(t); width(u)=w0(1-u); emitir superficie P(u,v)=center+(2v−1)width(u)N.",
+      "pseudocode": "Para u∈[0,1], center=base+height*u*up+bend(u)*wind(t); width(u)=w0(1-u); emitir superficie P(u,v)=center+(2v−1)width(u)N.",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/dgreenheck/ez-tree/blob/dcf309bd86bd521083d9c70f01f2de45fdc7c457/src/app/grass.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/core/BufferGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/InstancedMesh.js",
+        "https://github.com/dgreenheck/ez-tree/blob/dcf309bd86bd521083d9c70f01f2de45fdc7c457/LICENSE",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ]
+    },
+    {
+      "record_key": "D05:11",
+      "name": "Enjambre de insectos",
+      "inputs": "Agentes con posición/velocidad, luz, dt, semilla, pesos y radio vecinal.",
+      "outputs": "Nuevo estado de insectos con aceleración de boids, atracción y ruido.",
+      "preconditions": "Agentes 3D finitos; dt≥0; seed/step enteros; velocidad máxima positiva.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "S_i=Σ_{j∈N_i, j≠i}−(p_j−p_i)/||p_j−p_i||²",
+          "justification": "La separación produce un vector de repulsión ponderado inversamente por la distancia cuadrática."
+        },
+        {
+          "step": 2,
+          "equation": "C_i=mean_{j∈N_i}(p_j)−p_i; A_i=mean(v_j)−v_i",
+          "justification": "Cohesión apunta al centroide local; alineación es diferencia entre velocidad media y velocidad propia."
+        },
+        {
+          "step": 3,
+          "equation": "n_i=normalize(p_light−p_i); ξ_i=noise(seed_i,t)",
+          "justification": "Construir dirección hacia la luz y ruido reproducible adimensional."
+        },
+        {
+          "step": 4,
+          "equation": "a_i=w_sS_i+w_cC_i+w_aA_i+w_nξ_i+w_l n_i",
+          "justification": "Convertir todos los términos a aceleración mediante ganancias dimensionales antes de sumarlos."
+        },
+        {
+          "step": 5,
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar aceleración y actualizar posición con paso temporal común."
+        },
+        {
+          "step": 6,
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt)",
+          "justification": "Actualizar velocidad y posición."
+        }
+      ],
+      "algorithm": "Para cada insecto obtener vecinos; calcular separación/alineación/cohesión; sumar atracción normalizada a luz y ruido determinista; integrar semiimplícito; limitar velocidad.",
+      "pseudocode": "Para cada insecto obtener vecinos; calcular separación/alineación/cohesión; sumar atracción normalizada a luz y ruido determinista; integrar semiimplícito; limitar velocidad.",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/hughsk/boids/blob/459615bc1deac3e40cb5bb964aafd631c4a28311/index.js",
+        "https://github.com/hughsk/boids/blob/459615bc1deac3e40cb5bb964aafd631c4a28311/LICENSE.md",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/webgl_gpgpu_birds.html",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ]
+    },
+    {
+      "record_key": "D05:12",
+      "name": "Aves en bandada",
+      "inputs": "Aves con posición/velocidad, posición del líder, dt, pesos, radio y velocidad máxima.",
+      "outputs": "Nuevo estado de bandada con seguimiento de líder.",
+      "preconditions": "Agentes 3D finitos; dt≥0; líder finito; velocidad máxima positiva.",
+      "algorithm_steps": [
+        {
+          "step": 1,
+          "equation": "S_i=Σ−(p_j−p_i)/||p_j−p_i||²; A_i=mean(v_j)−v_i; C_i=mean(p_j)−p_i",
+          "justification": "Definir separación, alineación y cohesión desde el vecindario local."
+        },
+        {
+          "step": 2,
+          "equation": "L_i=p_leader(t)−p_i",
+          "justification": "Obtener vector de seguimiento hacia la posición del líder en el tiempo t."
+        },
+        {
+          "step": 3,
+          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i+w_lL_i",
+          "justification": "Homogeneizar cada término a aceleración con ganancias dimensionales antes de la suma."
+        },
+        {
+          "step": 4,
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar el campo de aceleración y actualizar la posición de cada ave."
+        }
+      ],
+      "algorithm": "Para cada ave obtener vecinos; calcular separación/alineación/cohesión; sumar atracción proporcional al vector hacia líder; integrar semiimplícito; limitar velocidad.",
+      "pseudocode": "Para cada ave obtener vecinos; calcular separación/alineación/cohesión; sumar atracción proporcional al vector hacia líder; integrar semiimplícito; limitar velocidad.",
+      "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+      "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+      "reference_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/webgl_gpgpu_birds.html",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/InstancedMesh.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ]
+    }
+  ],
+  "validation": {
+    "implementation_file": "src/threejs/d05-vegetation-ecology.mjs",
+    "test_file": "tests/threejs/d05-vegetation-ecology.test.mjs",
+    "status": "PENDING_CI",
+    "note": "No declarar validación hasta ejecutar correctamente la suite JavaScript global."
+  }
+}

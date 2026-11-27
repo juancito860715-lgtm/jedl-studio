@@ -1,0 +1,883 @@
+{
+  "title": "Auditoría dimensional punto 1 — D10 Atmósfera, cielo, nubes y niebla",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D10",
+    "domain": "Cielo, nubes, atmósfera y clima",
+    "record_count": 9,
+    "excluded_protected_records": 6,
+    "excluded_reason": "D10:4, D10:6, D10:7, D10:8, D10:9 y D10:10 están protegidos por el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud global de escena; SI si se declara.",
+    "radiometry": "Densidad/extinción en m⁻¹ y transmitancia adimensional.",
+    "angles": "Radianes."
+  },
+  "records": [
+    {
+      "record_key": "D10:0",
+      "name": "Sky gradient",
+      "variables": [
+        {
+          "symbol": "θ",
+          "meaning": "ángulo cenital",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,π]"
+        },
+        {
+          "symbol": "horizon,zenith",
+          "meaning": "colores",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "γ",
+          "meaning": "exponente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "γ>0"
+        },
+        {
+          "symbol": "C(θ)",
+          "meaning": "color",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "lerp según cosθ"
+        }
+      ],
+      "constraints": [
+        "cosθ y γ son adimensionales; color interpolation en espacio lineal."
+      ],
+      "valid_domain": [
+        "θ∈[0,π], γ>0."
+      ],
+      "boundary_conditions": [
+        "Definir continuidad en horizonte y zenit; clamp del coseno a rango válido."
+      ],
+      "dimensional_checks": [
+        "θ is an angle in radians; cosθ is dimensionless and γ is dimensionless.",
+        "horizon, zenith and C(θ) must share the same linear RGB representation; interpolation preserves their channel units.",
+        "At θ=π/2 and θ=0 the expression must use the chosen zenith/horizon convention consistently."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:1",
+      "name": "Rayleigh scattering",
+      "variables": [
+        {
+          "symbol": "λ",
+          "meaning": "longitud de onda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ>0"
+        },
+        {
+          "symbol": "β_R",
+          "meaning": "coeficiente Rayleigh",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "β_R=N_mol·σ_R; dimensión L⁻¹; forma espectral proporcional a λ⁻⁴ con coeficiente L³"
+        },
+        {
+          "symbol": "n",
+          "meaning": "índice refracción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "N_mol",
+          "meaning": "densidad numérica molecular",
+          "unit": "m⁻³",
+          "dimension": {
+            "L": -3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "σ_R",
+          "meaning": "sección eficaz Rayleigh",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa; depende de λ y propiedades moleculares"
+        },
+        {
+          "symbol": "C_R",
+          "meaning": "constante espectral de sección eficaz Rayleigh",
+          "unit": "m⁶",
+          "dimension": {
+            "L": 6,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "depende de polarizabilidad molecular"
+        },
+        {
+          "symbol": "K_R",
+          "meaning": "constante volumétrica N_mol·C_R",
+          "unit": "m³",
+          "dimension": {
+            "L": 3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "K_R=N_mol C_R"
+        }
+      ],
+      "constraints": [
+        "σ_R=C_R/λ⁴ tiene m² porque C_R tiene m⁶.",
+        "β_R=N_molσ_R=K_R/λ⁴ tiene m⁻¹; K_R=N_molC_R tiene m³.",
+        "β_R d es profundidad óptica adimensional."
+      ],
+      "valid_domain": [
+        "λ>0; medio y longitud de onda declarados."
+      ],
+      "boundary_conditions": [
+        "λ→0 no es dominio físico del modelo clásico; evitar singularidad.",
+        "Coeficiente no negativo."
+      ],
+      "dimensional_checks": [
+        "C_R/λ⁴ tiene m⁶/m⁴=m²; N_molσ_R tiene m⁻³·m²=m⁻¹.",
+        "K_R/λ⁴ tiene m³/m⁴=m⁻¹; transmitancia conserva unidad 1."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:2",
+      "name": "Mie scattering",
+      "variables": [
+        {
+          "symbol": "g",
+          "meaning": "parámetro de asimetría",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "−1<g<1"
+        },
+        {
+          "symbol": "μ=cosθ",
+          "meaning": "coseno de dispersión",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[−1,1]"
+        },
+        {
+          "symbol": "phase",
+          "meaning": "función de fase",
+          "unit": "sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada sobre esfera"
+        }
+      ],
+      "constraints": [
+        "Denominador debe ser positivo; phase no negativa y normalizada según convención.",
+        "g controla anisotropía y es adimensional."
+      ],
+      "valid_domain": [
+        "g∈(−1,1), μ∈[−1,1]."
+      ],
+      "boundary_conditions": [
+        "g=0 isotrópico en forma de Henyey–Greenstein.",
+        "Límites g→±1 requieren tratamiento numérico."
+      ],
+      "dimensional_checks": [
+        "g and μ=cosθ are dimensionless; the phase function has inverse-solid-angle convention sr^-1.",
+        "The denominator is dimensionless; normalization over 4π solid angle preserves the phase-function units.",
+        "Require −1<g<1; values near ±1 need numerical safeguards."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:3",
+      "name": "Beer-Lambert",
+      "variables": [
+        {
+          "symbol": "σ_t",
+          "meaning": "coeficiente de extinción",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia recorrida",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "T",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "exp(−σ_t d)"
+        }
+      ],
+      "constraints": [
+        "σ_t·d es adimensional; σ_t no negativa."
+      ],
+      "valid_domain": [
+        "d≥0; σ_t≥0."
+      ],
+      "boundary_conditions": [
+        "d=0 o σ_t=0 da T=1; d→∞ con σ_t>0 da T→0."
+      ],
+      "dimensional_checks": [
+        "σ_t has L^-1 and d has L; optical depth σ_t d is dimensionless.",
+        "T=exp(−σ_t d) is dimensionless and lies in (0,1] for σ_t,d≥0.",
+        "For spatially varying extinction, replace the product with the path integral ∫σ_t(s)ds, still dimensionless."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:5",
+      "name": "Sphere tracing SDF",
+      "variables": [
+        {
+          "symbol": "ro",
+          "meaning": "origen del rayo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "rd",
+          "meaning": "dirección del rayo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "t",
+          "meaning": "parámetro de distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        },
+        {
+          "symbol": "d(p)",
+          "meaning": "SDF",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "distancia no negativa fuera de superficie"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "tolerancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Sphere tracing requiere cota conservadora de distancia; no cualquier campo implícito sirve como SDF.",
+        "rd unitario para que t represente distancia."
+      ],
+      "valid_domain": [
+        "SDF evaluable; rayo y bounds definidos."
+      ],
+      "boundary_conditions": [
+        "Parar cuando d<ε; límite de pasos y distancia máxima.",
+        "Si d≤0 detectar cruce/penetración y resolver sin paso negativo."
+      ],
+      "dimensional_checks": [
+        "ro and d(p), ε have L; rd is unitless and t is a length parameter, so ro+t·rd has L.",
+        "The SDF must be exact signed distance or a conservative lower bound for safe sphere tracing; arbitrary scalar fields do not guarantee safe steps.",
+        "Stop condition d≤ε compares two lengths; maximum travel distance and iteration count need explicit bounds."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:11",
+      "name": "Rain streaks",
+      "variables": [
+        {
+          "symbol": "p0",
+          "meaning": "posición inicial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "v_rain",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "speed",
+          "meaning": "rapidez",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "exposure",
+          "meaning": "tiempo exposición",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "streak",
+          "meaning": "longitud proyectada",
+          "unit": "px",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "proporcional a speed·exposure con escala de proyección"
+        },
+        {
+          "symbol": "τ_e",
+          "meaning": "tiempo de exposición de la cámara",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "τ_e≥0"
+        },
+        {
+          "symbol": "J_camera",
+          "meaning": "Jacobiano local mundo→pantalla",
+          "unit": "px/m",
+          "dimension": "raster pixel steps per world length",
+          "domain": "finito; depende de profundidad/proyección"
+        }
+      ],
+      "constraints": [
+        "Δp_world≈v_rain·τ_e tiene m; el Jacobiano de cámara px/m produce desplazamiento de pantalla en píxeles.",
+        "La fórmula de catálogo usa velocidad constante; si se añade gravedad, debe declararse un modelo cinemático distinto."
+      ],
+      "valid_domain": [
+        "t finito; exposición no negativa."
+      ],
+      "boundary_conditions": [
+        "t=0 devuelve p0; speed=0 no genera streak.",
+        "Partículas fuera del volumen se reciclan con semilla determinista."
+      ],
+      "dimensional_checks": [
+        "v_rain tiene m/s y τ_e s; su producto tiene m.",
+        "J_camera tiene px/m; J_camera·Δp_world tiene px."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:12",
+      "name": "Lightning envelope",
+      "variables": [
+        {
+          "symbol": "t,t_i",
+          "meaning": "tiempo y eventos",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "amplitud de flash como radiancia",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "τ_i",
+          "meaning": "constante temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "noiseBurst",
+          "meaning": "modulación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
+        },
+        {
+          "symbol": "flash",
+          "meaning": "intensidad",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "L_base",
+          "meaning": "radiancia de iluminación base",
+          "unit": "W·m⁻²·sr⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "A_i y L_base se declaran como radiancias; noiseBurst y envolventes son adimensionales.",
+        "flash(t)=ΣA_i e_i b_i y L(t)=L_base+flash(t) conservan radiancia; si se usa una envolvente normalizada, multiplicarla por radiancia de escala explícita."
+      ],
+      "valid_domain": [
+        "τ_i>0; eventos ordenados; amplitudes finitas."
+      ],
+      "boundary_conditions": [
+        "Antes de t_i, evento inactivo según causalidad temporal.",
+        "Lejos del evento la envolvente decae a cero."
+      ],
+      "dimensional_checks": [
+        "(t−t_i)/τ_i es adimensional; exponencial y noiseBurst son adimensionales.",
+        "A_i, flash y L_base tienen W·m⁻²·sr⁻¹; la suma conserva radiancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:13",
+      "name": "Height fog",
+      "variables": [
+        {
+          "symbol": "y,y0",
+          "meaning": "altitud y referencia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "k",
+          "meaning": "coeficiente de decaimiento",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "ρ0",
+          "meaning": "densidad base",
+          "unit": "m⁻¹ (coeficiente de extinción base)",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "ρ(y)",
+          "meaning": "densidad",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ0 exp(−k(y−y0))"
+        }
+      ],
+      "constraints": [
+        "ρ(y)=ρ0 exp(−k(y−y0)); k tiene m⁻¹ y ρ0,ρ(y) son coeficientes de extinción m⁻¹.",
+        "T=exp(−∫ρ(y(s))ds); el producto ρds es adimensional. No multiplicar por otro σ_t si ρ ya es coeficiente de extinción."
+      ],
+      "valid_domain": [
+        "k≥0; alturas finitas; ρ0≥0."
+      ],
+      "boundary_conditions": [
+        "y=y0 produce ρ0; k=0 produce densidad constante."
+      ],
+      "dimensional_checks": [
+        "k(y−y0) es adimensional; ρ0 y ρ(y) tienen m⁻¹.",
+        "∫ρ(y(s))ds es adimensional y la transmitancia T conserva unidad 1."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D10:14",
+      "name": "Exponential fog",
+      "variables": [
+        {
+          "symbol": "ρ",
+          "meaning": "densidad de niebla",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ρ≥0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "T",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "exp(−ρd)"
+        }
+      ],
+      "constraints": [
+        "ρ es el coeficiente de extinción efectivo m⁻¹; T=exp(−ρd) en medio homogéneo.",
+        "Para densidad espacialmente variable, T=exp(−∫ρ(s)ds); no multiplicar por un segundo coeficiente σ_t salvo que ρ sea densidad adimensional."
+      ],
+      "valid_domain": [
+        "ρ≥0; d≥0."
+      ],
+      "boundary_conditions": [
+        "ρ=0 o d=0 produce T=1; d→∞ con ρ>0 produce T→0."
+      ],
+      "dimensional_checks": [
+        "ρd es adimensional; T=exp(−ρd) está en (0,1].",
+        "La integral de ρ(s)ds también es adimensional y conserva transmitancia."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "9/15 técnicas no protegidas incluidas",
+      "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "6 registros protegidos excluidos; conteo contrastado con mapa de preservación",
+      "Aclaradas unidades de Rayleigh, extinción volumétrica y proyección de estelas de lluvia",
+      "Rayleigh separa sección eficaz molecular y densidad para derivar β_R",
+      "Rain streaks incorpora exposición y Jacobiano mundo-pantalla",
+      "Lightning fija amplitudes como radiancia",
+      "Height fog y exponential fog usan coeficiente de extinción m⁻¹ sin doble multiplicación"
+    ],
+    "limitations": [
+      "La fórmula Rayleigh requiere parámetros moleculares para fijar el coeficiente espectral; el registro explicita sus dimensiones sin inventar una constante."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

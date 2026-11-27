@@ -1,0 +1,905 @@
+{
+  "document": "Investigación de referencias, derivaciones y adaptación local — D04 Animación, movimiento y simulación",
+  "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+  "manifest_version": "3.1",
+  "domain_id": "D04",
+  "domain_name": "Animación, movimiento y simulación",
+  "reference_projects": [
+    {
+      "repository": "mrdoob/three.js",
+      "commit": "0de0346de82a0d01923ffeb27f33240ad8b4863f",
+      "license": "MIT",
+      "url": "https://github.com/mrdoob/three.js/tree/0de0346de82a0d01923ffeb27f33240ad8b4863f"
+    },
+    {
+      "repository": "pmndrs/react-spring",
+      "commit": "f005007bef2c67e95abc6b2f03e3d5a9e2b3bdcd",
+      "license": "MIT",
+      "url": "https://github.com/pmndrs/react-spring/tree/f005007bef2c67e95abc6b2f03e3d5a9e2b3bdcd"
+    },
+    {
+      "repository": "tangent-to/ode",
+      "commit": "fa5990adf6915abfe95f8767a2b159eeabde5ff9",
+      "license": "MIT",
+      "url": "https://github.com/tangent-to/ode/tree/fa5990adf6915abfe95f8767a2b159eeabde5ff9"
+    },
+    {
+      "repository": "mattdesl/verlet3d",
+      "commit": "9c882491c2e71ec488f022d090f652fe2f9917bb",
+      "license": "MIT",
+      "url": "https://github.com/mattdesl/verlet3d/tree/9c882491c2e71ec488f022d090f652fe2f9917bb"
+    },
+    {
+      "repository": "hughsk/boids",
+      "commit": "459615bc1deac3e40cb5bb964aafd631c4a28311",
+      "license": "MIT",
+      "url": "https://github.com/hughsk/boids/tree/459615bc1deac3e40cb5bb964aafd631c4a28311"
+    },
+    {
+      "repository": "avianphysics/avian",
+      "commit": "e496f4a7620a61e0c6481c9e0a43f80423eb193a",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://github.com/avianphysics/avian/tree/e496f4a7620a61e0c6481c9e0a43f80423eb193a"
+    },
+    {
+      "repository": "newton-physics/newton",
+      "commit": "5166b16f401cbb263993a061989ffda079d51c16",
+      "license": "Apache-2.0",
+      "url": "https://github.com/newton-physics/newton/tree/5166b16f401cbb263993a061989ffda079d51c16"
+    }
+  ],
+  "protected_records": {
+    "excluded_keys": [
+      "D04:2"
+    ],
+    "reason": "D04:2 Spline monotónica está protegida por Crimson Loong y se conserva sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D04:0",
+      "technique": "Keyframes",
+      "mathematics": "u=(t−t_i)/(t_{i+1}−t_i) — Normalizar el tiempo entre dos claves consecutivas.; x(t)=(1−u)x_i+u x_{i+1} — Interpolación afín entre valores; para posición conserva unidad y para escala/atributos conserva su tipo.; q(t)=slerp(q_i,q_{i+1},u) — Para orientación, interpolar sobre la esfera unitaria de cuaterniones en lugar de interpolar componentes sin normalizar.; t≤t_i / t≥t_{i+1} — Aplicar política de extrapolación o clamp fuera del intervalo.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=(t−t_i)/(t_{i+1}−t_i)",
+          "justification": "Normalizar el tiempo entre dos claves consecutivas."
+        },
+        {
+          "step": 2,
+          "equation": "x(t)=(1−u)x_i+u x_{i+1}",
+          "justification": "Interpolación afín entre valores; para posición conserva unidad y para escala/atributos conserva su tipo."
+        },
+        {
+          "step": 3,
+          "equation": "q(t)=slerp(q_i,q_{i+1},u)",
+          "justification": "Para orientación, interpolar sobre la esfera unitaria de cuaterniones en lugar de interpolar componentes sin normalizar."
+        },
+        {
+          "step": 4,
+          "equation": "t≤t_i / t≥t_{i+1}",
+          "justification": "Aplicar política de extrapolación o clamp fuera del intervalo."
+        }
+      ],
+      "algorithm": "Validar claves ordenadas; localizar i con t_i≤t<t_i+1; u=(t−t_i)/(t_i+1−t_i); interpolar valores con lerp o rotaciones con slerp; aplicar clamp en extremos.",
+      "pseudocode": "Validar claves ordenadas; localizar i con t_i≤t<t_i+1; u=(t−t_i)/(t_i+1−t_i); interpolar valores con lerp o rotaciones con slerp; aplicar clamp en extremos.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/animation/KeyframeTrack.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/interpolants/LinearInterpolant.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/animation/AnimationMixer.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js KeyframeTrack/Interpolant/AnimationMixer implementan muestras temporales, interpolación y reproducción por tiempo del mixer; la adaptación local añade validación estricta y muestreo aleatorio.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:1",
+      "technique": "Curvas easing",
+      "mathematics": "u=(t−t_0)/(t_1−t_0) — Convertir el tiempo del intervalo a [0,1].; e(u)=3u²−2u³ — Elegir un polinomio cúbico con extremos e(0)=0 y e(1)=1.; e'(u)=6u(1−u) — La derivada se anula en ambos extremos y es no negativa en [0,1], por lo que el movimiento arranca y termina suavemente.; x(t)=x_0+(x_1−x_0)e(u) — Usar e como peso adimensional para interpolar el canal.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=(t−t_0)/(t_1−t_0)",
+          "justification": "Convertir el tiempo del intervalo a [0,1]."
+        },
+        {
+          "step": 2,
+          "equation": "e(u)=3u²−2u³",
+          "justification": "Elegir un polinomio cúbico con extremos e(0)=0 y e(1)=1."
+        },
+        {
+          "step": 3,
+          "equation": "e'(u)=6u(1−u)",
+          "justification": "La derivada se anula en ambos extremos y es no negativa en [0,1], por lo que el movimiento arranca y termina suavemente."
+        },
+        {
+          "step": 4,
+          "equation": "x(t)=x_0+(x_1−x_0)e(u)",
+          "justification": "Usar e como peso adimensional para interpolar el canal."
+        }
+      ],
+      "algorithm": "u=clamp((t−t0)/(t1−t0),0,1); e=u²(3−2u); x=x0+(x1−x0)e.",
+      "pseudocode": "u=clamp((t−t0)/(t1−t0),0,1); e=u²(3−2u); x=x0+(x1−x0)e.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/MathUtils.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:3",
+      "technique": "Movimiento armónico",
+      "mathematics": "φ(t)=ωt+φ_0 — Construir fase a partir de frecuencia angular y fase inicial.; x(t)=x_0+A sinφ(t) — Escalar la señal periódica por amplitud y trasladarla al centro x_0.; T=2π/ω — Derivar periodo de la condición de repetición de fase de 2π.; v(t)=Aω cos(ωt+φ_0) — Derivar respecto al tiempo para obtener velocidad.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ(t)=ωt+φ_0",
+          "justification": "Construir fase a partir de frecuencia angular y fase inicial."
+        },
+        {
+          "step": 2,
+          "equation": "x(t)=x_0+A sinφ(t)",
+          "justification": "Escalar la señal periódica por amplitud y trasladarla al centro x_0."
+        },
+        {
+          "step": 3,
+          "equation": "T=2π/ω",
+          "justification": "Derivar periodo de la condición de repetición de fase de 2π."
+        },
+        {
+          "step": 4,
+          "equation": "v(t)=Aω cos(ωt+φ_0)",
+          "justification": "Derivar respecto al tiempo para obtener velocidad."
+        }
+      ],
+      "algorithm": "phase=omega*time+phase0; position=center+amplitude*sin(phase); velocity=amplitude*omega*cos(phase).",
+      "pseudocode": "phase=omega*time+phase0; position=center+amplitude*sin(phase); velocity=amplitude*omega*cos(phase).",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/MathUtils.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:4",
+      "technique": "Péndulo simple",
+      "mathematics": "τ=−mgL sinθ — El peso genera torque restaurador respecto al pivote con brazo L.; I=mL² — Para una masa puntual a distancia L, el momento de inercia es mL².; Iθ''=τ ⇒ θ''+(g/L)sinθ=0 — Sustituir torque e inercia y dividir por mL².; sinθ≈θ ⇒ θ''+(g/L)θ=0 — Para oscilaciones pequeñas, linealizar seno alrededor de θ=0.; ω_0=√(g/L); θ(t)=A cos(ω_0t+φ) — La ecuación lineal es armónica con frecuencia natural ω_0.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "τ=−mgL sinθ",
+          "justification": "El peso genera torque restaurador respecto al pivote con brazo L."
+        },
+        {
+          "step": 2,
+          "equation": "I=mL²",
+          "justification": "Para una masa puntual a distancia L, el momento de inercia es mL²."
+        },
+        {
+          "step": 3,
+          "equation": "Iθ''=τ ⇒ θ''+(g/L)sinθ=0",
+          "justification": "Sustituir torque e inercia y dividir por mL²."
+        },
+        {
+          "step": 4,
+          "equation": "sinθ≈θ ⇒ θ''+(g/L)θ=0",
+          "justification": "Para oscilaciones pequeñas, linealizar seno alrededor de θ=0."
+        },
+        {
+          "step": 5,
+          "equation": "ω_0=√(g/L); θ(t)=A cos(ω_0t+φ)",
+          "justification": "La ecuación lineal es armónica con frecuencia natural ω_0."
+        }
+      ],
+      "algorithm": "Integrar RK4 el estado [theta,omega] con theta'=omega y omega'=−(g/L)sin(theta).",
+      "pseudocode": "Integrar RK4 el estado [theta,omega] con theta'=omega y omega'=−(g/L)sin(theta).",
+      "source_files": [
+        "https://github.com/tangent-to/ode/blob/fa5990adf6915abfe95f8767a2b159eeabde5ff9/src/fixed.js",
+        "https://github.com/tangent-to/ode/blob/fa5990adf6915abfe95f8767a2b159eeabde5ff9/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:5",
+      "technique": "Resorte amortiguado",
+      "mathematics": "F_s=−k(x−x_0) — Ley de Hooke: fuerza restauradora proporcional a elongación.; F_d=−c x' — Amortiguamiento viscoso proporcional a velocidad.; m x''=F(t)+F_s+F_d — Aplicar segunda ley de Newton.; m x''+c x'+k(x−x_0)=F(t) — Reordenar para obtener la ecuación diferencial del sistema.; ω_n=√(k/m); ζ=c/(2√(km)) — Definir frecuencia natural y razón de amortiguamiento para clasificar respuesta.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_s=−k(x−x_0)",
+          "justification": "Ley de Hooke: fuerza restauradora proporcional a elongación."
+        },
+        {
+          "step": 2,
+          "equation": "F_d=−c x'",
+          "justification": "Amortiguamiento viscoso proporcional a velocidad."
+        },
+        {
+          "step": 3,
+          "equation": "m x''=F(t)+F_s+F_d",
+          "justification": "Aplicar segunda ley de Newton."
+        },
+        {
+          "step": 4,
+          "equation": "m x''+c x'+k(x−x_0)=F(t)",
+          "justification": "Reordenar para obtener la ecuación diferencial del sistema."
+        },
+        {
+          "step": 5,
+          "equation": "ω_n=√(k/m); ζ=c/(2√(km))",
+          "justification": "Definir frecuencia natural y razón de amortiguamiento para clasificar respuesta."
+        }
+      ],
+      "algorithm": "Integrar RK4 [x,v] con x'=v y v'=(F−c*v−k*(x−target))/m; usar substeps fijos.",
+      "pseudocode": "Integrar RK4 [x,v] con x'=v y v'=(F−c*v−k*(x−target))/m; usar substeps fijos.",
+      "source_files": [
+        "https://github.com/pmndrs/react-spring/blob/f005007bef2c67e95abc6b2f03e3d5a9e2b3bdcd/packages/core/src/SpringValue.ts",
+        "https://github.com/pmndrs/react-spring/blob/f005007bef2c67e95abc6b2f03e3d5a9e2b3bdcd/packages/core/src/AnimationConfig.ts",
+        "https://github.com/pmndrs/react-spring/blob/f005007bef2c67e95abc6b2f03e3d5a9e2b3bdcd/LICENSE"
+      ],
+      "verified_source_behavior": "React Spring expone masa, tensión/frecuencia y fricción/amortiguamiento; la adaptación separa la EDO masa-resorte e integra en subpasos RK4.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:6",
+      "technique": "Integración Verlet",
+      "mathematics": "a_n≈(x_{n+1}−2x_n+x_{n−1})/Δt² — Aproximar segunda derivada por diferencia central.; x_{n+1}=2x_n−x_{n−1}+a_nΔt² — Despejar posición futura.; v_n≈(x_{n+1}−x_{n−1})/(2Δt) — Reconstruir velocidad centrada si se necesita.; Actualizar fuerzas en x_n y repetir — La aceleración se recalcula desde el estado y fuerzas del nuevo paso.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a_n≈(x_{n+1}−2x_n+x_{n−1})/Δt²",
+          "justification": "Aproximar segunda derivada por diferencia central."
+        },
+        {
+          "step": 2,
+          "equation": "x_{n+1}=2x_n−x_{n−1}+a_nΔt²",
+          "justification": "Despejar posición futura."
+        },
+        {
+          "step": 3,
+          "equation": "v_n≈(x_{n+1}−x_{n−1})/(2Δt)",
+          "justification": "Reconstruir velocidad centrada si se necesita."
+        },
+        {
+          "step": 4,
+          "equation": "Actualizar fuerzas en x_n y repetir",
+          "justification": "La aceleración se recalcula desde el estado y fuerzas del nuevo paso."
+        }
+      ],
+      "algorithm": "x_next=x+(x−x_prev)*(1−damping)+a*dt²; conservar x como previous position.",
+      "pseudocode": "x_next=x+(x−x_prev)*(1−damping)+a*dt²; conservar x como previous position.",
+      "source_files": [
+        "https://github.com/mattdesl/verlet3d/blob/9c882491c2e71ec488f022d090f652fe2f9917bb/lib/PointMass.js",
+        "https://github.com/mattdesl/verlet3d/blob/9c882491c2e71ec488f022d090f652fe2f9917bb/lib/Constraint.js",
+        "https://github.com/mattdesl/verlet3d/blob/9c882491c2e71ec488f022d090f652fe2f9917bb/LICENSE"
+      ],
+      "verified_source_behavior": "mattdesl/verlet3d proporciona mecánica MIT de masas puntuales y restricciones Verlet; la adaptación implementa la diferencia central y damping opcional sin copiar el paquete.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:7",
+      "technique": "Euler semiimplícito",
+      "mathematics": "a_n=F(x_n,v_n,t_n)/m — Obtener aceleración de la fuerza neta.; v_{n+1}=v_n+a_nΔt — Actualizar primero velocidad.; x_{n+1}=x_n+v_{n+1}Δt — Usar velocidad nueva para actualizar posición.; t_{n+1}=t_n+Δt — Avanzar reloj de simulación.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a_n=F(x_n,v_n,t_n)/m",
+          "justification": "Obtener aceleración de la fuerza neta."
+        },
+        {
+          "step": 2,
+          "equation": "v_{n+1}=v_n+a_nΔt",
+          "justification": "Actualizar primero velocidad."
+        },
+        {
+          "step": 3,
+          "equation": "x_{n+1}=x_n+v_{n+1}Δt",
+          "justification": "Usar velocidad nueva para actualizar posición."
+        },
+        {
+          "step": 4,
+          "equation": "t_{n+1}=t_n+Δt",
+          "justification": "Avanzar reloj de simulación."
+        }
+      ],
+      "algorithm": "a=F/m; v_next=v+a*dt; x_next=x+v_next*dt.",
+      "pseudocode": "a=F/m; v_next=v+a*dt; x_next=x+v_next*dt.",
+      "source_files": [
+        "https://github.com/tangent-to/ode/blob/fa5990adf6915abfe95f8767a2b159eeabde5ff9/src/fixed.js",
+        "https://github.com/tangent-to/ode/blob/fa5990adf6915abfe95f8767a2b159eeabde5ff9/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:8",
+      "technique": "RK4",
+      "mathematics": "k_1=f(t_n,y_n) — Evaluar pendiente al inicio.; k_2=f(t_n+Δt/2,y_n+Δt k_1/2) — Evaluar pendiente en punto medio predicho por k_1.; k_3=f(t_n+Δt/2,y_n+Δt k_2/2) — Refinar pendiente en punto medio.; k_4=f(t_n+Δt,y_n+Δt k_3) — Evaluar pendiente al final predicho.; y_{n+1}=y_n+Δt(k_1+2k_2+2k_3+k_4)/6 — Combinar pendientes con pesos que integran polinomio de Taylor hasta orden cuatro.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "k_1=f(t_n,y_n)",
+          "justification": "Evaluar pendiente al inicio."
+        },
+        {
+          "step": 2,
+          "equation": "k_2=f(t_n+Δt/2,y_n+Δt k_1/2)",
+          "justification": "Evaluar pendiente en punto medio predicho por k_1."
+        },
+        {
+          "step": 3,
+          "equation": "k_3=f(t_n+Δt/2,y_n+Δt k_2/2)",
+          "justification": "Refinar pendiente en punto medio."
+        },
+        {
+          "step": 4,
+          "equation": "k_4=f(t_n+Δt,y_n+Δt k_3)",
+          "justification": "Evaluar pendiente al final predicho."
+        },
+        {
+          "step": 5,
+          "equation": "y_{n+1}=y_n+Δt(k_1+2k_2+2k_3+k_4)/6",
+          "justification": "Combinar pendientes con pesos que integran polinomio de Taylor hasta orden cuatro."
+        }
+      ],
+      "algorithm": "Evaluar k1,k2,k3,k4 para y'=f(t,y); y_next=y+dt*(k1+2k2+2k3+k4)/6.",
+      "pseudocode": "Evaluar k1,k2,k3,k4 para y'=f(t,y); y_next=y+dt*(k1+2k2+2k3+k4)/6.",
+      "source_files": [
+        "https://github.com/tangent-to/ode/blob/fa5990adf6915abfe95f8767a2b159eeabde5ff9/src/fixed.js",
+        "https://github.com/tangent-to/ode/blob/fa5990adf6915abfe95f8767a2b159eeabde5ff9/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:9",
+      "technique": "Boids",
+      "mathematics": "S_i=−Σ_j (p_j−p_i)/||p_j−p_i||² — El término de separación pondera más a vecinos cercanos y su dimensión es L⁻¹.; A_i=mean(v_j)−v_i — La alineación es una diferencia de velocidades y tiene dimensión L/T.; C_i=mean(p_j)−p_i — La cohesión apunta desde el agente hacia el centroide local y tiene dimensión L.; a_i=w_sS_i+w_aA_i+w_cC_i — Las ganancias con unidades explícitas convierten separación, alineación y cohesión en aceleraciones L/T² antes de sumarlas.; v_{n+1}=clamp(v_n+a_iΔt,v_max); p_{n+1}=p_n+v_{n+1}Δt — Integrar la aceleración en velocidad y la velocidad actualizada en posición.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_i=−Σ_j (p_j−p_i)/||p_j−p_i||²",
+          "justification": "El término de separación pondera más a vecinos cercanos y su dimensión es L⁻¹."
+        },
+        {
+          "step": 2,
+          "equation": "A_i=mean(v_j)−v_i",
+          "justification": "La alineación es una diferencia de velocidades y tiene dimensión L/T."
+        },
+        {
+          "step": 3,
+          "equation": "C_i=mean(p_j)−p_i",
+          "justification": "La cohesión apunta desde el agente hacia el centroide local y tiene dimensión L."
+        },
+        {
+          "step": 4,
+          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i",
+          "justification": "Las ganancias con unidades explícitas convierten separación, alineación y cohesión en aceleraciones L/T² antes de sumarlas."
+        },
+        {
+          "step": 5,
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt,v_max); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar la aceleración en velocidad y la velocidad actualizada en posición."
+        }
+      ],
+      "algorithm": "Recorrer vecinos por radio; acumular separación, velocidad media y centroide; aplicar ganancias compatibles en unidades; sumar aceleraciones.",
+      "pseudocode": "Recorrer vecinos por radio; acumular separación, velocidad media y centroide; aplicar ganancias compatibles en unidades; sumar aceleraciones.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/examples/webgl_gpgpu_birds.html",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE",
+        "https://github.com/hughsk/boids/blob/459615bc1deac3e40cb5bb964aafd631c4a28311/index.js",
+        "https://github.com/hughsk/boids/blob/459615bc1deac3e40cb5bb964aafd631c4a28311/LICENSE.md"
+      ],
+      "verified_source_behavior": "Three.js GPGPU Birds demuestra separación/alineación/cohesión en un ejemplo de flocking; hughsk/boids es una implementación JavaScript MIT de referencia CPU.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:10",
+      "technique": "Partículas",
+      "mathematics": "a_i=F_i/m_i — Convertir fuerza neta en aceleración.; v_i(t)=v_{0,i}+a_i t — Integrar aceleración constante.; p_i(t)=p_{0,i}+v_{0,i}t+0.5a_i t² — Integrar velocidad para obtener posición.; Render(p_i(t),size_i,color_i) — Convertir el estado físico/procedural en atributos visuales.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a_i=F_i/m_i",
+          "justification": "Convertir fuerza neta en aceleración."
+        },
+        {
+          "step": 2,
+          "equation": "v_i(t)=v_{0,i}+a_i t",
+          "justification": "Integrar aceleración constante."
+        },
+        {
+          "step": 3,
+          "equation": "p_i(t)=p_{0,i}+v_{0,i}t+0.5a_i t²",
+          "justification": "Integrar velocidad para obtener posición."
+        },
+        {
+          "step": 4,
+          "equation": "Render(p_i(t),size_i,color_i)",
+          "justification": "Convertir el estado físico/procedural en atributos visuales."
+        }
+      ],
+      "algorithm": "Para cada partícula evaluar p(t)=p0+v0*t+0.5*a*t² y mapear estado a atributos visuales.",
+      "pseudocode": "Para cada partícula evaluar p(t)=p0+v0*t+0.5*a*t² y mapear estado a atributos visuales.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/Points.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/core/BufferGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:11",
+      "technique": "Movimiento browniano",
+      "mathematics": "ΔW∼N(0,Δt) — El incremento Wiener tiene media cero y varianza Δt.; Δp=√(2DΔt)ξ, ξ∼N(0,1) — Escalar una normal estándar para que Var(Δp)=2DΔt.; p_{n+1}=p_n+Δp — Sumar el incremento aleatorio al estado de posición; la fórmula de catálogo no incluye deriva determinista.; Var(p(t)−p(0))=2Dt — La varianza acumulada crece linealmente con tiempo para incrementos independientes.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ΔW∼N(0,Δt)",
+          "justification": "El incremento Wiener tiene media cero y varianza Δt."
+        },
+        {
+          "step": 2,
+          "equation": "Δp=√(2DΔt)ξ, ξ∼N(0,1)",
+          "justification": "Escalar una normal estándar para que Var(Δp)=2DΔt."
+        },
+        {
+          "step": 3,
+          "equation": "p_{n+1}=p_n+Δp",
+          "justification": "Sumar el incremento aleatorio al estado de posición; la fórmula de catálogo no incluye deriva determinista."
+        },
+        {
+          "step": 4,
+          "equation": "Var(p(t)−p(0))=2Dt",
+          "justification": "La varianza acumulada crece linealmente con tiempo para incrementos independientes."
+        }
+      ],
+      "algorithm": "Generar xi gaussiana determinista desde (seed,step,axis); delta=sqrt(2*D*dt)*xi; p_next=p+delta.",
+      "pseudocode": "Generar xi gaussiana determinista desde (seed,step,axis); delta=sqrt(2*D*dt)*xi; p_next=p+delta.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/MathUtils.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:12",
+      "technique": "Colisión esfera-esfera",
+      "mathematics": "d=c_2−c_1; δ=||d|| — Calcular vector y distancia entre centros.; R=r_1+r_2 — La suma de radios es la distancia límite de contacto.; δ<R ⇔ overlap — Si la distancia entre centros es menor que R, los interiores se solapan.; penetration=R−δ; n=d/δ — Obtener profundidad y normal de contacto para resolver penetración.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d=c_2−c_1; δ=||d||",
+          "justification": "Calcular vector y distancia entre centros."
+        },
+        {
+          "step": 2,
+          "equation": "R=r_1+r_2",
+          "justification": "La suma de radios es la distancia límite de contacto."
+        },
+        {
+          "step": 3,
+          "equation": "δ<R ⇔ overlap",
+          "justification": "Si la distancia entre centros es menor que R, los interiores se solapan."
+        },
+        {
+          "step": 4,
+          "equation": "penetration=R−δ; n=d/δ",
+          "justification": "Obtener profundidad y normal de contacto para resolver penetración."
+        }
+      ],
+      "algorithm": "d=c2−c1; penetration=r1+r2−|d|; colisiona si penetration>0; normalizar d o usar normal fallback.",
+      "pseudocode": "d=c2−c1; penetration=r1+r2−|d|; colisiona si penetration>0; normalizar d o usar normal fallback.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/Sphere.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:13",
+      "technique": "Colisión plano",
+      "mathematics": "d=n·p+c — Distancia firmada al plano si n es unitario.; d<r — Una esfera de radio r cruza el semiespacio del plano cuando su centro está a menos de r de la superficie.; penetration=r−d — Cuantificar la profundidad de penetración.; p_corrected=p+penetration·n — Proyectar centro hacia el lado permitido del plano.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d=n·p+c",
+          "justification": "Distancia firmada al plano si n es unitario."
+        },
+        {
+          "step": 2,
+          "equation": "d<r",
+          "justification": "Una esfera de radio r cruza el semiespacio del plano cuando su centro está a menos de r de la superficie."
+        },
+        {
+          "step": 3,
+          "equation": "penetration=r−d",
+          "justification": "Cuantificar la profundidad de penetración."
+        },
+        {
+          "step": 4,
+          "equation": "p_corrected=p+penetration·n",
+          "justification": "Proyectar centro hacia el lado permitido del plano."
+        }
+      ],
+      "algorithm": "Normalizar plano; d=n·p+c; penetration=r−d; si es positivo corregir p'=p+penetration*n.",
+      "pseudocode": "Normalizar plano; d=n·p+c; penetration=r−d; si es positivo corregir p'=p+penetration*n.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/Plane.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:14",
+      "technique": "Sistema masa-resorte en cadena",
+      "mathematics": "F_i=k(x_{i+1}−2x_i+x_{i−1}) — La diferencia segunda discreta aproxima curvatura/desplazamiento respecto a vecinos.; F_{d,i}=−c v_i — Añadir amortiguamiento proporcional a velocidad.; m_i x_i''=F_i+F_{d,i} — Aplicar segunda ley de Newton a cada nodo.; Integrar {x_i,v_i} en el tiempo — Actualizar toda la cadena con el mismo paso temporal y condiciones de extremos.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_i=k(x_{i+1}−2x_i+x_{i−1})",
+          "justification": "La diferencia segunda discreta aproxima curvatura/desplazamiento respecto a vecinos."
+        },
+        {
+          "step": 2,
+          "equation": "F_{d,i}=−c v_i",
+          "justification": "Añadir amortiguamiento proporcional a velocidad."
+        },
+        {
+          "step": 3,
+          "equation": "m_i x_i''=F_i+F_{d,i}",
+          "justification": "Aplicar segunda ley de Newton a cada nodo."
+        },
+        {
+          "step": 4,
+          "equation": "Integrar {x_i,v_i} en el tiempo",
+          "justification": "Actualizar toda la cadena con el mismo paso temporal y condiciones de extremos."
+        }
+      ],
+      "algorithm": "Para cada masa libre sumar resortes vecinos y amortiguamiento; a=F/m; integrar con Euler semiimplícito; mantener anclajes.",
+      "pseudocode": "Para cada masa libre sumar resortes vecinos y amortiguamiento; a=F/m; integrar con Euler semiimplícito; mantener anclajes.",
+      "source_files": [
+        "https://github.com/pmndrs/react-spring/blob/f005007bef2c67e95abc6b2f03e3d5a9e2b3bdcd/packages/core/src/SpringValue.ts",
+        "https://github.com/avianphysics/avian/blob/e496f4a7620a61e0c6481c9e0a43f80423eb193a/src/dynamics/solver/xpbd/joints/distance.rs",
+        "https://github.com/avianphysics/avian/blob/e496f4a7620a61e0c6481c9e0a43f80423eb193a/LICENSE-MIT"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:15",
+      "technique": "Animación determinista",
+      "mathematics": "state(t)=F(t,seed,events) — Definir estado como función del tiempo absoluto, semilla y eventos.; random_k=PRNG(seed,eventId,channel) — Generar variación pseudoaleatoria indexada, no dependiente del orden de render.; state(t)=compose(base(t),eventEffects(t),random_k) — Componer trayectoria base y eventos con reglas deterministas.; render(state(t)) — El frame se calcula desde t, no desde el frame previo.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "state(t)=F(t,seed,events)",
+          "justification": "Definir estado como función del tiempo absoluto, semilla y eventos."
+        },
+        {
+          "step": 2,
+          "equation": "random_k=PRNG(seed,eventId,channel)",
+          "justification": "Generar variación pseudoaleatoria indexada, no dependiente del orden de render."
+        },
+        {
+          "step": 3,
+          "equation": "state(t)=compose(base(t),eventEffects(t),random_k)",
+          "justification": "Componer trayectoria base y eventos con reglas deterministas."
+        },
+        {
+          "step": 4,
+          "equation": "render(state(t))",
+          "justification": "El frame se calcula desde t, no desde el frame previo."
+        }
+      ],
+      "algorithm": "stateAt(t) evalúa una función pura con tiempo absoluto, seed y PRNG indexado por evento; nunca depende del frame previo.",
+      "pseudocode": "stateAt(t) evalúa una función pura con tiempo absoluto, seed y PRNG indexado por evento; nunca depende del frame previo.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/animation/AnimationMixer.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/math/MathUtils.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "El proyecto fijado contiene la API o implementación de referencia correspondiente; la adaptación local es renderer-independent y se valida con pruebas propias.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:16",
+      "technique": "Eventos con memoria precalculada",
+      "mathematics": "E={(t_i,s_i)} — Registrar estados o respuestas en tiempos de evento.; i=max{j:t_j≤t} — Localizar intervalo que contiene t.; u=(t−t_i)/(t_{i+1}−t_i) — Normalizar tiempo entre muestras.; s(t)=interpolate(s_i,s_{i+1},u) — Reconstruir estado por interpolación o lookup.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E={(t_i,s_i)}",
+          "justification": "Registrar estados o respuestas en tiempos de evento."
+        },
+        {
+          "step": 2,
+          "equation": "i=max{j:t_j≤t}",
+          "justification": "Localizar intervalo que contiene t."
+        },
+        {
+          "step": 3,
+          "equation": "u=(t−t_i)/(t_{i+1}−t_i)",
+          "justification": "Normalizar tiempo entre muestras."
+        },
+        {
+          "step": 4,
+          "equation": "s(t)=interpolate(s_i,s_{i+1},u)",
+          "justification": "Reconstruir estado por interpolación o lookup."
+        }
+      ],
+      "algorithm": "Precalcular tabla de (time,state); buscar intervalo con búsqueda binaria; interpolar al tiempo absoluto t; clamp en extremos.",
+      "pseudocode": "Precalcular tabla de (time,state); buscar intervalo con búsqueda binaria; interpolar al tiempo absoluto t; clamp en extremos.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/animation/KeyframeTrack.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/animation/AnimationMixer.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js KeyframeTrack/Interpolant/AnimationMixer implementan muestras temporales, interpolación y reproducción por tiempo del mixer; la adaptación local añade validación estricta y muestreo aleatorio.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:17",
+      "technique": "Cuantización temporal de animación",
+      "mathematics": "k=floor(t f_s) — Convertir tiempo a índice entero de muestra.; t_q=k/f_s — Obtener tiempo cuantizado al inicio de la muestra.; pose(t)=F(t_q) — Evaluar rig en tiempo discreto.; f_render≥f_s si se exige presentar cada muestra de pose — Para que cada intervalo de pose de duración 1/f_s contenga al menos una oportunidad de presentación; si la frecuencia de render es menor, algunas poses pueden omitirse.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "k=floor(t f_s)",
+          "justification": "Convertir tiempo a índice entero de muestra."
+        },
+        {
+          "step": 2,
+          "equation": "t_q=k/f_s",
+          "justification": "Obtener tiempo cuantizado al inicio de la muestra."
+        },
+        {
+          "step": 3,
+          "equation": "pose(t)=F(t_q)",
+          "justification": "Evaluar rig en tiempo discreto."
+        },
+        {
+          "step": 4,
+          "equation": "f_render≥f_s si se exige presentar cada muestra de pose",
+          "justification": "Para que cada intervalo de pose de duración 1/f_s contenga al menos una oportunidad de presentación; si la frecuencia de render es menor, algunas poses pueden omitirse."
+        }
+      ],
+      "algorithm": "frame=floor(t*fps) (o round/ceil); quantizedTime=frame/fps; evaluar pose en quantizedTime.",
+      "pseudocode": "frame=floor(t*fps) (o round/ceil); quantizedTime=frame/fps; evaluar pose en quantizedTime.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/animation/KeyframeTrack.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/animation/AnimationMixer.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js KeyframeTrack/Interpolant/AnimationMixer implementan muestras temporales, interpolación y reproducción por tiempo del mixer; la adaptación local añade validación estricta y muestreo aleatorio.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:18",
+      "technique": "XPBD: restricciones con compliance",
+      "mathematics": "C(x)=||x_1−x_0||−L_0 — Definir restricción de distancia con error C en longitud.; α̃=α/Δt² — Escalar compliance por paso temporal para reducir dependencia de Δt.; Δλ=−(C(x)+α̃λ)/(Σ_i w_i||∇_iC||²+α̃) — Resolver incremento del multiplicador de Lagrange regularizado.; Δx_i=w_i∇_iC Δλ — Aplicar corrección de posición ponderada por inversa de masa.; repeat constraints for iterations — Repetir proyección hasta tolerancia o iteraciones máximas.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(x)=||x_1−x_0||−L_0",
+          "justification": "Definir restricción de distancia con error C en longitud."
+        },
+        {
+          "step": 2,
+          "equation": "α̃=α/Δt²",
+          "justification": "Escalar compliance por paso temporal para reducir dependencia de Δt."
+        },
+        {
+          "step": 3,
+          "equation": "Δλ=−(C(x)+α̃λ)/(Σ_i w_i||∇_iC||²+α̃)",
+          "justification": "Resolver incremento del multiplicador de Lagrange regularizado."
+        },
+        {
+          "step": 4,
+          "equation": "Δx_i=w_i∇_iC Δλ",
+          "justification": "Aplicar corrección de posición ponderada por inversa de masa."
+        },
+        {
+          "step": 5,
+          "equation": "repeat constraints for iterations",
+          "justification": "Repetir proyección hasta tolerancia o iteraciones máximas."
+        }
+      ],
+      "algorithm": "Reiniciar lambda por paso; por restricción calcular C y alphaTilde=compliance/dt²; resolver deltaLambda; corregir posiciones por inverse mass; iterar.",
+      "pseudocode": "Reiniciar lambda por paso; por restricción calcular C y alphaTilde=compliance/dt²; resolver deltaLambda; corregir posiciones por inverse mass; iterar.",
+      "source_files": [
+        "https://github.com/avianphysics/avian/blob/e496f4a7620a61e0c6481c9e0a43f80423eb193a/src/dynamics/solver/xpbd/mod.rs",
+        "https://github.com/avianphysics/avian/blob/e496f4a7620a61e0c6481c9e0a43f80423eb193a/src/dynamics/solver/xpbd/joints/distance.rs",
+        "https://github.com/avianphysics/avian/blob/e496f4a7620a61e0c6481c9e0a43f80423eb193a/LICENSE-MIT",
+        "https://github.com/newton-physics/newton/blob/5166b16f401cbb263993a061989ffda079d51c16/newton/_src/solvers/xpbd/solver_xpbd.py",
+        "https://github.com/newton-physics/newton/blob/5166b16f401cbb263993a061989ffda079d51c16/LICENSE.md"
+      ],
+      "verified_source_behavior": "Avian publica restricciones XPBD de distancia y multiplicadores de Lagrange acumulados bajo MIT; Newton ofrece una segunda referencia Apache-2.0.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    },
+    {
+      "record_key": "D04:19",
+      "technique": "Hash espacial uniforme para vecinos",
+      "mathematics": "cell(p)=floor((p−origin)/h) — Convertir posición a coordenadas enteras de celda.; key=hash(cell) — Mapear coordenadas de celda a bucket hash.; insert(key,index) — Almacenar cada agente/partícula en su bucket.; queryCells=neighborCells(cell(p),ceil(r/h)) — Buscar celdas cuyo volumen pueda intersectar la esfera de radio r.; filter ||p_j−p_i||≤r — Filtrar por distancia real para eliminar falsos positivos de celdas cercanas.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "cell(p)=floor((p−origin)/h)",
+          "justification": "Convertir posición a coordenadas enteras de celda."
+        },
+        {
+          "step": 2,
+          "equation": "key=hash(cell)",
+          "justification": "Mapear coordenadas de celda a bucket hash."
+        },
+        {
+          "step": 3,
+          "equation": "insert(key,index)",
+          "justification": "Almacenar cada agente/partícula en su bucket."
+        },
+        {
+          "step": 4,
+          "equation": "queryCells=neighborCells(cell(p),ceil(r/h))",
+          "justification": "Buscar celdas cuyo volumen pueda intersectar la esfera de radio r."
+        },
+        {
+          "step": 5,
+          "equation": "filter ||p_j−p_i||≤r",
+          "justification": "Filtrar por distancia real para eliminar falsos positivos de celdas cercanas."
+        }
+      ],
+      "algorithm": "Insertar puntos en cell=floor((p−origin)/h); consultar AABB de radio; deduplicar; filtrar por distancia euclídea exacta.",
+      "pseudocode": "Insertar puntos en cell=floor((p−origin)/h); consultar AABB de radio; deduplicar; filtrar por distancia euclídea exacta.",
+      "source_files": [
+        "https://github.com/juancito860715-lgtm/jedl-studio/blob/audit/implementation-ready-manifest/src/threejs/spatial-grid.mjs",
+        "https://github.com/juancito860715-lgtm/jedl-studio/blob/audit/implementation-ready-manifest/tests/threejs/d01-spatial-grid.test.mjs"
+      ],
+      "verified_source_behavior": "Reutiliza la rejilla uniforme D01 y filtra candidatos por distancia exacta; no crea una segunda estructura espacial.",
+      "local_adaptation_status": "IMPLEMENTATION_TESTS_PASSED",
+      "certification_status": "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING",
+      "implementation_files": [
+        "src/threejs/d04-motion-simulation.mjs",
+        "tests/threejs/d04-motion-simulation.test.mjs"
+      ],
+      "implementation_note": "La suite d04-motion-simulation.test.mjs pasó dentro de 196 pruebas JavaScript globales, 0 fallos; el evaluador de dominio D04 terminó success. Prueba de algoritmo local aprobada; integración de producción completa aún no certificada."
+    }
+  ],
+  "overall_status": "D04_LOCAL_IMPLEMENTATIONS_TESTED_CERTIFICATION_PENDING",
+  "summary": {
+    "records_in_scope": 19,
+    "protected_records_preserved": 1,
+    "records_with_reference_research": 19,
+    "local_adaptations_implemented": 19,
+    "local_adaptations_tested": 19,
+    "pending_local_ci": 0,
+    "certified_as_locally_operational": 0,
+    "global_javascript_tests": 196,
+    "global_javascript_failures": 0
+  },
+  "limitations": [
+    "D04:2 no se modifica por protección Crimson Loong.",
+    "D04:4 integra el péndulo no lineal; la aproximación armónica pequeña no se extrapola fuera de su régimen.",
+    "D04:5 usa RK4 fijo para fuerza externa constante durante cada paso; no es solver adaptativo.",
+    "D04:6 Verlet requiere posición previa y paso temporal constante; damping es extensión explícita.",
+    "D04:9 las ganancias deben convertir separación/alineación/cohesión en aceleraciones con unidades compatibles.",
+    "D04:11 el ruido gaussiano es determinista por seed y stepIndex; no usa Math.random.",
+    "D04:14 la cadena masa-resorte usa anclajes opcionales y Euler semiimplícito; no es solver de tela completo.",
+    "D04:18 implementa restricciones de distancia XPBD; no incluye contactos, fricción ni bending.",
+    "D04:19 reutiliza la rejilla uniforme D01 y aplica filtrado exacto por radio."
+  ]
+}

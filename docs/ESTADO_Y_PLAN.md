@@ -130,3 +130,123 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - 2026-11-24 — PR #38: autorización del usuario para unificar publicación de Pages; el despliegue nativo de GitHub Pages es el único publicador y el workflow del episodio queda como validador.
 
 - 2026-11-24 — PR #38: se unifica la publicación con el flujo nativo de GitHub Pages y se elimina el paso de etiqueta de aprobación duplicada del workflow de PR; se conserva la validación obligatoria de actualización de esta memoria del proyecto.
+
+
+  - 2026-11-27 — D35, punto 1 dimensional (PR #43, rama `audit/implementation-ready-manifest`): se corrigieron las 38 definiciones que usaban dimensiones genéricas. D35 conserva 15 técnicas y 63 filas de variables; ahora las 63 filas tienen vector de siete componentes SI o un mapa simbólico por símbolo. Las magnitudes abstractas (estado, actuador, residual, parámetros, señal y medida) permanecen parametrizadas y no se presentan como exponentes SI numéricos hasta que se instancie su magnitud física. Se añadió `tests/threejs/test_d35_dimensional_audit.py` para comprobar las 38 entradas, los siete componentes, los grupos heterogéneos, la dimensión de radiancia y el término λ de Levenberg–Marquardt. Validación estructural local: 63/63 filas con representación dimensional de siete componentes; 0 filas incompletas o mapas simbólicos mal formados. GitHub Actions Three.js Math/CPU #528 y candado de reglas #362: PASS en el head `48febcb8625e3fb63360b6d0459fa39c80d276b2`. El primer borrador del test falló por sintaxis en el run #522; se corrigió y el head posterior pasó. No se modificó código de motor, aplicación ni Godot. El workflow Android/Godot se activó automáticamente por el evento de actualización de la PR; no se ejecutó ni se usó como criterio de esta tarea.
+
+## 7. Auditoría matemática del manifiesto Three.js (2026-11-26)
+
+- Alcance separado: completar las especificaciones matemáticas del manifiesto Three.js; esta tarea no cambia el motor de la aplicación ni autoriza alterar los registros preservados de Crimson Loong.
+- PR #43 permanece abierta y en borrador. El manifiesto contiene 541 técnicas: 46 preservadas, 495 no preservadas pendientes y 0 certificadas como `IMPLEMENTATION_READY`.
+- Se ampliaron las notas de derivación y localización de fuentes para XPBD, Kuwahara anisotrópico, Boids y el modelo microfacet de cabello. Ninguna de estas fichas se declara lista.
+- XPBD: fuente primaria localizada en Macklin, Müller y Chentanez (2016), §4, Ecs. (16)-(18) y Algoritmo 1. Se documentaron la aproximación cuasi-Newton, el acumulador de multiplicadores y los casos singulares. La variante amortiguada (Ec. 26) queda separada.
+- Kuwahara anisotrópico: fuente primaria localizada en Kyprianidis, Kang y Döllner (2009), §3.1-§3.2, Ecs. (1)-(4) y regla de pesos posterior. Se añadió un kernel de referencia Python/JavaScript con la fórmula publicada `alpha_i = 1/(1 + ||s_i||^q)`, q=8 en los ejemplos. La función anterior `weighted_sector_mean` se conserva como convención genérica y no debe presentarse como la ecuación publicada del filtro.
+- Boids: se aclaró que la suma ponderada del manifiesto es una parametrización de implementación, no una ecuación textual única de Reynolds (1987). Falta fijar dimensionalmente si cada término es desplazamiento, velocidad deseada o aceleración.
+- Cabello microfacet: se fijaron los localizadores §3.1 Ecs. (2), (4)-(12), Ecs. (13)-(25) y Appendix A Ecs. (41)-(44). Las fórmulas están como ecuaciones-imagen en la fuente web; se requiere transcripción y verificación de los términos antes de implementar.
+- La primera ejecución de gobernanza falló porque el candado del repositorio exige actualizar este archivo cuando cambian pruebas/código. La ejecución matemática debe revisarse por separado; no se declara CI global verde por ese fallo.
+- Próximo bloque: terminar pruebas independientes y contrato dimensional de XPBD/Kuwahara; extraer las ecuaciones completas de cabello; derivar Boids con magnitudes dimensionalmente homogéneas; después continuar las otras 19 R31 y procesar las 472 fichas históricas por dominio.
+
+
+## 8. Segundo bloque de especificaciones R31 (2026-11-26)
+
+- Se completó la revisión de localizadores primarios para cuatro fichas, sin promover ninguna a `IMPLEMENTATION_READY`.
+- XPBD: ecuaciones (5)-(9), (12), (15)-(18) y Algoritmo 1 de Macklin et al. (2016) contrastados. Para restricción de distancia: compliance `s²/kg`, compliance escalada `kg^-1`, multiplicador `kg·m`. Añadidos fixtures cerrados para dos pasos temporales. Pendiente solver multiconstraint y restricciones no métricas.
+- Kuwahara: corregido el localizador: PG 2009 contiene Ecs. (1)-(4); pesos y salida aparecen después de Ec. (4), §3.2, p. 1960. RGB entero 0..255; q=8 depende de esa escala. La fuente citada valida una escala por aplicación, no mezcla simultánea multiescala/saliencia.
+- Boids: Reynolds (1987), §3, pp. 28-29, confirma comportamientos por prioridad, solicitudes de aceleración acotadas, strength [0,1] y reparto prioritario con recorte al máximo. Añadido kernel Python/JS. La suma ponderada del manifiesto no es ecuación textual de Reynolds y sigue sin validez dimensional demostrada.
+- Cabello microfacet: transcritos BCSDF R de Ec. (12), NDF GGX de Appendix A Ec. (41) y producto escalar de Ec. (42). Añadido NDF de fibra con fixtures Python/JS. TT/TRT (13)-(24) localizados pero pendientes de implementación numérica independiente; el NDF aislado no certifica el modelo.
+- Pruebas añadidas: XPBD sensibilidad a dt, asignación prioritaria de Reynolds y NDF GGX de fibra. Pendiente consultar CI del head actualizado.
+- Estado: cuatro fichas mejor documentadas; ninguna certificada. Próximo bloque: verificar CI, corregir fallos y continuar las 19 R31 restantes; la paridad entre lenguajes no sustituye referencias matemáticas independientes.
+
+
+## 9. Especificación normalizada de cuatro R31 (2026-11-26)
+
+- Los cuatro registros ahora contienen campos normalizados para variables, ecuaciones con localizador, derivación, entradas/salidas con unidades, secuencia de algoritmo, pseudocódigo, complejidad, mapeo Three.js, fuente y pruebas independientes.
+- XPBD: el bloque escalar de distancia queda derivado y con unidades consistentes; se mantiene `derivation=partial` porque falta validar el solver general de múltiples restricciones y otras clases de C.
+- Kuwahara: se separa explícitamente la ecuación de una escala, validada contra PG 2009, de la extensión multiescala/saliencia que no está cubierta por esa publicación. La escala RGB 0..255 se documenta como parte del contrato numérico.
+- Boids: se implementa y prueba el asignador de aceleraciones por prioridad descrito por Reynolds. Las funciones que generan requests de separación, alineación y evasión predictiva aún no están cerradas; la suma S/A/C del manifiesto no se presenta como fórmula original.
+- Cabello: se transcriben la BCSDF de reflexión (Eq. 12), el GGX NDF (Eq. 41) y el producto escalar de normal inclinada (Eq. 42). El kernel de prueba valida Eq. 41-42; no valida todavía los integrales completos R/TT/TRT.
+- Auditoría local del JSON dimensional: 23 registros presentes; cero variables sin dominio/unidad/vector SI de siete dimensiones.
+- Pruebas numéricas Python y JavaScript pasaron en GitHub Actions run #45915670549, SHA `0d40dd90d68018b9852953afd2a5382085a909e2`. El candado documental pasó en run #45915829789, SHA `c88b1fcbde0553b1be561ec2b140cd4e393076a2`. Las últimas actualizaciones de documentación/dimensiones posteriores a esos runs aún no tienen una nueva ejecución completa del workflow matemático; no se afirma CI verde en el último head.
+- No se ejecutó Godot ni se cambió el motor de producción. La PR #43 continúa en borrador, sin merge.
+
+## 10. Tercer bloque R31: cinemática, skinning, hashing y reglas procedurales (2026-11-26)
+
+- Se avanzaron cinco fichas adicionales: FABRIK, dual-quaternion skinning, hash espacial uniforme, smooth-min polinómico de SDF y cuantización temporal. Se especificó además el microjitter stop-motion como convención procedural propia.
+- FABRIK: contrastados Algorithm 1 y §4 del artículo Aristidou & Lasenby (2011). La proyección lineal, rama inalcanzable y tolerancia quedan derivadas; el núcleo sin límites articulares está documentado. Falta resolver degeneraciones de dirección con política de producción, restricciones articulares, pole vectors y validación de esqueleto Three.js.
+- Dual quaternions: Algorithm 1 y §4.1 de Kavan et al. (2008) localizados; se documentan suma ponderada, normalización y antipodalidad. Se distingue la normalización Study del kernel CPU de la variante optimizada del shader del artículo. Falta conversión completa matriz↔dual quaternion, shader de vértices/normales y política global para más de dos influencias.
+- Hash espacial: §3 y §4.1 de Teschner et al. (2003) localizados. Se documentan floor para coordenadas negativas, multiplicadores 73856093/19349663/83492791, XOR y módulo. El kernel solo valida celda y bucket; no certifica todavía inserción de AABB ni intersecciones de primitivas.
+- SDF smooth-min: se identifica la variante polinómica cuadrática de Quilez (2013), su banda k y su corrección. Se advierte que no es un SDF euclídeo exacto en todo punto y que las composiciones anidadas dependen del orden.
+- Cuantización temporal y microjitter: se documentan como convenciones de implementación propias, sin atribución artificial a papers. Se fijan floor para tiempos negativos, aritmética uint32 para el hash y amplitudes separadas para posición (longitud) y rotación (radianes).
+- Se añadieron kernels de referencia Python/JavaScript para hash espacial y mezcla dual quaternion, con fixtures de paridad. Workflow matemático completo pasó en run #45916517870, SHA 8566248e7bcce2f1ef691557d7c5c211fd6f485b; el candado de reglas pasó en run #45916686494, SHA 62cc025a98be0278c0745fb356a4ea31a17082a7. La documentación del último head f3c64a7c799eb1a453e3c43a9e3e1d0584019356 todavía no tiene una ejecución completa de validación matemática asociada; no se declara el head actual totalmente verificado.
+- Estado honesto: 0 fichas certificadas IMPLEMENTATION_READY; las nuevas fichas siguen INCOMPLETE hasta completar los gaps enumerados. Las 46 preservadas siguen fuera de la reauditoría. Quedan 13 R31 por desarrollar y después 472 históricas.
+- La PR #43 permanece draft/open/unmerged. No se tocó el motor de producción ni se ejecutó el workflow Android/Godot.
+
+## 11. Cuarto bloque R31: Fresnel y atenuación volumétrica (2026-11-26)
+
+- D39:11 (Fresnel Schlick): se verificó la aproximación de quinta potencia contra Schlick (1994), §4.2 Ec. (15), y su reutilización como factor espectral en §5.1 Ec. (24). Se añadieron tabla dimensional, derivación desde las condiciones de borde, contrato del coseno de entrada (V·H en el uso Cook–Torrance habitual), dominio y fixtures interiores/extremos. La aproximación no reemplaza Fresnel exacto ni completa por sí sola una BRDF.
+- D35:14 (Beer–Lambert): se contrastó la atenuación exponencial con Levoy (1992), §1 Ecs. (1.1)-(1.2). Se precisó que rho es multiplicador relativo adimensional en el kernel actual y mu_t=sigma_t*rho tiene unidad m^-1; se definió la interpretación radiométrica de la fuente de segmento para no contar extinción/dispersión dos veces. Se añadió invariancia ante subdivisión de medio homogéneo.
+- Las pruebas Python y JavaScript incluyen ahora el punto interior Schlick F0=.04,u=.5 -> .07, monotonía en el intervalo y equivalencia de transmitancia al subdividir un medio homogéneo. La paridad entre lenguajes se acompaña de valores cerrados/propiedades analíticas; no equivale a validar el render volumétrico completo.
+- Ambas fichas permanecen INCOMPLETE: Fresnel necesita comparación angular completa y validación energética dentro de BRDF; Beer–Lambert necesita cuadratura para densidad variable, fase/iluminación, sombras y pruebas de integración real Three.js.
+- Fuentes consultadas: Schlick 1994, PDF pp. 7-8 §4.2 Ec. (15), §5.1 Ec. (24); Levoy 1992, informe técnico Stanford, p. 1 Ecs. (1.1)-(1.2).
+- No se alteraron los 46 registros preservados, el manifiesto original ni el motor de producción. PR #43 sigue abierta y en borrador.
+
+## 12. Quinto bloque R31: Fresnel, volumen, RMF, QEF y tensor de estructura (2026-11-27)
+
+- Se amplió la especificación de cinco registros: Schlick Fresnel (D39:11), Beer–Lambert/volumen (D35:14), marcos de cámara RMF (D13:15), QEF de Dual Contouring (D40:13) y tensor de estructura para dirección de pincelada (D08:14). Se añadieron derivaciones, contratos dimensionales, dominio, fronteras, pseudocódigo, complejidad, fuentes primarias y pruebas.
+- Fresnel Schlick: Eq. (15) de Schlick (1994) contrastada. Se distingue coseno V·H en Cook–Torrance de N·V; se prueba valor interior .07 para F0=.04,u=.5 y monotonía. Falta validación angular contra Fresnel exacto y energía de la BRDF completa.
+- Beer–Lambert: Levoy 1992 Ecs. (1.1)-(1.2) contrastadas; se deriva alfa por segmento y acumulación front-to-back. rho queda definido como multiplicador adimensional y la fuente como radiancia condicional para evitar ambigüedad. Falta densidad variable, fase, sombras y scattering múltiple.
+- RMF cámara: implementado double-reflection de Wang et al. 2008 (§4.1 Ecs. 13-14 y Table I), sustituyendo la aproximación de proyección como referencia de mayor fidelidad. Se añaden pruebas de ortonormalidad y línea recta; faltan degeneraciones en trayectorias reales, continuidad de cuaterniones y cámara integrada.
+- Dual Contouring: corregido el QEF de una aproximación diagonal incompleta a un sistema simétrico 3x3 completo con pivotado parcial. La regularización hacia centro de celda está etiquetada como variante propia, no como el método SVD exacto del artículo. Pruebas con tres planos no alineados y caso singular.
+- Tensor de estructura: fórmula RGB y eigensistema 2x2 contrastados con Kyprianidis et al. 2009 §3.1. Se separa dirección normal del gradiente y dirección tangente de pincelada (90°); se define coherencia regularizada y caso isotrópico. Pruebas de autovalores, orientación, coherencia y PSD.
+- Se descubrió que parte de las pruebas Python de hash y dual quaternion estaban anidadas por error y no se descubrían. Se reorganizaron en TestR31ExtendedKernels. La CI ahora ejecuta 46 pruebas Python y 38 JavaScript; ambas suites pasan.
+- Validación matemática: run #45917746756 PASS en SHA d4d596e3c39013e05b91c7104d16550c4f45d2f7. Candado de reglas: run #45917750640 PASS en el mismo SHA. El reporte conserva 541 técnicas, 46 preservadas, 495 incompletas, 0 certificadas y auditoría dimensional de 23/23 registros PASS.
+- Se corrigió el publicador del informe para que las carreras de push no invaliden una ejecución matemática cuyos tests y gates sí pasaron; se añade concurrencia, rebase/reintentos y artefacto como respaldo. El workflow ahora también se dispara al cambiar docs/threejs/audit/.
+- Alcance pendiente: quedan 8 R31 sin especificación sustancial completa; después deben investigarse 472 registros históricos no preservados. Incluso las 15 R31 trabajadas siguen INCOMPLETE hasta completar los huecos de método, integración, validación y/o pruebas enumerados en cada ficha. No se declara el proyecto terminado.
+- PR #43 permanece abierta, en borrador y sin merge. No se modificó el manifiesto original ni se trabajó en Godot/Android.
+
+
+## 13. Sexto bloque R31: contorno por discontinuidad de profundidad y normal (2026-11-26)
+
+- D14:15 se ha separado del reclamo bibliográfico ambiguo. La publicación DepthCut de Guerrero et al. (2018), §4, no publica la suma local de profundidad y producto punto de normales que aparecía en el manifiesto; define probabilidades de contorno y pliegue a partir de derivadas de disparidad y normales, y las fusiona. La especificación ahora distingue esas ecuaciones de la heurística local propia.
+- Se derivó una puntuación adimensional propia: salto relativo de profundidad lineal positiva más un peso adimensional por discontinuidad angular de normales normalizadas; la cobertura final usa smoothstep con umbrales dimensionless. Se documentan dominio, unidades SI, casos límite, coste, pseudocódigo y contrato de render targets.
+- Se añadieron kernels de referencia Python y JavaScript y fixtures analíticos para invariancia de escala, discontinuidades ortogonales/opuestas, normalización de normales, cobertura y entradas degeneradas. La paridad matemática queda pendiente de la ejecución CI del head.
+- D14:15 permanece INCOMPLETE: faltan el pase real de depth/normal en Three.js, políticas de fondo/MSAA/proyección y comparación visual cuantitativa con escenas de referencia. No se afirma que el artículo DepthCut valide la heurística local.
+- No se alteró el manifiesto original ni los 46 registros preservados. PR #43 permanece abierta, en borrador y sin merge; no se ejecutó Godot/Android.
+
+
+## 14. Séptimo bloque R31: tramado sinusoidal / Ben-Day (2026-11-26)
+
+- Ajuste de esquema posterior: se duplicó explícitamente la tabla de símbolos en `variables` (además de `symbol_table`) y se añadieron `evidence_status` por ecuación para satisfacer el contrato del auditor. Los estados siguen INCOMPLETE; no se ha editado manualmente el registro generado de aptitud ni se afirma un PASS de CI.
+
+- D14:16 se desarrolló como pantalla sinusoidal periódica con umbral y cobertura antialias. Se corrigió una ambigüedad importante: en sin(pi*f*x), el período es 2/f; por tanto f es inverso del semiperíodo, no ciclos por unidad. Se definió la convención del umbral H(L-m) y se fijó luminancia lineal normalizada.
+- La referencia Rao y Arce (1988), JOSA A 5(9), 1502–1511, fue verificada bibliográficamente como artículo sobre periodicidades arbitrarias de pantalla. No se le atribuyó la máscara sinusoidal: la ecuación del manifiesto queda etiquetada como convención procedural propia porque no se verificó un localizador de ecuación que la respalde.
+- Se añadieron símbolos y unidades, derivación del período, rotación de coordenadas, dominio, extremos, pseudocódigo, complejidad y contrato ShaderMaterial. Se agregó un kernel de cobertura antialias en Python/JavaScript y pruebas analíticas de umbral, rango y periodicidad.
+- D14:16 permanece INCOMPLETE: falta validar el shader real en Three.js/WebGL2/WebGPU, comparar imágenes de referencia con un oráculo raster CPU y distinguir variantes de puntos agrupados de la pantalla sinusoidal.
+- El bloque previo D14:15 y este bloque no modifican el manifiesto original ni las 46 fichas preservadas. La auditoría dimensional sigue siendo condicional. PR #43 permanece draft/open/unmerged; no se ejecutó Godot/Android.
+
+
+## 15. Octavo bloque R31: hachurado periódico orientado por campo vectorial (2026-11-26)
+
+- D14:17 se formalizó como una familia de líneas periódicas: fase fract(dot(p,d_hat)/s), distancia de fase al centro de línea y cobertura con el complemento de smoothstep. Se fijaron unidades coherentes para posición/espaciado y anchos fraccionarios del período.
+- Se documentaron derivación, dominio, límites, coste, pseudocódigo y contrato de ShaderMaterial/TSL. Se añadió cobertura antialias en kernels Python/JavaScript con pruebas de centro, transición, borde, repetición de fase y casos inválidos.
+- Se mantiene el alcance correcto: una familia de líneas con dirección local; no equivale a integrar un campo vectorial espacialmente variable ni a resolver automáticamente cross-hatching. No se atribuye la fórmula a un paper.
+- D14:17 permanece INCOMPLETE: falta validar el campo de dirección y derivadas en el render Three.js/WebGPU, imágenes de referencia con rotación/UV seams y política para combinar varias familias.
+- R31 con especificación sustancial: 18 de 23; quedan 5 por desarrollar a ese nivel. Todas las R31 continúan INCOMPLETE hasta cerrar sus brechas específicas; el registro global permanece en 0 IMPLEMENTATION_READY. Las 46 preservadas no se reauditan y las 472 históricas siguen pendientes.
+
+
+## 16. Noveno bloque R31: advección semi-Lagrangiana de pigmento (2026-11-26)
+
+- D21:21 se contrastó con Stam (1999): §2.2 pp. 122–123 documenta retrotrazado por características y el interpolador lineal; §2.4 p. 124 cubre sustancias escalares y separa advección, difusión, disipación y fuente; Appendix A p. 126 desarrolla las características.
+- Se corrigió la atribución: c(x,t+dt)=c(p(x,-dt),t) es la relación de características; x-dt*u(x) es una aproximación de primer orden, no una trayectoria exacta para todo campo variable. D y k se mantienen como operadores separados, no dentro del kernel de advección.
+- Se añadieron kernels Python/JavaScript de backtrace 2D cell-centered y muestreo bilineal, con pruebas analíticas de campo constante, rampa lineal trasladada y propiedad de rango convexo. Se documentaron unidades físicas y conversión a índices de grid.
+- D21:21 permanece INCOMPLETE: faltan validación del render target real, 3D trilineal, obstáculos/bordes, difusión/secado/deposición y mediciones de difusión numérica/conservación. No se afirma que el método sea una simulación química completa de acuarela.
+- Conteo tras este bloque: 19/23 R31 tienen especificación sustancial y tabla dimensional; 4 R31 siguen sin ese nivel de desarrollo. Las 23 siguen en estado INCOMPLETE y ninguna se promueve a IMPLEMENTATION_READY.
+- La inspección estructural encontró 23 registros dimensionales y cero variables sin unidad, dominio o vector SI. El archivo latest-implementation-readiness es una instantánea anterior a estos últimos cambios; no se presenta como resultado de CI del head actual. La ejecución completa de GitHub Actions sigue pendiente.
+## 17. Recepción e incorporación del manifiesto v3.5 (2026-11-27)
+
+- El propietario entregó el documento único «Manifiesto ThreeJS v3 5 jedl-studio.json» (versión 3.5.0-jedl-studio-single-document, 1.202.950 bytes UTF-8, 22.471 líneas): 42 dominios, 616 técnicas, 15 primitivas matemáticas, metodología de producción de escenas (production_method_v1), especificación de exportación MP4 (exportacion_mp4_v1) y lista única de 16 pendientes abiertos (pendientes_v3_5, P1-P16).
+- Verificación local antes de subir: parseo JSON correcto, conteo 42 dominios y 616 técnicas coincidente con los contadores declarados en el propio documento.
+- Dado el tamaño (1,2 MB) y el límite de memoria del entorno de trabajo, el archivo se subió en 19 partes contiguas por líneas bajo docs/threejs/v3_5_parts/ (nombres part_o#####.json ordenados por offset de línea inicial) y un nuevo workflow .github/workflows/assemble-manifest-v35.yml las concatena en orden, valida la sintaxis JSON y exige exactamente 42 dominios / 616 técnicas antes de publicar docs/threejs/Manifiesto_ThreeJS_v3_5_jedl-studio.json en un commit del bot. Si el conteo o la versión no coinciden, el job falla (fail-closed).
+- El marco fail-closed y la puerta de preparación (tests/threejs/implementation_readiness_gate.py) siguen anclados a v3.1 (541 técnicas) por decisión deliberada de esta sesión: NO se ha migrado la auditoría al esquema v3.5. Migrar la puerta (conteo fijo 541), el mapa de preservación (claves dominio:índice) y las 23 especificaciones R31 al inventario de 616 registros es trabajo pendiente, correspondiente al punto P14 (Conteos y metadatos) del propio v3.5; la puerta no se modifica sin criterio de cierre escrito en este archivo.
+- Estado del v3.5 según su propio manifiesto: NO_CERTIFICADO; 16 pendientes abiertos (P1-P16). No se promueve ninguna técnica a lista y no se certifica nada con este cambio.
+- No se modificó el manifiesto v3.1, los registros preservados de Crimson Loong, el motor Godot ni el workflow matemático existente. PR #43 permanece en borrador y sin merge; la ejecución de CI de este push se verifica después y se registra en el historial del PR.

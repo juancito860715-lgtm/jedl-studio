@@ -1,0 +1,519 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D38 Materiales avanzados, microestructura y apariencia",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D38",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D38 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D38:0",
+      "name": "Microfacet BRDF Cook–Torrance",
+      "starting_principles": [
+        "N,L,V unitarios; roughness>0; D,F,G consistentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h=normalize(L+V)",
+          "justification": "Construir half-vector."
+        },
+        {
+          "step": 2,
+          "equation": "D(h),F(V,h),G(L,V,h)",
+          "justification": "Evaluar distribución, Fresnel y visibilidad microfacet."
+        },
+        {
+          "step": 3,
+          "equation": "f_r=D·F·G/[4(N·L)(N·V)]",
+          "justification": "Combinar factores con denominador de proyección."
+        },
+        {
+          "step": 4,
+          "equation": "L_o=∫f_rL_i cosθdω",
+          "justification": "Integrar iluminación incidente."
+        }
+      ],
+      "assumptions": [
+        "N,L,V unitarios; roughness>0; D,F,G consistentes."
+      ],
+      "result": "Cook–Torrance deriva de teoría microfacet combinando NDF, Fresnel y geometría.",
+      "limits": [
+        "El BRDF local no incluye transporte subsuperficial."
+      ],
+      "dimensional_verification": [
+        "D has sr⁻¹; F and G are dimensionless; cosines dimensionless; f_r has sr⁻¹.",
+        "Roughness and F0 are dimensionless material parameters."
+      ]
+    },
+    {
+      "record_key": "D38:1",
+      "name": "Beer–Lambert absorption",
+      "starting_principles": [
+        "σ_a≥0; distancia d≥0; medio homogéneo en la forma básica."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dI/dd=−σ_aI",
+          "justification": "La pérdida diferencial es proporcional a intensidad y absorción."
+        },
+        {
+          "step": 2,
+          "equation": "dI/I=−σ_a dd",
+          "justification": "Separar variables."
+        },
+        {
+          "step": 3,
+          "equation": "ln(I/I_0)=−σ_ad",
+          "justification": "Integrar para medio homogéneo."
+        },
+        {
+          "step": 4,
+          "equation": "T(d)=I/I_0=exp(−σ_ad)",
+          "justification": "Obtener transmitancia."
+        }
+      ],
+      "assumptions": [
+        "σ_a≥0; distancia d≥0; medio homogéneo en la forma básica."
+      ],
+      "result": "Beer–Lambert deriva de integrar ecuación diferencial de atenuación.",
+      "limits": [
+        "Absorción espectral requiere σ por canal/longitud de onda."
+      ],
+      "dimensional_verification": [
+        "σ_a has L⁻¹; d has L; σ_a d is dimensionless; T is dimensionless.",
+        "Absorbed/transmitted color retains signal unit."
+      ]
+    },
+    {
+      "record_key": "D38:2",
+      "name": "Subsurface scattering dipole approximation",
+      "starting_principles": [
+        "Medio altamente dispersivo; σ_s' y σ_a no negativos; geometría semi-infinita idealizada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "−∇·(D∇Φ)+σ_aΦ=Q",
+          "justification": "Plantear difusión de energía en medio altamente dispersivo."
+        },
+        {
+          "step": 2,
+          "equation": "D=1/[3(σ_a+σ_s')]; σ_tr=√(σ_a/D)",
+          "justification": "Definir coeficiente de difusión y extinción efectiva."
+        },
+        {
+          "step": 3,
+          "equation": "z_r≈1/(σ_a+σ_s'); z_v=z_r+4AD",
+          "justification": "Ubicar fuentes real/virtual para satisfacer condición de frontera aproximada."
+        },
+        {
+          "step": 4,
+          "equation": "d_r=√(r²+z_r²); d_v=√(r²+z_v²)",
+          "justification": "Calcular distancias desde puntos de observación a fuentes."
+        },
+        {
+          "step": 5,
+          "equation": "R(r)≈[z_r(1+σ_trd_r)e^(−σ_trd_r)/d_r³+z_v(1+σ_trd_v)e^(−σ_trd_v)/d_v³]/(4π)",
+          "justification": "Combinar contribuciones difusivas de fuentes real y virtual."
+        }
+      ],
+      "assumptions": [
+        "Medio altamente dispersivo; σ_s' y σ_a no negativos; geometría semi-infinita idealizada."
+      ],
+      "result": "El dipolo aproxima difusión subsuperficial mediante fuentes real y virtual.",
+      "limits": [
+        "Supone régimen difusivo; no sirve en medios poco dispersivos ni a distancias cortas."
+      ],
+      "dimensional_verification": [
+        "σ_tr has L⁻¹; d_r,d_v,z_r,z_v have L; exponent dimensionless.",
+        "R(r) has L⁻² as a surface diffusion profile; its area integral is dimensionless reflectance."
+      ]
+    },
+    {
+      "record_key": "D38:3",
+      "name": "Oren–Nayar diffuse",
+      "starting_principles": [
+        "Rugosidad angular σ declarada; ángulos sobre hemisferio superior."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "σ²=roughnessVariance",
+          "justification": "Parametrizar dispersión de normales."
+        },
+        {
+          "step": 2,
+          "equation": "A=1−0.5σ²/(σ²+0.33); B=0.45σ²/(σ²+0.09)",
+          "justification": "Ajustar coeficientes empíricos de Oren–Nayar."
+        },
+        {
+          "step": 3,
+          "equation": "α=max(θ_i,θ_r); β=min(θ_i,θ_r)",
+          "justification": "Ordenar ángulos de incidencia y vista."
+        },
+        {
+          "step": 4,
+          "equation": "f_r=(ρ/π)[A+B·max(0,cos(φ_i−φ_r))sinαtanβ]",
+          "justification": "Evaluar BRDF difusa rugosa."
+        }
+      ],
+      "assumptions": [
+        "Rugosidad angular σ declarada; ángulos sobre hemisferio superior."
+      ],
+      "result": "Oren–Nayar extiende Lambert con distribución de microfacetas rugosas.",
+      "limits": [
+        "Modelo empírico; no representa todos los materiales rugosos."
+      ],
+      "dimensional_verification": [
+        "ρ, A and B are dimensionless; all trigonometric factors are dimensionless.",
+        "f_r retains sr⁻¹."
+      ]
+    },
+    {
+      "record_key": "D38:4",
+      "name": "Sheen cloth BRDF",
+      "starting_principles": [
+        "Distribución Charlie normalizada; roughness positiva; fibra/material orientado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "H=normalize(L+V)",
+          "justification": "Obtener half-vector."
+        },
+        {
+          "step": 2,
+          "equation": "D=D_Charlie(N·H,roughness)",
+          "justification": "Evaluar distribución de fibras/velvet."
+        },
+        {
+          "step": 3,
+          "equation": "F=F_sheen(ω)",
+          "justification": "Calcular reflectancia de capa superficial."
+        },
+        {
+          "step": 4,
+          "equation": "f_sheen≈D·F·G",
+          "justification": "Construir lóbulo suave de sheen y sumarlo a BRDF base."
+        }
+      ],
+      "assumptions": [
+        "Distribución Charlie normalizada; roughness positiva; fibra/material orientado."
+      ],
+      "result": "Sheen aproxima reflejo suave de microfibras textiles.",
+      "limits": [
+        "La distribución exacta depende de variante; calibración visual requerida."
+      ],
+      "dimensional_verification": [
+        "D_Charlie has sr⁻¹; F_sheen dimensionless; sheen BRDF has sr⁻¹.",
+        "Roughness and sheenColor are dimensionless/color signal."
+      ]
+    },
+    {
+      "record_key": "D38:5",
+      "name": "Anisotropic GGX",
+      "starting_principles": [
+        "α_x,α_y>0; base TBN ortonormal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h_t=(h_x,h_y,h_z) in TBN",
+          "justification": "Transformar half-vector a base tangente."
+        },
+        {
+          "step": 2,
+          "equation": "D=1/[π α_xα_y((h_x/α_x)²+(h_y/α_y)²+h_z²)²]",
+          "justification": "Evaluar distribución GGX elíptica."
+        },
+        {
+          "step": 3,
+          "equation": "F=Fresnel(V,H); G=Smith_aniso(L,V)",
+          "justification": "Calcular Fresnel y visibilidad con rugosidades direccionales."
+        },
+        {
+          "step": 4,
+          "equation": "f_r=D·F·G/[4(N·L)(N·V)]",
+          "justification": "Combinar en BRDF."
+        }
+      ],
+      "assumptions": [
+        "α_x,α_y>0; base TBN ortonormal."
+      ],
+      "result": "GGX anisotrópico sustituye rugosidad escalar por dos ejes tangenciales.",
+      "limits": [
+        "Convención de α y TBN afecta forma; anisotropía no se captura con roughness escalar."
+      ],
+      "dimensional_verification": [
+        "α_x,α_y and h components are dimensionless; D has sr⁻¹.",
+        "Anisotropic roughness ratios are dimensionless."
+      ]
+    },
+    {
+      "record_key": "D38:6",
+      "name": "Thin-film interference",
+      "starting_principles": [
+        "n,d,λ positivos; ángulo interno por Snell; coherencia definida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "δ=2πndcosθ_t/λ",
+          "justification": "Calcular fase de una pasada dentro de película."
+        },
+        {
+          "step": 2,
+          "equation": "Δφ=2δ+φ_r",
+          "justification": "Sumar fase de ida/vuelta y cambios de fase de interfaz."
+        },
+        {
+          "step": 3,
+          "equation": "I=|E_1+E_2e^{iΔφ}|²",
+          "justification": "Sumar amplitudes complejas."
+        },
+        {
+          "step": 4,
+          "equation": "I=I_1+I_2+2√(I_1I_2)cosΔφ",
+          "justification": "Expandir intensidad interferencial."
+        }
+      ],
+      "assumptions": [
+        "n,d,λ positivos; ángulo interno por Snell; coherencia definida."
+      ],
+      "result": "La interferencia de película fina deriva de diferencia de fase entre reflexiones.",
+      "limits": [
+        "Películas gruesas/absorbentes requieren múltiples reflexiones y espectro."
+      ],
+      "dimensional_verification": [
+        "n and cosθ are dimensionless; d and λ have L; δ is dimensionless angular phase.",
+        "phase_shift is dimensionless."
+      ]
+    },
+    {
+      "record_key": "D38:7",
+      "name": "Fluorescence",
+      "starting_principles": [
+        "E,A,K espectrales no negativos; eficiencia de emisión acotada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "A(λ_i)E(λ_i)",
+          "justification": "Calcular energía absorbida por longitud de onda incidente."
+        },
+        {
+          "step": 2,
+          "equation": "K(λ_i,λ_o)",
+          "justification": "Definir kernel de probabilidad de reemisión a longitud de onda de salida."
+        },
+        {
+          "step": 3,
+          "equation": "L_em(λ_o)=∫E(λ_i)A(λ_i)K(λ_i,λ_o)dλ_i",
+          "justification": "Integrar contribuciones absorbidas y reemitidas."
+        },
+        {
+          "step": 4,
+          "equation": "normalize emission spectrum",
+          "justification": "Conservar energía bajo eficiencia cuántica declarada."
+        }
+      ],
+      "assumptions": [
+        "E,A,K espectrales no negativos; eficiencia de emisión acotada."
+      ],
+      "result": "Fluorescencia integra absorción incidente y kernel espectral de reemisión.",
+      "limits": [
+        "El kernel debe respetar desplazamiento Stokes/eficiencia; la forma simplificada no incluye cinética temporal."
+      ],
+      "dimensional_verification": [
+        "λ_i and λ_o have L; E(λ_i) is spectral irradiance per wavelength; K has L⁻¹ for normalized wavelength conversion.",
+        "The integral over dλ_i yields output spectral signal with declared units; quantum yield is dimensionless."
+      ]
+    },
+    {
+      "record_key": "D38:8",
+      "name": "Layered material",
+      "starting_principles": [
+        "Capas ordenadas; reflectancia/transmisión coherentes; energía no amplificada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_1=Fresnel(layer interface)",
+          "justification": "Calcular reflexión de capa superior."
+        },
+        {
+          "step": 2,
+          "equation": "T_in≈1−F_1; T_out≈1−F_1'",
+          "justification": "Calcular transmisión hacia dentro y fuera."
+        },
+        {
+          "step": 3,
+          "equation": "f_total=f_layer+T_in f_base T_out",
+          "justification": "Sumar respuesta de capa y base atenuada."
+        },
+        {
+          "step": 4,
+          "equation": "repeat through ordered layers",
+          "justification": "Componer capas respetando energía y absorción."
+        }
+      ],
+      "assumptions": [
+        "Capas ordenadas; reflectancia/transmisión coherentes; energía no amplificada."
+      ],
+      "result": "Material en capas compone reflexión superior y respuesta base transmitida.",
+      "limits": [
+        "Capas múltiples pueden requerir integración espectral y reflexión interna."
+      ],
+      "dimensional_verification": [
+        "f_base and f_layer have sr⁻¹; T_in and T_out are dimensionless.",
+        "f_total preserves BRDF unit sr⁻¹."
+      ]
+    },
+    {
+      "record_key": "D38:9",
+      "name": "Procedural bump y normal field",
+      "starting_principles": [
+        "Altura y coordenadas UV compatibles; base TBN válida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h=h(u,v)",
+          "justification": "Definir campo escalar de altura."
+        },
+        {
+          "step": 2,
+          "equation": "N'=normalize(N−s∇_S h)",
+          "justification": "Usar el gradiente superficial de altura respecto a coordenadas físicas para obtener una pendiente adimensional compatible con la normal."
+        },
+        {
+          "step": 3,
+          "equation": "N_raw=N−s(h_uT+h_vB)",
+          "justification": "Desviar normal en base tangente."
+        },
+        {
+          "step": 4,
+          "equation": "N'=normalize(N_raw)",
+          "justification": "Normalizar para shading."
+        }
+      ],
+      "assumptions": [
+        "Altura y coordenadas UV compatibles; base TBN válida.",
+        "h tiene L; ∇_S h es adimensional; s es una ganancia adimensional. Si se deriva en UV, convertir mediante el Jacobiano de superficie."
+      ],
+      "result": "Bump/normal field perturba normal mediante gradiente de altura.",
+      "limits": [
+        "No cambia silueta ni paralaje."
+      ],
+      "dimensional_verification": [
+        "h has L; surface gradient ∇_S h is dimensionless; N,T,B are unit vectors.",
+        "N' remains a dimensionless unit normal after normalization."
+      ]
+    },
+    {
+      "record_key": "D38:10",
+      "name": "Triplanar mapping",
+      "starting_principles": [
+        "Normal unitaria; escala de proyección común; k≥0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u_x=f_tex·P_yz; u_y=f_tex·P_xz; u_z=f_tex·P_xy, [f_tex]=L⁻¹",
+          "justification": "Convertir posiciones físicas en coordenadas de textura adimensionales mediante frecuencia espacial."
+        },
+        {
+          "step": 2,
+          "equation": "w_raw=(|N_x|^k,|N_y|^k,|N_z|^k)",
+          "justification": "Obtener pesos por orientación."
+        },
+        {
+          "step": 3,
+          "equation": "w_i=w_raw,i/Σw_raw",
+          "justification": "Normalizar pesos."
+        },
+        {
+          "step": 4,
+          "equation": "C=Σ_iw_iC_i",
+          "justification": "Combinar proyecciones."
+        }
+      ],
+      "assumptions": [
+        "Normal unitaria; escala de proyección común; k≥0.",
+        "f_tex tiene unidad L⁻¹ y P se expresa en el marco/unidad de escena declarados."
+      ],
+      "result": "Triplanar mezcla tres proyecciones según normal.",
+      "limits": [
+        "Proyecciones pueden mostrar transiciones visibles o estiramiento."
+      ],
+      "dimensional_verification": [
+        "P has L; texture frequency f_tex has L⁻¹; projected UV coordinates are dimensionless.",
+        "Weights |N_i|^k and normalized weights are dimensionless; texture samples share color space."
+      ]
+    },
+    {
+      "record_key": "D38:11",
+      "name": "Stochastic texture tiling",
+      "starting_principles": [
+        "PRNG estable; celdas y pesos de mezcla continuos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "cell=floor(p/cellSize)",
+          "justification": "Determinar celda espacial."
+        },
+        {
+          "step": 2,
+          "equation": "T_i(p)=T(R_i p+o_i)",
+          "justification": "Aplicar rotación/offset pseudoaleatorios por celda."
+        },
+        {
+          "step": 3,
+          "equation": "w_i(p)≥0; Σ_iw_i=1",
+          "justification": "Construir pesos de transición entre celdas."
+        },
+        {
+          "step": 4,
+          "equation": "C(p)=Σ_iw_i(p)T_i(p)",
+          "justification": "Mezclar muestras de celdas vecinas."
+        }
+      ],
+      "assumptions": [
+        "PRNG estable; celdas y pesos de mezcla continuos.",
+        "Las coordenadas de textura usan frecuencia espacial L⁻¹; los offsets o_i permanecen en longitud antes de la conversión a UV."
+      ],
+      "result": "Stochastic tiling rompe repetición mediante transformaciones de celda y mezcla ponderada.",
+      "limits": [
+        "Mezcla puede producir ghosting/desenfoque; evitar costuras en pesos."
+      ],
+      "dimensional_verification": [
+        "x has L; texture frequency has L⁻¹; transformed UV coordinates are dimensionless.",
+        "R_i is dimensionless rotation; o_i has L; w_i dimensionless and sum to 1; C preserves texture signal."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "12/12 técnicas D38 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "BRDF, absorción, SSS, sheen y GGX conservan unidades ópticas",
+      "Thin-film y fluorescencia distinguen longitud de onda, fase y kernel espectral",
+      "Bump, triplanar y stochastic tiling convierten coordenadas/gradientes a magnitudes adimensionales"
+    ],
+    "limitations": [
+      "Las fórmulas ópticas son modelos aproximados; perfiles SSS, espectros de fluorescencia y materiales multicapa requieren calibración y validación visual posterior."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

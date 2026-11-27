@@ -1,0 +1,566 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D27 Multitudes, navegación y comportamiento",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D27",
+    "record_count": 13,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D27 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D27:0",
+      "name": "A* pathfinding",
+      "starting_principles": [
+        "Heurística admisible; costes no negativos.",
+        "Grafo finito y estado inicial/objetivo definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "g(n)=cost(start→n)",
+          "justification": "Acumular coste conocido desde inicio."
+        },
+        {
+          "step": 2,
+          "equation": "h(n)≤h*(n)",
+          "justification": "Usar heurística admisible que no sobreestima coste restante."
+        },
+        {
+          "step": 3,
+          "equation": "f(n)=g(n)+h(n)",
+          "justification": "Priorizar nodo por coste estimado total."
+        },
+        {
+          "step": 4,
+          "equation": "expand minimum-f node until goal",
+          "justification": "La admisibilidad permite recuperar ruta óptima con condiciones estándar."
+        }
+      ],
+      "assumptions": [
+        "Heurística admisible; costes no negativos.",
+        "Grafo finito y estado inicial/objetivo definidos."
+      ],
+      "result": "A* deriva de combinar coste acumulado y cota inferior de coste restante.",
+      "limits": [
+        "Heurística no admisible puede perder optimalidad."
+      ],
+      "dimensional_verification": [
+        "g(n) y h(n) comparten unidad de coste (L, T o coste abstracto declarado); f(n) conserva esa unidad.",
+        "n y prioridades son índices discretos; heurística admisible no altera dimensiones."
+      ]
+    },
+    {
+      "record_key": "D27:1",
+      "name": "Dijkstra",
+      "starting_principles": [
+        "Pesos de arista no negativos; grafo finito.",
+        "Distancia acumulada y prioridad en misma unidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dist(start)=0; others=∞",
+          "justification": "Inicializar distancias."
+        },
+        {
+          "step": 2,
+          "equation": "u=unvisited node with minimum dist",
+          "justification": "Seleccionar frontera de menor coste tentativo."
+        },
+        {
+          "step": 3,
+          "equation": "dist(v)=min(dist(v),dist(u)+w(u,v))",
+          "justification": "Relajar aristas."
+        },
+        {
+          "step": 4,
+          "equation": "repeat until all reachable settled",
+          "justification": "Con pesos no negativos, distancias asentadas son óptimas."
+        }
+      ],
+      "assumptions": [
+        "Pesos de arista no negativos; grafo finito.",
+        "Distancia acumulada y prioridad en misma unidad."
+      ],
+      "result": "Dijkstra deriva de relajación iterativa con extracción de distancia mínima.",
+      "limits": [
+        "Con aristas negativas el algoritmo no garantiza resultado correcto."
+      ],
+      "dimensional_verification": [
+        "cost(u,v) y dist(v) tienen misma unidad; sumas y mínimos son homogéneos.",
+        "Nodos y colas de prioridad son discretos."
+      ]
+    },
+    {
+      "record_key": "D27:2",
+      "name": "Flow fields",
+      "starting_principles": [
+        "Campo de coste definido; discretización y bordes válidos.",
+        "Objetivo alcanzable o región inaccesible marcada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "cost(x)=shortestPathCost(x,goal)",
+          "justification": "Resolver potencial de coste desde cada celda al objetivo."
+        },
+        {
+          "step": 2,
+          "equation": "d(x)=−∇cost(x)",
+          "justification": "Descender el gradiente de coste para seguir dirección de menor coste."
+        },
+        {
+          "step": 3,
+          "equation": "dir(x)=normalize(d(x))",
+          "justification": "Normalizar campo de dirección."
+        },
+        {
+          "step": 4,
+          "equation": "agents follow dir(x)",
+          "justification": "Cada agente consulta el mismo campo y se desplaza."
+        }
+      ],
+      "assumptions": [
+        "Campo de coste definido; discretización y bordes válidos.",
+        "Objetivo alcanzable o región inaccesible marcada."
+      ],
+      "result": "Flow fields convierten un mapa de coste global en direcciones locales compartidas.",
+      "limits": [
+        "Gradientes discretos pueden atascarse en mínimos locales o zonas planas."
+      ],
+      "dimensional_verification": [
+        "∇cost tiene unidad coste/L; normalizar produce dirección adimensional.",
+        "El campo de dirección no es velocidad hasta multiplicarlo por rapidez L/T."
+      ]
+    },
+    {
+      "record_key": "D27:3",
+      "name": "Social force model",
+      "starting_principles": [
+        "Parámetros calibrados; agentes y obstáculos en mismo marco.",
+        "Modelo de fuerzas es aproximación de comportamiento."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_goal=k_g(v_desired−v)",
+          "justification": "Acelerar para aproximarse a velocidad deseada."
+        },
+        {
+          "step": 2,
+          "equation": "F_agent=Σ_j f_repulsion(p_i−p_j)",
+          "justification": "Acumular interacción de separación con vecinos."
+        },
+        {
+          "step": 3,
+          "equation": "F_obstacle=Σ_k f_obstacle(distance_k)",
+          "justification": "Añadir evasión de obstáculos."
+        },
+        {
+          "step": 4,
+          "equation": "m a=F_goal+F_agent+F_obstacle",
+          "justification": "Aplicar dinámica simplificada de agente."
+        }
+      ],
+      "assumptions": [
+        "Parámetros calibrados; agentes y obstáculos en mismo marco.",
+        "Modelo de fuerzas es aproximación de comportamiento."
+      ],
+      "result": "El modelo social combina objetivo, interacción con agentes y obstáculos en una dinámica simplificada.",
+      "limits": [
+        "Los parámetros no representan conducta humana completa ni normas de tránsito."
+      ],
+      "dimensional_verification": [
+        "m_i tiene kg; a_i L/T²; m_i a_i tiene N; todas las fuerzas sumadas tienen N.",
+        "k_g en F_goal=k_g(v_des−v) tiene kg/s; fuerzas de agentes/obstáculos tienen N."
+      ]
+    },
+    {
+      "record_key": "D27:4",
+      "name": "ORCA",
+      "starting_principles": [
+        "Agentes con radios/velocidades/horizonte definidos.",
+        "La región segura y preferred velocity comparten espacio."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "VO_i={v: trajectories collide within horizon}",
+          "justification": "Definir velocidades que producen colisión futura dentro del horizonte."
+        },
+        {
+          "step": 2,
+          "equation": "ORCA_i=halfPlane(boundary of reciprocal velocity obstacle)",
+          "justification": "Asignar a cada agente media responsabilidad de evitar colisión."
+        },
+        {
+          "step": 3,
+          "equation": "V_safe=∩_i ORCA_i",
+          "justification": "Intersecar semiplanos seguros."
+        },
+        {
+          "step": 4,
+          "equation": "v*=argmin_{v∈V_safe}||v−v_preferred||",
+          "justification": "Elegir velocidad segura más cercana a la preferida."
+        }
+      ],
+      "assumptions": [
+        "Agentes con radios/velocidades/horizonte definidos.",
+        "La región segura y preferred velocity comparten espacio."
+      ],
+      "result": "ORCA elige velocidad preferida dentro de intersección de semiplanos que evitan colisiones futuras.",
+      "limits": [
+        "ORCA depende de estimación de velocidad/radio y horizonte; no garantiza seguridad ante percepción incompleta."
+      ],
+      "dimensional_verification": [
+        "p y radios tienen L; velocidades L/T; horizonte τ tiene T; vτ tiene L.",
+        "Los semiplanos están definidos en espacio de velocidades L/T; la velocidad elegida conserva L/T."
+      ]
+    },
+    {
+      "record_key": "D27:5",
+      "name": "Boids separation",
+      "starting_principles": [
+        "Radio de vecinos positivo; posiciones finitas.",
+        "Coincidencia de posiciones requiere fallback."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_i=−Σ_j(p_j−p_i)/||p_j−p_i||²",
+          "justification": "Repeler vecinos con mayor peso a menor distancia."
+        },
+        {
+          "step": 2,
+          "equation": "normalize/limit(S_i)",
+          "justification": "Limitar magnitud para evitar singularidades."
+        },
+        {
+          "step": 3,
+          "equation": "a_i=w_sS_i",
+          "justification": "Convertir dirección de separación en aceleración con ganancia dimensional."
+        }
+      ],
+      "assumptions": [
+        "Radio de vecinos positivo; posiciones finitas.",
+        "Coincidencia de posiciones requiere fallback."
+      ],
+      "result": "Separación deriva de repulsión local ponderada por distancia.",
+      "limits": [
+        "Separación sola puede producir oscilación o dispersión excesiva."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; normalize(S_i) es adimensional.",
+        "Para a_i=w_sS_i, w_s tiene L²/T² y a_i tiene L/T²."
+      ]
+    },
+    {
+      "record_key": "D27:6",
+      "name": "Boids alignment",
+      "starting_principles": [
+        "Vecindad definida; velocidades finitas.",
+        "Ganancia w_a tiene unidad temporal inversa para aceleración."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "v_mean=mean(v_j for j∈N_i)",
+          "justification": "Calcular velocidad media de vecinos."
+        },
+        {
+          "step": 2,
+          "equation": "A_i=v_mean−v_i",
+          "justification": "Obtener error de alineación."
+        },
+        {
+          "step": 3,
+          "equation": "a_i=w_aA_i",
+          "justification": "Escalar corrección a aceleración."
+        }
+      ],
+      "assumptions": [
+        "Vecindad definida; velocidades finitas.",
+        "Ganancia w_a tiene unidad temporal inversa para aceleración.",
+        "w_a tiene unidad T⁻¹ para convertir diferencia de velocidades en aceleración."
+      ],
+      "result": "Alineación deriva de reducir diferencia respecto a velocidad media vecinal.",
+      "limits": [
+        "Alineación sola puede colapsar velocidades sin cohesión."
+      ],
+      "dimensional_verification": [
+        "A_i=v_mean−v_i tiene L/T.",
+        "Para a_i=w_aA_i, w_a tiene T⁻¹ y a_i tiene L/T²."
+      ]
+    },
+    {
+      "record_key": "D27:7",
+      "name": "Boids cohesion",
+      "starting_principles": [
+        "Centroide definido para N_i no vacío.",
+        "Ganancia w_c tiene unidad T⁻²."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_mean=mean(p_j for j∈N_i)",
+          "justification": "Calcular centroide de vecinos."
+        },
+        {
+          "step": 2,
+          "equation": "C_i=p_mean−p_i",
+          "justification": "Vector hacia centro local."
+        },
+        {
+          "step": 3,
+          "equation": "a_i=w_cC_i",
+          "justification": "Escalar cohesión a aceleración."
+        }
+      ],
+      "assumptions": [
+        "Centroide definido para N_i no vacío.",
+        "Ganancia w_c tiene unidad T⁻².",
+        "w_c tiene unidad T⁻² para convertir vector de posición a aceleración."
+      ],
+      "result": "Cohesión deriva de dirigir al agente hacia el centroide de su vecindad.",
+      "limits": [
+        "Cohesión sola puede causar aglomeración."
+      ],
+      "dimensional_verification": [
+        "C_i=p_mean−p_i tiene L.",
+        "Para a_i=w_cC_i, w_c tiene T⁻² y a_i tiene L/T²."
+      ]
+    },
+    {
+      "record_key": "D27:8",
+      "name": "Agent state machine",
+      "starting_principles": [
+        "Estados y transiciones finitos; prioridades definidas.",
+        "Condiciones evaluables y deterministas si se exige repetibilidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "state_t∈S",
+          "justification": "Definir conjunto finito de estados."
+        },
+        {
+          "step": 2,
+          "equation": "enabled=conditions(state_t,input_t)",
+          "justification": "Evaluar guardas de transición."
+        },
+        {
+          "step": 3,
+          "equation": "state_{t+1}=δ(state_t,input_t)",
+          "justification": "Aplicar función de transición determinista o priorizada."
+        },
+        {
+          "step": 4,
+          "equation": "output=action(state_{t+1})",
+          "justification": "Ejecutar comportamiento asociado."
+        }
+      ],
+      "assumptions": [
+        "Estados y transiciones finitos; prioridades definidas.",
+        "Condiciones evaluables y deterministas si se exige repetibilidad."
+      ],
+      "result": "Una máquina de estados es una función de transición sobre estados y condiciones.",
+      "limits": [
+        "Transiciones mal priorizadas pueden oscilar entre estados."
+      ],
+      "dimensional_verification": [
+        "state, conditions, transition IDs y priority son discretos/booleanos; no se suman como magnitudes físicas.",
+        "tiene T si las transiciones incluyen duración/timeout."
+      ]
+    },
+    {
+      "record_key": "D27:9",
+      "name": "Utility AI",
+      "starting_principles": [
+        "Features normalizadas o pesos dimensionalmente tipados.",
+        "Acciones y desempate definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "features_k=φ_k(state)",
+          "justification": "Extraer características de estado."
+        },
+        {
+          "step": 2,
+          "equation": "score(a)=Σ_kw_{a,k}features_k",
+          "justification": "Calcular utilidad de cada acción."
+        },
+        {
+          "step": 3,
+          "equation": "a*=argmax_a score(a)",
+          "justification": "Elegir acción de puntuación máxima."
+        },
+        {
+          "step": 4,
+          "equation": "tie-break priority/seed",
+          "justification": "Resolver empates de forma estable."
+        }
+      ],
+      "assumptions": [
+        "Features normalizadas o pesos dimensionalmente tipados.",
+        "Acciones y desempate definidos."
+      ],
+      "result": "Utility AI deriva de puntuación ponderada y selección de máximo.",
+      "limits": [
+        "Scores no calibrados pueden dominar por escala de features."
+      ],
+      "dimensional_verification": [
+        "Features y scores son adimensionales si están normalizados; pesos adimensionales.",
+        "Si una feature conserva unidad física, su peso debe compensarla antes de sumar."
+      ]
+    },
+    {
+      "record_key": "D27:10",
+      "name": "Crowd LOD",
+      "starting_principles": [
+        "Resolución, cámara y prioridad disponibles.",
+        "Tiers de detalle discretos y transiciones estables."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "s_i=f_px·radius_i/depth_i",
+          "justification": "Estimar tamaño proyectado en píxeles."
+        },
+        {
+          "step": 2,
+          "equation": "importance_i=priority_i·visibility_i",
+          "justification": "Combinar relevancia y visibilidad."
+        },
+        {
+          "step": 3,
+          "equation": "detail_i=thresholdOrCurve(s_i,importance_i)",
+          "justification": "Asignar nivel de detalle."
+        },
+        {
+          "step": 4,
+          "equation": "render by LOD tier",
+          "justification": "Usar rig/mesh simplificado para agentes lejanos."
+        }
+      ],
+      "assumptions": [
+        "Resolución, cámara y prioridad disponibles.",
+        "Tiers de detalle discretos y transiciones estables."
+      ],
+      "result": "Crowd LOD deriva de error proyectado y relevancia por agente.",
+      "limits": [
+        "El tamaño proyectado no capta por sí solo importancia narrativa o interacción."
+      ],
+      "dimensional_verification": [
+        "f_px y screenSize usan px; radius/depth es adimensional; s_i queda en px.",
+        "distance tiene L; importance es adimensional; detail es índice discreto."
+      ]
+    },
+    {
+      "record_key": "D27:11",
+      "name": "Campos vectoriales para trayectorias y partículas",
+      "starting_principles": [
+        "Campo V y condiciones iniciales definidos.",
+        "Δt y unidades del estado coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dx/dt=V(x,t)",
+          "justification": "Definir trayectoria como solución de una EDO."
+        },
+        {
+          "step": 2,
+          "equation": "k_1=V(x_n,t_n)",
+          "justification": "Evaluar pendiente inicial."
+        },
+        {
+          "step": 3,
+          "equation": "x_{n+1}=x_n+ΔtV(x_n,t_n)",
+          "justification": "Euler explícito como esquema básico."
+        },
+        {
+          "step": 4,
+          "equation": "RK4 weighted slopes",
+          "justification": "Mejorar orden integrando cuatro pendientes."
+        }
+      ],
+      "assumptions": [
+        "Campo V y condiciones iniciales definidos.",
+        "Δt y unidades del estado coherentes."
+      ],
+      "result": "Los campos vectoriales generan trayectorias como soluciones de una EDO.",
+      "limits": [
+        "El integrador no corrige un campo vectorial mal definido."
+      ],
+      "dimensional_verification": [
+        "x tiene L; V tiene L/T; Δt tiene T; ΔtV tiene L.",
+        "Cada pendiente RK4 tiene L/T y la suma ponderada produce estado con L."
+      ]
+    },
+    {
+      "record_key": "D27:12",
+      "name": "Boids con separación, alineación y cohesión",
+      "starting_principles": [
+        "Vecindad por radio; ganancias tipadas a aceleración.",
+        "Velocidad máxima y aceleración máxima declaradas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_i=separation(N_i); A_i=mean(v_j)−v_i; C_i=mean(p_j)−p_i",
+          "justification": "Calcular tres reglas locales."
+        },
+        {
+          "step": 2,
+          "equation": "a_i=(L²/T²)S_i+(T⁻¹)A_i+(T⁻²)C_i",
+          "justification": "Asignar a cada regla una ganancia dimensional que convierte separación, alineación y cohesión en aceleraciones compatibles antes de sumarlas."
+        },
+        {
+          "step": 3,
+          "equation": "v_i'=limit(v_i+a_iΔt)",
+          "justification": "Actualizar y limitar velocidad."
+        },
+        {
+          "step": 4,
+          "equation": "p_i'=p_i+v_i'Δt",
+          "justification": "Integrar posición."
+        }
+      ],
+      "assumptions": [
+        "Vecindad por radio; ganancias tipadas a aceleración.",
+        "Velocidad máxima y aceleración máxima declaradas.",
+        "Los coeficientes tienen unidades w_s=L²/T², w_a=T⁻¹ y w_c=T⁻²; no son pesos adimensionales genéricos."
+      ],
+      "result": "Boids combina tres términos locales y una integración cinemática.",
+      "limits": [
+        "Pesos y límites requieren calibración para evitar inestabilidad."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; A_i L/T; C_i L; no se pueden sumar directamente.",
+        "Para aceleración: w_s L²/T², w_a T⁻¹, w_c T⁻²; cada término queda L/T²."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "13/13 técnicas D27 cubiertas; ninguna protegida",
+      "Cada derivación tiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Boids separa las unidades de separación, alineación y cohesión y declara ganancias para convertir a aceleración",
+      "Social force distingue fuerza, masa, velocidad y tiempo de relajación",
+      "ORCA opera en espacio de velocidades y usa horizonte temporal con unidades",
+      "A* y Dijkstra requieren costes y heurísticas homogéneos; crowd LOD separa px y metros"
+    ],
+    "limitations": [
+      "Los modelos de multitud/peatones son aproximaciones; no representan conducta humana completa ni sustituyen análisis de seguridad de tránsito."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

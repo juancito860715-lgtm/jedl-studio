@@ -1,0 +1,496 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D05 Vegetación, hojas, árboles e insectos",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D05",
+    "record_count": 10,
+    "excluded_protected_records": 3,
+    "excluded_keys": [
+      "D05:6",
+      "D05:7",
+      "D05:9"
+    ],
+    "excluded_reason": "Viento por altura, viento con ráfagas y miles de hojas preservados sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D05:0",
+      "name": "Árbol recursivo",
+      "starting_principles": [
+        "Número de hijos finito por nodo.",
+        "Escalas y ángulos definidos por nivel o semilla reproducible."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "B_0=trunk",
+          "justification": "Definir el tronco como estructura inicial."
+        },
+        {
+          "step": 2,
+          "equation": "B_{n+1}^{(j)}=T_j(B_n;θ_j,s_j)",
+          "justification": "Aplicar transformaciones por rama para generar hijos con rotación θ_j y escala s_j."
+        },
+        {
+          "step": 3,
+          "equation": "B_{n+1}=⋃_j B_{n+1}^{(j)}",
+          "justification": "Unir las ramas generadas para formar el siguiente nivel."
+        },
+        {
+          "step": 4,
+          "equation": "length_{n+1}=s_j length_n",
+          "justification": "La escala de cada transformación determina la reducción/aumento de rama."
+        }
+      ],
+      "assumptions": [
+        "Número de hijos finito por nodo.",
+        "Escalas y ángulos definidos por nivel o semilla reproducible.",
+        "Profundidad máxima finita."
+      ],
+      "result": "La ramificación se obtiene por composición iterada de transformaciones afines.",
+      "limits": [
+        "Si escalas no decrecen o la ramificación es alta, coste y tamaño pueden crecer exponencialmente."
+      ],
+      "dimensional_verification": [
+        "Las transformaciones lineales de rama son adimensionales; traslaciones y puntos tienen L.",
+        "length_{n+1}=s_j length_n conserva L porque s_j es una razón adimensional."
+      ]
+    },
+    {
+      "record_key": "D05:1",
+      "name": "L-system",
+      "starting_principles": [
+        "Alfabeto y reglas finitos; orden de reescritura definido.",
+        "Longitudes de avance y ángulos de giro se parametrizan por separado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Axiom_0=ω",
+          "justification": "Definir palabra inicial."
+        },
+        {
+          "step": 2,
+          "equation": "ω_{n+1}=rewrite(ω_n,R)",
+          "justification": "Aplicar simultáneamente reglas de producción a cada símbolo."
+        },
+        {
+          "step": 3,
+          "equation": "interpret(ω_n)→turtle commands",
+          "justification": "Convertir símbolos en avance, giro, ramificación y retorno de estado."
+        },
+        {
+          "step": 4,
+          "equation": "branch geometry = integrate turtle state",
+          "justification": "Acumular posición y orientación para emitir segmentos."
+        }
+      ],
+      "assumptions": [
+        "Alfabeto y reglas finitos; orden de reescritura definido.",
+        "Longitudes de avance y ángulos de giro se parametrizan por separado.",
+        "Iteraciones acotadas."
+      ],
+      "result": "La gramática genera una secuencia de símbolos que se interpreta como geometría.",
+      "limits": [
+        "La longitud de palabra puede crecer exponencialmente; limitar generaciones y usar poda."
+      ],
+      "dimensional_verification": [
+        "Longitudes turtle tienen L; ángulos radianes y símbolos/índices son adimensionales/discretos.",
+        "Las probabilidades de reglas son adimensionales y suman 1 en cada contexto de producción."
+      ]
+    },
+    {
+      "record_key": "D05:2",
+      "name": "Distribución Poisson disk",
+      "starting_principles": [
+        "r_min>0 y dominio acotado.",
+        "La distancia usa métrica euclidiana y unidad de longitud común."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "D={p_i}",
+          "justification": "Definir conjunto de muestras dentro del dominio."
+        },
+        {
+          "step": 2,
+          "equation": "∀i≠j: ||p_i−p_j||≥r_min",
+          "justification": "Imponer distancia mínima entre muestras."
+        },
+        {
+          "step": 3,
+          "equation": "candidate p∼Uniform(domain)",
+          "justification": "Generar candidato según muestreo del dominio."
+        },
+        {
+          "step": 4,
+          "equation": "accept(p) iff min_i ||p−p_i||≥r_min",
+          "justification": "Aceptar solo si satisface separación con todas las muestras previas."
+        },
+        {
+          "step": 5,
+          "equation": "repeat until budget/coverage",
+          "justification": "Terminar al agotar candidatos, presupuesto o cobertura objetivo."
+        }
+      ],
+      "assumptions": [
+        "r_min>0 y dominio acotado.",
+        "La distancia usa métrica euclidiana y unidad de longitud común.",
+        "La implementación acelerada conserva prueba exacta de distancia."
+      ],
+      "result": "El muestreo es un proceso de aceptación/rechazo condicionado por una exclusión radial.",
+      "limits": [
+        "El resultado no es necesariamente maximal si se detiene por presupuesto antes de cubrir todo el dominio."
+      ],
+      "dimensional_verification": [
+        "p_i, p_j y r_min tienen L; la desigualdad de separación es homogénea.",
+        "El muestreo uniforme opera sobre una medida de área/volumen declarada."
+      ]
+    },
+    {
+      "record_key": "D05:3",
+      "name": "Phyllotaxis",
+      "starting_principles": [
+        "n entero no negativo; c>0.",
+        "γ en radianes; plano y centro definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "θ_n=n·γ",
+          "justification": "Asignar un giro constante γ por índice."
+        },
+        {
+          "step": 2,
+          "equation": "r_n=c√n",
+          "justification": "Aumentar radio proporcional a raíz cuadrada del índice."
+        },
+        {
+          "step": 3,
+          "equation": "p_n=(r_n cosθ_n,r_n sinθ_n)",
+          "justification": "Convertir coordenadas polares a plano."
+        },
+        {
+          "step": 4,
+          "equation": "γ≈π(3−√5)",
+          "justification": "Elegir ángulo áureo para distribuir direcciones sin repetición periódica simple."
+        }
+      ],
+      "assumptions": [
+        "n entero no negativo; c>0.",
+        "γ en radianes; plano y centro definidos.",
+        "La fórmula es patrón geométrico, no ley universal de crecimiento."
+      ],
+      "result": "La distribución radial √n y el giro constante producen cobertura aproximadamente uniforme del disco.",
+      "limits": [
+        "La densidad depende del tamaño de dominio y del rango de n; no garantiza separación mínima estricta."
+      ],
+      "dimensional_verification": [
+        "n es un índice entero adimensional; θ_n es angular adimensional.",
+        "c tiene L y √n es adimensional; r_n tiene L; el área πr_n² tiene L²."
+      ]
+    },
+    {
+      "record_key": "D05:4",
+      "name": "Curva de tallo",
+      "starting_principles": [
+        "u∈[0,1]; r_0>0; γ>0.",
+        "Marco N,B ortonormal y transportado suavemente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(u)=Bezier/CatmullRom(u)",
+          "justification": "Definir eje central a partir de puntos de control."
+        },
+        {
+          "step": 2,
+          "equation": "r(u)=r_0(1−u)^γ",
+          "justification": "Definir taper decreciente desde base a punta."
+        },
+        {
+          "step": 3,
+          "equation": "T=normalize(C'(u))",
+          "justification": "Obtener tangente local."
+        },
+        {
+          "step": 4,
+          "equation": "P(u,θ)=C(u)+r(u)(N cosθ+B sinθ)",
+          "justification": "Construir sección transversal en marco perpendicular a la curva."
+        }
+      ],
+      "assumptions": [
+        "u∈[0,1]; r_0>0; γ>0.",
+        "Marco N,B ortonormal y transportado suavemente.",
+        "C'(u) no nulo donde se evalúa."
+      ],
+      "result": "La curva define el eje y el perfil de radio define la sección tubular.",
+      "limits": [
+        "La fórmula de radio se anula en la punta; la malla debe cerrar o colapsar sin degeneraciones no controladas."
+      ],
+      "dimensional_verification": [
+        "C(u), r_0 y r(u) tienen L; u y γ son adimensionales.",
+        "T,N,B son direcciones adimensionales; P(u,θ) conserva L."
+      ]
+    },
+    {
+      "record_key": "D05:5",
+      "name": "Forma de hoja",
+      "starting_principles": [
+        "C y w usan misma unidad espacial.",
+        "T y N unitarios; si cross≈0, cambiar vector de referencia."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(u)=centrolinea(u)",
+          "justification": "Definir nervio central como curva."
+        },
+        {
+          "step": 2,
+          "equation": "w(u)≥0",
+          "justification": "Definir semiancho variable a lo largo del nervio."
+        },
+        {
+          "step": 3,
+          "equation": "P(u,v)=C(u)+v w(u)N(u), v∈[−1,1]",
+          "justification": "Extender puntos a ambos lados de la línea central."
+        },
+        {
+          "step": 4,
+          "equation": "N(u)=normalize(cross(T(u),up))",
+          "justification": "Construir dirección transversal a partir de tangente y vector de referencia."
+        }
+      ],
+      "assumptions": [
+        "C y w usan misma unidad espacial.",
+        "T y N unitarios; si cross≈0, cambiar vector de referencia.",
+        "El perfil de ancho se limita a valores no negativos."
+      ],
+      "result": "La hoja se genera como una superficie parametrizada alrededor de su nervio central.",
+      "limits": [
+        "La fórmula plana no incluye espesor, borde dentado ni curvatura de la lámina; se añaden desplazamientos/atributos."
+      ],
+      "dimensional_verification": [
+        "C(u), w(u) y P(u,v) tienen L; v es adimensional y N es unitario.",
+        "Las derivadas de P respecto de parámetros adimensionales tienen L; el producto cruzado usado para normalizar la normal tiene L² antes de normalización."
+      ]
+    },
+    {
+      "record_key": "D05:8",
+      "name": "Hojas cayendo",
+      "starting_principles": [
+        "Aceleración por tramo constante o integrador temporal definido.",
+        "Posición y velocidad usan mismas unidades de tiempo/longitud."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "a_wind(t)=F_wind(t)/m",
+          "justification": "La segunda ley de Newton convierte la fuerza de viento en aceleración, siempre que F_wind esté expresada en newtons y m en kilogramos."
+        },
+        {
+          "step": 2,
+          "equation": "drift(t)=∫₀ᵗ(t−τ)a_wind(τ)dτ",
+          "justification": "Integrar dos veces la aceleración de viento con desplazamiento y velocidad de deriva iniciales nulos produce un desplazamiento de longitud."
+        },
+        {
+          "step": 3,
+          "equation": "p(t)=p0+v0t+½gt²+drift(t)",
+          "justification": "La trayectoria es la suma de posición inicial, movimiento con velocidad inicial, desplazamiento gravitatorio y desplazamiento adicional del viento."
+        },
+        {
+          "step": 4,
+          "equation": "si a_wind es constante: drift(t)=½a_wind t²",
+          "justification": "La integral doble de aceleración constante se reduce a la ecuación de movimiento uniformemente acelerado."
+        },
+        {
+          "step": 5,
+          "equation": "θ(t)=θ0+ωt; q(t)=axisAngle(axis,θ(t))",
+          "justification": "Integrar velocidad angular constante produce un ángulo; axisAngle construye una orientación unitaria alrededor de un eje normalizado."
+        }
+      ],
+      "assumptions": [
+        "m>0; fuerza y masa definidas; a_wind integrable.",
+        "p0 y p tienen L; v0 L/T; g y a_wind L/T².",
+        "ω constante en el tramo y eje de giro unitario; si ω varía, integrar ω(t)."
+      ],
+      "result": "La caída de la hoja se deriva como movimiento balístico más desplazamiento integrado del viento; la orientación se deriva de la velocidad angular.",
+      "limits": [
+        "Para viento variable, la forma cerrada requiere evaluar la integral; si se aproxima por tramos, declarar paso y error.",
+        "La orientación puede necesitar integración de velocidad angular vectorial si el eje cambia."
+      ],
+      "dimensional_verification": [
+        "F_wind/m tiene L/T²; la integral doble de aceleración sobre tiempo produce drift con L.",
+        "p0, v0t, gt² y drift tienen L; ωt es un ángulo adimensional y q es orientación unitaria."
+      ]
+    },
+    {
+      "record_key": "D05:10",
+      "name": "Pasto procedural",
+      "starting_principles": [
+        "s∈[0,1]; height>0.",
+        "A(s) tiene unidad de longitud; w(t) adimensional."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "b(s)=base+s·height·up,  s∈[0,1]",
+          "justification": "Construir la línea central desde la base hasta la punta con altura física height y dirección up unitaria."
+        },
+        {
+          "step": 2,
+          "equation": "bend(s,t)=A(s)w(t)dir",
+          "justification": "Definir desplazamiento lateral de viento con amplitud espacial A(s), señal temporal w(t) y dirección unitaria dir."
+        },
+        {
+          "step": 3,
+          "equation": "P(s,v,t)=b(s)+bend(s,t)+v·width(s)N(s),  v∈[−1,1]",
+          "justification": "Extender la línea central a una lámina de ancho width(s) alrededor de su dirección transversal N(s)."
+        },
+        {
+          "step": 4,
+          "equation": "N(s)=normalize(T(s)×up_ref); T=normalize(∂b/∂s)",
+          "justification": "Construir marco local de la hoja; usar referencia alternativa si el producto cruzado es casi nulo."
+        },
+        {
+          "step": 5,
+          "equation": "n=normalize(P_s×P_v)",
+          "justification": "Obtener la normal geométrica de la lámina a partir de sus tangentes paramétricas."
+        }
+      ],
+      "assumptions": [
+        "s y v adimensionales; height y width(s) tienen L.",
+        "A(s) tiene L; w(t) adimensional; dir y up_ref unitarios.",
+        "El marco transversal se estabiliza para evitar flips."
+      ],
+      "result": "Cada brizna es una lámina parametrizada cuya línea central se deforma por el viento y cuyo ancho se controla a lo largo de la altura.",
+      "limits": [
+        "La lámina no incorpora espesor; doble cara o espesor se trata por material/geometría adicional.",
+        "Si P_s×P_v≈0, la normal no está definida y debe usarse fallback."
+      ],
+      "dimensional_verification": [
+        "base y height tienen L; s y v son adimensionales; bend y ancho w(s) tienen L.",
+        "Las derivadas paramétricas de la lámina tienen L y su producto cruzado tiene L² antes de normalizar la normal."
+      ]
+    },
+    {
+      "record_key": "D05:11",
+      "name": "Enjambre de insectos",
+      "starting_principles": [
+        "Ganancias convierten cada término a unidad común de aceleración.",
+        "Semillas y estados finitos; radio de vecindad definido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_i=Σ_{j∈N_i, j≠i}−(p_j−p_i)/||p_j−p_i||²",
+          "justification": "La separación produce un vector de repulsión ponderado inversamente por la distancia cuadrática."
+        },
+        {
+          "step": 2,
+          "equation": "C_i=mean_{j∈N_i}(p_j)−p_i; A_i=mean(v_j)−v_i",
+          "justification": "Cohesión apunta al centroide local; alineación es diferencia entre velocidad media y velocidad propia."
+        },
+        {
+          "step": 3,
+          "equation": "n_i=normalize(p_light−p_i); ξ_i=noise(seed_i,t)",
+          "justification": "Construir dirección hacia la luz y ruido reproducible adimensional."
+        },
+        {
+          "step": 4,
+          "equation": "a_i=w_sS_i+w_cC_i+w_aA_i+w_nξ_i+w_l n_i",
+          "justification": "Convertir todos los términos a aceleración mediante ganancias dimensionales antes de sumarlos."
+        },
+        {
+          "step": 5,
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar aceleración y actualizar posición con paso temporal común."
+        },
+        {
+          "step": 6,
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt)",
+          "justification": "Actualizar velocidad y posición."
+        }
+      ],
+      "assumptions": [
+        "Ganancias convierten cada término a unidad común de aceleración.",
+        "Semillas y estados finitos; radio de vecindad definido.",
+        "Luz y posiciones en marcos compatibles.",
+        "w_s tiene L²/T²; w_c T⁻²; w_a T⁻¹; w_n y w_l L/T²."
+      ],
+      "result": "El movimiento colectivo surge de reglas locales y un campo de atracción ambiental.",
+      "limits": [
+        "No asumir que los vectores crudos tienen unidades homogéneas; definir ganancias y límites."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; C_i tiene L; A_i tiene L/T; noise y dirección a luz son adimensionales si normalizados.",
+        "Para aceleración: w_s L²/T², w_c T⁻², w_a T⁻¹ y w_n,w_l L/T²; todos los términos quedan L/T²."
+      ]
+    },
+    {
+      "record_key": "D05:12",
+      "name": "Aves en bandada",
+      "starting_principles": [
+        "Los términos de Boids se escalan dimensionalmente a aceleración.",
+        "La trayectoria líder comparte marco y unidad con agentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_i=Σ−(p_j−p_i)/||p_j−p_i||²; A_i=mean(v_j)−v_i; C_i=mean(p_j)−p_i",
+          "justification": "Definir separación, alineación y cohesión desde el vecindario local."
+        },
+        {
+          "step": 2,
+          "equation": "L_i=p_leader(t)−p_i",
+          "justification": "Obtener vector de seguimiento hacia la posición del líder en el tiempo t."
+        },
+        {
+          "step": 3,
+          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i+w_lL_i",
+          "justification": "Homogeneizar cada término a aceleración con ganancias dimensionales antes de la suma."
+        },
+        {
+          "step": 4,
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar el campo de aceleración y actualizar la posición de cada ave."
+        }
+      ],
+      "assumptions": [
+        "Los términos de Boids se escalan dimensionalmente a aceleración.",
+        "La trayectoria líder comparte marco y unidad con agentes.",
+        "La fuerza de líder tiene ganancia tipada.",
+        "w_s tiene L²/T²; w_a T⁻¹; w_c T⁻²; w_l T⁻²."
+      ],
+      "result": "La bandada combina reglas locales de Boids con una referencia de trayectoria.",
+      "limits": [
+        "El seguimiento de líder puede dominar cohesión si la ganancia no está acotada."
+      ],
+      "dimensional_verification": [
+        "S_i tiene L⁻¹; A_i L/T; C_i L; el vector al líder tiene L.",
+        "Las ganancias deben convertir cada término a aceleración: w_s L²/T², w_a T⁻¹, w_c T⁻² y w_l T⁻²."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "10/10 técnicas no protegidas cubiertas; D05:6, D05:7 y D05:9 excluidas por protección",
+      "Cada derivación tiene pasos matemáticos justificados, resultado, supuestos, límites y verificación dimensional",
+      "Se corrigió la integración de viento variable y la orientación de hojas cayendo",
+      "La hoja de pasto queda definida como superficie P(s,v,t), no como curva sin parámetro transversal",
+      "Enjambre de insectos y bandada convierten separación/alineación/cohesión a aceleración mediante ganancias con unidades explícitas",
+      "La derivación de hojas cayendo incluye explícitamente drift(t) como integral doble de la aceleración del viento, coherente con la ficha dimensional."
+    ],
+    "limitations": [
+      "La validación cubre derivaciones matemáticas y dimensiones; algoritmos completos, pseudocódigo y pruebas numéricas se desarrollan en puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

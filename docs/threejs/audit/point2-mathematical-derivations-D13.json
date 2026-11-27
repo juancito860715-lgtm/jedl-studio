@@ -1,0 +1,676 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D13 Cámaras, lentes y lenguaje cinematográfico",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D13",
+    "record_count": 16,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D13 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D13:0",
+      "name": "Perspective projection",
+      "starting_principles": [
+        "z>0; FOV in (0,π).",
+        "Aspect ratio and camera convention declared."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x_sensor=f_phys·x/z; y_sensor=f_phys·y/z",
+          "justification": "Por triángulos semejantes en cámara pinhole, la razón coordenada/profundidad es adimensional y la focal física convierte el resultado a longitud en el plano sensor."
+        },
+        {
+          "step": 2,
+          "equation": "x_pixel=s_x·x_sensor; y_pixel=s_y·y_sensor",
+          "justification": "La densidad de píxeles s_x,s_y [px/m] convierte coordenadas físicas del sensor a coordenadas raster."
+        },
+        {
+          "step": 3,
+          "equation": "f_phys=S/[2tan(FOV/2)]",
+          "justification": "El semialto S/2 y la distancia focal forman un triángulo rectángulo cuyo ángulo en cámara es FOV/2."
+        }
+      ],
+      "assumptions": [
+        "Cámara pinhole ideal; z>0 y eje óptico definido.",
+        "f_phys y S están en unidades físicas del sensor; s_x,s_y describen densidad de píxel."
+      ],
+      "result": "La proyección perspectiva se deriva por triángulos semejantes en el plano físico del sensor; después, una escala px/m convierte a píxeles.",
+      "limits": [
+        "Clipping and lens distortion are separate stages."
+      ],
+      "dimensional_verification": [
+        "x,y,z,f_phys y x_sensor,y_sensor tienen m; x/z es adimensional y f_phys·x/z tiene m.",
+        "s_x,s_y tienen px/m; la salida raster tiene px; FOV y tan(FOV/2) son adimensionales."
+      ]
+    },
+    {
+      "record_key": "D13:1",
+      "name": "Orthographic projection",
+      "starting_principles": [
+        "Bounds nonzero; camera basis orthonormal.",
+        "Aspect ratio handled in projection bounds."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_view=(x,y,z)",
+          "justification": "Expresar el punto en el marco de cámara."
+        },
+        {
+          "step": 2,
+          "equation": "x_sensor=s_x x; y_sensor=s_y y",
+          "justification": "Aplicar escala ortográfica adimensional constante sobre el plano físico de imagen; la profundidad no altera x/y."
+        },
+        {
+          "step": 3,
+          "equation": "x_pixel=ρ_x x_sensor; y_pixel=ρ_y y_sensor; z_depth=z",
+          "justification": "Convertir longitud de sensor a píxeles mediante densidad ρ [px/m] y conservar profundidad lineal para visibilidad."
+        }
+      ],
+      "assumptions": [
+        "Bounds nonzero; camera basis orthonormal.",
+        "Aspect ratio handled in projection bounds."
+      ],
+      "result": "La proyección ortográfica es una transformación afín de x/y independiente de z; el viewport convierte el plano físico a píxeles.",
+      "limits": [
+        "No perspective foreshortening."
+      ],
+      "dimensional_verification": [
+        "x,y,z y x_sensor,y_sensor tienen m; s_x,s_y son adimensionales.",
+        "ρ_x,ρ_y tienen px/m; x_pixel,y_pixel tienen px; z_depth conserva m."
+      ]
+    },
+    {
+      "record_key": "D13:2",
+      "name": "Field of view",
+      "starting_principles": [
+        "FOV in (0,π); aspect>0.",
+        "Vertical/horizontal/diagonal convention explicit."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "tan(FOV/2)=halfHeight/f",
+          "justification": "Use right triangle from camera center to image-plane edge."
+        },
+        {
+          "step": 2,
+          "equation": "f=halfHeight/tan(FOV/2)",
+          "justification": "Solve for focal scale."
+        },
+        {
+          "step": 3,
+          "equation": "FOV_x=2atan(aspect·tan(FOV_y/2))",
+          "justification": "Relate horizontal and vertical FOV through aspect ratio."
+        }
+      ],
+      "assumptions": [
+        "FOV in (0,π); aspect>0.",
+        "Vertical/horizontal/diagonal convention explicit."
+      ],
+      "result": "FOV and focal scale are linked by image-plane geometry.",
+      "limits": [
+        "FOV is not focal length in mm without sensor size."
+      ],
+      "dimensional_verification": [
+        "halfHeight y f tienen L en plano sensor físico; tan(FOV/2) es adimensional.",
+        "FOV_x y FOV_y son ángulos adimensionales; aspect es adimensional."
+      ]
+    },
+    {
+      "record_key": "D13:3",
+      "name": "Depth of field approximation",
+      "starting_principles": [
+        "s,s_focus>f; N>0; f>0.",
+        "Distances measured from principal plane."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "1/f=1/s+1/s'",
+          "justification": "Apply thin-lens equation."
+        },
+        {
+          "step": 2,
+          "equation": "s'_focus=fs_focus/(s_focus−f)",
+          "justification": "Solve image distance for the focused subject."
+        },
+        {
+          "step": 3,
+          "equation": "apertureDiameter=f/N",
+          "justification": "Relate aperture to f-number."
+        },
+        {
+          "step": 4,
+          "equation": "c≈f²|s−s_focus|/[N·s·(s_focus−f)]",
+          "justification": "Substitute image distances and simplify the defocus circle under paraxial assumptions."
+        }
+      ],
+      "assumptions": [
+        "s,s_focus>f; N>0; f>0.",
+        "Distances measured from principal plane.",
+        "Thin-lens/paraxial approximation."
+      ],
+      "result": "Blur-circle approximation follows from thin-lens image geometry and aperture diameter.",
+      "limits": [
+        "Real lenses include aberrations and pupil magnification.",
+        "c es círculo físico sobre el plano sensor; para blur en píxeles se requiere multiplicar por densidad de píxeles del sensor."
+      ],
+      "dimensional_verification": [
+        "f,s,s_focus,c tienen L; N (f-number) es adimensional.",
+        "La fórmula de círculo de confusión produce L; conversión a píxeles requiere escala px/L del sensor."
+      ]
+    },
+    {
+      "record_key": "D13:4",
+      "name": "Look-at orientation",
+      "starting_principles": [
+        "target differs from camera; up_ref not parallel to forward.",
+        "Handedness and camera local-forward convention fixed."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "forward=normalize(target−camera)",
+          "justification": "Aim local forward axis at target."
+        },
+        {
+          "step": 2,
+          "equation": "right=normalize(forward×up_ref)",
+          "justification": "Construct orthogonal right vector."
+        },
+        {
+          "step": 3,
+          "equation": "up=right×forward",
+          "justification": "Complete camera basis."
+        },
+        {
+          "step": 4,
+          "equation": "q=Quaternion.fromRotationMatrix([right,up,−forward])",
+          "justification": "Convert orthonormal frame to orientation quaternion."
+        }
+      ],
+      "assumptions": [
+        "target differs from camera; up_ref not parallel to forward.",
+        "Handedness and camera local-forward convention fixed."
+      ],
+      "result": "Look-at derives camera orientation from an orthonormal frame.",
+      "limits": [
+        "Parallel up/forward requires alternate up reference."
+      ],
+      "dimensional_verification": [
+        "camera, target y posiciones tienen L; forward/right/up son unitarios adimensionales.",
+        "Quaternions y matriz de rotación son adimensionales; el eje de respaldo evita singularidad."
+      ]
+    },
+    {
+      "record_key": "D13:5",
+      "name": "Dolly",
+      "starting_principles": [
+        "Path in world frame; time/speed profile declared.",
+        "Path differentiable or sampled."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(t)=C_0+P(t)",
+          "justification": "Translate camera center along a path."
+        },
+        {
+          "step": 2,
+          "equation": "C'(t)=P'(t)",
+          "justification": "Derivative gives camera velocity."
+        },
+        {
+          "step": 3,
+          "equation": "u=arcLength^{-1}(s)",
+          "justification": "Reparameterize by arc length for controlled speed."
+        }
+      ],
+      "assumptions": [
+        "Path in world frame; time/speed profile declared.",
+        "Path differentiable or sampled."
+      ],
+      "result": "Dolly is camera translation along a designed trajectory.",
+      "limits": [
+        "Non-arc-length parameterization produces variable speed."
+      ],
+      "dimensional_verification": [
+        "C0 y P(t) tienen L; C'(t) tiene L/T si t tiene T.",
+        "Longitud de arco tiene L; su parámetro inverso requiere curva regular."
+      ]
+    },
+    {
+      "record_key": "D13:6",
+      "name": "Truck / pan / tilt",
+      "starting_principles": [
+        "Translations have L; angles radians; quaternions unitary.",
+        "Multiplication order fixed."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C'=C+a·right+b·up+c·forward",
+          "justification": "Translate along camera-local axes."
+        },
+        {
+          "step": 2,
+          "equation": "q'=q_pan⊗q_tilt⊗q",
+          "justification": "Compose rotations in declared order."
+        },
+        {
+          "step": 3,
+          "equation": "basis'=rotate(q',basis)",
+          "justification": "Update camera basis after rotation."
+        }
+      ],
+      "assumptions": [
+        "Translations have L; angles radians; quaternions unitary.",
+        "Multiplication order fixed."
+      ],
+      "result": "Camera movement combines local translation and quaternion rotation.",
+      "limits": [
+        "Changing rotation order changes result."
+      ],
+      "dimensional_verification": [
+        "a,b,c son traslaciones con L; right/up/forward son unitarios.",
+        "Ángulos de pan/tilt son radianes; quaternions son adimensionales."
+      ]
+    },
+    {
+      "record_key": "D13:7",
+      "name": "Crane / jib",
+      "starting_principles": [
+        "Key times increasing; positions in world frame.",
+        "Spline tangents have units L/T if t is seconds."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=(t−t_i)/(t_{i+1}−t_i)",
+          "justification": "Normalize time between position keys."
+        },
+        {
+          "step": 2,
+          "equation": "C(t)=Spline(C_i,C_{i+1},m_i,m_{i+1},u)",
+          "justification": "Interpolate camera path."
+        },
+        {
+          "step": 3,
+          "equation": "C_y(t) controls vertical arc",
+          "justification": "Vertical component defines crane rise/fall."
+        }
+      ],
+      "assumptions": [
+        "Key times increasing; positions in world frame.",
+        "Spline tangents have units L/T if t is seconds."
+      ],
+      "result": "Crane motion is a time-parametrized spline path.",
+      "limits": [
+        "Spline overshoot requires tangent constraints."
+      ],
+      "dimensional_verification": [
+        "C_i y C(t) tienen L; u es adimensional; si la spline usa t en segundos, tangentes tienen L/T.",
+        "FOV(t) es angular y adimensional; su spline no comparte escala con posiciones."
+      ]
+    },
+    {
+      "record_key": "D13:8",
+      "name": "Orbit",
+      "starting_principles": [
+        "r>0; θ in radians; same world frame.",
+        "Orbit axis and target declared."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x=c_x+r cosθ; z=c_z+r sinθ",
+          "justification": "Parametrize circular horizontal path."
+        },
+        {
+          "step": 2,
+          "equation": "y=y_0 or y(θ)",
+          "justification": "Set fixed or varying elevation."
+        },
+        {
+          "step": 3,
+          "equation": "q=lookAt(C(θ),target)",
+          "justification": "Aim camera toward orbit center/subject."
+        }
+      ],
+      "assumptions": [
+        "r>0; θ in radians; same world frame.",
+        "Orbit axis and target declared."
+      ],
+      "result": "Orbit is a circular/elliptical camera trajectory.",
+      "limits": [
+        "Moving targets require updating center and orientation."
+      ],
+      "dimensional_verification": [
+        "c_x,c_z,r,y_0 tienen L; cosθ y sinθ son adimensionales.",
+        "La trayectoria C(θ) conserva L; θ es radianes."
+      ]
+    },
+    {
+      "record_key": "D13:9",
+      "name": "Camera shake",
+      "starting_principles": [
+        "τ>0; amplitudes bounded; seed fixed.",
+        "Position amplitude L; angular amplitude radians."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n(t)=bandLimitedNoise(seed,t)",
+          "justification": "Generate bounded deterministic noise."
+        },
+        {
+          "step": 2,
+          "equation": "A(t)=A_0 exp(−t/τ)",
+          "justification": "Apply decaying envelope."
+        },
+        {
+          "step": 3,
+          "equation": "C'=C+A(t)n(t)",
+          "justification": "Offset camera position."
+        },
+        {
+          "step": 4,
+          "equation": "q'=q·expQuaternion(θ(t))",
+          "justification": "Optionally perturb orientation."
+        }
+      ],
+      "assumptions": [
+        "τ>0; amplitudes bounded; seed fixed.",
+        "Position amplitude L; angular amplitude radians."
+      ],
+      "result": "Camera shake is bounded noise with temporal envelope.",
+      "limits": [
+        "High-frequency/unbounded noise causes aliasing and unstable framing."
+      ],
+      "dimensional_verification": [
+        "A_0 y A(t) de posición tienen L; n(t) es adimensional; τ tiene T.",
+        "La perturbación angular se expresa en radianes; el quaternion resultante es adimensional."
+      ]
+    },
+    {
+      "record_key": "D13:10",
+      "name": "Follow camera",
+      "starting_principles": [
+        "λ>0 s⁻¹; Δt in seconds.",
+        "Offset shares world unit/frame with subject."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C_target=P_subject+offset",
+          "justification": "Compute desired position."
+        },
+        {
+          "step": 2,
+          "equation": "dC/dt=λ(C_target−C)",
+          "justification": "Define first-order tracking ODE."
+        },
+        {
+          "step": 3,
+          "equation": "C_next=C_target+(C−C_target)e^(−λΔt)",
+          "justification": "Solve exactly for constant target over Δt."
+        },
+        {
+          "step": 4,
+          "equation": "α=1−e^(−λΔt); C'=lerp(C,C_target,α)",
+          "justification": "Express exact solution as frame-rate-independent interpolation."
+        }
+      ],
+      "assumptions": [
+        "λ>0 s⁻¹; Δt in seconds.",
+        "Offset shares world unit/frame with subject."
+      ],
+      "result": "Exponential follow is the exact solution of a first-order linear tracking system.",
+      "limits": [
+        "Target discontinuities may require spring-damper or velocity constraints."
+      ],
+      "dimensional_verification": [
+        "C, C_target, P_subject y offset tienen L; λ tiene T⁻¹; Δt tiene T.",
+        "α=1−exp(−λΔt) es adimensional; C_next conserva L."
+      ]
+    },
+    {
+      "record_key": "D13:11",
+      "name": "Motion blur",
+      "starting_principles": [
+        "Shutter interval nonnegative; samples share color/exposure convention.",
+        "Scene evaluable at sample times or motion vectors valid."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C_pixel(t)=shadedColor(pixel,t)",
+          "justification": "Define pixel radiance over shutter time."
+        },
+        {
+          "step": 2,
+          "equation": "C̄=(1/τ_s)∫_{t_0}^{t_0+τ_s}C_pixel(t)dt",
+          "justification": "Sensor integrates radiance over exposure interval."
+        },
+        {
+          "step": 3,
+          "equation": "C̄≈Σ_i w_i C_pixel(t_i), Σw_i=1",
+          "justification": "Approximate integral by normalized temporal samples."
+        }
+      ],
+      "assumptions": [
+        "Shutter interval nonnegative; samples share color/exposure convention.",
+        "Scene evaluable at sample times or motion vectors valid."
+      ],
+      "result": "Motion blur is temporal averaging over shutter interval.",
+      "limits": [
+        "Single-frame blur is approximate at disocclusions."
+      ],
+      "dimensional_verification": [
+        "τ_s y t tienen T; pesos temporales suman 1 y son adimensionales.",
+        "C_pixel(t) y C̄ comparten unidad radiométrica/escala de color."
+      ]
+    },
+    {
+      "record_key": "D13:12",
+      "name": "Shot continuity",
+      "starting_principles": [
+        "Subject identities and action axis defined.",
+        "Camera projection and right vector consistent."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "A_s=Project(A); B_s=Project(B)",
+          "justification": "Project subjects to image coordinates."
+        },
+        {
+          "step": 2,
+          "equation": "d=B_s−A_s",
+          "justification": "Compute signed screen-space separation."
+        },
+        {
+          "step": 3,
+          "equation": "side=sign((B_s−A_s)·r_screen),  r_screen=(1,0) en coordenadas de pantalla",
+          "justification": "Evaluar el orden horizontal con un eje derecho del mismo espacio proyectado; no mezclar una diferencia de pantalla con un vector derecho en espacio mundo."
+        },
+        {
+          "step": 4,
+          "equation": "side_before=side_after unless motivated crossing",
+          "justification": "Maintain screen direction and eyeline across cuts."
+        }
+      ],
+      "assumptions": [
+        "Subject identities and action axis defined.",
+        "Camera projection and right vector consistent.",
+        "A_s, B_s y r_screen se expresan en el mismo sistema de pantalla (px o NDC)."
+      ],
+      "result": "Continuity can be checked through projected subject ordering and eyeline direction.",
+      "limits": [
+        "A cinematographic convention, not a universal mathematical law."
+      ],
+      "dimensional_verification": [
+        "A_s y B_s tienen px o coordenadas NDC; su diferencia y el eje derecho de pantalla son compatibles.",
+        "side es signo adimensional; identidades y orden de sujetos son discretos."
+      ]
+    },
+    {
+      "record_key": "D13:13",
+      "name": "Camera beat sheet",
+      "starting_principles": [
+        "Key times increasing; FOV in (0,π).",
+        "Position and target share frame."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "keys={(t_i,C_i,FOV_i)}",
+          "justification": "Define time-coded camera and lens keys."
+        },
+        {
+          "step": 2,
+          "equation": "C(t)=Spline(C_i,t); FOV(t)=Spline(FOV_i,t)",
+          "justification": "Interpolate position and FOV separately."
+        },
+        {
+          "step": 3,
+          "equation": "q(t)=lookAt(C(t),target(t))",
+          "justification": "Compute orientation from target."
+        },
+        {
+          "step": 4,
+          "equation": "camera(t)=(C(t),q(t),FOV(t))",
+          "justification": "Assemble full camera state."
+        }
+      ],
+      "assumptions": [
+        "Key times increasing; FOV in (0,π).",
+        "Position and target share frame."
+      ],
+      "result": "A beat sheet becomes synchronized camera position, orientation and lens curves.",
+      "limits": [
+        "FOV interpolation is not identical to focal-length interpolation."
+      ],
+      "dimensional_verification": [
+        "C_i y target tienen L; t_i tiene T; FOV_i es angular adimensional.",
+        "La interpolación de FOV no tiene dimensión de longitud; C(t) conserva L."
+      ]
+    },
+    {
+      "record_key": "D13:14",
+      "name": "SDF smooth union y modelado implícito",
+      "starting_principles": [
+        "a,b,k have L; k>0.",
+        "SDF inputs share frame/sign convention."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d_union=min(a,b)",
+          "justification": "Exact union uses minimum of signed distance fields."
+        },
+        {
+          "step": 2,
+          "equation": "h=max(k−|a−b|,0)/k",
+          "justification": "Define compact transition weight."
+        },
+        {
+          "step": 3,
+          "equation": "smin=min(a,b)−(k/4)h²",
+          "justification": "Subtract smooth correction near equal distances."
+        },
+        {
+          "step": 4,
+          "equation": "S={p:smin(d_A(p),d_B(p),k)=0}",
+          "justification": "Extract zero-level surface."
+        }
+      ],
+      "assumptions": [
+        "a,b,k have L; k>0.",
+        "SDF inputs share frame/sign convention."
+      ],
+      "result": "Smooth minimum rounds the hard union near the intersection.",
+      "limits": [
+        "Changes local volume and is not exact SDF in blend region."
+      ],
+      "dimensional_verification": [
+        "a,b,k y smin tienen L; h=max(k−|a−b|,0)/k es adimensional.",
+        "La superficie de nivel cero no introduce unidades; los SDF deben compartir escala."
+      ]
+    },
+    {
+      "record_key": "D13:15",
+      "name": "Curvas de cámara con marco de orientación estable",
+      "starting_principles": [
+        "Tangents nonzero; antiparallel case uses fallback axis.",
+        "Handedness and up convention fixed."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T_i=normalize(C_{i+1}−C_i)",
+          "justification": "Aproximar la tangente unitaria mediante diferencias de posiciones consecutivas."
+        },
+        {
+          "step": 2,
+          "equation": "B_i=normalize(T_i×N_{i−1})",
+          "justification": "El producto cruzado construye una binormal perpendicular a la tangente nueva y a la normal previa."
+        },
+        {
+          "step": 3,
+          "equation": "N_i=B_i×T_i",
+          "justification": "El producto cruzado devuelve una normal perpendicular a T_i y B_i; con ambos unitarios y ortogonales, N_i también es unitario."
+        },
+        {
+          "step": 4,
+          "equation": "N_i=normalize(N_{i−1}−(N_{i−1}·T_i)T_i)",
+          "justification": "Por la identidad del triple producto, la operación equivale a proyectar la normal previa sobre el plano ortogonal a la tangente nueva y normalizarla."
+        },
+        {
+          "step": 5,
+          "equation": "q_i=lookRotation(T_i,N_i)",
+          "justification": "Convertir el marco ortonormal en orientación de cámara; mantener convención local forward/up consistente."
+        }
+      ],
+      "assumptions": [
+        "La curva es regular y la tangente no se anula.",
+        "La normal previa no es paralela a la nueva tangente; usar fallback estable si el producto cruzado es casi cero."
+      ],
+      "result": "El marco estable de catálogo se deriva proyectando la normal previa sobre el plano normal a la tangente nueva, reconstruyendo binormal y normal. Es un transporte por proyección de mínimo cambio, no la rotación de transporte paralelo exacta.",
+      "limits": [
+        "El transporte por proyección minimiza el cambio de normal local, pero no coincide en todos los casos con la rotación mínima exacta de un marco de Bishop.",
+        "Para curvas con cúspides o giros grandes, usar subdivisión adaptativa o transporte por rotación con eje T_{i−1}×T_i."
+      ],
+      "dimensional_verification": [
+        "C_i y C_{i+1} tienen m; T_i,N_i,B_i y productos vectoriales son adimensionales.",
+        "El producto cruzado debe tener norma mayor que ε; normalizar produce marco unitario.",
+        "q_i es adimensional y conserva orientación."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "16/16 técnicas D13 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos matemáticos justificados, supuestos, límites y verificación dimensional",
+      "Proyección perspectiva/ortográfica distingue metros, NDC y píxeles",
+      "Profundidad de campo deriva círculo físico en sensor y separa conversión a píxeles",
+      "Continuidad de plano corregida para no mezclar coordenadas de pantalla con vectores mundo",
+      "Trayectorias, FOV, velocidades, exposición temporal y SDF conservan unidades compatibles",
+      "Perspective y orthographic separan plano físico del sensor y raster px",
+      "D13:15 deriva exactamente el marco por proyección declarado en el catálogo y distingue su límite frente al transporte paralelo exacto"
+    ],
+    "limitations": [
+      "Las aproximaciones de lente son para cámara pinhole/Thin Lens; no sustituyen trazado óptico completo ni calibración de una cámara real."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

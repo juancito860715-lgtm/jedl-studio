@@ -1,0 +1,412 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D03 Personajes, criaturas y anatomía procedural",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D03",
+    "record_count": 8,
+    "excluded_protected_records": 11,
+    "excluded_keys": [
+      "D03:2",
+      "D03:4",
+      "D03:5",
+      "D03:6",
+      "D03:7",
+      "D03:8",
+      "D03:9",
+      "D03:10",
+      "D03:11",
+      "D03:12",
+      "D03:15"
+    ],
+    "excluded_reason": "Las 11 técnicas mapeadas a Crimson Loong se preservan sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D03:0",
+      "name": "Anatomía por volúmenes",
+      "starting_principles": [
+        "SDF primitivos en el mismo marco y unidad.",
+        "Convención: negativo dentro, cero en la frontera y positivo fuera."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d_i(p)=signedDistance_i(p)",
+          "justification": "Definir el campo de distancia de cada primitiva anatómica."
+        },
+        {
+          "step": 2,
+          "equation": "d_union(p)=min_i d_i(p)",
+          "justification": "La unión contiene un punto si pertenece al menos a uno de los sólidos; el mínimo conserva el signo interior y la frontera de la unión."
+        },
+        {
+          "step": 3,
+          "equation": "S={p:d_union(p)=0}",
+          "justification": "El conjunto de nivel cero define la superficie implícita."
+        },
+        {
+          "step": 4,
+          "equation": "h=max(k−|d1−d2|,0)/k; d_smooth=min(d1,d2)−(k h²)/4,  k>0",
+          "justification": "La diferencia de distancias se normaliza por k para obtener h adimensional; el término de corrección redondea la unión dentro de la banda |d1−d2|<k y desaparece fuera de ella."
+        },
+        {
+          "step": 5,
+          "equation": "S={p:d_smooth(p)=0}",
+          "justification": "La frontera implícita de la unión suavizada es el conjunto de nivel cero del campo resultante."
+        }
+      ],
+      "assumptions": [
+        "SDF primitivos en el mismo marco y unidad.",
+        "Convención: negativo dentro, cero en la frontera y positivo fuera.",
+        "Smooth-min es aproximación y no unión exacta; k tiene unidad de longitud.",
+        "Para la unión suave polinómica, k>0 tiene unidad de longitud y h es adimensional."
+      ],
+      "result": "La silueta se obtiene como isosuperficie cero de la unión dura min(d_i) o, si se elige suavizado, de la unión polinómica con k>0.",
+      "limits": [
+        "Smooth-min modifica la forma y el volumen cerca de las intersecciones.",
+        "La fórmula smooth-min cambia la geometría cerca de la intersección; no es una distancia firmada exacta en toda la región suavizada."
+      ],
+      "dimensional_verification": [
+        "Cada SDF d_i y el suavizado k tienen L; el factor h=max(k−|a−b|,0)/k es adimensional.",
+        "d_smooth=min(a,b)−h²k/4 conserva L; la isosuperficie d=0 es geométrica."
+      ]
+    },
+    {
+      "record_key": "D03:1",
+      "name": "Metaballs",
+      "starting_principles": [
+        "R_i>0 y centros finitos.",
+        "La evaluación en r_i=0 requiere singularidad tratada o exclusión del centro."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r_i(p)=||p−c_i||",
+          "justification": "Calcular distancia del punto de consulta al centro i."
+        },
+        {
+          "step": 2,
+          "equation": "F_i(p)=R_i²/r_i(p)²",
+          "justification": "Construir influencia adimensional que decrece con distancia al cuadrado."
+        },
+        {
+          "step": 3,
+          "equation": "F(p)=Σ_i F_i(p)",
+          "justification": "Superponer las influencias de todos los centros."
+        },
+        {
+          "step": 4,
+          "equation": "S={p:F(p)=iso}",
+          "justification": "La frontera del volumen orgánico es la isosuperficie del campo."
+        }
+      ],
+      "assumptions": [
+        "R_i>0 y centros finitos.",
+        "La evaluación en r_i=0 requiere singularidad tratada o exclusión del centro.",
+        "iso>0 se fija según escala y apariencia."
+      ],
+      "result": "Las regiones se fusionan cuando la suma de influencias supera el umbral.",
+      "limits": [
+        "El campo diverge en el centro; la resolución de muestreo controla el detalle."
+      ],
+      "dimensional_verification": [
+        "R_i y r_i tienen L; R_i²/r_i² es adimensional; F e iso son adimensionales.",
+        "En r_i=0 la expresión diverge; el límite no es finito y requiere exclusión o regularización explícita."
+      ]
+    },
+    {
+      "record_key": "D03:3",
+      "name": "Perfil anatómico longitudinal",
+      "starting_principles": [
+        "s_i ordenados y Δs>0.",
+        "Pendientes m_i=dr/ds y radios usan unidades coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "(s_i,r_i), i=0…m",
+          "justification": "Definir claves de longitud y radio."
+        },
+        {
+          "step": 2,
+          "equation": "u=(s−s_i)/(s_{i+1}−s_i)",
+          "justification": "Normalizar la posición dentro del intervalo."
+        },
+        {
+          "step": 3,
+          "equation": "r(s)=h00 r_i+h10 Δs m_i+h01 r_{i+1}+h11 Δs m_{i+1}",
+          "justification": "Interpolar con Hermite cúbica para continuidad de radio y pendiente."
+        },
+        {
+          "step": 4,
+          "equation": "r(s)≥0",
+          "justification": "Imponer radio no negativo para evitar inversión de sección."
+        }
+      ],
+      "assumptions": [
+        "s_i ordenados y Δs>0.",
+        "Pendientes m_i=dr/ds y radios usan unidades coherentes.",
+        "Limitar pendientes si la spline produce overshoot."
+      ],
+      "result": "Una spline por claves controla el grosor a lo largo del eje anatómico.",
+      "limits": [
+        "La interpolación cúbica puede exceder los radios de control; usar variante monótona si se exige."
+      ],
+      "dimensional_verification": [
+        "s_i y radios r_i tienen L; u=(s−s_i)/Δs es adimensional.",
+        "m_i=dr/ds es adimensional cuando s es longitud; Δs·m_i y todos los términos Hermite tienen L."
+      ]
+    },
+    {
+      "record_key": "D03:13",
+      "name": "Skinning lineal",
+      "starting_principles": [
+        "Matrices en mismo espacio y convención.",
+        "Pesos finitos y normalizados por vértice."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_bind,j=M_bind,j⁻¹ p_world_bind",
+          "justification": "Expresar el vértice en el marco bind local del hueso."
+        },
+        {
+          "step": 2,
+          "equation": "M_skin,j=M_world,j M_bind,j⁻¹",
+          "justification": "Componer pose actual con inversa bind para obtener deformación."
+        },
+        {
+          "step": 3,
+          "equation": "p'=Σ_j w_j M_skin,j p",
+          "justification": "Mezclar posiciones transformadas según influencia de cada hueso."
+        },
+        {
+          "step": 4,
+          "equation": "Σ_j w_j=1; w_j≥0",
+          "justification": "Normalizar pesos para que una transformación común se reproduzca correctamente."
+        }
+      ],
+      "assumptions": [
+        "Matrices en mismo espacio y convención.",
+        "Pesos finitos y normalizados por vértice.",
+        "Bind pose de referencia válida."
+      ],
+      "result": "Cada vértice se deforma mediante una combinación ponderada de transformaciones óseas.",
+      "limits": [
+        "La mezcla lineal puede colapsar volumen durante torsiones pronunciadas."
+      ],
+      "dimensional_verification": [
+        "M_skin tiene bloque lineal adimensional y traslación L; p en bind space tiene L.",
+        "w_j son adimensionales y suman 1; la combinación ponderada p' conserva L."
+      ]
+    },
+    {
+      "record_key": "D03:14",
+      "name": "Dual quaternion skinning",
+      "starting_principles": [
+        "Transformaciones rígidas; no escala no uniforme.",
+        "Pesos suman 1; cuaterniones y marcos comparten convención."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Q_i=q_{r,i}+εq_{d,i}; q_d=0.5 t_quat⊗q_r",
+          "justification": "Codificar rotación rígida y traslación en dual quaternion."
+        },
+        {
+          "step": 2,
+          "equation": "Q̄=Σ_i w_i s_i Q_i",
+          "justification": "Mezclar influencias; s_i alinea signos antipodales respecto a una referencia."
+        },
+        {
+          "step": 3,
+          "equation": "q̂_r=q̄_r/||q̄_r||",
+          "justification": "Normalizar la parte real para obtener rotación unitaria."
+        },
+        {
+          "step": 4,
+          "equation": "q̂_d=q̄_d/||q̄_r||−q̂_r(q̂_r·q̄_d/||q̄_r||)",
+          "justification": "Eliminar componente paralela de la parte dual para cumplir la condición de unidad."
+        },
+        {
+          "step": 5,
+          "equation": "p'=q̂_r p q̂_r*+2(q̂_d q̂_r*)_vector",
+          "justification": "Aplicar rotación por conjugación y sumar traslación codificada."
+        }
+      ],
+      "assumptions": [
+        "Transformaciones rígidas; no escala no uniforme.",
+        "Pesos suman 1; cuaterniones y marcos comparten convención.",
+        "Parte real no nula; alineación de signo obligatoria."
+      ],
+      "result": "La mezcla dual quaternion interpola rotación y traslación con mejor comportamiento volumétrico que LBS en torsiones.",
+      "limits": [
+        "No representa escala no uniforme general; normalización y signos deben manejarse explícitamente."
+      ],
+      "dimensional_verification": [
+        "q_r es adimensional; q_d codifica traslación y tiene L bajo convención de dual quaternion.",
+        "La normalización de la parte real es adimensional; la parte dual normalizada conserva L; p' resulta en L."
+      ]
+    },
+    {
+      "record_key": "D03:16",
+      "name": "Ojos y pupilas",
+      "starting_principles": [
+        "n unitaria; objetivo y ojo en mismo marco.",
+        "Si g_t≈0, usar mirada neutral/fallback."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "g=normalize(target−eye)",
+          "justification": "Obtener dirección unitaria hacia el objetivo."
+        },
+        {
+          "step": 2,
+          "equation": "g_t=g−(g·n)n",
+          "justification": "Proyectar la mirada sobre el plano ocular eliminando la componente normal."
+        },
+        {
+          "step": 3,
+          "equation": "u=normalize(g_t)",
+          "justification": "Normalizar la dirección tangencial si no es degenerada."
+        },
+        {
+          "step": 4,
+          "equation": "p_pupil=eye+r_p u",
+          "justification": "Colocar la pupila dentro del plano a radio r_p."
+        }
+      ],
+      "assumptions": [
+        "n unitaria; objetivo y ojo en mismo marco.",
+        "Si g_t≈0, usar mirada neutral/fallback.",
+        "r_p limitado al iris visible."
+      ],
+      "result": "La pupila se posiciona mediante proyección geométrica de la dirección objetivo.",
+      "limits": [
+        "No modela por sí sola párpados, oclusión ni deformación del iris."
+      ],
+      "dimensional_verification": [
+        "target−eye tiene L; normalizar produce dirección adimensional g.",
+        "Proyección g−(g·n)n y u son adimensionales; r_p·u tiene L y se suma a eye con L."
+      ]
+    },
+    {
+      "record_key": "D03:17",
+      "name": "FABRIK para cadenas articuladas",
+      "starting_principles": [
+        "l_i>0; raíz fija; posiciones finitas.",
+        "Objetivo fuera del alcance activa extensión máxima."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L_total=Σ_i l_i",
+          "justification": "Calcular alcance máximo de la cadena."
+        },
+        {
+          "step": 2,
+          "equation": "p_i←p_{i+1}+l_i normalize(p_i−p_{i+1})",
+          "justification": "Barrido backward: fijar efector al objetivo y proyectar cada articulación sobre una esfera de radio l_i."
+        },
+        {
+          "step": 3,
+          "equation": "p_0←root",
+          "justification": "Restaurar raíz fija."
+        },
+        {
+          "step": 4,
+          "equation": "p_{i+1}←p_i+l_i normalize(p_{i+1}−p_i)",
+          "justification": "Barrido forward: proyectar cada articulación siguiente para restaurar longitudes."
+        },
+        {
+          "step": 5,
+          "equation": "repeat until ||p_n−target||≤ε or maxIterations",
+          "justification": "Repetir hasta tolerancia o límite de iteraciones."
+        }
+      ],
+      "assumptions": [
+        "l_i>0; raíz fija; posiciones finitas.",
+        "Objetivo fuera del alcance activa extensión máxima.",
+        "Direcciones nulas requieren fallback."
+      ],
+      "result": "Dos barridos de proyección preservan longitudes y reducen el error del efector final.",
+      "limits": [
+        "No impone automáticamente límites articulares, pole vectors ni colisiones."
+      ],
+      "dimensional_verification": [
+        "Todas las posiciones p_i, objetivo y longitudes l_i tienen L.",
+        "normalize(p_i−p_j) es adimensional; multiplicar por l_i produce desplazamiento L; ε también tiene L."
+      ]
+    },
+    {
+      "record_key": "D03:18",
+      "name": "Skinning por dual quaternions",
+      "starting_principles": [
+        "Pesos por vértice normalizados; transformaciones rígidas.",
+        "Convención de cuaterniones y orden de multiplicación fijos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "q_d=0.5 t_quat⊗q_r",
+          "justification": "Representar traslación junto con rotación."
+        },
+        {
+          "step": 2,
+          "equation": "b=Σ_i w_i s_i q_i",
+          "justification": "Alinear signos y combinar dual quaternions con pesos por vértice."
+        },
+        {
+          "step": 3,
+          "equation": "b_r'=b_r/||b_r||",
+          "justification": "Normalizar componente real."
+        },
+        {
+          "step": 4,
+          "equation": "b_d'=b_d/||b_r||−b_r'(b_r'·b_d/||b_r||)",
+          "justification": "Ortonormalizar componente dual."
+        },
+        {
+          "step": 5,
+          "equation": "p'=b_r' p b_r'^*+2(b_d'b_r'^*)_vector",
+          "justification": "Transformar punto con rotación y traslación recuperadas."
+        }
+      ],
+      "assumptions": [
+        "Pesos por vértice normalizados; transformaciones rígidas.",
+        "Convención de cuaterniones y orden de multiplicación fijos.",
+        "No aplicar escala no uniforme con esta fórmula rígida."
+      ],
+      "result": "La variante concreta R31 define el orden de mezcla, alineación de signo y normalización para una implementación reproducible.",
+      "limits": [
+        "Es una especificación de la variante de skinning dual quaternion, no un método geométrico distinto de D03:14."
+      ],
+      "dimensional_verification": [
+        "La parte real q_r es adimensional y la parte dual q_d tiene L por codificar traslación.",
+        "Los pesos y signos son adimensionales; la normalización conserva L en la parte dual; la transformación final devuelve p' con L."
+      ],
+      "variant": "Variante R31: orden de mezcla, alineación antipodal y normalización dual explícitos."
+    }
+  ],
+  "validation": {
+    "checks": [
+      "8/8 claves no protegidas cubiertas exactamente",
+      "Cada derivación contiene pasos matemáticos justificados, resultado, supuestos y límites",
+      "Todas las derivaciones incluyen comprobaciones dimensionales específicas",
+      "Smooth-min de SDF usa expresión polinómica explícita con parámetro k de longitud",
+      "Las 11 claves protegidas permanecen excluidas",
+      "Las claves y nombres se contrastaron con el inventario D03; la variante R31 se identifica sin sustituir el nombre de catálogo."
+    ],
+    "limitations": [
+      "Los modelos matemáticos están especificados; algoritmos completos, pseudocódigo y pruebas independientes corresponden a los puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

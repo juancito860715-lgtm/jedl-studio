@@ -1,0 +1,678 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D28 Procedural avanzado: gramáticas, crecimiento y geometría",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D28",
+    "record_count": 16,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D28 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D28:0",
+      "name": "Shape grammar",
+      "starting_principles": [
+        "Reglas finitas y deterministas o semilla fija; profundidad acotada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_0=axiom",
+          "justification": "Definir forma inicial."
+        },
+        {
+          "step": 2,
+          "equation": "S_{n+1}=rule_i(S_n,parameters)",
+          "justification": "Aplicar regla de producción seleccionada."
+        },
+        {
+          "step": 3,
+          "equation": "G=interpret(S_n)",
+          "justification": "Interpretar símbolos/reglas como geometría."
+        },
+        {
+          "step": 4,
+          "equation": "stop at n_max/budget",
+          "justification": "Limitar expansión."
+        }
+      ],
+      "assumptions": [
+        "Reglas finitas y deterministas o semilla fija; profundidad acotada."
+      ],
+      "result": "Shape grammar deriva de reescritura de reglas sobre una forma inicial.",
+      "limits": [
+        "Una gramática no garantiza validez topológica sin reglas de borde."
+      ],
+      "dimensional_verification": [
+        "Symbols/rules/indices are discrete; geometric parameters keep their own declared units.",
+        "Affine transforms have dimensionless linear blocks and L translations; generated positions retain L."
+      ]
+    },
+    {
+      "record_key": "D28:1",
+      "name": "L-system stochastic",
+      "starting_principles": [
+        "Probabilidades normalizadas; PRNG reproducible; generaciones finitas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P(rule_j|symbol)=p_j; Σp_j=1",
+          "justification": "Definir distribución de producción por símbolo."
+        },
+        {
+          "step": 2,
+          "equation": "j=sample(PRNG(seed,symbol,index),p)",
+          "justification": "Elegir regla de forma reproducible."
+        },
+        {
+          "step": 3,
+          "equation": "rewrite symbol→rule_j",
+          "justification": "Sustituir símbolo por cadena de producción."
+        },
+        {
+          "step": 4,
+          "equation": "iterate n generations",
+          "justification": "Obtener estructura estocástica a profundidad finita."
+        }
+      ],
+      "assumptions": [
+        "Probabilidades normalizadas; PRNG reproducible; generaciones finitas."
+      ],
+      "result": "L-system estocástico deriva de muestreo de reglas con probabilidades normalizadas.",
+      "limits": [
+        "El número de símbolos puede crecer exponencialmente."
+      ],
+      "dimensional_verification": [
+        "Rule probabilities p_j are dimensionless and sum to 1; seed/index are discrete.",
+        "Turtle segment length has L; turning angle is radians; generated coordinates retain L."
+      ]
+    },
+    {
+      "record_key": "D28:2",
+      "name": "Space colonization",
+      "starting_principles": [
+        "Atractores y nodos en mismo marco; radios y step positivos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "N_i={a:||a−x_i||<r_influence}",
+          "justification": "Encontrar atractores cercanos al nodo."
+        },
+        {
+          "step": 2,
+          "equation": "d_i=Σ_a normalize(a−x_i)",
+          "justification": "Sumar direcciones hacia atractores."
+        },
+        {
+          "step": 3,
+          "equation": "branchDir=normalize(d_i)",
+          "justification": "Obtener dirección de crecimiento."
+        },
+        {
+          "step": 4,
+          "equation": "x_new=x_i+step·branchDir",
+          "justification": "Crear nuevo nodo."
+        },
+        {
+          "step": 5,
+          "equation": "remove attractors within r_kill",
+          "justification": "Eliminar atractores ya alcanzados."
+        }
+      ],
+      "assumptions": [
+        "Atractores y nodos en mismo marco; radios y step positivos."
+      ],
+      "result": "Space colonization dirige ramas hacia atractores y los elimina al alcanzarlos.",
+      "limits": [
+        "El resultado depende de densidad de atractores y radios de influencia/kill."
+      ],
+      "dimensional_verification": [
+        "Attractor/node positions and influence/kill radii have L; normalized directions are dimensionless.",
+        "step has L; x_new=x_i+step·direction preserves L."
+      ]
+    },
+    {
+      "record_key": "D28:3",
+      "name": "Delaunay triangulation",
+      "starting_principles": [
+        "Puntos no duplicados; degeneraciones tratadas; predicado robusto."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "circumcircle(T)",
+          "justification": "Construir circunferencia/circunsfera de cada simplex."
+        },
+        {
+          "step": 2,
+          "equation": "empty condition: no sample inside circumcircle(T)",
+          "justification": "Exigir propiedad de círculo vacío."
+        },
+        {
+          "step": 3,
+          "equation": "flip edges violating empty-circle condition",
+          "justification": "Aplicar flips hasta satisfacer Delaunay."
+        },
+        {
+          "step": 4,
+          "equation": "triangles form triangulation",
+          "justification": "Obtener malla que maximiza ángulo mínimo bajo condiciones generales."
+        }
+      ],
+      "assumptions": [
+        "Puntos no duplicados; degeneraciones tratadas; predicado robusto."
+      ],
+      "result": "Delaunay se define por circuncírculos vacíos y produce triangulación dual de Voronoi.",
+      "limits": [
+        "Predicados numéricos no robustos pueden fallar en puntos casi degenerados."
+      ],
+      "dimensional_verification": [
+        "Sample coordinates and circumradii have L; squared distances have L².",
+        "Predicates compare squared distances in same unit; indices are discrete."
+      ]
+    },
+    {
+      "record_key": "D28:4",
+      "name": "Voronoi dual",
+      "starting_principles": [
+        "Sitios distintos; celdas y vecindad definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "cell_i={p:||p−s_i||≤||p−s_j|| ∀j}",
+          "justification": "Definir celdas por sitio más cercano."
+        },
+        {
+          "step": 2,
+          "equation": "edge between cells i,j iff cells share boundary",
+          "justification": "Crear adyacencia de Voronoi."
+        },
+        {
+          "step": 3,
+          "equation": "connect sites s_i,s_j when cells adjacent",
+          "justification": "Construir grafo dual de Delaunay."
+        },
+        {
+          "step": 4,
+          "equation": "Voronoi↔Delaunay dual",
+          "justification": "Relacionar vértices/celdas y aristas compartidas."
+        }
+      ],
+      "assumptions": [
+        "Sitios distintos; celdas y vecindad definidas."
+      ],
+      "result": "Voronoi particiona el dominio y su grafo dual es Delaunay.",
+      "limits": [
+        "Degeneraciones de sitios cocirculares requieren desempate."
+      ],
+      "dimensional_verification": [
+        "p and sites s_i have L; distances have L; cell IDs are discrete.",
+        "Voronoi inequalities compare like lengths."
+      ]
+    },
+    {
+      "record_key": "D28:5",
+      "name": "Poisson disk sampling",
+      "starting_principles": [
+        "r>0; dominio acotado; distancia euclidiana."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "candidate p in domain",
+          "justification": "Generar candidato en dominio."
+        },
+        {
+          "step": 2,
+          "equation": "accept iff ||p−p_i||≥r for all existing i",
+          "justification": "Aplicar exclusión de radio mínimo."
+        },
+        {
+          "step": 3,
+          "equation": "spatial grid checks nearby cells",
+          "justification": "Acelerar búsqueda de vecinos."
+        },
+        {
+          "step": 4,
+          "equation": "repeat until candidate budget",
+          "justification": "Terminar con cobertura/budget definidos."
+        }
+      ],
+      "assumptions": [
+        "r>0; dominio acotado; distancia euclidiana."
+      ],
+      "result": "Poisson disk acepta muestras solo si respetan separación mínima.",
+      "limits": [
+        "El algoritmo puede detenerse sin cubrir maximalmente todo el dominio."
+      ],
+      "dimensional_verification": [
+        "p_i and minimum radius r have L; pairwise distance has L.",
+        "Grid indices are dimensionless integers; acceptance inequality is homogeneous."
+      ]
+    },
+    {
+      "record_key": "D28:6",
+      "name": "Blue noise spectrum",
+      "starting_principles": [
+        "Muestras suficientes; espectro estimado con ventana/normalización."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P(k)=|FFT(pointField)|²",
+          "justification": "Calcular espectro de potencia de distribución."
+        },
+        {
+          "step": 2,
+          "equation": "S(k) suppressed near k=0",
+          "justification": "Penalizar agrupamiento de baja frecuencia."
+        },
+        {
+          "step": 3,
+          "equation": "S(k) approximately flat at mid/high frequencies",
+          "justification": "Mantener distribución sin periodicidad fuerte."
+        },
+        {
+          "step": 4,
+          "equation": "optimize point set against target spectrum",
+          "justification": "Ajustar muestras para aproximar blue-noise spectrum."
+        }
+      ],
+      "assumptions": [
+        "Muestras suficientes; espectro estimado con ventana/normalización."
+      ],
+      "result": "Blue noise se caracteriza por supresión de energía de baja frecuencia y ausencia de periodicidad fuerte.",
+      "limits": [
+        "El espectro depende de tamaño finito y ventana; no es uniformidad perfecta."
+      ],
+      "dimensional_verification": [
+        "p has L; spatial frequency k has L⁻¹; k·p is dimensionless.",
+        "Normalized power spectrum S(k) is dimensionless after declared normalization; unnormalized PSD must retain its measure-dependent units."
+      ]
+    },
+    {
+      "record_key": "D28:7",
+      "name": "Hilbert curve",
+      "starting_principles": [
+        "Recursión y transformaciones definidas; índice finito."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "H_0(t) maps interval to one segment",
+          "justification": "Definir curva base sobre intervalo."
+        },
+        {
+          "step": 2,
+          "equation": "H_{n+1} subdivides into transformed copies",
+          "justification": "Aplicar recursión de cuadrantes/octantes con rotaciones/reflexiones."
+        },
+        {
+          "step": 3,
+          "equation": "index→cell via recursive digit groups",
+          "justification": "Convertir índice a celda recorriendo decisiones recursivas."
+        },
+        {
+          "step": 4,
+          "equation": "neighbor indices map to nearby cells",
+          "justification": "La continuidad local permite rutas de cobertura espacial."
+        }
+      ],
+      "assumptions": [
+        "Recursión y transformaciones definidas; índice finito."
+      ],
+      "result": "Hilbert se construye por subdivisión recursiva con transformaciones que preservan continuidad.",
+      "limits": [
+        "La implementación exacta de orientación/subdivisión es esencial para continuidad."
+      ],
+      "dimensional_verification": [
+        "Curve parameter/index and grid coordinates are discrete/dimensionless; cellSize has L.",
+        "World position=origin+cellSize·cellIndex has L."
+      ]
+    },
+    {
+      "record_key": "D28:8",
+      "name": "Space-filling Morton code",
+      "starting_principles": [
+        "Coordenadas discretizadas; rango de bits suficiente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x,y,z→binary coordinate bits",
+          "justification": "Cuantizar coordenadas a enteros."
+        },
+        {
+          "step": 2,
+          "equation": "Morton(x,y,z)=interleave(bits(x),bits(y),bits(z))",
+          "justification": "Intercalar bits por eje."
+        },
+        {
+          "step": 3,
+          "equation": "prefix bits define octree cell",
+          "justification": "Prefijos comunes identifican celdas jerárquicas."
+        },
+        {
+          "step": 4,
+          "equation": "sort by Morton code",
+          "justification": "Ordenar espacialmente datos para localidad de memoria."
+        }
+      ],
+      "assumptions": [
+        "Coordenadas discretizadas; rango de bits suficiente."
+      ],
+      "result": "Morton code ordena celdas intercalando bits de coordenadas.",
+      "limits": [
+        "Morton locality es aproximada y depende de escala/chunking."
+      ],
+      "dimensional_verification": [
+        "x,y,z integer cell coordinates and Morton code are discrete.",
+        "cellSize has L; world coordinates reconstructed from code retain L."
+      ]
+    },
+    {
+      "record_key": "D28:9",
+      "name": "Signed distance blending",
+      "starting_principles": [
+        "a,b,k en misma unidad; k>0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d=min(a,b)",
+          "justification": "Unión exacta por mínimo de SDF."
+        },
+        {
+          "step": 2,
+          "equation": "h=max(k−|a−b|,0)/k",
+          "justification": "Definir región de transición."
+        },
+        {
+          "step": 3,
+          "equation": "smin=min(a,b)−(k/4)h²",
+          "justification": "Restar corrección suave."
+        },
+        {
+          "step": 4,
+          "equation": "surface={p:smin=0}",
+          "justification": "Extraer isosuperficie."
+        }
+      ],
+      "assumptions": [
+        "a,b,k en misma unidad; k>0."
+      ],
+      "result": "Smooth-min crea unión implícita redondeada de SDF.",
+      "limits": [
+        "El smooth-min altera volumen y no es SDF exacto en transición."
+      ],
+      "dimensional_verification": [
+        "a,b,k and smin have L; h=max(k−|a−b|,0)/k is dimensionless.",
+        "smin=min(a,b)−kh²/4 retains L; zero isosurface is geometric."
+      ]
+    },
+    {
+      "record_key": "D28:10",
+      "name": "Medial axis",
+      "starting_principles": [
+        "Frontera cerrada/regular; distancia bien definida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d(p)=min_{q∈∂Ω}||p−q||",
+          "justification": "Definir distancia a frontera."
+        },
+        {
+          "step": 2,
+          "equation": "M={p: p has ≥2 closest boundary points}",
+          "justification": "Los puntos con múltiples proyecciones más cercanas forman eje medial."
+        },
+        {
+          "step": 3,
+          "equation": "localThickness(p)=2d(p)",
+          "justification": "El radio de la bola inscrita se duplica para estimar grosor local."
+        },
+        {
+          "step": 4,
+          "equation": "maximal inscribed balls centered on M",
+          "justification": "El eje codifica estructura de forma."
+        }
+      ],
+      "assumptions": [
+        "Frontera cerrada/regular; distancia bien definida."
+      ],
+      "result": "El eje medial es locus de centros de bolas máximas inscritas.",
+      "limits": [
+        "El eje medial es sensible a pequeñas perturbaciones de frontera."
+      ],
+      "dimensional_verification": [
+        "p and boundary points have L; d(p) and localThickness=2d have L.",
+        "The medial axis is a locus; its membership condition compares equal distances."
+      ]
+    },
+    {
+      "record_key": "D28:11",
+      "name": "Differential geometry curvature",
+      "starting_principles": [
+        "Curva C²; r' no nulo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T=r'/||r'||",
+          "justification": "Obtener tangente unitaria."
+        },
+        {
+          "step": 2,
+          "equation": "κ=||dT/ds||",
+          "justification": "Definir curvatura como tasa de cambio de tangente por longitud de arco."
+        },
+        {
+          "step": 3,
+          "equation": "κ=||r'×r''||/||r'||³",
+          "justification": "Expandir derivada de tangente para parámetro general."
+        },
+        {
+          "step": 4,
+          "equation": "κ=0 for straight line",
+          "justification": "Verificar límite rectilíneo."
+        }
+      ],
+      "assumptions": [
+        "Curva C²; r' no nulo."
+      ],
+      "result": "La curvatura mide variación de tangente por longitud de arco.",
+      "limits": [
+        "Curvatura numérica amplifica ruido de muestreo."
+      ],
+      "dimensional_verification": [
+        "For arc-length parameter s, r has L, r' is dimensionless, r'' has L⁻¹; κ has L⁻¹.",
+        "For general parameter, the full formula remains L⁻¹ after parameter factors cancel."
+      ]
+    },
+    {
+      "record_key": "D28:12",
+      "name": "Surface mean curvature",
+      "starting_principles": [
+        "Superficie C²; normal y métrica definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S=(1/2)g^{ij}b_{ij}",
+          "justification": "Definir curvatura media como mitad de traza del operador de forma."
+        },
+        {
+          "step": 2,
+          "equation": "principal curvatures κ_1,κ_2 are eigenvalues",
+          "justification": "Diagonalizar operador de forma."
+        },
+        {
+          "step": 3,
+          "equation": "H=(κ_1+κ_2)/2",
+          "justification": "Expresar media de curvaturas principales."
+        },
+        {
+          "step": 4,
+          "equation": "mean curvature flow velocity ∝−Hn",
+          "justification": "Usar gradiente de área para suavizado, con movilidad declarada."
+        }
+      ],
+      "assumptions": [
+        "Superficie C²; normal y métrica definidas.",
+        "Para flujo de curvatura media con velocidad L/T, la movilidad debe compensar H[L⁻¹] con unidad L²/T."
+      ],
+      "result": "La curvatura media es promedio de curvaturas principales.",
+      "limits": [
+        "Convención de signo de H depende de orientación de normal."
+      ],
+      "dimensional_verification": [
+        "Principal curvatures κ_1,κ_2 and H have L⁻¹.",
+        "Mean-curvature-flow speed requires mobility with units L²/T if velocity is L/T."
+      ]
+    },
+    {
+      "record_key": "D28:13",
+      "name": "Gaussian curvature",
+      "starting_principles": [
+        "Superficie regular; curvaturas principales definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "K=det(S)",
+          "justification": "Definir curvatura gaussiana como determinante del operador de forma."
+        },
+        {
+          "step": 2,
+          "equation": "K=κ_1κ_2",
+          "justification": "Producto de autovalores principales."
+        },
+        {
+          "step": 3,
+          "equation": "K>0 elliptic; K<0 hyperbolic; K=0 parabolic",
+          "justification": "Clasificar geometría local."
+        },
+        {
+          "step": 4,
+          "equation": "K invariant under local isometry",
+          "justification": "La curvatura es intrínseca para superficie regular."
+        }
+      ],
+      "assumptions": [
+        "Superficie regular; curvaturas principales definidas."
+      ],
+      "result": "La curvatura gaussiana es producto de curvaturas principales.",
+      "limits": [
+        "K es intrínseca pero su estimación discreta depende de malla."
+      ],
+      "dimensional_verification": [
+        "κ_1 and κ_2 have L⁻¹; K=κ_1κ_2 has L⁻².",
+        "Sign classification is dimensionless and depends on orientation convention only for principal signs, not K."
+      ]
+    },
+    {
+      "record_key": "D28:14",
+      "name": "Laplacian mesh smoothing",
+      "starting_principles": [
+        "Malla válida; λ acotado; bordes tratados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "δ_i=p_i−mean(neighbors(i))",
+          "justification": "Calcular coordenada diferencial respecto al vecindario."
+        },
+        {
+          "step": 2,
+          "equation": "p_i^{n+1}=p_i^n+λ(meanNeighbors−p_i)",
+          "justification": "Mover vértice hacia promedio de vecinos."
+        },
+        {
+          "step": 3,
+          "equation": "repeat iterations",
+          "justification": "Iterar para suavizar alta frecuencia."
+        },
+        {
+          "step": 4,
+          "equation": "λ∈(0,1)",
+          "justification": "Limitar paso de relajación."
+        }
+      ],
+      "assumptions": [
+        "Malla válida; λ acotado; bordes tratados."
+      ],
+      "result": "Laplacian smoothing relaja cada vértice hacia promedio vecinal.",
+      "limits": [
+        "El suavizado laplaciano encoge malla y puede perder volumen."
+      ],
+      "dimensional_verification": [
+        "p_i and neighbor averages have L; λ is dimensionless; p_i' retains L.",
+        "The combinatorial averaging operator is dimensionless."
+      ]
+    },
+    {
+      "record_key": "D28:15",
+      "name": "Laplacian deformation",
+      "starting_principles": [
+        "Laplaciano y restricciones definidos; sistema resoluble."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L_c=D−A; δ=L_c p",
+          "justification": "Elegir el Laplaciano combinatorio adimensional; al aplicarlo a posiciones p con L, las coordenadas diferenciales δ conservan L."
+        },
+        {
+          "step": 2,
+          "equation": "min_{p'} ||L_c p'−δ||²",
+          "justification": "Buscar posiciones nuevas cuyas coordenadas diferenciales coincidan con las originales; el residual tiene L."
+        },
+        {
+          "step": 3,
+          "equation": "subject to C p'=b",
+          "justification": "Imponer posiciones de control/restricciones."
+        },
+        {
+          "step": 4,
+          "equation": "solve normal equations / sparse least squares",
+          "justification": "Resolver sistema disperso para nueva geometría."
+        }
+      ],
+      "assumptions": [
+        "Laplaciano y restricciones definidos; sistema resoluble.",
+        "Esta derivación fija L_c como Laplaciano combinatorio D−A; un Laplaciano cotangente requiere normalización y unidades distintas."
+      ],
+      "result": "Laplacian deformation conserva coordenadas diferenciales bajo restricciones posicionales.",
+      "limits": [
+        "El sistema disperso puede estar mal condicionado y requiere restricciones suficientes."
+      ],
+      "dimensional_verification": [
+        "Use combinatorial Laplacian L_c=D−A, dimensionless; δ=L_c p has L.",
+        "The least-squares residual has L; constraints C are dimensionless weights and b has L."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "16/16 técnicas D28 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Curvatura de curva, media y gaussiana se distinguen como L⁻¹, L⁻¹ y L⁻²",
+      "Blue-noise y códigos espaciales declaran normalización y escala de coordenadas",
+      "Laplacian deformation fija el operador combinatorio D−A y elimina ambigüedad de normalización"
+    ],
+    "limitations": [
+      "Las derivaciones definen propiedades matemáticas y convenciones; robustez de predicados, calidad de malla y estabilidad del solver requieren pruebas posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

@@ -1,0 +1,703 @@
+{
+  "title": "Auditoría dimensional punto 1 — D33 Animación basada en datos, captura y retargeting",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D33",
+    "domain": "Animación basada en datos, captura y retargeting",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D33 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "animation": "Tiempo en segundos; velocidades en unidad de posición por segundo.",
+    "rig": "Rotaciones y cuaterniones adimensionales; traslaciones en unidad L.",
+    "statistics": "Covarianzas se tipan por producto de unidades de sus componentes."
+  },
+  "records": [
+    {
+      "record_key": "D33:0",
+      "name": "Retarget transform",
+      "variables": [
+        {
+          "symbol": "R_bind_s,R_bind_t,R_source",
+          "meaning": "rotaciones bind/fuente",
+          "unit": "matriz 3×3",
+          "dimension": "adimensional",
+          "domain": "ortogonales"
+        },
+        {
+          "symbol": "R_target",
+          "meaning": "rotación destino",
+          "unit": "matriz 3×3",
+          "dimension": "adimensional",
+          "domain": "ortogonal"
+        },
+        {
+          "symbol": "p_bind_s,p_bind_t",
+          "meaning": "traslaciones bind",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "scale",
+          "meaning": "escala retarget",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "Las matrices de rotación son adimensionales; source y target deben definir ejes, handedness y orden de composición compatibles.",
+        "Las traslaciones requieren conversión de escala y marcos; no aplicar fórmulas de rotación a posiciones."
+      ],
+      "valid_domain": [
+        "Matrices finitas/invertibles; bind pose definido; escala positiva."
+      ],
+      "boundary_conditions": [
+        "R_source=R_bind_source devuelve orientación bind destino; transformación identidad en bind pose."
+      ],
+      "dimensional_checks": [
+        "R_target conserva matriz adimensional; posiciones/traslaciones tienen L.",
+        "La composición de rotaciones no cambia unidad angular/geométrica."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D33:1",
+      "name": "Motion blending",
+      "variables": [
+        {
+          "symbol": "pose_i",
+          "meaning": "poses",
+          "unit": "ángulos/posiciones tipadas",
+          "dimension": "rad y m por canal",
+          "domain": "mismo rig"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "pesos mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        },
+        {
+          "symbol": "pose",
+          "meaning": "pose resultante",
+          "unit": "mismo tipo que pose_i",
+          "dimension": "por canal",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Solo mezclar canales homólogos del mismo rig; posiciones y ángulos se mezclan con reglas distintas (quaternion para rotaciones).",
+        "Pesos suman 1 cuando se define mezcla convexa; definir extrapolación si se permite."
+      ],
+      "valid_domain": [
+        "Pesos finitos; poses compatibles; rig común."
+      ],
+      "boundary_conditions": [
+        "Un peso 1 reproduce pose correspondiente; todos cero usan pose base/fallback."
+      ],
+      "dimensional_checks": [
+        "Los pesos son adimensionales; cada canal conserva su unidad: posición L, ángulo rad.",
+        "No sumar directamente rotaciones en representaciones incompatibles."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D33:2",
+      "name": "Motion matching distance",
+      "variables": [
+        {
+          "symbol": "feature_q,feature_c",
+          "meaning": "vectores de características",
+          "unit": "vector normalizado",
+          "dimension": "adimensional",
+          "domain": "mismo espacio"
+        },
+        {
+          "symbol": "w_k",
+          "meaning": "pesos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "D",
+          "meaning": "distancia de búsqueda",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "k",
+          "meaning": "índice de característica",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango válido"
+        }
+      ],
+      "constraints": [
+        "Features con unidades distintas deben normalizarse antes de restar; pesos incorporan escala/varianza de cada feature.",
+        "La métrica y sus pesos deben versionarse con la biblioteca de movimiento."
+      ],
+      "valid_domain": [
+        "Features finitas; misma dimensión; pesos no negativos."
+      ],
+      "boundary_conditions": [
+        "Features idénticas dan D=0; candidato no válido se excluye."
+      ],
+      "dimensional_checks": [
+        "D es adimensional bajo features normalizadas; sin normalización cada término w_k debe tener unidad inversa al cuadrado de la feature.",
+        "Índices son discretos."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D33:3",
+      "name": "Root motion",
+      "variables": [
+        {
+          "symbol": "M_root(t)",
+          "meaning": "transformación raíz",
+          "unit": "afín tipada",
+          "dimension": "rotación 1; traslación L",
+          "domain": "finita"
+        },
+        {
+          "symbol": "ΔM_root",
+          "meaning": "delta transformación",
+          "unit": "afín tipada",
+          "dimension": "rotación 1; traslación L",
+          "domain": "finita"
+        },
+        {
+          "symbol": "t,Δt",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt≥0"
+        },
+        {
+          "symbol": "v_root",
+          "meaning": "velocidad raíz",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Matriz e inversa usan misma convención de espacio local/mundo; extraer rotación y traslación por separado.",
+        "La diferencia de traslación dividida por Δt produce velocidad; Δt=0 no se divide."
+      ],
+      "valid_domain": [
+        "Matrices invertibles; tiempos finitos; Δt>0 para derivadas."
+      ],
+      "boundary_conditions": [
+        "M_root(t+Δt)=M_root(t) produce delta identidad; Δt=0 solo permite delta de pose, no velocidad."
+      ],
+      "dimensional_checks": [
+        "Bloque rotacional es adimensional; traslación L; v_root L/T.",
+        "La composición M(t+Δt)·M(t)⁻¹ conserva tipo afín."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D33:4",
+      "name": "Foot locking",
+      "variables": [
+        {
+          "symbol": "p_foot(t)",
+          "meaning": "posición pie",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "p_lock",
+          "meaning": "posición anclada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "constante en intervalo"
+        },
+        {
+          "symbol": "t_start,t_end",
+          "meaning": "intervalo de contacto",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t_end≥t_start"
+        },
+        {
+          "symbol": "w_lock",
+          "meaning": "peso bloqueo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Posición objetivo y pie usan mismo marco; mezcla ponderada mantiene coordenada L.",
+        "Detección de contacto debe evitar cambios bruscos; definir tolerancia espacial en m."
+      ],
+      "valid_domain": [
+        "Intervalo válido; posiciones finitas; peso acotado."
+      ],
+      "boundary_conditions": [
+        "w_lock=1 fija pie; w_lock=0 deja animación original; fuera del intervalo se libera."
+      ],
+      "dimensional_checks": [
+        "p_foot y p_lock tienen L; w_lock adimensional; tiempo tiene T.",
+        "La restricción fija una posición, no una velocidad."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D33:5",
+      "name": "Contact constraints",
+      "variables": [
+        {
+          "symbol": "p_foot",
+          "meaning": "posición del pie",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ground",
+          "meaning": "superficie suelo",
+          "unit": "geometría en m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "definida"
+        },
+        {
+          "symbol": "C",
+          "meaning": "distancia firmada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "C=0 en contacto"
+        },
+        {
+          "symbol": "n",
+          "meaning": "normal suelo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        }
+      ],
+      "constraints": [
+        "Pie y suelo comparten marco/unidad; distancia firmada se mide según normal/superficie definida.",
+        "Tolerancia de contacto tiene L; normal debe normalizarse."
+      ],
+      "valid_domain": [
+        "Superficie evaluable; normal unitaria; posiciones finitas."
+      ],
+      "boundary_conditions": [
+        "C=0 indica contacto; suelo ausente invalida restricción."
+      ],
+      "dimensional_checks": [
+        "C tiene L; normal es adimensional; gradiente de distancia es adimensional.",
+        "La condición C=0 es dimensionalmente consistente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D33:6",
+      "name": "Motion warping",
+      "variables": [
+        {
+          "symbol": "pose(t)",
+          "meaning": "pose original",
+          "unit": "canales tipados",
+          "dimension": "m y rad por canal",
+          "domain": "finita"
+        },
+        {
+          "symbol": "correction",
+          "meaning": "corrección",
+          "unit": "m o rad por canal",
+          "dimension": "según canal",
+          "domain": "finita"
+        },
+        {
+          "symbol": "w(t)",
+          "meaning": "peso",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "pose'(t)",
+          "meaning": "pose corregida",
+          "unit": "mismo tipo que pose",
+          "dimension": "por canal",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Corrección debe tener misma unidad y semántica que el canal al que se aplica; pesos adimensionales.",
+        "Función temporal w(t) debe ser continua y acotada."
+      ],
+      "valid_domain": [
+        "Pose y corrección finitas; canales compatibles."
+      ],
+      "boundary_conditions": [
+        "w=0 conserva pose original; w=1 aplica corrección completa."
+      ],
+      "dimensional_checks": [
+        "w·correction conserva unidad del canal; posición L y ángulo rad permanecen separados.",
+        "t tiene T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D33:7",
+      "name": "Kalman filter",
+      "variables": [
+        {
+          "symbol": "x̂",
+          "meaning": "estado estimado",
+          "unit": "vector tipado",
+          "dimension": "unidades por componente",
+          "domain": "finito"
+        },
+        {
+          "symbol": "z",
+          "meaning": "medición",
+          "unit": "mismo tipo que Hx",
+          "dimension": "por sensor",
+          "domain": "finita"
+        },
+        {
+          "symbol": "P,Q,R",
+          "meaning": "covarianzas",
+          "unit": "producto de unidades por pares",
+          "dimension": "tipadas por componentes",
+          "domain": "semidefinidas positivas"
+        },
+        {
+          "symbol": "K",
+          "meaning": "ganancia Kalman",
+          "unit": "relación de unidades",
+          "dimension": "por estado/medición",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Matrices H, P, Q y R deben respetar unidades de estado/medición; covarianza tiene unidad producto de variables.",
+        "Modelo temporal y matriz de transición deben llevar Δt en unidades coherentes."
+      ],
+      "valid_domain": [
+        "Covarianzas simétricas semidefinidas positivas; matrices compatibles."
+      ],
+      "boundary_conditions": [
+        "R→0 representa medición de alta confianza límite; datos ausentes omiten actualización."
+      ],
+      "dimensional_checks": [
+        "Cada elemento de covarianza P_ij tiene unidad x_i·x_j; K transforma medición a unidad de estado.",
+        "La suma x̂^-+K(z−Hx̂^-) combina estados homogéneos."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D33:8",
+      "name": "One Euro filter",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "señal de entrada",
+          "unit": "unidad del canal",
+          "dimension": "tipada por canal",
+          "domain": "finita"
+        },
+        {
+          "symbol": "dx/dt",
+          "meaning": "derivada",
+          "unit": "unidad de x por s",
+          "dimension": "dimensión x·T⁻¹",
+          "domain": "finita"
+        },
+        {
+          "symbol": "f_min",
+          "meaning": "frecuencia cutoff mínima",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "β",
+          "meaning": "ganancia adaptación",
+          "unit": "Hz por unidad de derivada",
+          "dimension": "tipada por señal",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "f_c",
+          "meaning": "cutoff adaptativo",
+          "unit": "Hz",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "La fórmula f_c=f_min+β|dx_hat| exige β con unidad Hz/(unidad de x por segundo); no es universalmente adimensional.",
+        "Δt y derivada deben usar segundos; filtro low-pass convierte cutoff a coeficiente adimensional."
+      ],
+      "valid_domain": [
+        "f_min>0; β≥0; Δt>0; señal finita."
+      ],
+      "boundary_conditions": [
+        "β=0 fija cutoff en f_min; Δt=0 no permite derivada temporal."
+      ],
+      "dimensional_checks": [
+        "β·|dx/dt| tiene Hz; f_c suma dos frecuencias homogéneas.",
+        "La señal filtrada conserva unidad de x."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D33:9",
+      "name": "Quaternion retarget",
+      "variables": [
+        {
+          "symbol": "q_s,q_bind_s,q_bind_t",
+          "meaning": "cuaterniones fuente/bind",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarios"
+        },
+        {
+          "symbol": "q_t",
+          "meaning": "rotación destino",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "p",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "si se transfiere traslación, tipado aparte"
+        }
+      ],
+      "constraints": [
+        "Cuaterniones normalizados y misma convención de orden; composición e inversa no cambian unidad.",
+        "El retarget rotacional no transfiere automáticamente escala ni traslación."
+      ],
+      "valid_domain": [
+        "Cuaterniones unitarios; poses bind válidas."
+      ],
+      "boundary_conditions": [
+        "q_s=q_bind_s produce q_t=q_bind_t; cuaternión nulo se rechaza."
+      ],
+      "dimensional_checks": [
+        "Cuaterniones y matrices rotacionales son adimensionales; posiciones tienen L.",
+        "La multiplicación de cuaterniones conserva tipo de rotación."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "10/10 técnicas incluidas; ninguna protegida",
+      "Variables, unidades, restricciones, dominio, límites y comprobaciones específicas por técnica",
+      "Separadas posiciones, rotaciones, tiempos, pesos, covarianzas y características normalizadas"
+    ],
+    "limitations": [
+      "Auditoría dimensional; no valida precisión de captura, calidad del retargeting ni naturalidad de actuación."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

@@ -4,10 +4,18 @@ on:
   push:
     paths:
       - "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json"
+      - "docs/threejs/audit/**"
       - "tools/threejs_manifest_audit.py"
       - "tests/threejs/**"
+      - "examples/threejs/**"
       - ".github/workflows/validate-threejs-manifest.yml"
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
   workflow_dispatch:
+
+concurrency:
+  group: threejs-math-manifest-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -31,31 +39,74 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
-      - name: Run JavaScript CPU reference/parity tests
-        run: node --test tests/threejs/r31_kernels.test.mjs
+      - name: Install pinned Three.js runtime for deterministic scene tests
+        run: npm install --no-save --no-audit --no-fund three@0.180.0
+      - name: Run JavaScript CPU reference/parity and Three.js scene tests
+        run: |
+          node --test \
+            tests/threejs/r31_kernels.test.mjs \
+            tests/threejs/r31_completion_kernels.test.mjs \
+            examples/threejs/r31-validation-scenes.test.mjs \
+            examples/threejs/r31-core-scenes.test.mjs \
+            tests/threejs/r31-production-algorithms.test.mjs \
+            tests/threejs/d35-d36-point4.test.mjs \
+            tests/threejs/d36-real-implementations.test.mjs \
+            tests/threejs/d35-real-fft.test.mjs \
+            tests/threejs/d35-control-implementations.test.mjs \
+            tests/threejs/d35-scalar-methods.test.mjs \
+            tests/threejs/d35-optimization-roots.test.mjs \
+            tests/threejs/d35-kalman.test.mjs \
+            tests/threejs/d01-spatial-grid.test.mjs \
+            tests/threejs/d01-demand-render-scheduler.test.mjs \
+            tests/threejs/d01-core-techniques.test.mjs \
+            tests/threejs/d02-procedural-geometry.test.mjs \
+            tests/threejs/d03-character-geometry.test.mjs \
+            tests/threejs/d04-motion-simulation.test.mjs \
+            tests/threejs/d05-vegetation-ecology.test.mjs \
+            tests/threejs/d06-terrain-erosion.test.mjs \
+            tests/threejs/d07-architecture.test.mjs
       - name: Run structural and consistency audit
         run: |
           python tools/threejs_manifest_audit.py \
             --manifest docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json \
             --report threejs-manifest-audit.json
+      - name: Enforce fail-closed implementation readiness
+        run: |
+          python tests/threejs/implementation_readiness_gate.py \
+            --manifest docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json \
+            --r31 docs/threejs/audit/r31-technical-specifications.json \
+            --preservation docs/threejs/audit/crimson-loong-preserved-record-map.json \
+            --dimensions docs/threejs/audit/r31-symbol-dimension-audit.json \
+            --report threejs-readiness-report.json
       - name: Publish report into repository
         if: always() && hashFiles('threejs-manifest-audit.json') != ''
+        continue-on-error: true
         run: |
           mkdir -p docs/threejs/audit
           cp threejs-manifest-audit.json docs/threejs/audit/latest.json
+          if [ -f threejs-readiness-report.json ]; then cp threejs-readiness-report.json docs/threejs/audit/latest-implementation-readiness.json; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add docs/threejs/audit/latest.json
+          if [ -f docs/threejs/audit/latest-implementation-readiness.json ]; then git add docs/threejs/audit/latest-implementation-readiness.json; fi
           if ! git diff --cached --quiet; then
             git commit -m "Publish Three.js manifest audit report"
-            git push
+            for attempt in 1 2 3; do
+              git pull --rebase origin "$GITHUB_REF_NAME"
+              if git push; then exit 0; fi
+              git fetch origin "$GITHUB_REF_NAME"
+              sleep 1
+            done
+            echo "::warning::Audit report is available as a workflow artifact; repository report publication lost a concurrent update race."
           fi
       - name: Upload audit report artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: threejs-math-manifest-audit
-          path: threejs-manifest-audit.json
+          path: |
+            threejs-manifest-audit.json
+            threejs-readiness-report.json
           if-no-files-found: warn
 
 # Browser renderer checks are intentionally not part of this mathematical gate.

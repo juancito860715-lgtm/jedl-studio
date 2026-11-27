@@ -1,0 +1,619 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D09 Iluminación, sombras y exposición",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D09",
+    "record_count": 13,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D09 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D09:0",
+      "name": "Lambert diffuse",
+      "starting_principles": [
+        "N y L unitarios; albedo lineal en [0,1].",
+        "La superficie se aproxima como difusor ideal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E∝max(N·L,0)",
+          "justification": "La energía recibida por una superficie difusa ideal escala con el coseno del ángulo de incidencia."
+        },
+        {
+          "step": 2,
+          "equation": "L_o=ρ_d E/π",
+          "justification": "Para reflexión lambertiana, dividir albedo difuso por π normaliza la BRDF hemisférica."
+        },
+        {
+          "step": 3,
+          "equation": "I_d=albedo·lightColor·max(N·L,0)",
+          "justification": "En un shader simplificado, agrupar irradiancia/intensidad de luz en lightColor."
+        }
+      ],
+      "assumptions": [
+        "N y L unitarios; albedo lineal en [0,1].",
+        "La superficie se aproxima como difusor ideal.",
+        "La luz se evalúa en el mismo espacio de shading."
+      ],
+      "result": "La ley del coseno y la normalización hemisférica producen el término difuso Lambert.",
+      "limits": [
+        "No modela especularidad, subsurface ni interreflexión."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "N,L son unitarios; N·L y albedo son adimensionales.",
+        "BRDF lambertiana ρ/π tiene sr⁻¹; multiplicada por irradiancia y medida angular produce radiancia."
+      ]
+    },
+    {
+      "record_key": "D09:1",
+      "name": "Phong specular",
+      "starting_principles": [
+        "N,L,V unitarios; k_s≥0; n>0.",
+        "Color y luz en mismo espacio de color."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "R=2(N·L)N−L",
+          "justification": "La reflexión especular de una dirección unitaria L alrededor de la normal unitaria N conserva magnitud y cambia el signo de la componente normal."
+        },
+        {
+          "step": 2,
+          "equation": "s=max(R·V,0)",
+          "justification": "El producto escalar mide alineación con la vista; el clamp elimina contribuciones fuera del hemisferio especular."
+        },
+        {
+          "step": 3,
+          "equation": "S_Phong=k_s s^n",
+          "justification": "Construir un lóbulo normalizado adimensional; k_s y n son parámetros sin dimensión."
+        },
+        {
+          "step": 4,
+          "equation": "L_s=L_i S_Phong",
+          "justification": "Multiplicar el lóbulo por radiancia incidente convierte el coeficiente adimensional en radiancia especular."
+        },
+        {
+          "step": 5,
+          "equation": "L_o=L_d+L_s",
+          "justification": "Sumar contribuciones solo después de expresarlas en la misma unidad y espacio radiométrico."
+        }
+      ],
+      "assumptions": [
+        "Direcciones L,V,N normalizadas; R se calcula en el mismo marco.",
+        "El modelo Phong es un lóbulo empírico, no una BRDF físicamente normalizada por sí solo."
+      ],
+      "result": "Phong genera un coeficiente especular adimensional a partir de la reflexión ideal; la radiancia incidente lo escala para producir una contribución sumable a la radiancia difusa.",
+      "limits": [
+        "No conserva energía de forma estricta y depende de interpolación/normalización."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "R,V,N y S_Phong son adimensionales; k_s y n son parámetros adimensionales.",
+        "L_i·S_Phong tiene W·m⁻²·sr⁻¹; L_d y L_s comparten radiancia antes de sumarse."
+      ]
+    },
+    {
+      "record_key": "D09:2",
+      "name": "Blinn-Phong",
+      "starting_principles": [
+        "L,V,N unitarios; L+V no nulo.",
+        "k_s≥0 y n>0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "H=normalize(L+V)",
+          "justification": "La suma de direcciones luz y vista define el half-vector cuando no son opuestas."
+        },
+        {
+          "step": 2,
+          "equation": "s=max(N·H,0)",
+          "justification": "Medir alineación entre la normal y el half-vector."
+        },
+        {
+          "step": 3,
+          "equation": "S_Blinn=k_s s^n",
+          "justification": "Formar un lóbulo especular adimensional controlado por coeficiente y exponente."
+        },
+        {
+          "step": 4,
+          "equation": "L_s=L_i S_Blinn",
+          "justification": "Escalar el lóbulo con radiancia incidente para obtener radiancia especular."
+        },
+        {
+          "step": 5,
+          "equation": "L_o=L_d+L_s",
+          "justification": "Combinar difuso y especular en la misma unidad radiométrica."
+        }
+      ],
+      "assumptions": [
+        "L y V no son vectores opuestos; H se normaliza solo si L+V≠0.",
+        "El lóbulo es empírico y requiere calibración/energía separada si se usa como modelo físico."
+      ],
+      "result": "Blinn–Phong sustituye la dirección reflejada por el half-vector y produce un coeficiente especular adimensional que se escala por la radiancia incidente.",
+      "limits": [
+        "El exponente no se corresponde directamente con rugosidad física; requiere calibración."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "H,N son unitarios; N·H, k_s, n y S_Blinn son adimensionales.",
+        "L_i·S_Blinn tiene W·m⁻²·sr⁻¹; L_d y L_s se suman homogéneamente."
+      ]
+    },
+    {
+      "record_key": "D09:3",
+      "name": "PBR microfacet",
+      "starting_principles": [
+        "L,V,N unitarios y hemisferio válido; denominador no nulo.",
+        "D normalizada según NDF; F y G en [0,1]."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h=normalize(L+V)",
+          "justification": "El half-vector define la orientación de microfaceta que refleja L hacia V."
+        },
+        {
+          "step": 2,
+          "equation": "D(h)",
+          "justification": "Distribución estadística de normales de microfacetas."
+        },
+        {
+          "step": 3,
+          "equation": "F(V,h)",
+          "justification": "Fresnel determina fracción reflejada en la interfaz."
+        },
+        {
+          "step": 4,
+          "equation": "G(L,V,h)",
+          "justification": "Enmascaramiento/sombreado corrige microfacetas ocultas."
+        },
+        {
+          "step": 5,
+          "equation": "f_r=D·F·G/(4(N·L)(N·V))",
+          "justification": "La ecuación de microfacetas divide por la conversión de área proyectada de entrada/salida."
+        },
+        {
+          "step": 6,
+          "equation": "L_o=∫f_r L_i(N·L)dω_i",
+          "justification": "Insertar BRDF en ecuación de reflexión para obtener radiancia saliente."
+        }
+      ],
+      "assumptions": [
+        "L,V,N unitarios y hemisferio válido; denominador no nulo.",
+        "D normalizada según NDF; F y G en [0,1].",
+        "Roughness parametriza D y G."
+      ],
+      "result": "Cook–Torrance combina distribución microfacet, Fresnel y geometría para formar una BRDF especular físicamente plausible.",
+      "limits": [
+        "La fórmula es un modelo local de reflexión; no incluye por sí sola transmisión ni dispersión subsuperficial."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "D tiene sr⁻¹; F,G y cosenos son adimensionales; f_r tiene sr⁻¹.",
+        "La integral f_r L_i cosθ dω conserva la unidad de radiancia L_o."
+      ]
+    },
+    {
+      "record_key": "D09:4",
+      "name": "Fresnel Schlick",
+      "starting_principles": [
+        "cosθ∈[0,1]; F_0∈[0,1].",
+        "Material homogéneo y aproximación no polarizada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F(θ) exacta depende de índices y polarización",
+          "justification": "La reflexión de interfaz aumenta al aproximarse al ángulo rasante."
+        },
+        {
+          "step": 2,
+          "equation": "F(0)=F_0",
+          "justification": "En incidencia normal, fijar reflectancia frontal."
+        },
+        {
+          "step": 3,
+          "equation": "F(π/2)≈1",
+          "justification": "En el límite rasante, aproximar reflectancia hacia uno."
+        },
+        {
+          "step": 4,
+          "equation": "F=F_0+(1−F_0)(1−cosθ)^5",
+          "justification": "Usar polinomio de quinto grado que satisface extremos y aproxima curva angular."
+        }
+      ],
+      "assumptions": [
+        "cosθ∈[0,1]; F_0∈[0,1].",
+        "Material homogéneo y aproximación no polarizada.",
+        "Para metales, F_0 puede ser RGB."
+      ],
+      "result": "Schlick es una aproximación compacta de Fresnel ajustada a reflectancia frontal y límite rasante.",
+      "limits": [
+        "No es solución exacta para todas las longitudes de onda ni índices complejos."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "F0, cosθ y F son adimensionales.",
+        "El polinomio de Schlick no cambia unidades de reflectancia."
+      ]
+    },
+    {
+      "record_key": "D09:5",
+      "name": "Shadow mapping",
+      "starting_principles": [
+        "Mapa de profundidad y punto usan misma cámara/proyección de luz.",
+        "Bias comparte escala de profundidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_l=Project_light(p)",
+          "justification": "Transformar el punto de escena al espacio de clip de la luz."
+        },
+        {
+          "step": 2,
+          "equation": "(u,v,z_l)=perspectiveDivide(p_l)",
+          "justification": "Convertir coordenadas proyectadas a UV y profundidad."
+        },
+        {
+          "step": 3,
+          "equation": "z_s=sample(depthMap,u,v)",
+          "justification": "Leer profundidad más cercana almacenada desde la luz."
+        },
+        {
+          "step": 4,
+          "equation": "visible=1 if z_l≤z_s+bias else 0",
+          "justification": "Si el punto actual está detrás de profundidad guardada, queda oculto; bias compensa precisión/acné."
+        }
+      ],
+      "assumptions": [
+        "Mapa de profundidad y punto usan misma cámara/proyección de luz.",
+        "Bias comparte escala de profundidad.",
+        "UV fuera del mapa usan política de borde."
+      ],
+      "result": "La sombra se obtiene comparando profundidad del punto desde la luz con la profundidad más cercana rasterizada.",
+      "limits": [
+        "Bias excesivo produce peter-panning; insuficiente produce shadow acne."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "u,v y depth buffer normalizado son adimensionales; si depth es lineal, z_l,z_s,bias comparten L.",
+        "La comparación de profundidades solo es válida en misma proyección/codificación."
+      ]
+    },
+    {
+      "record_key": "D09:6",
+      "name": "PCF soft shadows",
+      "starting_principles": [
+        "Muestras en misma shadow map y convención de depth.",
+        "Pesos no negativos y normalizados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "V_i=compare(z_l,z_i)",
+          "justification": "Calcular visibilidad binaria por cada muestra del kernel."
+        },
+        {
+          "step": 2,
+          "equation": "w_i≥0; Σw_i=1",
+          "justification": "Definir pesos de filtro normalizados."
+        },
+        {
+          "step": 3,
+          "equation": "V=Σ_i w_i V_i",
+          "justification": "Promediar comparaciones cercanas para aproximar cobertura parcial."
+        },
+        {
+          "step": 4,
+          "equation": "filter radius in texels",
+          "justification": "El tamaño del kernel define suavidad aparente."
+        }
+      ],
+      "assumptions": [
+        "Muestras en misma shadow map y convención de depth.",
+        "Pesos no negativos y normalizados.",
+        "Kernel y bias se declaran."
+      ],
+      "result": "PCF filtra el resultado de comparación de profundidad, no la profundidad cruda.",
+      "limits": [
+        "Aumentar radio suaviza pero puede borrar detalle y aumentar coste."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "V_i y w_i son adimensionales; Σw_i=1.",
+        "El promedio PCF conserva una visibilidad adimensional entre 0 y 1."
+      ]
+    },
+    {
+      "record_key": "D09:7",
+      "name": "Hemisphere lighting",
+      "starting_principles": [
+        "N unitario en espacio mundo; eje up declarado.",
+        "C_sky/C_ground en mismo espacio lineal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "t=0.5(N_y+1)",
+          "justification": "Remapear componente vertical de normal unitaria desde [−1,1] a [0,1]."
+        },
+        {
+          "step": 2,
+          "equation": "L= (1−t)C_ground+t C_sky",
+          "justification": "Interpolar entre color de suelo y cielo."
+        },
+        {
+          "step": 3,
+          "equation": "L'=AO·L",
+          "justification": "Opcionalmente modular con oclusión ambiental."
+        }
+      ],
+      "assumptions": [
+        "N unitario en espacio mundo; eje up declarado.",
+        "C_sky/C_ground en mismo espacio lineal.",
+        "AO adimensional."
+      ],
+      "result": "La iluminación hemisférica aproxima un entorno de dos colores usando la orientación de la normal.",
+      "limits": [
+        "No calcula visibilidad real ni interreflexión del entorno."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "N_y y t son adimensionales; C_sky,C_ground y L comparten unidad/espacio de señal.",
+        "AO es adimensional y no cambia unidad de la iluminación."
+      ]
+    },
+    {
+      "record_key": "D09:8",
+      "name": "Volumetric light",
+      "starting_principles": [
+        "σ_t≥σ_s≥0; ds>0; fase normalizada.",
+        "Coeficientes y distancias usan unidades recíprocas/compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T(s)=exp(−∫_0^s σ_t(u)du)",
+          "justification": "La transmitancia se deriva de la ecuación diferencial dT/ds=−σ_tT con T(0)=1."
+        },
+        {
+          "step": 2,
+          "equation": "dL=T(s)σ_s[∫_{4π}p(ω_i,ω_o)L_i(ω_i) dω_i]ds",
+          "justification": "Integrar primero la radiancia incidente ponderada por la fase angular; luego multiplicar por coeficiente de dispersión y longitud diferencial para obtener incremento de radiancia."
+        },
+        {
+          "step": 3,
+          "equation": "L_o=L_bg T(D)+∫₀ᴰT(s)σ_s[∫_{4π}p(ω_i,ω_o)L_i(ω_i)dω_i]ds",
+          "justification": "Acumular dispersión a lo largo del rayo y atenuar la radiancia de fondo por transmitancia."
+        },
+        {
+          "step": 4,
+          "equation": "L_o≈L_bg T(D)+Σ_i T_i σ_s,i [∫p_i L_i dω_i] Δs",
+          "justification": "Aproximar la integral espacial mediante raymarch, manteniendo la integral angular o su aproximación de fuente direccional."
+        }
+      ],
+      "assumptions": [
+        "σ_t≥σ_s≥0; ds>0; fase normalizada.",
+        "Coeficientes y distancias usan unidades recíprocas/compatibles.",
+        "L_i y L_o son radiancias.",
+        "La función de fase p se normaliza respecto a dω_i; si la fuente es direccional, su delta angular debe integrarse en la medida sólida."
+      ],
+      "result": "La luz volumétrica se deriva de Beer–Lambert más integración de dispersión en el trayecto visual.",
+      "limits": [
+        "El raymarch discreto introduce error según paso; iluminación variable requiere muestreo adecuado.",
+        "No omitir la integración angular o la convención de delta direccional; de lo contrario el término de dispersión queda dimensionalmente incompleto."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "σ_t,σ_s tienen L⁻¹; ds tiene L; ∫σ_t ds es adimensional.",
+        "La integral angular ∫p L_i dω_i conserva radiancia porque p tiene sr⁻¹ y dω_i sr; σ_s ds es adimensional."
+      ]
+    },
+    {
+      "record_key": "D09:9",
+      "name": "ACES-like tone mapping",
+      "starting_principles": [
+        "Coeficientes a,b,c,d,e corresponden a curva elegida y deben fijarse.",
+        "Entrada HDR en espacio lineal; salida display-linear antes de codificar."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x=exposure·C_HDR",
+          "justification": "Escalar radiancia/señal HDR por exposición."
+        },
+        {
+          "step": 2,
+          "equation": "f(x)=x(ax+b)/(x(cx+d)+e)",
+          "justification": "Usar curva racional monotónica para comprimir altas luces y mantener respuesta suave."
+        },
+        {
+          "step": 3,
+          "equation": "C_out=f(x)/f(whitePoint)",
+          "justification": "Normalizar para que el blanco de referencia llegue al nivel de salida previsto."
+        },
+        {
+          "step": 4,
+          "equation": "encodeDisplay(C_out)",
+          "justification": "Aplicar transferencia/gamut de salida después de tone mapping."
+        }
+      ],
+      "assumptions": [
+        "Coeficientes a,b,c,d,e corresponden a curva elegida y deben fijarse.",
+        "Entrada HDR en espacio lineal; salida display-linear antes de codificar.",
+        "whitePoint>0."
+      ],
+      "result": "Una curva racional comprime el rango dinámico de entrada y se normaliza respecto a un blanco de referencia.",
+      "limits": [
+        "ACES-like no equivale al transform ACES oficial salvo que se use su RRT/ODT y parámetros exactos."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "EV/exposure son adimensionales; exposure·C_HDR conserva unidad de C_HDR.",
+        "Tone mapping produce señal display-linear normalizada adimensional; whitePoint comparte unidad/escala con x."
+      ]
+    },
+    {
+      "record_key": "D09:10",
+      "name": "Exposure",
+      "starting_principles": [
+        "C en espacio lineal; EV finito.",
+        "Exposición aplicada antes de compresión tonal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "EV=log₂(exposure)",
+          "justification": "Definir exposición en pasos de base dos."
+        },
+        {
+          "step": 2,
+          "equation": "exposure=2^EV",
+          "justification": "Invertir logaritmo para obtener multiplicador positivo."
+        },
+        {
+          "step": 3,
+          "equation": "C'=2^EV·C",
+          "justification": "Aplicar multiplicador a señal lineal antes de tone mapping."
+        },
+        {
+          "step": 4,
+          "equation": "EV=+1 ⇒ C'=2C; EV=−1 ⇒ C'=C/2",
+          "justification": "Cada stop duplica o divide la señal por dos."
+        }
+      ],
+      "assumptions": [
+        "C en espacio lineal; EV finito.",
+        "Exposición aplicada antes de compresión tonal.",
+        "No aplicar a RGB ya codificado como si fuera lineal."
+      ],
+      "result": "La exposición en stops se convierte en multiplicador de potencia de dos.",
+      "limits": [
+        "El resultado puede exceder rango de pantalla; tone mapping se aplica después."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "EV es adimensional (stops); 2^EV es un multiplicador adimensional.",
+        "C' conserva unidad/escala de C antes de tone mapping."
+      ]
+    },
+    {
+      "record_key": "D09:11",
+      "name": "Color temperature",
+      "starting_principles": [
+        "T>0 Kelvin; λ>0; funciones de color y primarias declaradas.",
+        "La aproximación blackbody describe radiador ideal; luz real puede desviarse."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "B_λ(T)=2hc²/λ⁵·1/(exp(hc/(λk_BT))−1)",
+          "justification": "La ley de Planck define radiancia espectral de cuerpo negro a temperatura T."
+        },
+        {
+          "step": 2,
+          "equation": "XYZ(T)=∫B_λ(T)·(x̄(λ),ȳ(λ),z̄(λ))dλ",
+          "justification": "Integrar espectro con funciones de igualación CIE para obtener triestímulos."
+        },
+        {
+          "step": 3,
+          "equation": "RGB(T)=M_XYZ→RGB·XYZ(T)",
+          "justification": "Transformar a espacio RGB de primarias declaradas."
+        },
+        {
+          "step": 4,
+          "equation": "C_art=lerp(C_warm,C_neutral,C_cool; weights)",
+          "justification": "Para dirección artística, usar muestras predefinidas o interpolación en espacio lineal."
+        }
+      ],
+      "assumptions": [
+        "T>0 Kelvin; λ>0; funciones de color y primarias declaradas.",
+        "La aproximación blackbody describe radiador ideal; luz real puede desviarse.",
+        "La mezcla artística es una capa distinta de la conversión física."
+      ],
+      "result": "La temperatura de color puede derivarse físicamente de un espectro de cuerpo negro o aproximarse artísticamente con una paleta calibrada.",
+      "limits": [
+        "Kelvin correlacionados no determinan por sí solos espectro completo de fuentes reales; RGB artístico no es equivalente a Planck."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "λ y h son m; T es K; el argumento hc/(λk_BT) es adimensional.",
+        "B_λ es radiancia espectral por longitud de onda; integrar en dλ produce radiancia; XYZ/RGB heredan o normalizan esa escala."
+      ]
+    },
+    {
+      "record_key": "D09:12",
+      "name": "Ruido de erosión orientado por flujo y pendiente",
+      "starting_principles": [
+        "El campo de altura es diferenciable o usa gradiente discreto.",
+        "flow es unitario; λ_∥,λ_⊥ tienen inversa de longitud si p es físico."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "g=∇h; slope=||g||",
+          "justification": "Calcular gradiente y magnitud de pendiente del heightfield."
+        },
+        {
+          "step": 2,
+          "equation": "flow=−normalize(g) or accumulatedDrainage",
+          "justification": "Estimar dirección descendente o flujo acumulado."
+        },
+        {
+          "step": 3,
+          "equation": "p_∥=p·flow; p_⊥=p·perp(flow)",
+          "justification": "Rotar coordenadas para alinear ruido con dirección de flujo."
+        },
+        {
+          "step": 4,
+          "equation": "N_structured=noise(λ_∥p_∥,λ_⊥p_⊥)",
+          "justification": "Evaluar ruido anisotrópico con frecuencias paralela y perpendicular."
+        },
+        {
+          "step": 5,
+          "equation": "h'=h+A·w(slope,exposure)·N_structured",
+          "justification": "Modular amplitud por pendiente/exposición y añadir detalle al terreno."
+        }
+      ],
+      "assumptions": [
+        "El campo de altura es diferenciable o usa gradiente discreto.",
+        "flow es unitario; λ_∥,λ_⊥ tienen inversa de longitud si p es físico.",
+        "A tiene unidad de altura y w es adimensional."
+      ],
+      "result": "El ruido se orienta mediante coordenadas locales alineadas con flujo descendente y se modula por pendiente.",
+      "limits": [
+        "No sustituye simulación hidrológica ni transporte de sedimentos; es una textura geomorfológica procedural."
+      ],
+      "sources": [],
+      "dimensional_verification": [
+        "∇h es adimensional si h y p tienen L; flow y sus coordenadas locales son adimensionales.",
+        "λ_parallel, λ_perp tienen L⁻¹; sus productos con coordenadas L son adimensionales; A tiene L y w es adimensional."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "13/13 técnicas D09 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Volumetric light usa integral angular de fase para conservar radiancia y unidades",
+      "BRDF, reflectancia, radiancia, irradiancia, profundidad y señal display se mantienen diferenciadas",
+      "Planck spectral radiance integra en longitud de onda para obtener radiancia",
+      "Phong y Blinn–Phong distinguen el lóbulo adimensional de la radiancia incidente, evitando sumar coeficiente sin unidad a radiancia."
+    ],
+    "limitations": [
+      "Las expresiones son modelos de iluminación y aproximaciones declaradas; la implementación GPU, calibración espectral y pruebas visuales corresponden a puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

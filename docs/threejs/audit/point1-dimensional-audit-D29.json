@@ -1,0 +1,657 @@
+{
+  "title": "Auditoría dimensional punto 1 — D29 Color, percepción, composición y percepción visual",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D29",
+    "domain": "Color, percepción, composición y percepción visual",
+    "record_count": 11,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D29 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "color": "Distinguir RGB lineal, RGB codificado, XYZ/Lab y radiometría calibrada.",
+    "angles": "Hue se expresa en radianes o grados, nunca mezclados.",
+    "raster": "Píxeles son unidades discretas de imagen."
+  },
+  "records": [
+    {
+      "record_key": "D29:0",
+      "name": "CIE XYZ conversion",
+      "variables": [
+        {
+          "symbol": "RGB_linear",
+          "meaning": "entrada RGB lineal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "canales normalizados o radiométricos tipados"
+        },
+        {
+          "symbol": "M_RGB",
+          "meaning": "matriz de conversión",
+          "unit": "coeficientes",
+          "dimension": "adimensionales",
+          "domain": "perfil/primarias declaradas"
+        },
+        {
+          "symbol": "XYZ",
+          "meaning": "triestímulos",
+          "unit": "unidad de señal colorimétrica",
+          "dimension": "misma escala que RGB",
+          "domain": "finitos"
+        }
+      ],
+      "constraints": [
+        "Matriz y RGB deben usar las mismas primarias, blanco de referencia y adaptación cromática.",
+        "No convertir RGB codificado directamente como si fuera lineal."
+      ],
+      "valid_domain": [
+        "Canales finitos; matriz invertible o transformación definida; perfil conocido."
+      ],
+      "boundary_conditions": [
+        "Entrada negra produce XYZ cero; perfil no disponible invalida transformación."
+      ],
+      "dimensional_checks": [
+        "Matriz adimensional transforma canales homogéneos y conserva su escala.",
+        "XYZ no son radiancia física salvo calibración radiométrica."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:1",
+      "name": "CIE Lab distance",
+      "variables": [
+        {
+          "symbol": "Lab_1,Lab_2",
+          "meaning": "coordenadas perceptuales",
+          "unit": "L* y a*,b*",
+          "dimension": "coordenadas colorimétricas",
+          "domain": "finitas"
+        },
+        {
+          "symbol": "ΔE",
+          "meaning": "distancia perceptual",
+          "unit": "unidad ΔE",
+          "dimension": "escala CIE declarada",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "whitePoint",
+          "meaning": "blanco de referencia",
+          "unit": "XYZ normalizado",
+          "dimension": "adimensional",
+          "domain": "definido"
+        }
+      ],
+      "constraints": [
+        "Ambas muestras deben usar mismo iluminante, observador, blanco y fórmula ΔE (76/94/2000).",
+        "ΔE no es distancia física ni unidad SI."
+      ],
+      "valid_domain": [
+        "Lab finitos; blanco válido; fórmula especificada."
+      ],
+      "boundary_conditions": [
+        "Muestras idénticas dan ΔE=0."
+      ],
+      "dimensional_checks": [
+        "ΔE es distancia en espacio colorimétrico, no metros; no mezclar fórmulas CIE distintas.",
+        "El blanco de referencia es adimensional/normalizado."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:2",
+      "name": "HSV/HSL",
+      "variables": [
+        {
+          "symbol": "R,G,B",
+          "meaning": "canales RGB",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "H",
+          "meaning": "matiz",
+          "unit": "rad o grados",
+          "dimension": "ángulo adimensional",
+          "domain": "periódico"
+        },
+        {
+          "symbol": "S,V,L",
+          "meaning": "saturación/valor/luminosidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango definido"
+        }
+      ],
+      "constraints": [
+        "RGB de entrada debe declarar si es lineal o codificado; HSV/HSL son transformaciones de señal, no magnitudes físicas.",
+        "Matiz tiene periodicidad; comparar hue requiere distancia angular circular."
+      ],
+      "valid_domain": [
+        "Canales finitos; denominador max-min tratado cuando es cero."
+      ],
+      "boundary_conditions": [
+        "Gris (max=min) tiene saturación cero y matiz indefinido/convencional."
+      ],
+      "dimensional_checks": [
+        "RGB, S,V,L son adimensionales; H es ángulo; conversión conserva tipo de señal.",
+        "No interpretar H en grados y radianes simultáneamente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:3",
+      "name": "Luminance",
+      "variables": [
+        {
+          "symbol": "R,G,B",
+          "meaning": "canales RGB lineales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        },
+        {
+          "symbol": "Y",
+          "meaning": "luminancia relativa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango derivado"
+        },
+        {
+          "symbol": "k_R,k_G,k_B",
+          "meaning": "coeficientes primarios",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados"
+        }
+      ],
+      "constraints": [
+        "Coeficientes 0.2126/0.7152/0.0722 aplican a primarias sRGB/Rec.709 y RGB lineal.",
+        "No aplicar directamente a RGB sRGB codificado sin decodificar transferencia."
+      ],
+      "valid_domain": [
+        "Canales finitos y lineales; espacio de primarias declarado."
+      ],
+      "boundary_conditions": [
+        "RGB cero da Y=0; RGB blanco de referencia produce Y según normalización."
+      ],
+      "dimensional_checks": [
+        "Coeficientes y canales son adimensionales; Y conserva escala relativa.",
+        "Luminancia física requiere calibración de pantalla/luz, no solo fórmula relativa."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:4",
+      "name": "Contrast ratio",
+      "variables": [
+        {
+          "symbol": "L_1,L_2",
+          "meaning": "luminancias relativas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "L1≥L2≥0"
+        },
+        {
+          "symbol": "CR",
+          "meaning": "razón de contraste",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥1"
+        }
+      ],
+      "constraints": [
+        "L1 y L2 deben usar misma definición de luminancia relativa y mismo espacio de color.",
+        "El offset 0.05 pertenece a la convención de contraste sRGB relativa; no es magnitud física."
+      ],
+      "valid_domain": [
+        "L1≥L2≥0; luminancias finitas."
+      ],
+      "boundary_conditions": [
+        "L1=L2 da CR=1; L2=0 produce máximo finito según fórmula con offset."
+      ],
+      "dimensional_checks": [
+        "(L1+0.05)/(L2+0.05) es adimensional.",
+        "No comparar luminancia relativa con cd/m² sin normalización."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:5",
+      "name": "Color harmony",
+      "variables": [
+        {
+          "symbol": "h_0,Δh_i",
+          "meaning": "matiz base y desplazamiento",
+          "unit": "rad o grados",
+          "dimension": "ángulos adimensionales",
+          "domain": "finitos"
+        },
+        {
+          "symbol": "h_i",
+          "meaning": "matiz resultante",
+          "unit": "misma unidad angular",
+          "dimension": "ángulo",
+          "domain": "módulo 2π o 360°"
+        },
+        {
+          "symbol": "S,V",
+          "meaning": "saturación/valor",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        }
+      ],
+      "constraints": [
+        "Todos los ángulos deben compartir unidad y convención de módulo; paletas usan mismo espacio de color.",
+        "Hue circular no debe interpolarse por promedio aritmético cerca del corte 0/2π."
+      ],
+      "valid_domain": [
+        "hue finito; S,V dentro de rango."
+      ],
+      "boundary_conditions": [
+        "Δh=0 conserva matiz; hue=2π equivale a 0 rad."
+      ],
+      "dimensional_checks": [
+        "Suma angular es homogénea; modulo preserva ángulo.",
+        "S,V son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:6",
+      "name": "Luminance pyramid",
+      "variables": [
+        {
+          "symbol": "L_k",
+          "meaning": "nivel de luminancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "imagen finita"
+        },
+        {
+          "symbol": "σ",
+          "meaning": "radio/desviación blur",
+          "unit": "px",
+          "dimension": "unidad raster",
+          "domain": "σ≥0"
+        },
+        {
+          "symbol": "W_k,H_k",
+          "meaning": "dimensiones",
+          "unit": "px",
+          "dimension": "raster discreto",
+          "domain": "enteros positivos"
+        },
+        {
+          "symbol": "k",
+          "meaning": "nivel pirámide",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Blur y downsample operan en mismo espacio de señal; el kernel se normaliza para conservar promedio/energía según filtro.",
+        "Cada nivel reduce dimensiones mediante factor y regla de redondeo declarados."
+      ],
+      "valid_domain": [
+        "Imagen válida; resolución positiva; filtro definido."
+      ],
+      "boundary_conditions": [
+        "Nivel cero conserva imagen fuente; blur σ=0 es identidad."
+      ],
+      "dimensional_checks": [
+        "L_k conserva unidad de canal; σ es px; dimensiones son raster.",
+        "Downsample cambia resolución, no unidad de señal."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:7",
+      "name": "Saliency map",
+      "variables": [
+        {
+          "symbol": "C,E,M,F",
+          "meaning": "contraste, bordes, movimiento, rostro",
+          "unit": "1 normalizado",
+          "dimension": "adimensional",
+          "domain": "rangos calibrados"
+        },
+        {
+          "symbol": "w_c,w_e,w_m,w_f",
+          "meaning": "pesos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "S",
+          "meaning": "saliencia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Features deben normalizarse a escala comparable antes de sumarse; movimiento puede derivarse de desplazamiento/tiempo y luego normalizarse.",
+        "Pesos y política de rostros deben declararse; saliencia no es probabilidad salvo calibración."
+      ],
+      "valid_domain": [
+        "Features y pesos finitos; mapa alineado a viewport."
+      ],
+      "boundary_conditions": [
+        "Features cero producen S=0; feature ausente usa política explícita."
+      ],
+      "dimensional_checks": [
+        "Pesos y features normalizados son adimensionales; S es adimensional.",
+        "No sumar píxeles, segundos y contraste sin normalización."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:8",
+      "name": "Rule of thirds",
+      "variables": [
+        {
+          "symbol": "W,H",
+          "meaning": "ancho/alto de lienzo",
+          "unit": "px",
+          "dimension": "raster discreto",
+          "domain": "enteros positivos"
+        },
+        {
+          "symbol": "x_i,y_i",
+          "meaning": "guías de composición",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "en límites del lienzo"
+        },
+        {
+          "symbol": "r",
+          "meaning": "fracción de guía",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "1/3 o 2/3"
+        }
+      ],
+      "constraints": [
+        "Las guías se calculan sobre dimensiones actuales de viewport; adaptar al aspect ratio y safe area.",
+        "Si composición opera en mundo 3D, proyectar antes a pantalla."
+      ],
+      "valid_domain": [
+        "W,H>0; viewport definido."
+      ],
+      "boundary_conditions": [
+        "Cambio de resolución recalcula guías; x=0/W y y=0/H son bordes."
+      ],
+      "dimensional_checks": [
+        "r es adimensional; W·r y H·r producen píxeles.",
+        "No interpretar coordenadas de pantalla como metros."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:9",
+      "name": "Golden ratio framing",
+      "variables": [
+        {
+          "symbol": "φ",
+          "meaning": "razón áurea",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "(1+√5)/2"
+        },
+        {
+          "symbol": "W,H",
+          "meaning": "dimensiones de marco",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "positivas"
+        },
+        {
+          "symbol": "x,y",
+          "meaning": "líneas de composición",
+          "unit": "px",
+          "dimension": "raster",
+          "domain": "dentro del marco"
+        }
+      ],
+      "constraints": [
+        "La proporción φ es adimensional; encuadre debe definir si se aplica a ancho/alto, subdivisión o posición.",
+        "No es ley perceptual universal; se usa como guía compositiva."
+      ],
+      "valid_domain": [
+        "W,H positivos; encuadre definido."
+      ],
+      "boundary_conditions": [
+        "Marco vacío conserva guías; cambiar aspect ratio recalcula posiciones."
+      ],
+      "dimensional_checks": [
+        "φ es adimensional; multiplicar W/H por φ o 1/φ conserva px.",
+        "x,y son coordenadas raster."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D29:10",
+      "name": "Depth layering",
+      "variables": [
+        {
+          "symbol": "d",
+          "meaning": "distancia cámara-sujeto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "contrast",
+          "meaning": "contraste aparente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango de señal"
+        },
+        {
+          "symbol": "detail",
+          "meaning": "nivel de detalle",
+          "unit": "índice o señal normalizada",
+          "dimension": "discreto/1",
+          "domain": "declarado"
+        },
+        {
+          "symbol": "fog",
+          "meaning": "atenuación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Contraste y detalle son señales normalizadas; cualquier ley con distancia requiere coeficiente de extinción L⁻¹ o función de cámara.",
+        "La perspectiva atmosférica depende de iluminación/medio; no aplicar escala arbitraria sin convención."
+      ],
+      "valid_domain": [
+        "Distancia no negativa; señal finita; cámara y plano de profundidad válidos."
+      ],
+      "boundary_conditions": [
+        "d=0 aplica atenuación neutra; distancia fuera de rango usa saturación/fallback."
+      ],
+      "dimensional_checks": [
+        "d tiene L; contraste/fog son adimensionales; detail es nivel discreto o señal normalizada.",
+        "Si fog=e^(−βd), β debe tener L⁻¹."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "11/11 técnicas incluidas; ninguna protegida",
+      "Cada técnica tiene variables, restricciones, dominio, condiciones límite y verificaciones dimensionales específicas",
+      "Separadas señales colorimétricas, magnitudes radiométricas, ángulos y unidades raster"
+    ],
+    "limitations": [
+      "Auditoría dimensional; no certifica percepción subjetiva universal ni calibración de pantalla."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}

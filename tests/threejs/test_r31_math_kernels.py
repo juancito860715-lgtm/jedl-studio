@@ -13,6 +13,27 @@ def quantized_time(t, sample_rate):
     return math.floor(t * sample_rate) / sample_rate
 
 
+def evaluate_quantized_channel(keys, t, sample_rate, mode="hold"):
+    """Evaluate scalar keyframes at quantized time using hold or linear policy."""
+    if not keys or any(len(k)!=2 or not all(math.isfinite(v) for v in k) for k in keys):
+        raise ValueError("keys must be nonempty finite (time,value) pairs")
+    if any(keys[i][0] >= keys[i+1][0] for i in range(len(keys)-1)):
+        raise ValueError("key times must be strictly increasing")
+    if mode not in ("hold","linear"):
+        raise ValueError("mode must be hold or linear")
+    tq=quantized_time(t,sample_rate)
+    if tq <= keys[0][0]:
+        return keys[0][1]
+    for i in range(1,len(keys)):
+        if tq < keys[i][0]:
+            t0,v0=keys[i-1];t1,v1=keys[i]
+            if mode=="hold":
+                return v0
+            u=(tq-t0)/(t1-t0)
+            return v0+(v1-v0)*u
+    return keys[-1][1]
+
+
 def smooth_min(a, b, k):
     if k < 0:
         raise ValueError("k must be >= 0")
@@ -71,6 +92,27 @@ def spatial_cell(position, origin, cell_size):
 def structure_tensor_orientation(jxx, jxy, jyy):
     # Principal gradient eigenvector angle, modulo pi.
     return 0.5 * math.atan2(2.0 * jxy, jxx - jyy)
+
+
+def structure_tensor_features(jxx,jxy,jyy,epsilon=1e-12):
+    """Eigenstructure of a symmetric 2x2 structure tensor.
+    Returns (lambda_max, lambda_min, gradient_angle, tangent_angle, coherence).
+    """
+    if not all(math.isfinite(v) for v in (jxx,jxy,jyy,epsilon)) or epsilon<=0:
+        raise ValueError("tensor entries must be finite and epsilon positive")
+    if jxx<0 or jyy<0 or jxx*jyy-jxy*jxy < -1e-10:
+        raise ValueError("structure tensor must be positive semidefinite")
+    trace=jxx+jyy
+    gap=math.hypot(jxx-jyy,2*jxy)
+    lmax=max(0.0,(trace+gap)/2)
+    lmin=max(0.0,(trace-gap)/2)
+    if gap<=1e-15:
+        gradient_angle=0.0
+    else:
+        gradient_angle=0.5*math.atan2(2*jxy,jxx-jyy)
+    tangent_angle=(gradient_angle+math.pi/2)%math.pi
+    coherence=(lmax-lmin)/(lmax+lmin+epsilon)
+    return lmax,lmin,gradient_angle,tangent_angle,coherence
 
 
 def dual_quaternion_normalize(qr, qd):
@@ -154,6 +196,66 @@ def ggx_ndf(cos_theta, alpha):
     denom = c*c*(a2-1.0)+1.0
     return a2 / (math.pi * denom * denom)
 
+
+
+
+def hair_ggx_ndf(dot_h_m, beta):
+    """Huang et al. 2022 Appendix A, Eq. (41), fiber microfacet NDF."""
+    if not (0.0 < beta <= 1.0) or not math.isfinite(dot_h_m):
+        raise ValueError("beta must be in (0,1] and dot finite")
+    d = max(-1.0, min(1.0, dot_h_m))
+    b2 = beta * beta
+    return b2 / (math.pi * (1.0 + (b2 - 1.0) * d * d) ** 2)
+
+
+def hair_tilted_half_dot(theta_h, phi_h, phi_m, alpha):
+    """Huang et al. 2022 Appendix A, Eq. (42)."""
+    return (math.cos(theta_h) * math.cos(alpha) * math.cos(phi_h - phi_m)
+            + math.sin(theta_h) * math.sin(alpha))
+
+
+def prioritized_acceleration_allocation(requests, max_acceleration):
+    """Reynolds 1987 p.29: ordered acceleration requests, strengths and trim."""
+    if max_acceleration < 0 or not math.isfinite(max_acceleration):
+        raise ValueError("max_acceleration must be finite and nonnegative")
+    out = [0.0, 0.0, 0.0]
+    used = 0.0
+    for acceleration, strength in requests:
+        if len(acceleration) != 3 or not all(math.isfinite(v) for v in acceleration):
+            raise ValueError("each acceleration request must be a finite 3-vector")
+        if not (0.0 <= strength <= 1.0) or not math.isfinite(strength):
+            raise ValueError("strength must be finite and in [0,1]")
+        norm = math.sqrt(sum(v*v for v in acceleration))
+        if norm == 0.0 or strength == 0.0:
+            continue
+        # Each isolated behavior request is capped at unit magnitude.
+        scale = min(1.0, 1.0 / norm) * strength
+        req = [v * scale for v in acceleration]
+        req_norm = math.sqrt(sum(v*v for v in req))
+        remaining = max_acceleration - used
+        if remaining <= 0.0:
+            break
+        if req_norm > remaining:
+            trim = remaining / req_norm
+            req = [v * trim for v in req]
+            req_norm = remaining
+        out = [out[i] + req[i] for i in range(3)]
+        used += req_norm
+        if used >= max_acceleration:
+            break
+    return tuple(out)
+
+def anisotropic_kuwahara_mean(means, stddev_norms, q=8):
+    """Kyprianidis et al. 2009 weighted sector mean: alpha_i=1/(1+||s_i||^q)."""
+    if not means or len(means) != len(stddev_norms):
+        raise ValueError("means and stddev_norms must be nonempty and same length")
+    if q <= 0 or any(v < 0 for v in stddev_norms):
+        raise ValueError("q must be positive and standard deviations nonnegative")
+    weights = [1.0 / (1.0 + value ** q) for value in stddev_norms]
+    total = sum(weights)
+    if total == 0 or not math.isfinite(total):
+        raise ValueError("invalid Kuwahara weight normalization")
+    return sum(m * w for m, w in zip(means, weights)) / total
 
 def weighted_sector_mean(means, variances):
     if not means or len(means) != len(variances):
@@ -275,18 +377,70 @@ def volume_composite(segments):
     return radiance,trans
 
 
+def double_reflection_frame(x0, x1, t0, t1, r0):
+    """Wang et al. double-reflection RMF step for sampled curve points."""
+    def dot(a,b): return sum(x*y for x,y in zip(a,b))
+    def sub(a,b): return tuple(x-y for x,y in zip(a,b))
+    def reflect(v,axis):
+        denom=dot(axis,axis)
+        if denom < 1e-20: raise ValueError("degenerate reflection vector")
+        scale=2.0*dot(axis,v)/denom
+        return tuple(v[i]-scale*axis[i] for i in range(3))
+    vectors=(x0,x1,t0,t1,r0)
+    if any(len(v)!=3 or not all(math.isfinite(a) for a in v) for v in vectors):
+        raise ValueError("all inputs must be finite 3-vectors")
+    if abs(math.sqrt(dot(t0,t0))-1)>1e-6 or abs(math.sqrt(dot(t1,t1))-1)>1e-6:
+        raise ValueError("tangents must be unit length")
+    if abs(math.sqrt(dot(r0,r0))-1)>1e-6 or abs(dot(t0,r0))>1e-6:
+        raise ValueError("initial reference vector must be unit and orthogonal to t0")
+    v1=sub(x1,x0)
+    rL=reflect(r0,v1)
+    tL=reflect(t0,v1)
+    v2=sub(t1,tL)
+    r1=reflect(rL,v2)
+    s1=(t1[1]*r1[2]-t1[2]*r1[1],t1[2]*r1[0]-t1[0]*r1[2],t1[0]*r1[1]-t1[1]*r1[0])
+    norm=math.sqrt(dot(r1,r1))
+    if norm<1e-12: raise ValueError("transported normal is degenerate")
+    r1=tuple(v/norm for v in r1)
+    s1=(t1[1]*r1[2]-t1[2]*r1[1],t1[2]*r1[0]-t1[0]*r1[2],t1[0]*r1[1]-t1[1]*r1[0])
+    return r1,s1,tuple(t1)
+
+
 def regularized_plane_qef(points_normals, center, regularization):
-    # Solve diagonal normal equations for a tiny deterministic reference case.
-    if regularization < 0:
-        raise ValueError("regularization must be nonnegative")
-    A=[regularization]*3
+    """Solve the full 3x3 regularized Hermite QEF normal equations."""
+    if regularization < 0 or not math.isfinite(regularization):
+        raise ValueError("regularization must be finite and nonnegative")
+    if len(center) != 3 or not all(math.isfinite(v) for v in center):
+        raise ValueError("center must be a finite 3-vector")
+    A=[[regularization if i==j else 0.0 for j in range(3)] for i in range(3)]
     b=[regularization*c for c in center]
     for point,normal in points_normals:
-        for axis in range(3):
-            A[axis]+=normal[axis]*normal[axis]
-            projection=sum(normal[k]*point[k] for k in range(3))
-            b[axis]+=normal[axis]*projection
-    return tuple(b[i]/A[i] if A[i] else center[i] for i in range(3))
+        if len(point)!=3 or len(normal)!=3 or not all(math.isfinite(v) for v in tuple(point)+tuple(normal)):
+            raise ValueError("Hermite point and normal must be finite 3-vectors")
+        norm=math.sqrt(sum(v*v for v in normal))
+        if abs(norm-1.0)>1e-6:
+            raise ValueError("Hermite normals must be unit length")
+        projection=sum(normal[k]*point[k] for k in range(3))
+        for i in range(3):
+            b[i]+=normal[i]*projection
+            for j in range(3):
+                A[i][j]+=normal[i]*normal[j]
+    # Gaussian elimination with partial pivoting; reject singular unregularized systems.
+    for col in range(3):
+        pivot=max(range(col,3),key=lambda row:abs(A[row][col]))
+        if abs(A[pivot][col])<1e-12:
+            raise ValueError("singular QEF; use positive regularization or SVD fallback")
+        A[col],A[pivot]=A[pivot],A[col]
+        b[col],b[pivot]=b[pivot],b[col]
+        scale=A[col][col]
+        for j in range(col,3): A[col][j]/=scale
+        b[col]/=scale
+        for row in range(3):
+            if row==col: continue
+            factor=A[row][col]
+            for j in range(col,3): A[row][j]-=factor*A[col][j]
+            b[row]-=factor*b[col]
+    return tuple(b)
 
 
 class TestR31NumericalKernels(unittest.TestCase):
@@ -299,6 +453,15 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertAlmostEqual(quantized_time(1.13, 12), 13/12)
         self.assertAlmostEqual(quantized_time(-0.01, 12), -1/12)
 
+    def test_temporal_channel_hold_and_linear_policies(self):
+        keys=[(0.0,0.0),(1.0,10.0),(2.0,20.0)]
+        self.assertEqual(evaluate_quantized_channel(keys,1.09,10,"hold"),10.0)
+        self.assertAlmostEqual(evaluate_quantized_channel(keys,1.19,10,"linear"),11.0)
+        self.assertEqual(evaluate_quantized_channel(keys,-1.0,10,"linear"),0.0)
+        self.assertEqual(evaluate_quantized_channel(keys,3.0,10,"hold"),20.0)
+        with self.assertRaises(ValueError): evaluate_quantized_channel(keys,1.0,10,"cubic")
+        with self.assertRaises(ValueError): evaluate_quantized_channel([(0,1),(0,2)],1,10)
+
     def test_smooth_min_disjoint_and_midpoint(self):
         self.assertAlmostEqual(smooth_min(0.0, 2.0, 0.5), 0.0)
         self.assertAlmostEqual(smooth_min(0.0, 0.0, 0.5), -0.125)
@@ -310,6 +473,15 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertAlmostEqual(x1, 1.5)
         self.assertAlmostEqual(abs(x1-x0), 1.0)
         self.assertAlmostEqual(lam, -0.5)
+
+    def test_xpbd_compliance_scaled_by_dt_matches_closed_form(self):
+        # C=1 m, sum(w)=2 kg^-1, alpha=1 s^2/kg.
+        at_dt_1 = xpbd_distance_step(0.0, 2.0, 1.0, 1.0, 1.0, 1.0, 1.0)
+        at_dt_half = xpbd_distance_step(0.0, 2.0, 1.0, 1.0, 1.0, 1.0, 0.5)
+        self.assertAlmostEqual(at_dt_1[2], -1.0/3.0)
+        self.assertAlmostEqual(at_dt_half[2], -1.0/6.0)
+        self.assertAlmostEqual(at_dt_1[1]-at_dt_1[0], 4.0/3.0)
+        self.assertAlmostEqual(at_dt_half[1]-at_dt_half[0], 5.0/3.0)
 
     def test_xpbd_compliance_reduces_single_step_correction(self):
         rigid = xpbd_distance_step(0.0, 2.0, 1.0, 1.0, 1.0, 0.0, 1.0)
@@ -368,11 +540,50 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertLess(a,0.1)
         self.assertNotEqual(a,deterministic_jitter(12,77,1,0.1))
 
+    def test_stop_motion_jitter_long_sequence_statistics(self):
+        amplitude=0.2
+        values=[deterministic_jitter(i,913,0,amplitude) for i in range(12000)]
+        mean=sum(values)/len(values)
+        variance=sum((v-mean)**2 for v in values)/len(values)
+        self.assertLess(abs(mean),0.004)
+        self.assertAlmostEqual(variance,amplitude*amplitude/3.0,delta=0.0015)
+        self.assertEqual(values,[deterministic_jitter(i,913,0,amplitude) for i in range(12000)])
+
     def test_hair_ggx_normal_distribution_reference(self):
         alpha=0.5
         self.assertAlmostEqual(ggx_ndf(1.0,alpha),1.0/(math.pi*alpha*alpha))
         self.assertGreater(ggx_ndf(1.0,alpha),ggx_ndf(0.0,alpha))
 
+    def test_hair_microfacet_ggx_matches_published_appendix_a_eq41(self):
+        self.assertAlmostEqual(hair_ggx_ndf(0.0, 0.5), 0.25/math.pi)
+        self.assertAlmostEqual(hair_ggx_ndf(1.0, 0.5), 4.0/math.pi)
+        self.assertAlmostEqual(hair_tilted_half_dot(0.0, 0.3, 0.3, 0.0), 1.0)
+        with self.assertRaises(ValueError):
+            hair_ggx_ndf(1.0, 0.0)
+
+    def test_reynolds_prioritized_acceleration_allocation_closed_form(self):
+        got = prioritized_acceleration_allocation([
+            ((0.8, 0.0, 0.0), 1.0),
+            ((0.0, 0.8, 0.0), 1.0)
+        ], 1.0)
+        self.assertVecAlmostEqual(got, (0.8, 0.2, 0.0))
+        full = prioritized_acceleration_allocation([
+            ((0.6, 0.0, 0.0), 1.0),
+            ((0.0, 0.2, 0.0), 1.0)
+        ], 1.0)
+        self.assertVecAlmostEqual(full, (0.6, 0.2, 0.0))
+        self.assertVecAlmostEqual(prioritized_acceleration_allocation([((1,0,0),0)], 2), (0,0,0))
+        with self.assertRaises(ValueError):
+            prioritized_acceleration_allocation([((1,0),1)], 1)
+
+    def test_anisotropic_kuwahara_matches_published_weight_rule(self):
+        # Independent closed-form fixture: s=(0,3), q=2 -> weights (1,1/10).
+        self.assertAlmostEqual(anisotropic_kuwahara_mean([0.0, 10.0], [0.0, 3.0], q=2), 10.0/11.0)
+        # Published example setting q=8: weights (1,1/6562).
+        self.assertAlmostEqual(anisotropic_kuwahara_mean([0.0, 10.0], [0.0, 3.0]), 10.0/6563.0)
+        self.assertAlmostEqual(anisotropic_kuwahara_mean([2.0, 4.0], [0.0, 0.0]), 3.0)
+        with self.assertRaises(ValueError):
+            anisotropic_kuwahara_mean([1.0], [-0.1])
     def test_kuwahara_weighted_sector_mean_prefers_low_variance(self):
         self.assertAlmostEqual(weighted_sector_mean([0.0,10.0],[0.0,9.0]),10.0/11.0)
 
@@ -432,6 +643,280 @@ class TestR31NumericalKernels(unittest.TestCase):
         constraints=[((0.25,0.1,0.1),(1,0,0)),((0.25,0.8,0.2),(1,0,0)),((0.25,0.3,0.9),(1,0,0))]
         x=regularized_plane_qef(constraints,(0.5,0.5,0.5),1e-6)
         self.assertAlmostEqual(x[0],0.25,places=5)
+
+
+
+
+def spatial_hash_index(cell, table_size):
+    if not isinstance(table_size, int) or table_size <= 0:
+        raise ValueError("table_size must be a positive integer")
+    if len(cell) != 3 or any(not isinstance(v, int) for v in cell):
+        raise ValueError("cell must be an integer 3-vector")
+    x, y, z = cell
+    # Python integers avoid overflow; mask to the same uint32 domain as JS.
+    mixed = ((x * 73856093) ^ (y * 19349663) ^ (z * 83492791)) & 0xffffffff
+    return mixed % table_size
+
+
+def blend_dual_quaternions(items):
+    """Antipodal-corrected weighted blend; returns a Study-normalized pair."""
+    if not items:
+        raise ValueError("at least one transform is required")
+    reference = None
+    real = [0.0] * 4
+    dual = [0.0] * 4
+    weight_sum = 0.0
+    for qr, qd, weight in items:
+        if weight < 0 or not math.isfinite(weight) or len(qr) != 4 or len(qd) != 4:
+            raise ValueError("invalid weighted dual quaternion")
+        if not all(math.isfinite(v) for v in tuple(qr) + tuple(qd)):
+            raise ValueError("quaternion components must be finite")
+        if weight == 0:
+            continue
+        if reference is None:
+            reference = qr
+        sign = -1.0 if sum(a*b for a, b in zip(qr, reference)) < 0 else 1.0
+        for i in range(4):
+            real[i] += weight * sign * qr[i]
+            dual[i] += weight * sign * qd[i]
+        weight_sum += weight
+    if weight_sum <= 0:
+        raise ValueError("weight sum must be positive")
+    return dual_quaternion_normalize(real, dual)
+
+class TestR31ExtendedKernels(unittest.TestCase):
+    def assertVecAlmostEqual(self, actual, expected, places=9):
+        self.assertEqual(len(actual), len(expected))
+        for a,e in zip(actual,expected):
+            self.assertAlmostEqual(a,e,places=places)
+
+    def test_spatial_hash_matches_published_integer_cell_hash(self):
+        # Teschner et al. Sec. 4.1; positive modulo maps to a table bucket.
+        cell = (1, 2, 3)
+        expected = ((73856093 ^ (2*19349663) ^ (3*83492791)) & 0xffffffff) % 97
+        self.assertEqual(spatial_hash_index(cell, 97), expected)
+        self.assertEqual(spatial_hash_index((-1, -2, -3), 97),
+                         spatial_hash_index((-1, -2, -3), 97))
+        with self.assertRaises(ValueError):
+            spatial_hash_index((1, 2, 3), 0)
+
+    def test_dual_quaternion_blend_antipodal_and_weight_scale_invariant(self):
+        identity = ((1,0,0,0), (0,0,0,0), 0.5)
+        antipodal = ((-1,0,0,0), (0,0,0,0), 0.5)
+        qr, qd = blend_dual_quaternions([identity, antipodal])
+        self.assertVecAlmostEqual(qr, (1,0,0,0))
+        self.assertVecAlmostEqual(qd, (0,0,0,0))
+        self.assertAlmostEqual(sum(a*b for a,b in zip(qr,qd)), 0.0)
+        with self.assertRaises(ValueError):
+            blend_dual_quaternions([((1,0,0,0),(0,0,0,0),0.0)])
+
+
+
+
+    def test_schlick_fresnel_interior_value_and_monotonicity(self):
+        self.assertAlmostEqual(fresnel_schlick(0.04, 0.5), 0.07)
+        values=[fresnel_schlick(0.04, u/10) for u in range(11)]
+        self.assertTrue(all(values[i] >= values[i+1] for i in range(10)))
+
+    def test_beer_lambert_subdivision_invariance(self):
+        whole=beer_lambert_transmittance(1.7, 2.4)
+        subdivided=math.prod(beer_lambert_transmittance(1.7, 2.4/8) for _ in range(8))
+        self.assertAlmostEqual(whole, subdivided, places=14)
+
+
+    def test_dual_contouring_full_qef_solves_non_axis_aligned_planes(self):
+        inv=1.0/math.sqrt(2.0)
+        constraints=[
+            ((0.5,0.5,0.0),(inv,inv,0.0)),   # x+y=1
+            ((0.25,-0.25,0.0),(inv,-inv,0.0)), # x-y=.5
+            ((0.0,0.0,0.4),(0.0,0.0,1.0))
+        ]
+        result=regularized_plane_qef(constraints,(0.5,0.5,0.5),1e-10)
+        self.assertVecAlmostEqual(result,(0.75,0.25,0.4),places=6)
+
+    def test_dual_contouring_qef_rejects_singular_unregularized_system(self):
+        with self.assertRaises(ValueError):
+            regularized_plane_qef([((0,0,0),(1,0,0))],(0,0,0),0.0)
+
+
+    def test_camera_double_reflection_frame_is_orthonormal(self):
+        r,s,t=double_reflection_frame((1,0,0),(0,1,0),(0,1,0),(-1,0,0),(0,0,1))
+        for v in (r,s,t):
+            self.assertAlmostEqual(math.sqrt(sum(a*a for a in v)),1.0,places=9)
+        self.assertAlmostEqual(sum(a*b for a,b in zip(r,t)),0.0,places=9)
+        self.assertAlmostEqual(sum(a*b for a,b in zip(s,t)),0.0,places=9)
+        self.assertAlmostEqual(sum(a*b for a,b in zip(r,s)),0.0,places=9)
+
+    def test_camera_double_reflection_preserves_reference_on_straight_line(self):
+        r,s,t=double_reflection_frame((0,0,0),(0,0,1),(0,0,1),(0,0,1),(1,0,0))
+        self.assertVecAlmostEqual(r,(1,0,0))
+        self.assertVecAlmostEqual(s,(0,1,0))
+        self.assertVecAlmostEqual(t,(0,0,1))
+
+
+    def test_structure_tensor_features_distinguish_gradient_and_stroke_tangent(self):
+        lmax,lmin,grad,tangent,coh=structure_tensor_features(4,0,1)
+        self.assertAlmostEqual(lmax,4);self.assertAlmostEqual(lmin,1)
+        self.assertAlmostEqual(grad,0);self.assertAlmostEqual(tangent,math.pi/2)
+        self.assertAlmostEqual(coh,3/5)
+        iso=structure_tensor_features(2,0,2)
+        self.assertAlmostEqual(iso[4],0)
+        self.assertAlmostEqual(iso[3],math.pi/2)
+
+    def test_structure_tensor_rejects_non_positive_semidefinite_input(self):
+        with self.assertRaises(ValueError):
+            structure_tensor_features(1.0, 2.0, 1.0)
+
+
+def depth_normal_edge_score(z0, z1, n0, n1, z_floor, normal_weight):
+    """Dimensionless authored local cue fusion; z values are positive linear view-depths."""
+    values = (z0, z1, z_floor, normal_weight, *n0, *n1)
+    if not all(math.isfinite(v) for v in values) or z0 <= 0 or z1 <= 0 or z_floor <= 0 or normal_weight < 0:
+        raise ValueError("depths/floor must be positive and weight finite/nonnegative")
+    if len(n0) != 3 or len(n1) != 3:
+        raise ValueError("normals must be 3-vectors")
+    l0, l1 = math.sqrt(sum(v*v for v in n0)), math.sqrt(sum(v*v for v in n1))
+    if l0 <= 1e-15 or l1 <= 1e-15:
+        raise ValueError("normal vectors must be nonzero")
+    dot = sum((a/l0)*(b/l1) for a,b in zip(n0,n1))
+    dot = min(1.0, max(-1.0, dot))
+    depth_jump = abs(z0-z1) / max(min(z0,z1), z_floor)
+    normal_change = 1.0 - dot
+    return depth_jump + normal_weight * normal_change
+
+
+def edge_coverage(score, low, high):
+    if not all(math.isfinite(v) for v in (score, low, high)) or low < 0 or high <= low:
+        raise ValueError("require finite score and 0 <= low < high")
+    x = min(1.0, max(0.0, (score-low)/(high-low)))
+    return x*x*(3.0-2.0*x)
+
+
+class TestDepthNormalContour(unittest.TestCase):
+    def test_depth_jump_has_closed_form_and_scale_invariance(self):
+        a=depth_normal_edge_score(2,4,(0,0,1),(0,0,1),0.1,2)
+        b=depth_normal_edge_score(20,40,(0,0,1),(0,0,1),0.1,2)
+        self.assertAlmostEqual(a,1.0); self.assertAlmostEqual(a,b)
+
+    def test_normal_discontinuity_has_closed_form(self):
+        self.assertAlmostEqual(depth_normal_edge_score(4,4,(1,0,0),(0,1,0),0.1,2),2.0)
+        self.assertAlmostEqual(depth_normal_edge_score(4,4,(1,0,0),(-1,0,0),0.1,2),4.0)
+
+    def test_identical_samples_and_smoothstep_boundaries(self):
+        self.assertAlmostEqual(depth_normal_edge_score(3,3,(0,0,1),(0,0,1),0.1,2),0.0)
+        self.assertAlmostEqual(edge_coverage(0.5,0.5,1.5),0.0)
+        self.assertAlmostEqual(edge_coverage(1.0,0.5,1.5),0.5)
+        self.assertAlmostEqual(edge_coverage(1.5,0.5,1.5),1.0)
+
+    def test_invalid_depth_normals_and_thresholds_are_rejected(self):
+        with self.assertRaises(ValueError): depth_normal_edge_score(0,1,(1,0,0),(1,0,0),0.1,1)
+        with self.assertRaises(ValueError): depth_normal_edge_score(1,2,(0,0,0),(1,0,0),0.1,1)
+        with self.assertRaises(ValueError): edge_coverage(1,1,1)
+
+
+def halftone_coverage(luminance, mask, aa_width):
+    """Antialiased threshold coverage; luminance/mask/width are normalized scalars."""
+    if not all(math.isfinite(v) for v in (luminance, mask, aa_width)) or aa_width < 0:
+        raise ValueError("finite values and nonnegative aa_width required")
+    delta = luminance-mask
+    if aa_width == 0:
+        return 1.0 if delta >= 0 else 0.0
+    x = min(1.0, max(0.0, (delta+aa_width)/(2.0*aa_width)))
+    return x*x*(3.0-2.0*x)
+
+
+class TestHalftoneCoverage(unittest.TestCase):
+    def test_binary_threshold_and_antialias_midpoint(self):
+        self.assertEqual(halftone_coverage(.6,.5,0),1.0)
+        self.assertEqual(halftone_coverage(.4,.5,0),0.0)
+        self.assertAlmostEqual(halftone_coverage(.5,.5,.1),.5)
+        self.assertAlmostEqual(halftone_coverage(.6,.5,.1),1.0)
+        self.assertAlmostEqual(halftone_coverage(.4,.5,.1),0.0)
+
+    def test_rejects_invalid_antialias_width(self):
+        with self.assertRaises(ValueError): halftone_coverage(.5,.5,-.01)
+        with self.assertRaises(ValueError): halftone_coverage(float("nan"),.5,.1)
+
+
+def hatch_coverage(phase, half_width, aa_width):
+    """Coverage of a periodic stripe centered at phase=0.5 (modulo one)."""
+    if not all(math.isfinite(v) for v in (phase, half_width, aa_width)) or half_width < 0 or aa_width < 0 or half_width+aa_width > 0.5:
+        raise ValueError("finite widths with 0 <= half_width and half_width+aa_width <= 0.5 required")
+    p = phase-math.floor(phase)
+    distance = abs(p-0.5)
+    if aa_width == 0:
+        return 1.0 if distance <= half_width else 0.0
+    x = min(1.0, max(0.0, (distance-half_width)/aa_width))
+    return 1.0-(x*x*(3.0-2.0*x))
+
+
+class TestVectorHatchCoverage(unittest.TestCase):
+    def test_periodic_line_coverage_closed_form(self):
+        self.assertAlmostEqual(hatch_coverage(.5,.1,.1),1.0)
+        self.assertAlmostEqual(hatch_coverage(.35,.1,.1),.5)
+        self.assertAlmostEqual(hatch_coverage(.25,.1,.1),0.0)
+        self.assertAlmostEqual(hatch_coverage(1.5,.1,.1),1.0)
+
+    def test_binary_limit_and_invalid_widths(self):
+        self.assertEqual(hatch_coverage(.5,.1,0),1.0)
+        self.assertEqual(hatch_coverage(.2,.1,0),0.0)
+        with self.assertRaises(ValueError): hatch_coverage(.5,.4,.2)
+        with self.assertRaises(ValueError): hatch_coverage(float("nan"),.1,.1)
+
+
+def sample_bilinear_2d(field, x, y):
+    if not field or not field[0] or any(len(row)!=len(field[0]) for row in field):
+        raise ValueError("field must be a nonempty rectangular grid")
+    h,w=len(field),len(field[0])
+    if not math.isfinite(x) or not math.isfinite(y):
+        raise ValueError("sample coordinates must be finite")
+    x=min(w-1.0,max(0.0,x)); y=min(h-1.0,max(0.0,y))
+    x0,y0=math.floor(x),math.floor(y)
+    x1,y1=min(x0+1,w-1),min(y0+1,h-1)
+    tx,ty=x-x0,y-y0
+    a=field[y0][x0]*(1-tx)+field[y0][x1]*tx
+    b=field[y1][x0]*(1-tx)+field[y1][x1]*tx
+    return a*(1-ty)+b*ty
+
+
+def semi_lagrangian_advect_2d(field, velocity_x, velocity_y, dt):
+    """First-order backward semi-Lagrangian advection on a cell-centred grid.
+    Velocity components are measured in grid cells per second.
+    """
+    if not math.isfinite(dt) or dt < 0:
+        raise ValueError("dt must be finite and nonnegative")
+    if not field or not field[0]:
+        raise ValueError("field must be nonempty")
+    h,w=len(field),len(field[0])
+    if any(len(row)!=w for row in field+velocity_x+velocity_y) or len(velocity_x)!=h or len(velocity_y)!=h:
+        raise ValueError("field and velocity grids must have identical rectangular shapes")
+    if any(not math.isfinite(v) for grid in (field,velocity_x,velocity_y) for row in grid for v in row):
+        raise ValueError("grid values must be finite")
+    return [[sample_bilinear_2d(field,x-dt*velocity_x[y][x],y-dt*velocity_y[y][x])
+             for x in range(w)] for y in range(h)]
+
+
+class TestSemiLagrangianPigmentAdvection(unittest.TestCase):
+    def test_constant_field_is_preserved_for_any_velocity(self):
+        field=[[3.25]*4 for _ in range(3)]
+        vx=[[2.0]*4 for _ in range(3)]; vy=[[-1.0]*4 for _ in range(3)]
+        self.assertEqual(semi_lagrangian_advect_2d(field,vx,vy,4.0),field)
+
+    def test_linear_ramp_matches_exact_constant_velocity_backtrace(self):
+        field=[list(map(float,range(5))) for _ in range(3)]
+        vx=[[1.0]*5 for _ in range(3)]; vy=[[0.0]*5 for _ in range(3)]
+        out=semi_lagrangian_advect_2d(field,vx,[[0.0]*5 for _ in range(3)],0.5)
+        self.assertEqual(out[1],[0.0,0.5,1.5,2.5,3.5])
+
+    def test_bilinear_sampling_preserves_convex_range(self):
+        field=[[0.0,1.0],[1.0,0.0]]
+        v=sample_bilinear_2d(field,.25,.25)
+        self.assertGreaterEqual(v,0.0); self.assertLessEqual(v,1.0)
+        self.assertAlmostEqual(v,.375)
+
+    def test_rejects_invalid_grid_and_time_step(self):
+        with self.assertRaises(ValueError): semi_lagrangian_advect_2d([[1]],[[0]],[[0]],-1)
+        with self.assertRaises(ValueError): semi_lagrangian_advect_2d([[1,2]],[[0]],[[0]],1)
 
 
 if __name__ == "__main__":

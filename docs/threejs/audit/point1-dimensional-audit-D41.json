@@ -1,0 +1,1331 @@
+{
+  "title": "Auditoría dimensional punto 1 — D41 Comportamiento natural, vida, ecología y sistemas complejos",
+  "version": "1.1.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D41",
+    "domain": "Comportamiento natural, vida, ecología y sistemas complejos",
+    "record_count": 14,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D41 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "ecology": "Poblaciones y conteos son discretos; tasas por tiempo en s⁻¹.",
+    "dynamics": "Posiciones m, velocidades m/s, aceleraciones m/s²; Wiener increment escala √s.",
+    "procedural": "Campos normalizados y frecuencias espaciales tipadas."
+  },
+  "records": [
+    {
+      "record_key": "D41:0",
+      "name": "Reaction–diffusion Gray–Scott",
+      "variables": [
+        {
+          "symbol": "u,v",
+          "meaning": "campos de concentración normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango calibrado"
+        },
+        {
+          "symbol": "D_u,D_v",
+          "meaning": "difusividades",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "F,k",
+          "meaning": "tasas feed/kill",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Laplaciano de u,v tiene L⁻²; D∇²u tiene T⁻¹, igual que reacciones y F,k.",
+        "Si campos son concentraciones físicas, reacciones deben tiparse con sus unidades y no asumirse normalizadas."
+      ],
+      "valid_domain": [
+        "D_u,D_v,F,k≥0; campos finitos; malla y paso válidos."
+      ],
+      "boundary_conditions": [
+        "D=0 elimina difusión; F=k=0 deja solo reacción; campos uniformes tienen laplaciano cero."
+      ],
+      "dimensional_checks": [
+        "D[m²/s]·∇²u[L⁻²] tiene s⁻¹; reacciones deben tener s⁻¹.",
+        "u,v son adimensionales en la convención normalizada."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:1",
+      "name": "Flocking de Reynolds",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "posición agente",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "v_i",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "S_i",
+          "meaning": "separación Σ−(p_j−p_i)/|p_j−p_i|²",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "distancias regularizadas"
+        },
+        {
+          "symbol": "A_i",
+          "meaning": "alineación media de velocidad menos velocidad propia",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "C_i",
+          "meaning": "cohesión centroide menos posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_s,w_a,w_c",
+          "meaning": "ganancias dimensionales",
+          "unit": "m²/s²; s⁻¹; s⁻² respectivamente",
+          "dimension": "w_s:L²T⁻²; w_a:T⁻¹; w_c:T⁻²",
+          "domain": "finitas y calibradas"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración resultante",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "limitada"
+        },
+        {
+          "symbol": "r",
+          "meaning": "radio de vecinos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r>0"
+        }
+      ],
+      "constraints": [
+        "a_i=w_sS_i+w_aA_i+w_cC_i requiere que cada término tenga L/T².",
+        "Fijar w_s=L²/T², w_a=T⁻¹ y w_c=T⁻²; pesos adimensionales no son válidos en esta suma sin normalización adicional."
+      ],
+      "valid_domain": [
+        "Posiciones y velocidades finitas; radio positivo; ganancias tipadas."
+      ],
+      "boundary_conditions": [
+        "Sin vecinos, términos locales cero; coincidencia de posiciones requiere fallback."
+      ],
+      "dimensional_checks": [
+        "w_sS_i: (L²/T²)(L⁻¹)=L/T²; w_aA_i: T⁻¹·L/T=L/T².",
+        "w_cC_i: T⁻²·L=L/T²; la suma produce aceleración m/s²."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:2",
+      "name": "Brownian motion",
+      "variables": [
+        {
+          "symbol": "X",
+          "meaning": "posición/estado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "μ",
+          "meaning": "deriva",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "σ",
+          "meaning": "intensidad difusión",
+          "unit": "m/√s",
+          "dimension": "L·T⁻¹/²",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "dW",
+          "meaning": "incremento Wiener",
+          "unit": "√s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0.5,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "varianza Δt"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "σ·dW debe tener L; dW tiene escala √Δt.",
+        "La semilla y distribución gaussiana deben fijarse para reproducibilidad."
+      ],
+      "valid_domain": [
+        "σ≥0; Δt≥0; estado finito."
+      ],
+      "boundary_conditions": [
+        "σ=0 deja deriva determinista; Δt=0 no produce incremento."
+      ],
+      "dimensional_checks": [
+        "μdt tiene (L/T)T=L; σdW tiene (L/√T)√T=L.",
+        "Ambos términos conservan unidad de X."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:3",
+      "name": "Ornstein–Uhlenbeck process",
+      "variables": [
+        {
+          "symbol": "X,μ",
+          "meaning": "estado y media",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "tasa de retorno",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "σ",
+          "meaning": "ruido",
+          "unit": "m/√s",
+          "dimension": "L·T⁻¹/²",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "dW",
+          "meaning": "incremento Wiener",
+          "unit": "√s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0.5,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "varianza Δt"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "θ(μ−X) tiene L/T; σdW tiene L.",
+        "La integración debe preservar media y varianza estacionaria según discretización."
+      ],
+      "valid_domain": [
+        "θ>0; σ≥0; estado finito."
+      ],
+      "boundary_conditions": [
+        "X=μ anula deriva de retorno; σ=0 converge determinísticamente a μ."
+      ],
+      "dimensional_checks": [
+        "θ(μ−X) tiene L/T; σdW tiene L.",
+        "Ambos términos del incremento tienen L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:4",
+      "name": "Worley cellular noise",
+      "variables": [
+        {
+          "symbol": "x,p_i",
+          "meaning": "consulta y semillas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "F1,F2",
+          "meaning": "distancias a semillas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "jitter",
+          "meaning": "desplazamiento semilla",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "N",
+          "meaning": "número semillas",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Métrica Euclidiana/Manhattan/Chebyshev debe declararse; todas las distancias comparten unidad.",
+        "Búsqueda de celdas vecinas debe cubrir radio máximo de jitter."
+      ],
+      "valid_domain": [
+        "Semillas finitas; jitter acotado; espacio y métrica definidos."
+      ],
+      "boundary_conditions": [
+        "N=0 no define celdas; jitter cero usa centros regulares."
+      ],
+      "dimensional_checks": [
+        "F1,F2 y x tienen L; diferencias F2−F1 tienen L.",
+        "Índices de celda son discretos."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:5",
+      "name": "Fractal Brownian Motion",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "f_i",
+          "meaning": "frecuencia espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "a",
+          "meaning": "persistence",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1)"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "lacunarity",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">1"
+        },
+        {
+          "symbol": "N",
+          "meaning": "octavas",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥1"
+        },
+        {
+          "symbol": "A",
+          "meaning": "amplitud base",
+          "unit": "unidad campo",
+          "dimension": "tipada",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "f_i x es adimensional; amplitudes por octava deben compartir unidad del campo.",
+        "Para suma infinita se requiere convergencia; en implementación finita N limita suma."
+      ],
+      "valid_domain": [
+        "N finito; frecuencia positiva; ruido base acotado."
+      ],
+      "boundary_conditions": [
+        "N=0 devuelve campo base definido; A=0 elimina relieve."
+      ],
+      "dimensional_checks": [
+        "f_i[L⁻¹]·x[L] es adimensional; a y λ son adimensionales.",
+        "A·noise conserva unidad del campo de salida."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:6",
+      "name": "Insect flight path",
+      "variables": [
+        {
+          "symbol": "x_0",
+          "meaning": "posición inicial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "v_0",
+          "meaning": "deriva",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "A",
+          "meaning": "amplitud oscilación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "frecuencia angular",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "η",
+          "meaning": "ruido posicional",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        }
+      ],
+      "constraints": [
+        "ωt+φ es adimensional; oscilación A sin(...) tiene L.",
+        "Ruido temporal correlacionado debe declarar tiempo de correlación."
+      ],
+      "valid_domain": [
+        "Posiciones y parámetros finitos; frecuencia y tiempo válidos."
+      ],
+      "boundary_conditions": [
+        "A=0 elimina oscilación; η=0 deja trayectoria determinista."
+      ],
+      "dimensional_checks": [
+        "v_0t y A sin(...) tienen L; η tiene L.",
+        "La posición total conserva L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:7",
+      "name": "Phototaxis",
+      "variables": [
+        {
+          "symbol": "L(x)",
+          "meaning": "iluminación",
+          "unit": "unidad de señal luminosa",
+          "dimension": "radiométrica o normalizada",
+          "domain": "finita"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "distancia de prueba",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "dirección",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "k",
+          "meaning": "ganancia hacia aceleración",
+          "unit": "m/s² por unidad de señal L",
+          "dimension": "L·T⁻² / unidad luminosa",
+          "domain": "finita; calibrada para diferencia de iluminación sin dividir por ε"
+        },
+        {
+          "symbol": "a_light",
+          "meaning": "aceleración",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "En la ecuación escrita a_light=k[L(x+εd)−L(x)]d, k convierte directamente diferencia de señal luminosa en aceleración; su unidad es (m/s²)/unidad luminosa.",
+        "ε tiene L y controla separación de muestreo; si se divide la diferencia por ε para estimar gradiente, la unidad de k debe cambiar a m²/(s²·unidad luminosa)."
+      ],
+      "valid_domain": [
+        "ε>0; L(x) finita; k finito."
+      ],
+      "boundary_conditions": [
+        "Gradiente lumínico cero produce aceleración cero; k=0 desactiva fototaxis."
+      ],
+      "dimensional_checks": [
+        "εd tiene L y permite evaluar L(x+εd); la diferencia tiene unidad de señal luminosa.",
+        "k·ΔL·d tiene m/s²; d es adimensional. No introducir ΔL/ε sin cambiar la unidad de k."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:8",
+      "name": "Vegetation tropism",
+      "variables": [
+        {
+          "symbol": "g",
+          "meaning": "dirección de crecimiento",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "lightDir,gravityDir,obstacleGradient",
+          "meaning": "direcciones/campos",
+          "unit": "direcciones normalizadas 1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "cada vector normalizado antes de la suma; gradiente bruto requiere normalización"
+        },
+        {
+          "symbol": "α,β,γ",
+          "meaning": "pesos tropismo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizados o calibrados"
+        },
+        {
+          "symbol": "step",
+          "meaning": "longitud crecimiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "p",
+          "meaning": "posición de punta",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "g′=normalize(g+α lightDir+β gravityDir+γ obstacleGradient) exige que los tres campos sumados sean vectores adimensionales normalizados.",
+        "Si obstacleGradient se usa sin normalizar y tiene L⁻¹, se requiere un coeficiente γ con L para homogeneizar; esta ficha fija la variante normalizada."
+      ],
+      "valid_domain": [
+        "Direcciones válidas; step>0; pesos finitos."
+      ],
+      "boundary_conditions": [
+        "Pesos cero conservan dirección previa; sin luz, gravedad/obstáculos aún pueden influir."
+      ],
+      "dimensional_checks": [
+        "g y los tres campos normalizados son adimensionales; α,β,γ también.",
+        "step·g′ tiene L y puede sumarse a p."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:9",
+      "name": "Predator–prey Lotka–Volterra",
+      "variables": [
+        {
+          "symbol": "x,y",
+          "meaning": "poblaciones",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativas"
+        },
+        {
+          "symbol": "α,γ",
+          "meaning": "tasas intrínsecas",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "β,δ",
+          "meaning": "tasas interacción",
+          "unit": "s⁻¹ por unidad de población",
+          "dimension": "tipadas por conteo",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Cada término dx/dt y dy/dt tiene población por segundo; parámetros de interacción dependen de normalización de conteos.",
+        "El modelo continuo aproxima poblaciones grandes; población discreta requiere regla de redondeo."
+      ],
+      "valid_domain": [
+        "Poblaciones no negativas; tasas finitas."
+      ],
+      "boundary_conditions": [
+        "x=0 implica sin crecimiento de depredador por interacción; y=0 permite crecimiento de presa según α."
+      ],
+      "dimensional_checks": [
+        "αx y γy tienen población/s; βxy y δxy deben tener igual unidad.",
+        "x,y son conteos adimensionales como cantidades de población."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:10",
+      "name": "Optimal foraging",
+      "variables": [
+        {
+          "symbol": "energyGain",
+          "meaning": "ganancia energética",
+          "unit": "J",
+          "dimension": "M·L²·T⁻²",
+          "domain": "≥0"
+        },
+        {
+          "symbol": "searchTime,handlingTime",
+          "meaning": "tiempos",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "utility",
+          "meaning": "tasa energética",
+          "unit": "W",
+          "dimension": "M·L²·T⁻³",
+          "domain": "finita"
+        },
+        {
+          "symbol": "risk",
+          "meaning": "riesgo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizado"
+        }
+      ],
+      "constraints": [
+        "Ganancia dividida por tiempo produce J/s; si se suman riesgo/coste, deben normalizarse y ponderarse.",
+        "La decisión es modelo conductual simplificado, no predicción ecológica universal."
+      ],
+      "valid_domain": [
+        "Tiempos positivos; energía finita; utilidad definida."
+      ],
+      "boundary_conditions": [
+        "Tiempo total cero se rechaza; ganancia cero da utilidad cero."
+      ],
+      "dimensional_checks": [
+        "J/s equivale W; riesgo es adimensional.",
+        "La utilidad conserva dimensión de tasa energética si no se normaliza."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:11",
+      "name": "Gait oscillator",
+      "variables": [
+        {
+          "symbol": "A_i",
+          "meaning": "amplitud articular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "frecuencia angular",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "φ_i",
+          "meaning": "fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "θ_i",
+          "meaning": "ángulo articular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "ωt+φ_i es adimensional; amplitud y ángulo usan radianes.",
+        "Frecuencia y fase de cada pata deben coordinarse por patrón de marcha."
+      ],
+      "valid_domain": [
+        "ω>0; amplitudes finitas; tiempo finito."
+      ],
+      "boundary_conditions": [
+        "A_i=0 fija articulación en base; ω=0 congela fase."
+      ],
+      "dimensional_checks": [
+        "ωt es adimensional angular; θ conserva unidad angular.",
+        "Radianes son adimensionales en SI base."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:12",
+      "name": "Central pattern generator",
+      "variables": [
+        {
+          "symbol": "θ_i",
+          "meaning": "fase de oscilador",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ω_i",
+          "meaning": "frecuencia natural",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_ij",
+          "meaning": "ganancia de acoplamiento",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita para la variante de fase"
+        },
+        {
+          "symbol": "f_i,g",
+          "meaning": "dinámica local y función de acoplamiento",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "salidas compatibles"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Para CPG de fase, θ_i es adimensional angular y dθ_i/dt tiene s⁻¹.",
+        "f_i(θ_i) y w_ijg(θ_j) deben tener s⁻¹; si x_i representa amplitud u otra variable, reespecificar dimensiones por estado."
+      ],
+      "valid_domain": [
+        "Estados y pesos finitos; integración temporal definida."
+      ],
+      "boundary_conditions": [
+        "Acoplamiento cero desacopla osciladores; estado inicial define fase."
+      ],
+      "dimensional_checks": [
+        "θ_i es adimensional; derivada temporal tiene T⁻¹.",
+        "ω_i, f_i y w_ijg comparten s⁻¹; la suma es homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D41:13",
+      "name": "Kuramoto synchronization",
+      "variables": [
+        {
+          "symbol": "θ_i",
+          "meaning": "fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "ω_i",
+          "meaning": "frecuencia natural",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "K",
+          "meaning": "acoplamiento",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "N",
+          "meaning": "osciladores",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "dθ/dt, ω_i y K·sin(θ_j−θ_i) tienen s⁻¹.",
+        "Fases se comparan circularmente y no por resta sin módulo."
+      ],
+      "valid_domain": [
+        "N≥1; K y ω finitos."
+      ],
+      "boundary_conditions": [
+        "K=0 deja osciladores independientes; fases iguales dan término de acoplamiento cero."
+      ],
+      "dimensional_checks": [
+        "sin(Δθ) es adimensional; K tiene T⁻¹; dθ/dt tiene T⁻¹.",
+        "N es conteo discreto."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "14/14 técnicas incluidas; ninguna protegida",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Boids separa ganancias dimensionales; fototaxis distingue muestreo ε de gradiente; tropismo normaliza campos; CPG fija variante de fase"
+    ],
+    "limitations": [
+      "Los coeficientes ecológicos/conductuales requieren calibración y validación empírica; las unidades no garantizan comportamiento biológicamente fiel."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
