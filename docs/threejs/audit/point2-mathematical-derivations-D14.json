@@ -47,6 +47,10 @@
       "result": "La posición clip resulta de la composición Model–View–Projection.",
       "limits": [
         "La transformación de normales requiere matriz normal cuando hay escala no uniforme."
+      ],
+      "dimensional_verification": [
+        "Model/View conservan posición L; perspective divide produce NDC adimensional.",
+        "f_px está en px; viewport mapping convierte NDC a px."
       ]
     },
     {
@@ -86,6 +90,10 @@
       "result": "El fragment shader evalúa la función de sombreado sobre atributos interpolados y parámetros constantes.",
       "limits": [
         "El coste escala con fragmentos y muestras; divergencia de ramas puede penalizar."
+      ],
+      "dimensional_verification": [
+        "Atributos conservan su unidad al interpolarse; color lineal y depth siguen codificaciones declaradas.",
+        "Uniforms tipados por canal; output conserva escala del target."
       ]
     },
     {
@@ -125,6 +133,10 @@
       "result": "Un ShaderMaterial se deriva de dos programas enlazados por una interfaz explícita de atributos, varyings y uniforms.",
       "limits": [
         "El shader debe respetar requisitos del backend y no asumir extensiones no disponibles."
+      ],
+      "dimensional_verification": [
+        "Posiciones L; normales/direcciones 1; UV 1.",
+        "Uniforms y varyings mantienen tipos coincidentes entre etapas."
       ]
     },
     {
@@ -164,6 +176,10 @@
       "result": "Los varyings transportan datos del vértice al fragmento mediante interpolación de rasterizador.",
       "limits": [
         "La interpolación lineal simple no es correcta en perspectiva para atributos generales."
+      ],
+      "dimensional_verification": [
+        "λ_i son adimensionales; los pesos perspectiva-correctos normalizados suman 1.",
+        "El varying conserva unidad del atributo original."
       ]
     },
     {
@@ -186,8 +202,8 @@
         },
         {
           "step": 3,
-          "equation": "p'_i=p_i+v_i(t)",
-          "justification": "Aplicar deformación/posición calculada."
+          "equation": "p'_i=p_i+Δp_i(t)",
+          "justification": "Sumar una deformación/desplazamiento con unidad L a la posición base; si F entrega velocidad, integrar F en el tiempo antes de sumar."
         },
         {
           "step": 4,
@@ -198,11 +214,16 @@
       "assumptions": [
         "u_time monotónico y en segundos o unidad declarada.",
         "La función F es determinista para mismos parámetros.",
-        "No modificar uniform durante una única ejecución draw."
+        "No modificar uniform durante una única ejecución draw.",
+        "La salida de F se declara como desplazamiento L; si es velocidad L/T, debe integrarse."
       ],
       "result": "La animación GPU se deriva de una función del tiempo compartido por los vértices.",
       "limits": [
         "Un uniforme por sí solo no actualiza estado persistente; para simulación acumulativa se necesita buffer de estado."
+      ],
+      "dimensional_verification": [
+        "u_time tiene T; F entrega desplazamiento L o velocidad L/T según contrato.",
+        "p'_i=p_i+Δp_i exige Δp_i con L; una velocidad debe integrarse."
       ]
     },
     {
@@ -242,6 +263,10 @@
       "result": "El desplazamiento normal transforma la superficie base mediante un escalar dependiente de posición/tiempo.",
       "limits": [
         "Desplazamiento en vertex shader no aumenta teselación; detalle menor que tamaño de triángulo puede perderse."
+      ],
+      "dimensional_verification": [
+        "D tiene L; N es adimensional; N·D tiene L.",
+        "La posición desplazada conserva L."
       ]
     },
     {
@@ -280,6 +305,10 @@
       "result": "Ray marching avanza según distancia segura en lugar de usar pasos constantes.",
       "limits": [
         "Campos no Lipschitz/conservadores pueden permitir saltar superficies."
+      ],
+      "dimensional_verification": [
+        "SDF d tiene L; dirección de rayo adimensional; d/‖rd‖ tiene unidad del parámetro t.",
+        "ε y t_max comparten unidad con distancia/parámetro."
       ]
     },
     {
@@ -318,6 +347,10 @@
       "result": "La profundidad lineal se recupera invirtiendo la ecuación de proyección.",
       "limits": [
         "No usar fórmula estándar con reverse-Z, logarithmic depth o proyección personalizada sin derivación propia."
+      ],
+      "dimensional_verification": [
+        "near,far,z_view tienen L; depth buffer normalizado es adimensional.",
+        "UV adimensional; unproject retorna posición L."
       ]
     },
     {
@@ -357,6 +390,10 @@
       "result": "Los efectos screen-space son funciones de buffers de imagen y vecindarios de píxeles.",
       "limits": [
         "No tienen información fuera de pantalla ni geometría oculta."
+      ],
+      "dimensional_verification": [
+        "pixel/resolution es px/px, por tanto UV adimensional.",
+        "Color, depth y normal son canales heterogéneos con unidades propias."
       ]
     },
     {
@@ -396,6 +433,10 @@
       "result": "MRT deriva de múltiples salidas por fragmento a render targets simultáneos.",
       "limits": [
         "Ancho de banda y memoria crecen con número/formato de attachments."
+      ],
+      "dimensional_verification": [
+        "Albedo y roughness son adimensionales; normal 1; depth L o normalizado 1.",
+        "MRT attachments pueden tener unidades distintas y deben leerse por separado."
       ]
     },
     {
@@ -435,6 +476,10 @@
       "result": "Ping-pong implementa recurrencia de estado usando dos buffers alternos.",
       "limits": [
         "Cada iteración puede requerir barreras/sincronización según API."
+      ],
+      "dimensional_verification": [
+        "Buffers almacenan estado por componente; F conserva unidad de cada componente.",
+        "Índices y swap son discretos."
       ]
     },
     {
@@ -479,6 +524,10 @@
       "result": "La simulación compute es una función de actualización paralela sobre buffers de estado.",
       "limits": [
         "La ejecución WebGL no tiene compute shaders generales; usar transform feedback, ping-pong o CPU según backend."
+      ],
+      "dimensional_verification": [
+        "position L; velocity L/T; acceleration L/T²; dt T.",
+        "vel·dt tiene L; acc·dt tiene L/T; cada componente conserva unidad."
       ]
     },
     {
@@ -523,6 +572,10 @@
       "result": "La resolución adaptativa deriva del escalado de coste por área de píxeles.",
       "limits": [
         "Si el cuello de botella no es fill-rate, la regla cuadrática no predice el tiempo real."
+      ],
+      "dimensional_verification": [
+        "T_target y T_measured tienen T; razón y resolutionScale son adimensionales.",
+        "Coste de píxeles escala con resolutionScale²."
       ]
     },
     {
@@ -562,6 +615,10 @@
       "result": "La acumulación temporal es una media exponencial de muestras reproyectadas.",
       "limits": [
         "Sin rechazo de historia, ghosting y arrastre en objetos móviles."
+      ],
+      "dimensional_verification": [
+        "α adimensional; sample e history comparten color space/exposure.",
+        "Motion y depth reprojection conservan su convención px/UV y profundidad."
       ]
     },
     {
@@ -601,6 +658,10 @@
       "result": "Dithering reduce correlación del error de cuantización distribuyéndolo como ruido de bajo nivel.",
       "limits": [
         "Aumentar amplitud más allá de Δ añade ruido visible."
+      ],
+      "dimensional_verification": [
+        "Δ y ruido η tienen misma unidad que C; q' conserva la unidad de señal.",
+        "La amplitud de dither no puede usar unidad incompatible."
       ]
     },
     {
@@ -623,8 +684,8 @@
         },
         {
           "step": 3,
-          "equation": "E=E_z+λE_n",
-          "justification": "Combinar evidencia de discontinuidad con peso λ dimensionalmente calibrado."
+          "equation": "E=E_z+λE_n, [λ]=[E_z]",
+          "justification": "Escalar el cambio angular adimensional para que comparta unidad con la discontinuidad de profundidad antes de sumarlos."
         },
         {
           "step": 4,
@@ -640,11 +701,16 @@
       "assumptions": [
         "Depth linealizado o normalizado de forma consistente.",
         "Normales unitarias; λ adapta unidades de depth a término angular.",
-        "Umbrales adaptados a cámara/resolución."
+        "Umbrales adaptados a cámara/resolución.",
+        "Si z es lineal, λ tiene L; si z está normalizado, λ es adimensional."
       ],
       "result": "El contorno se deriva de gradientes discretos de profundidad y normal entre vecinos.",
       "limits": [
         "Umbral fijo puede marcar bordes internos/ruido; usar escala y antialiasing."
+      ],
+      "dimensional_verification": [
+        "E_z es L con profundidad lineal o 1 con depth normalizado; E_n adimensional.",
+        "λ compensa unidad de E_z; umbrales τ comparten unidad de E."
       ]
     },
     {
@@ -684,6 +750,10 @@
       "result": "La trama Ben-Day resulta de una máscara periódica modulada por luminancia.",
       "limits": [
         "Frecuencia alta sin filtrado produce moiré y aliasing."
+      ],
+      "dimensional_verification": [
+        "UV y q adimensionales si frequency es ciclos/UV; con screen px, frequency px⁻¹.",
+        "Luminancia y patrón son adimensionales; color conserva espacio/escala."
       ]
     },
     {
@@ -728,17 +798,24 @@
       "result": "El hachurado se obtiene de una fase periódica a lo largo de un campo de orientación.",
       "limits": [
         "En UV deformadas puede estirarse; usar espacio de pantalla o triplanar según necesidad."
+      ],
+      "dimensional_verification": [
+        "p y spacing comparten unidad; fase dot(p,dir)/spacing adimensional.",
+        "width y aa son anchos de fase adimensionales; máscara adimensional."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "18/18 técnicas cubiertas, incluidas tres investigaciones R31.",
-      "Cada derivación contiene pasos justificados, supuestos y límites.",
-      "Se distinguen etapas de shader, proyección, buffers, simulación, resolución adaptativa y NPR."
+      "18/18 técnicas D14 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "La animación por uniform distingue desplazamiento L de velocidad L/T",
+      "La reconstrucción de profundidad distingue depth buffer normalizado de profundidad lineal",
+      "El contorno compensa la unidad de discontinuidad de profundidad y cambio de normal",
+      "MRT, ping-pong, compute, temporal accumulation y dithering mantienen tipado por canal"
     ],
     "limitations": [
-      "Las derivaciones definen el comportamiento matemático; compatibilidad y rendimiento deben verificarse por backend en fases posteriores."
+      "La auditoría no certifica rendimiento de GPU, compatibilidad de backend ni exactitud visual; esos aspectos requieren pruebas posteriores en cada renderer/dispositivo."
     ]
   },
   "integrity": {
