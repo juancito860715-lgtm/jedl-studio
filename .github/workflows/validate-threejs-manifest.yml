@@ -44,6 +44,7 @@ jobs:
             --manifest docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json \
             --r31 docs/threejs/audit/r31-technical-specifications.json \
             --preservation docs/threejs/audit/crimson-loong-preserved-record-map.json \
+            --dimensions docs/threejs/audit/r31-symbol-dimension-audit.json \
             --report threejs-readiness-report.json
       - name: Publish report into repository
         if: always() && hashFiles('threejs-manifest-audit.json') != ''
@@ -53,7 +54,8 @@ jobs:
           if [ -f threejs-readiness-report.json ]; then cp threejs-readiness-report.json docs/threejs/audit/latest-implementation-readiness.json; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/threejs/audit/latest.json docs/threejs/audit/latest-implementation-readiness.json
+          git add docs/threejs/audit/latest.json
+          if [ -f docs/threejs/audit/latest-implementation-readiness.json ]; then git add docs/threejs/audit/latest-implementation-readiness.json; fi
           if ! git diff --cached --quiet; then
             git commit -m "Publish Three.js manifest audit report"
             git push
