@@ -221,3 +221,12 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - Se añadieron símbolos y unidades, derivación del período, rotación de coordenadas, dominio, extremos, pseudocódigo, complejidad y contrato ShaderMaterial. Se agregó un kernel de cobertura antialias en Python/JavaScript y pruebas analíticas de umbral, rango y periodicidad.
 - D14:16 permanece INCOMPLETE: falta validar el shader real en Three.js/WebGL2/WebGPU, comparar imágenes de referencia con un oráculo raster CPU y distinguir variantes de puntos agrupados de la pantalla sinusoidal.
 - El bloque previo D14:15 y este bloque no modifican el manifiesto original ni las 46 fichas preservadas. La auditoría dimensional sigue siendo condicional. PR #43 permanece draft/open/unmerged; no se ejecutó Godot/Android.
+
+
+## 15. Octavo bloque R31: hachurado periódico orientado por campo vectorial (2026-11-26)
+
+- D14:17 se formalizó como una familia de líneas periódicas: fase fract(dot(p,d_hat)/s), distancia de fase al centro de línea y cobertura con el complemento de smoothstep. Se fijaron unidades coherentes para posición/espaciado y anchos fraccionarios del período.
+- Se documentaron derivación, dominio, límites, coste, pseudocódigo y contrato de ShaderMaterial/TSL. Se añadió cobertura antialias en kernels Python/JavaScript con pruebas de centro, transición, borde, repetición de fase y casos inválidos.
+- Se mantiene el alcance correcto: una familia de líneas con dirección local; no equivale a integrar un campo vectorial espacialmente variable ni a resolver automáticamente cross-hatching. No se atribuye la fórmula a un paper.
+- D14:17 permanece INCOMPLETE: falta validar el campo de dirección y derivadas en el render Three.js/WebGPU, imágenes de referencia con rotación/UV seams y política para combinar varias familias.
+- R31 con especificación sustancial: 18 de 23; quedan 5 por desarrollar a ese nivel. Todas las R31 continúan INCOMPLETE hasta cerrar sus brechas específicas; el registro global permanece en 0 IMPLEMENTATION_READY. Las 46 preservadas no se reauditan y las 472 históricas siguen pendientes.
