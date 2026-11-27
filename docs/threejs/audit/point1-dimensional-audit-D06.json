@@ -835,6 +835,51 @@
           "unit": "sr⁻¹",
           "dimension": "inversa de ángulo sólido",
           "domain": "no negativa e integrable respecto de dω_i; S=S_R+S_TT+S_TRT"
+        },
+        {
+          "symbol": "σ_{a,e},σ_{a,p}",
+          "meaning": "coeficientes de absorción específicos de pigmentos",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativos"
+        },
+        {
+          "symbol": "e",
+          "meaning": "excentricidad de sección elíptica",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤e<1"
+        },
+        {
+          "symbol": "γ_m,γ_t,φ_o",
+          "meaning": "parámetros angulares de sección y dirección",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos; convención de artículo"
         }
       ],
       "constraints": [
@@ -842,7 +887,9 @@
         "Para el lóbulo R, S_R=R/(8 cosθ_o cosθ_i) ∫D(ω_h,ω_m)G(ω_i,ω_o)dφ_m; D tiene sr⁻¹ y el resto de factores/variable angular de integración son adimensionales, por lo que S_R conserva sr⁻¹.",
         "Para los lóbulos TT/TRT, productos de distribuciones D_i, medidas angulares y jacobianos de refracción deben conservar sr⁻¹; índices refractivos, cosenos, Fresnel y G son adimensionales.",
         "La absorción interna A_t=exp(−σ_a ℓ_path) requiere σ_a en m⁻¹ y recorrido ℓ_path en m; el exponente es adimensional.",
-        "El artículo normaliza el radio del cilindro a 1 durante la derivación; al usar radio físico r_f, los elementos de área/proyección deben incorporar la misma escala y su cociente geométrico permanece adimensional."
+        "El artículo normaliza el radio del cilindro a 1 durante la derivación; al usar radio físico r_f, los elementos de área/proyección deben incorporar la misma escala y su cociente geométrico permanece adimensional.",
+        "σ_a=ρ_eσ_{a,e}+ρ_pσ_{a,p}; las concentraciones normalizadas son adimensionales y los coeficientes específicos aportan m⁻¹.",
+        "La sección elíptica usa excentricidad e adimensional; sus factores métricos son adimensionales y r_f aporta la escala de longitud."
       ],
       "valid_domain": [
         "Fibra cilíndrica o elíptica suave, radio positivo, marco local regular y direcciones incidentes/salientes válidas.",
@@ -861,7 +908,9 @@
         "Eq. (5): ∫D|ω_h·ω_m|dω_h=1 implica D en sr⁻¹ bajo normalización angular.",
         "Eq. (12): R,G y cosenos son adimensionales; ∫D dφ mantiene sr⁻¹; S_R queda sr⁻¹.",
         "Absorción: σ_aℓ_path tiene (m⁻¹)(m)=1; A_t y A_tr son adimensionales.",
-        "Geometría de fibra: r_f, ds y ℓ_path tienen L; direcciones, índices relativos, ángulos y excentricidad son adimensionales."
+        "Geometría de fibra: r_f, ds y ℓ_path tienen L; direcciones, índices relativos, ángulos y excentricidad son adimensionales.",
+        "ρ_eσ_{a,e} y ρ_pσ_{a,p} tienen m⁻¹; al multiplicar por recorrido interno m, la atenuación exponencial es adimensional.",
+        "e y los ángulos son adimensionales; el elemento de área de sección mantiene m² tras incluir r_f."
       ],
       "status": "REVIEWED_POINT1",
       "domain": [
@@ -899,7 +948,8 @@
       "8/12 técnicas no protegidas incluidas",
       "Todos los registros tienen variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
       "D06:5 corregida: capacidad de transporte y flujos de sedimento tipados como m²/s; balance local conserva espesor/volumen",
-      "Cuatro registros protegidos excluidos"
+      "Cuatro registros protegidos excluidos",
+      "D06:11 incorpora coeficientes espectrales de absorción de pigmento y parámetros de sección elíptica tipados."
     ],
     "limitations": [
       "La formulación hidráulica es una aproximación discreta; coeficientes de transporte y deposición requieren calibración, pero sus unidades y balance local quedan definidos."
