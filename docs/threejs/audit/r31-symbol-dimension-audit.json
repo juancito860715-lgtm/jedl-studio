@@ -2150,10 +2150,42 @@
           },
           "unit": "radiometric radiance units",
           "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "mu_t",
+          "meaning": "coeficiente efectivo volumétrico sigma_t*rho",
+          "unit": "m^-1",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite nonnegative"
+        },
+        {
+          "symbol": "S",
+          "meaning": "radiancia fuente condicional por evento de extinción",
+          "unit": "W m^-2 sr^-1",
+          "dimension": {
+            "L": 0,
+            "M": 1,
+            "T": -3,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite; linear-light radiance"
         }
       ],
       "dimensional_findings": [
-        "sigma_t*ds debe ser adimensional. Aclarar si sigma_t ya incluye densidad para evitar multiplicarla dos veces."
+        "sigma_t*ds debe ser adimensional. Aclarar si sigma_t ya incluye densidad para evitar multiplicarla dos veces.",
+        "rho se fija adimensional como multiplicador de densidad relativa en el kernel actual; mu_t=sigma_t*rho conserva m^-1 y mu_t*ds es adimensional. Si rho es densidad másica real, sigma_t debe ser másico (m²/kg).",
+        "La radiancia acumulada y la fuente S deben compartir unidades radiométricas; alpha y T son adimensionales."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
@@ -2222,10 +2254,41 @@
           },
           "unit": "dimensionless",
           "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "u",
+          "meaning": "coseno de incidencia sobre la dirección elegida por la BRDF",
+          "unit": "dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "clamped to [0,1]"
+        },
+        {
+          "symbol": "N,V",
+          "meaning": "normal y dirección unitaria",
+          "unit": "dimensionless vectors",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finite normalized vectors"
         }
       ],
       "dimensional_findings": [
-        "F, F0, cos(theta) e índices de refracción son adimensionales; F0 debe estar en espacio lineal."
+        "F, F0, cos(theta) e índices de refracción son adimensionales; F0 debe estar en espacio lineal.",
+        "La potencia (1-u)^5 es adimensional; F0+(1-F0)(1-u)^5 es adimensional. En Cook-Torrance el coseno de entrada habitual es V·H, no necesariamente N·V."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
