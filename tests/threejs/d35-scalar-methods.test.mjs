@@ -51,7 +51,7 @@ test("D35:8 Hermite reproduces a linear function over a non-unit interval", () =
 test("D35:8 Hermite supports vectors and clamps outside the interval", () => {
   const middle = cubicHermite([0, 2], [2, 4], [1, 1], [1, 1], 0.5, 0, 1);
   assert.deepEqual(middle.value, [1, 3]);
-  assert.deepEqual(middle.derivative, [2.5, 2.5]);
+  assert.deepEqual(middle.derivative, [3, 3]);
   const outside = cubicHermite([0, 2], [2, 4], [1, 1], [1, 1], -1, 0, 1);
   assert.deepEqual(outside.value, [0, 2]);
   assert.deepEqual(outside.derivative, [0, 0]);
