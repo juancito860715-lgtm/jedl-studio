@@ -4,6 +4,23 @@ export function quantizedTime(t, sampleRate) {
   if (!(sampleRate > 0)) throw new RangeError("sampleRate must be > 0");
   return Math.floor(t * sampleRate) / sampleRate;
 }
+export function evaluateQuantizedChannel(keys,t,sampleRate,mode="hold") {
+  if(!Array.isArray(keys)||keys.length===0||keys.some(k=>!Array.isArray(k)||k.length!==2||!Number.isFinite(k[0])||!Number.isFinite(k[1])))
+    throw new RangeError("keys must be nonempty finite [time,value] pairs");
+  if(keys.some((k,i)=>i>0&&k[0]<=keys[i-1][0]))throw new RangeError("key times must be strictly increasing");
+  if(mode!=="hold"&&mode!=="linear")throw new RangeError("mode must be hold or linear");
+  const tq=quantizedTime(t,sampleRate);
+  if(tq<=keys[0][0])return keys[0][1];
+  for(let i=1;i<keys.length;i++){
+    if(tq<=keys[i][0]){
+      const [t0,v0]=keys[i-1],[t1,v1]=keys[i];
+      if(mode==="hold")return v0;
+      const u=(tq-t0)/(t1-t0);
+      return v0+(v1-v0)*u;
+    }
+  }
+  return keys[keys.length-1][1];
+}
 export function smoothMin(a,b,k) {
   if (k < 0) throw new RangeError("k must be >= 0");
   if (k === 0) return Math.min(a,b);
