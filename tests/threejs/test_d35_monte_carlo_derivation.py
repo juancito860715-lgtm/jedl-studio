@@ -19,7 +19,7 @@ class TestD35MonteCarloDerivation(unittest.TestCase):
         source = next(d for d in self.manifest["domains"] if d["id"] == "D35")["techniques"][12]
         record = next(r for r in self.audit["records"] if r["record_key"] == "D35:12")
         self.assertEqual(record["source_equation"], source["equation"])
-        self.assertEqual(record["source_mathematical_derivation"], source["derivation"])
+        self.assertEqual(record["source_use"], source["use"])
 
     def test_sample_mean_targets_expectation_under_sampling_pdf(self):
         record = next(r for r in self.audit["records"] if r["record_key"] == "D35:12")
