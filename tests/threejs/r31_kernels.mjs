@@ -187,14 +187,26 @@ export function volumeComposite(segments) {
   return [radiance,trans];
 }
 export function regularizedPlaneQef(constraints,center,regularization) {
-  if(regularization<0)throw new RangeError("regularization must be nonnegative");
-  const A=center.map(()=>regularization),b=center.map(v=>regularization*v);
-  for(const [point,normal] of constraints)for(let axis=0;axis<3;axis++){
-    A[axis]+=normal[axis]*normal[axis];
+  if(!Number.isFinite(regularization)||regularization<0)throw new RangeError("regularization must be finite and nonnegative");
+  if(center.length!==3||center.some(v=>!Number.isFinite(v)))throw new RangeError("center must be a finite 3-vector");
+  const A=Array.from({length:3},(_,i)=>Array.from({length:3},(_,j)=>i===j?regularization:0));
+  const b=center.map(v=>regularization*v);
+  for(const [point,normal] of constraints){
+    if(point.length!==3||normal.length!==3||[...point,...normal].some(v=>!Number.isFinite(v)))throw new RangeError("Hermite data must be finite 3-vectors");
+    const norm=Math.hypot(...normal);
+    if(Math.abs(norm-1)>1e-6)throw new RangeError("Hermite normals must be unit length");
     const projection=normal.reduce((s,v,k)=>s+v*point[k],0);
-    b[axis]+=normal[axis]*projection;
+    for(let i=0;i<3;i++){b[i]+=normal[i]*projection;for(let j=0;j<3;j++)A[i][j]+=normal[i]*normal[j];}
   }
-  return b.map((v,i)=>A[i]?v/A[i]:center[i]);
+  for(let col=0;col<3;col++){
+    let pivot=col;
+    for(let row=col+1;row<3;row++)if(Math.abs(A[row][col])>Math.abs(A[pivot][col]))pivot=row;
+    if(Math.abs(A[pivot][col])<1e-12)throw new RangeError("singular QEF; positive regularization or SVD fallback required");
+    [A[col],A[pivot]]=[A[pivot],A[col]];[b[col],b[pivot]]=[b[pivot],b[col]];
+    const scale=A[col][col];for(let j=col;j<3;j++)A[col][j]/=scale;b[col]/=scale;
+    for(let row=0;row<3;row++){if(row===col)continue;const factor=A[row][col];for(let j=col;j<3;j++)A[row][j]-=factor*A[col][j];b[row]-=factor*b[col];}
+  }
+  return b;
 }
 
 
