@@ -1181,11 +1181,32 @@
             "J": 0
           },
           "domain": "3–12 px"
+        },
+        {
+          "symbol": "I_x,I_y",
+          "meaning": "derivadas de luminancia por píxel",
+          "unit": "luminance/px",
+          "dimension": "intensity per raster step; px is a discrete image-space unit",
+          "domain": "finite; same linear luminance encoding"
+        },
+        {
+          "symbol": "λ_1,λ_2",
+          "meaning": "autovalores del tensor",
+          "unit": "luminance²/px²",
+          "dimension": "squared luminance per squared pixel step",
+          "domain": "nonnegative up to numerical error"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "regularización de coherencia",
+          "unit": "same as λ_1+λ_2",
+          "dimension": "luminance²/px²",
+          "domain": "ε>0"
         }
       ],
       "constraints": [
-        "σ y radius están en píxeles y dependen de resolución; reescalar proporcionalmente al cambiar tamaño.",
-        "Tensor debe ser simétrico; eigenvalores no negativos salvo error numérico."
+        "J=Gσ*[[I_x²,I_xI_y],[I_xI_y,I_y²]]; sus autovalores tienen las mismas unidades que sus entradas.",
+        "coherence=(λ1−λ2)/(λ1+λ2+ε) exige ε con la misma unidad que los autovalores; en RGB lineal normalizado es luminance²/px²."
       ],
       "valid_domain": [
         "Imagen con dimensiones positivas; parámetros dentro de rangos registrados."
@@ -1195,9 +1216,8 @@
         "Gradiente nulo produce orientación indefinida; usar orientación neutra estable."
       ],
       "dimensional_checks": [
-        "σ and radius are measured in pixels (discrete image-space units), not meters; convert to normalized UV only using image dimensions.",
-        "Image gradients and structure tensor carry intensity-per-pixel and intensity²-per-pixel² scaling under the chosen luminance encoding.",
-        "θ and coherence are dimensionless angular/normalized outputs; ε in the coherence denominator must have the same units as the eigenvalue sum."
+        "I_x,I_y tienen luminance/px; J y λ_i tienen luminance²/px².",
+        "θ es angular; coherence es adimensional solo si ε comparte unidades con λ1+λ2."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1279,11 +1299,71 @@
             "J": 0
           },
           "domain": "finita"
+        },
+        {
+          "symbol": "μ_k",
+          "meaning": "media de color por sector",
+          "unit": "linear RGB dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "same color space"
+        },
+        {
+          "symbol": "σ²_k",
+          "meaning": "varianza de color por sector",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "nonnegative"
+        },
+        {
+          "symbol": "σ²_0",
+          "meaning": "escala de referencia para normalizar varianza",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "σ²_0>0"
+        },
+        {
+          "symbol": "w_k",
+          "meaning": "peso adimensional normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "w_k≥0; Σw_k>0"
         }
       ],
       "constraints": [
-        "Kernel y sectores son discretos; coste crece con área de kernel y escalas.",
-        "Orientación anisotrópica debe derivarse del tensor y evitar saltos temporales."
+        "La función de peso debe recibir varianza normalizada σ²_k/σ²_0 para que su argumento sea adimensional.",
+        "w_k=f(σ²_k/σ²_0) y C_out=Σw_kμ_k/Σw_k; todos los sectores usan el mismo espacio de color lineal."
       ],
       "valid_domain": [
         "Imagen no vacía; parámetros dentro de rangos; sectores enteros."
@@ -1293,9 +1373,8 @@
         "Si coherencia cero, caer a filtro isotrópico."
       ],
       "dimensional_checks": [
-        "Kernel radius is in pixels; sector and scale counts are dimensionless integers.",
-        "Image means, variances and output colors must use the same linear color representation; variance has squared color-channel units.",
-        "Weights based on variance are dimensionless only after a scale/regularization convention; multiscale radii must be expressed consistently in pixel coordinates."
+        "μ_k y C_out son colores lineales adimensionales; σ²_k y σ²_0 son adimensionales.",
+        "El cociente de varianzas y w_k son adimensionales; la mezcla conserva unidad de color."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1377,11 +1456,56 @@
             "J": 0
           },
           "domain": "H0≥0; height_amp·H0 gives height in meters"
+        },
+        {
+          "symbol": "d_i,stroke_width",
+          "meaning": "distancia al trazo y ancho en espacio raster",
+          "unit": "px",
+          "dimension": "discrete image-space units",
+          "domain": "finite; stroke_width>0"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "amplitud física por trazo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "a_i=height_amp_i·H0"
+        },
+        {
+          "symbol": "φ_i",
+          "meaning": "perfil de sección del trazo",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "bounded profile"
+        },
+        {
+          "symbol": "ρ_px",
+          "meaning": "densidad de píxeles sobre superficie",
+          "unit": "px/m",
+          "dimension": "pixel steps per physical length",
+          "domain": "positive local surface mapping"
         }
       ],
       "constraints": [
-        "El ancho en px depende de resolución; altura física debe declararse si se desplaza geometría.",
-        "Relieve derivado de imagen puede ser bump/normal o displacement; no confundir sus unidades."
+        "d_i y stroke_width se miden en píxeles; φ_i recibe d_i/stroke_width, argumento adimensional.",
+        "a_i=height_amp_i·H0 tiene m; h=Σa_iφ_i tiene m.",
+        "∂h/∂px tiene m/px; multiplicar por ρ_px (px/m) convierte a gradiente superficial adimensional antes de perturbar N."
       ],
       "valid_domain": [
         "Pinceladas definidas y campos acotados."
@@ -1391,9 +1515,8 @@
         "En bordes de trazo, suavizar o definir discontinuidad deliberada."
       ],
       "dimensional_checks": [
-        "stroke_width is in pixels; height_amp is dimensionless and must multiply a declared physical or normalized height scale H0.",
-        "h(u,v) must have a defined height unit; its physical-space gradient is dimensionless when differentiated along surface lengths.",
-        "roughness is dimensionless; bump-derived normal perturbation must use consistent height scale and surface metric."
+        "a_i y h tienen m; φ_i es adimensional; d_i/stroke_width es adimensional.",
+        "(∂h/∂px)·ρ_px tiene (m/px)(px/m)=1; N′ es adimensional."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -1402,7 +1525,10 @@
     "structural_checks": [
       "17/17 técnicas incluidas; ninguna protegida",
       "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
-      "Aclaradas derivadas de altura respecto a UV, unidades de píxel y escala física del impasto"
+      "Aclaradas derivadas de altura respecto a UV, unidades de píxel y escala física del impasto",
+      "D08:14 tipa gradientes, autovalores y regularización del tensor",
+      "D08:15 normaliza varianzas antes de construir pesos adimensionales",
+      "D08:16 convierte gradiente de altura raster a gradiente físico mediante densidad px/m"
     ],
     "limitations": [
       "Las expresiones BRDF y filtros NPR conservan aproximaciones de la ficha; la validación dimensional no sustituye la derivación de los modelos completos."
