@@ -49,7 +49,11 @@
       "limits": [
         "No derivar resistencia ni patrón físico de rotura a partir de esta partición."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "p y sitios s_i tienen L; distancias comparadas tienen L.",
+        "Los índices de celda son discretos; la partición no modela rotura ni fuerzas."
+      ]
     },
     {
       "record_key": "D23:1",
@@ -89,7 +93,11 @@
       "limits": [
         "No se deriva ni proporciona un modelo operativo de fallo por tensión real."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "Campo artístico q(p,t), umbrales y máscara son adimensionales; posición p tiene L.",
+        "La transición de máscara devuelve valor [0,1] sin interpretar q como tensión física."
+      ]
     },
     {
       "record_key": "D23:2",
@@ -129,7 +137,11 @@
       "limits": [
         "No se deriva ni proporciona cálculo de energía crítica, intensidad de tensión ni propagación física de grietas."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "t y duración tienen T; progreso g(t) es adimensional; geometría de trazo tiene L.",
+        "El patrón y máscara de grieta son visuales; no se deriva energía de fractura ni tasa física."
+      ]
     },
     {
       "record_key": "D23:3",
@@ -169,7 +181,11 @@
       "limits": [
         "No se proporciona una ley física de tracción–separación."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "d_visual y width_visual tienen L; d/width es adimensional.",
+        "alpha y perfil de transición son adimensionales; la interfaz conserva coordenadas L."
+      ]
     },
     {
       "record_key": "D23:4",
@@ -209,7 +225,11 @@
       "limits": [
         "No incluye fuerzas, impulso, contacto ni predicción física de fragmentación."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "P_i tiene L; R_i es adimensional; traslación b_i tiene L.",
+        "M_iP_i+b_i conserva L; la trayectoria es una curva animada definida por el artista."
+      ]
     },
     {
       "record_key": "D23:5",
@@ -249,7 +269,11 @@
       "limits": [
         "No se proporciona cálculo físico de impulso ni respuesta de colisión."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "t y duración tienen T; u=t/T es adimensional; A tiene L.",
+        "El offset A·ease(u) tiene L; la curva es una animación estilizada y no una ley de impacto."
+      ]
     },
     {
       "record_key": "D23:6",
@@ -289,7 +313,11 @@
       "limits": [
         "No se deriva ni proporciona ley de fricción física o coeficiente de material."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "s(t) tiene L; velocidad visual v_art tiene L/T; tiempo tiene T.",
+        "El factor de asentamiento exp(−k_art t) es adimensional si k_art tiene T⁻¹; no representa fricción física."
+      ]
     },
     {
       "record_key": "D23:7",
@@ -329,7 +357,11 @@
       "limits": [
         "No se proporciona un modelo de contacto DEM ni parámetros físicos de escombros."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "Centros y radios de grano tienen L; índices/seed son discretos.",
+        "La distribución visual usa distancias L y máscaras adimensionales; no calcula fuerzas de contacto."
+      ]
     },
     {
       "record_key": "D23:8",
@@ -369,7 +401,11 @@
       "limits": [
         "No se deriva la estabilidad física de taludes ni relación con fricción."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "h y coordenadas tienen L; ∇h es adimensional para coordenadas físicas.",
+        "El umbral de pendiente es un parámetro artístico adimensional, no ángulo de reposo físico."
+      ]
     },
     {
       "record_key": "D23:9",
@@ -409,7 +445,11 @@
       "limits": [
         "No predice qué fragmentos se separan ni cuándo; esa decisión es predefinida."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "P tiene L; matrices lineales R_i son adimensionales; traslaciones b_i tienen L.",
+        "La transformación de cada cluster conserva L y depende de curvas de animación."
+      ]
     },
     {
       "record_key": "D23:10",
@@ -449,7 +489,11 @@
       "limits": [
         "No se calcula ruptura física por carga ni umbral mecánico."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "progress y thresholds son adimensionales; active es booleano discreto.",
+        "La transición de enlace es un evento gráfico; no se calcula carga, esfuerzo ni fallo físico."
+      ]
     },
     {
       "record_key": "D23:11",
@@ -494,14 +538,20 @@
       "limits": [
         "No se deriva la ramificación a partir de esfuerzos ni energía de fractura."
       ],
-      "status": "VISUAL_PROXY_DERIVATION"
+      "status": "VISUAL_PROXY_DERIVATION",
+      "dimensional_verification": [
+        "P_branch y longitudes de segmento tienen L; direcciones son unitarias.",
+        "Ángulos de ramificación son radianes adimensionales; seed produce variaciones adimensionales."
+      ]
     }
   ],
   "validation": {
     "checks": [
-      "12/12 técnicas cubiertas mediante derivaciones geométricas/visuales.",
-      "Los métodos de esfuerzo, Griffith, cohesión, impulso, fricción y DEM se limitan a proxies gráficos no físicos.",
-      "No se incluyen parámetros ni ecuaciones operativas para causar, optimizar o predecir daño real."
+      "12/12 técnicas D23 cubiertas mediante derivaciones geométricas/visuales",
+      "Cada registro contiene pasos, resultado, supuestos, límites y comprobación dimensional",
+      "Los métodos de esfuerzo, Griffith, cohesión, impulso, fricción y DEM se limitan a proxies gráficos no físicos",
+      "No se incluyen parámetros ni ecuaciones operativas para causar, optimizar o predecir daño real",
+      "La integridad se referencia al manifiesto y al mapa de protección"
     ],
     "limitations": [
       "Por seguridad, esta ficha no deriva mecánica real de fractura, impacto, fricción, contacto granular ni propagación de grietas; proporciona alternativas exclusivamente visuales para animación 3D."
@@ -510,5 +560,22 @@
   "integrity": {
     "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
     "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  },
+  "safety_scope": {
+    "mode": "VISUAL_ONLY_NONPHYSICAL",
+    "allowed": [
+      "partición geométrica decorativa",
+      "máscaras y transiciones artísticas",
+      "animación por curvas predefinidas",
+      "disposición visual de piezas/granos",
+      "ramificación gráfica con semilla"
+    ],
+    "excluded": [
+      "mecánica real de fractura",
+      "criterios físicos de daño",
+      "modelos operativos de impacto/impulso",
+      "fricción física y contacto granular",
+      "predicción de propagación de grietas"
+    ]
   }
 }
