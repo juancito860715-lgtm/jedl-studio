@@ -37,11 +37,16 @@
       ],
       "assumptions": [
         "z>0; FOV in (0,π).",
-        "Aspect ratio and camera convention declared."
+        "Aspect ratio and camera convention declared.",
+        "f_px se calcula a partir de FOV y altura del viewport; z es profundidad positiva en espacio de cámara."
       ],
       "result": "Perspective follows pinhole projection and similar triangles.",
       "limits": [
         "Clipping and lens distortion are separate stages."
+      ],
+      "dimensional_verification": [
+        "x,y,z tienen L; x/z e y/z son adimensionales; f_px tiene px y la salida queda en px.",
+        "FOV y razones trigonométricas son adimensionales; near/far tienen L."
       ]
     },
     {
@@ -75,6 +80,10 @@
       "result": "Orthographic projection is an affine map of view-space x/y.",
       "limits": [
         "No perspective foreshortening."
+      ],
+      "dimensional_verification": [
+        "x,y,z tienen L; s_x,s_y tienen px/L para salida en píxeles o L⁻¹ para NDC.",
+        "z_depth conserva L si es lineal; si se almacena normalizado, es adimensional y debe declararse."
       ]
     },
     {
@@ -108,6 +117,10 @@
       "result": "FOV and focal scale are linked by image-plane geometry.",
       "limits": [
         "FOV is not focal length in mm without sensor size."
+      ],
+      "dimensional_verification": [
+        "halfHeight y f tienen L en plano sensor físico; tan(FOV/2) es adimensional.",
+        "FOV_x y FOV_y son ángulos adimensionales; aspect es adimensional."
       ]
     },
     {
@@ -146,7 +159,12 @@
       ],
       "result": "Blur-circle approximation follows from thin-lens image geometry and aperture diameter.",
       "limits": [
-        "Real lenses include aberrations and pupil magnification."
+        "Real lenses include aberrations and pupil magnification.",
+        "c es círculo físico sobre el plano sensor; para blur en píxeles se requiere multiplicar por densidad de píxeles del sensor."
+      ],
+      "dimensional_verification": [
+        "f,s,s_focus,c tienen L; N (f-number) es adimensional.",
+        "La fórmula de círculo de confusión produce L; conversión a píxeles requiere escala px/L del sensor."
       ]
     },
     {
@@ -185,6 +203,10 @@
       "result": "Look-at derives camera orientation from an orthonormal frame.",
       "limits": [
         "Parallel up/forward requires alternate up reference."
+      ],
+      "dimensional_verification": [
+        "camera, target y posiciones tienen L; forward/right/up son unitarios adimensionales.",
+        "Quaternions y matriz de rotación son adimensionales; el eje de respaldo evita singularidad."
       ]
     },
     {
@@ -218,6 +240,10 @@
       "result": "Dolly is camera translation along a designed trajectory.",
       "limits": [
         "Non-arc-length parameterization produces variable speed."
+      ],
+      "dimensional_verification": [
+        "C0 y P(t) tienen L; C'(t) tiene L/T si t tiene T.",
+        "Longitud de arco tiene L; su parámetro inverso requiere curva regular."
       ]
     },
     {
@@ -251,6 +277,10 @@
       "result": "Camera movement combines local translation and quaternion rotation.",
       "limits": [
         "Changing rotation order changes result."
+      ],
+      "dimensional_verification": [
+        "a,b,c son traslaciones con L; right/up/forward son unitarios.",
+        "Ángulos de pan/tilt son radianes; quaternions son adimensionales."
       ]
     },
     {
@@ -284,6 +314,10 @@
       "result": "Crane motion is a time-parametrized spline path.",
       "limits": [
         "Spline overshoot requires tangent constraints."
+      ],
+      "dimensional_verification": [
+        "C_i y C(t) tienen L; u es adimensional; si la spline usa t en segundos, tangentes tienen L/T.",
+        "FOV(t) es angular y adimensional; su spline no comparte escala con posiciones."
       ]
     },
     {
@@ -317,6 +351,10 @@
       "result": "Orbit is a circular/elliptical camera trajectory.",
       "limits": [
         "Moving targets require updating center and orientation."
+      ],
+      "dimensional_verification": [
+        "c_x,c_z,r,y_0 tienen L; cosθ y sinθ son adimensionales.",
+        "La trayectoria C(θ) conserva L; θ es radianes."
       ]
     },
     {
@@ -355,6 +393,10 @@
       "result": "Camera shake is bounded noise with temporal envelope.",
       "limits": [
         "High-frequency/unbounded noise causes aliasing and unstable framing."
+      ],
+      "dimensional_verification": [
+        "A_0 y A(t) de posición tienen L; n(t) es adimensional; τ tiene T.",
+        "La perturbación angular se expresa en radianes; el quaternion resultante es adimensional."
       ]
     },
     {
@@ -393,6 +435,10 @@
       "result": "Exponential follow is the exact solution of a first-order linear tracking system.",
       "limits": [
         "Target discontinuities may require spring-damper or velocity constraints."
+      ],
+      "dimensional_verification": [
+        "C, C_target, P_subject y offset tienen L; λ tiene T⁻¹; Δt tiene T.",
+        "α=1−exp(−λΔt) es adimensional; C_next conserva L."
       ]
     },
     {
@@ -426,6 +472,10 @@
       "result": "Motion blur is temporal averaging over shutter interval.",
       "limits": [
         "Single-frame blur is approximate at disocclusions."
+      ],
+      "dimensional_verification": [
+        "τ_s y t tienen T; pesos temporales suman 1 y son adimensionales.",
+        "C_pixel(t) y C̄ comparten unidad radiométrica/escala de color."
       ]
     },
     {
@@ -448,8 +498,8 @@
         },
         {
           "step": 3,
-          "equation": "side=sign(d·right_camera)",
-          "justification": "Record subject ordering on screen."
+          "equation": "side=sign((B_s−A_s)·r_screen),  r_screen=(1,0) en coordenadas de pantalla",
+          "justification": "Evaluar el orden horizontal con un eje derecho del mismo espacio proyectado; no mezclar una diferencia de pantalla con un vector derecho en espacio mundo."
         },
         {
           "step": 4,
@@ -459,11 +509,16 @@
       ],
       "assumptions": [
         "Subject identities and action axis defined.",
-        "Camera projection and right vector consistent."
+        "Camera projection and right vector consistent.",
+        "A_s, B_s y r_screen se expresan en el mismo sistema de pantalla (px o NDC)."
       ],
       "result": "Continuity can be checked through projected subject ordering and eyeline direction.",
       "limits": [
         "A cinematographic convention, not a universal mathematical law."
+      ],
+      "dimensional_verification": [
+        "A_s y B_s tienen px o coordenadas NDC; su diferencia y el eje derecho de pantalla son compatibles.",
+        "side es signo adimensional; identidades y orden de sujetos son discretos."
       ]
     },
     {
@@ -502,6 +557,10 @@
       "result": "A beat sheet becomes synchronized camera position, orientation and lens curves.",
       "limits": [
         "FOV interpolation is not identical to focal-length interpolation."
+      ],
+      "dimensional_verification": [
+        "C_i y target tienen L; t_i tiene T; FOV_i es angular adimensional.",
+        "La interpolación de FOV no tiene dimensión de longitud; C(t) conserva L."
       ]
     },
     {
@@ -540,6 +599,10 @@
       "result": "Smooth minimum rounds the hard union near the intersection.",
       "limits": [
         "Changes local volume and is not exact SDF in blend region."
+      ],
+      "dimensional_verification": [
+        "a,b,k y smin tienen L; h=max(k−|a−b|,0)/k es adimensional.",
+        "La superficie de nivel cero no introduce unidades; los SDF deben compartir escala."
       ]
     },
     {
@@ -578,17 +641,24 @@
       "result": "Parallel transport stabilizes camera orientation along a curve by minimizing twist.",
       "limits": [
         "Cusps and zero tangents require regularization."
+      ],
+      "dimensional_verification": [
+        "C'(u) tiene L si u es adimensional; T,N,B y eje de rotación son unitarios.",
+        "θ es radianes; el transporte de marco y quaternion conservan orientación adimensional."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "16/16 técnicas cubiertas, incluidas dos investigaciones R31.",
-      "Cada derivación contiene pasos matemáticos justificados, supuestos y límites.",
-      "Se separan proyección, orientación, trayectoria, óptica, temporalidad y continuidad narrativa."
+      "16/16 técnicas D13 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos matemáticos justificados, supuestos, límites y verificación dimensional",
+      "Proyección perspectiva/ortográfica distingue metros, NDC y píxeles",
+      "Profundidad de campo deriva círculo físico en sensor y separa conversión a píxeles",
+      "Continuidad de plano corregida para no mezclar coordenadas de pantalla con vectores mundo",
+      "Trayectorias, FOV, velocidades, exposición temporal y SDF conservan unidades compatibles"
     ],
     "limitations": [
-      "Los modelos ópticos simplificados no sustituyen trazado físico de lentes; validación visual posterior."
+      "Las aproximaciones de lente son para cámara pinhole/Thin Lens; no sustituyen trazado óptico completo ni calibración de una cámara real."
     ]
   },
   "integrity": {
