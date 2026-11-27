@@ -33,8 +33,8 @@ class D02ReferenceValidationTests(unittest.TestCase):
     def test_local_implementations_are_present_but_not_certified(self):
         for record in self.data["records"]:
             with self.subTest(record=record["record_key"]):
-                self.assertEqual(record["local_adaptation_status"], "IMPLEMENTED_TESTS_PENDING")
-                self.assertEqual(record["certification_status"], "PENDING_LOCAL_CI")
+                self.assertEqual(record["local_adaptation_status"], "IMPLEMENTATION_TESTS_PASSED")
+                self.assertEqual(record["certification_status"], "IMPLEMENTATION_TESTS_PASSED_CERTIFICATION_PENDING")
                 self.assertIn("src/threejs/d02-procedural-geometry.mjs", record["implementation_files"])
                 self.assertIn("tests/threejs/d02-procedural-geometry.test.mjs", record["implementation_files"])
 
@@ -43,7 +43,8 @@ class D02ReferenceValidationTests(unittest.TestCase):
         self.assertEqual(summary["records_in_scope"], 11)
         self.assertEqual(summary["protected_records_preserved"], 5)
         self.assertEqual(summary["local_adaptations_implemented"], 11)
-        self.assertEqual(summary["local_adaptations_tested"], 0)
+        self.assertEqual(summary["local_adaptations_tested"], 11)
+        self.assertEqual(summary["pending_local_ci"], 0)
         self.assertEqual(summary["certified_as_locally_operational"], 0)
 
     def test_loop_subdivision_scope_is_explicit(self):
