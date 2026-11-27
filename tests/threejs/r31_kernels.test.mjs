@@ -141,3 +141,16 @@ test("vector-field hatching repeats and antialiases around the stripe",()=>{
   near(k.hatchCoverage(.2,.1,0),0);
   assert.throws(()=>k.hatchCoverage(.5,.4,.2),RangeError);
 });
+
+
+test("semi-Lagrangian 2D advection backtraces and bilinearly samples",()=>{
+  const field=Array.from({length:3},()=>[3.25,3.25,3.25,3.25]);
+  const vx=Array.from({length:3},()=>[2,2,2,2]),vy=Array.from({length:3},()=>[-1,-1,-1,-1]);
+  assert.deepEqual(k.semiLagrangianAdvect2d(field,vx,vy,4),field);
+  const ramp=Array.from({length:3},()=>[0,1,2,3,4]);
+  const ux=Array.from({length:3},()=>[1,1,1,1,1]),uy=Array.from({length:3},()=>[0,0,0,0,0]);
+  vec(k.semiLagrangianAdvect2d(ramp,ux,uy,.5)[1],[0,.5,1.5,2.5,3.5]);
+  near(k.sampleBilinear2d([[0,1],[1,0]],.25,.25),.375);
+  assert.throws(()=>k.semiLagrangianAdvect2d([[1]],[[0]],[[0]],-1),RangeError);
+  assert.throws(()=>k.semiLagrangianAdvect2d([[1,2]],[[0]],[[0]],1),RangeError);
+});
