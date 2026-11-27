@@ -1363,10 +1363,71 @@
           },
           "unit": "dimensionless normalized quaternion",
           "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "v1",
+          "meaning": "primer vector de reflexión, diferencia entre posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "nonzero finite vector"
+        },
+        {
+          "symbol": "v2",
+          "meaning": "segundo vector de reflexión, diferencia entre tangentes unitarias",
+          "unit": "dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "nonzero finite vector in non-degenerate step"
+        },
+        {
+          "symbol": "c1",
+          "meaning": "cuadrado de la norma de v1",
+          "unit": "m^2",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "strictly positive"
+        },
+        {
+          "symbol": "c2",
+          "meaning": "cuadrado de la norma de v2",
+          "unit": "dimensionless",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "strictly positive"
         }
       ],
       "dimensional_findings": [
-        "T, N y B deben ser adimensionales y unitarios; C' tiene longitud por unidad de parámetro."
+        "T, N y B deben ser adimensionales y unitarios; C' tiene longitud por unidad de parámetro.",
+        "R1 usa v1 en metros y su denominador c1 en m²; R2 usa v2 como diferencia de tangentes unitarias y c2 es adimensional. Los coeficientes de ambas reflexiones son adimensionales."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
