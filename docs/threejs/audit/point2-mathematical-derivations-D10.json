@@ -56,6 +56,10 @@
       "result": "Un gradiente de cielo analítico se obtiene de un peso angular derivado del coseno de elevación.",
       "limits": [
         "No modela scattering físico completo ni dependencia espectral."
+      ],
+      "dimensional_verification": [
+        "θ,γ y q son adimensionales angulares; cosθ^γ conserva valor adimensional.",
+        "C_horizon y C_zenith comparten espacio lineal y escala; la mezcla conserva esa unidad/escala."
       ]
     },
     {
@@ -73,8 +77,8 @@
         },
         {
           "step": 2,
-          "equation": "β_R(λ)=K/λ⁴",
-          "justification": "La dispersión dipolar escala con cuarta potencia inversa de longitud de onda para moléculas pequeñas respecto a λ."
+          "equation": "β_R(λ)=K_R/λ⁴,  [K_R]=L³,  [β_R]=L⁻¹",
+          "justification": "En el régimen dipolar, la sección eficaz de dispersión escala como λ⁻⁴; el coeficiente volumétrico incluye densidad molecular y constante material con unidades L³."
         },
         {
           "step": 3,
@@ -90,11 +94,17 @@
       "assumptions": [
         "λ>0; partículas mucho menores que longitud de onda.",
         "K incorpora densidad molecular, polarizabilidad y constantes del medio.",
-        "La fase Rayleigh se normaliza sobre esfera."
+        "La fase Rayleigh se normaliza sobre esfera.",
+        "K_R incorpora densidad molecular, polarizabilidad y factores del medio; no es adimensional."
       ],
       "result": "La dependencia λ⁻⁴ procede del régimen de dispersión dipolar de partículas sub-longitud de onda.",
       "limits": [
         "La constante K debe incluir unidades para que β_R tenga L⁻¹; no usar ley λ⁻⁴ sin calibración del medio."
+      ],
+      "dimensional_verification": [
+        "α=2π/λ tiene L⁻¹; K debe tener L³ para que β_R=K/λ⁴ tenga L⁻¹.",
+        "β_R d es adimensional; la transmitancia T_R queda adimensional.",
+        "La fase Rayleigh tiene sr⁻¹; su integral angular conserva radiancia."
       ]
     },
     {
@@ -122,18 +132,24 @@
         },
         {
           "step": 4,
-          "equation": "L_scatter=β_s p(θ)L_i",
-          "justification": "Multiplicar coeficiente de dispersión por fase y radiancia incidente."
+          "equation": "j_s(ω_o)=β_s∫_{4π}p(ω_i,ω_o)L_i(ω_i)dω_i;  dL=j_s ds",
+          "justification": "Integrar la radiancia incidente sobre direcciones con la fase normalizada; multiplicar por β_s da fuente por longitud y ds da incremento de radiancia."
         }
       ],
       "assumptions": [
         "−1<g<1; ángulos y direcciones válidos.",
         "La fase es aproximación HG, no solución completa de teoría Mie.",
-        "β_s tiene unidad inversa de longitud."
+        "β_s tiene unidad inversa de longitud.",
+        "p se normaliza sobre dω; una fuente direccional se representa mediante delta angular integrada en la misma medida."
       ],
-      "result": "La bruma se aproxima con una fase anisotrópica normalizada parametrizada por g.",
+      "result": "La fase HG aproxima la distribución angular; el término fuente de dispersión se obtiene integrando radiancia incidente sobre ángulo sólido y multiplicando por β_s.",
       "limits": [
-        "Para partículas reales, el patrón Mie depende de tamaño, índice y longitud de onda; HG es aproximación de bajo coste."
+        "Para partículas reales, el patrón Mie depende de tamaño, índice y longitud de onda; HG es aproximación de bajo coste.",
+        "No usar β_s p L_i como radiancia sin integrar sobre la dirección incidente o definir una fuente direccional con delta angular."
+      ],
+      "dimensional_verification": [
+        "g y cosθ son adimensionales; p_HG tiene sr⁻¹ bajo medida de ángulo sólido.",
+        "β_s tiene L⁻¹; ∫pL_i dω conserva radiancia y β_s∫pL_i dω es radiancia por longitud."
       ]
     },
     {
@@ -178,6 +194,10 @@
       "result": "La transmitancia exponencial es la solución de una ecuación diferencial lineal de atenuación.",
       "limits": [
         "Medios con emisión/scattering requieren añadir términos fuente; no basta la transmitancia."
+      ],
+      "dimensional_verification": [
+        "σ_t tiene L⁻¹; ds tiene L; ∫σ_t ds es adimensional.",
+        "T=exp(−opticalDepth) es adimensional y está en [0,1] si σ_t≥0."
       ]
     },
     {
@@ -217,6 +237,10 @@
       "result": "Sphere tracing evita saltar una superficie cuando cada paso no excede la distancia segura al objeto.",
       "limits": [
         "Si el campo no es distancia conservadora, el paso puede saltar la superficie; usar Lipschitz bound."
+      ],
+      "dimensional_verification": [
+        "d(p) tiene L; dirección r_d es adimensional; Δt_ray=d/‖r_d‖ tiene unidad del parámetro t.",
+        "p(t)=r_o+t r_d conserva L; ε y t_max deben usar unidades compatibles."
       ]
     },
     {
@@ -234,8 +258,8 @@
         },
         {
           "step": 2,
-          "equation": "Δp_screen=Project(p(t+τ_e))−Project(p(t))",
-          "justification": "Proyectar posiciones al inicio y final del tiempo de exposición."
+          "equation": "Δp_world≈v(t)τ_e;  Δp_screen≈J_camera(p)Δp_world",
+          "justification": "Aproximar el desplazamiento durante la exposición y proyectarlo mediante el Jacobiano local de cámara, que convierte longitud de mundo en píxeles."
         },
         {
           "step": 3,
@@ -251,11 +275,16 @@
       "assumptions": [
         "τ_e≥0; proyección de cámara definida.",
         "Velocidad, gravedad y posiciones usan unidades compatibles.",
-        "La lluvia procedural no pretende modelar gotas individualmente en fluidodinámica."
+        "La lluvia procedural no pretende modelar gotas individualmente en fluidodinámica.",
+        "J_camera tiene unidad px/m para proyección local y profundidad fija."
       ],
       "result": "Las estelas se derivan de la trayectoria de una gota durante el tiempo de exposición y su proyección a pantalla.",
       "limits": [
         "La longitud en píxeles depende de cámara, resolución y exposición; no equivale a distancia física."
+      ],
+      "dimensional_verification": [
+        "p_0 tiene L; v_rain tiene L/T; g tiene L/T²; t y τ_e tienen T.",
+        "Δp_world tiene L; su proyección con Jacobiano de cámara px/L produce estela en px."
       ]
     },
     {
@@ -295,6 +324,10 @@
       "result": "El destello temporal se construye como suma de envolventes exponenciales moduladas por bursts de ruido.",
       "limits": [
         "La señal no modela propagación electromagnética ni descarga física; es una envolvente artística."
+      ],
+      "dimensional_verification": [
+        "(t−t_i)/τ_i es adimensional; A_i y flash comparten unidad de señal luminosa.",
+        "noiseBurst y exponencial son adimensionales; suma conserva unidad de A_i."
       ]
     },
     {
@@ -339,6 +372,10 @@
       "result": "La niebla de altura deriva de una ecuación diferencial de decaimiento vertical y se integra a lo largo del rayo.",
       "limits": [
         "La atmósfera real puede tener capas y variaciones meteorológicas que no siguen una única exponencial."
+      ],
+      "dimensional_verification": [
+        "k tiene L⁻¹; y−y0 tiene L; exponente es adimensional.",
+        "ρ0 conserva la unidad de densidad normalizada o extinción base que se haya declarado; ρσ_t ds debe ser adimensional."
       ]
     },
     {
@@ -378,17 +415,23 @@
       "result": "La niebla exponencial se deriva de Beer–Lambert con extinción efectiva ρσ_t.",
       "limits": [
         "La mezcla de color es una aproximación de una sola dispersión y no integra múltiples scattering."
+      ],
+      "dimensional_verification": [
+        "ρσ_t tiene L⁻¹; s tiene L; T es adimensional.",
+        "C_scene y C_fog comparten espacio/escala lineal; la mezcla conserva unidad de señal."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "9/9 técnicas no protegidas cubiertas.",
-      "Cada derivación incluye pasos matemáticos justificados, supuestos y límites.",
-      "Las seis claves protegidas quedan fuera del documento."
+      "9/9 técnicas no protegidas cubiertas; seis claves protegidas excluidas",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Rayleigh tipa K_R en L³ para producir coeficiente β_R en L⁻¹",
+      "Mie/HG integra la fase angular antes de formar la fuente de radiancia",
+      "Rain streak proyecta desplazamiento físico a píxeles mediante Jacobiano de cámara"
     ],
     "limitations": [
-      "Las derivaciones establecen modelos atmosféricos/procedurales; calibración y validación visual se desarrollan posteriormente."
+      "Las fórmulas de Rayleigh y HG son modelos atmosféricos aproximados; calibración espectral y parámetros meteorológicos se validan posteriormente."
     ]
   },
   "integrity": {
