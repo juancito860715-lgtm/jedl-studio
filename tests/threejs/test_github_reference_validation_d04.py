@@ -55,8 +55,8 @@ class D04ReferenceValidationTests(unittest.TestCase):
         self.assertEqual(summary["protected_records_preserved"], 1)
         self.assertEqual(summary["local_adaptations_implemented"], 19)
         self.assertEqual(summary["local_adaptations_tested"], 19)
-        self.assertEqual(summary["pending_local_ci"], 0
-        self.assertEqual(summary["certified_as_locally_operational"], 0))
+        self.assertEqual(summary["pending_local_ci"], 0)
+        self.assertEqual(summary["certified_as_locally_operational"], 0)
 
     def test_complete_algorithm_document_covers_all_unprotected_records(self):
         point3 = json.loads(POINT3.read_text(encoding="utf-8"))
