@@ -1,0 +1,1089 @@
+{
+  "title": "Auditoría dimensional punto 1 — D07 Arquitectura, edificios, puentes y ciudades",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D07",
+    "domain": "Arquitectura, edificios, puentes y ciudades",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D07 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud global de escena; SI si se declara.",
+    "angles": "Radianes.",
+    "indices": "Índices y conteos son enteros discretos, no magnitudes físicas."
+  },
+  "records": [
+    {
+      "record_key": "D07:0",
+      "name": "Gramática de formas",
+      "variables": [
+        {
+          "symbol": "shape",
+          "meaning": "estado geométrico",
+          "unit": "estructura tipada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "forma válida"
+        },
+        {
+          "symbol": "rules",
+          "meaning": "producciones",
+          "unit": "reglas discretas",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas y ordenadas"
+        },
+        {
+          "symbol": "params",
+          "meaning": "parámetros",
+          "unit": "tipos y unidades por regla",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dentro de rangos"
+        },
+        {
+          "symbol": "n",
+          "meaning": "profundidad",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n≥0"
+        }
+      ],
+      "constraints": [
+        "Cada regla debe preservar tipo geométrico y unidades de sus parámetros.",
+        "Limitar recursión, ramas y objetos para evitar crecimiento no acotado."
+      ],
+      "valid_domain": [
+        "Gramática finita y reglas deterministas o aleatoriedad sembrada."
+      ],
+      "boundary_conditions": [
+        "n=0 conserva forma inicial.",
+        "Símbolo sin regla aplica identidad o descarte definido."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:1",
+      "name": "Módulos arquitectónicos",
+      "variables": [
+        {
+          "symbol": "module_i",
+          "meaning": "módulo geométrico",
+          "unit": "coordenadas locales en m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "geometría finita"
+        },
+        {
+          "symbol": "M_i",
+          "meaning": "transformación",
+          "unit": "afín tipada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "bloque lineal adimensional; traslación L"
+        },
+        {
+          "symbol": "building",
+          "meaning": "composición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "suma/unión de módulos transformados"
+        }
+      ],
+      "constraints": [
+        "Todos los módulos deben declarar pivote, orientación, escala y marco local.",
+        "Las transformaciones deben usar unidades coherentes y orden de composición único."
+      ],
+      "valid_domain": [
+        "Módulos finitos; matrices afines finitas."
+      ],
+      "boundary_conditions": [
+        "Módulo ausente se omite o sustituye por fallback definido.",
+        "Costuras entre módulos deben coincidir dentro de tolerancia geométrica."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:2",
+      "name": "Tejado a dos aguas",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "coordenada horizontal",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "−W/2≤x≤W/2"
+        },
+        {
+          "symbol": "roofBase",
+          "meaning": "altura base",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "pitch",
+          "meaning": "pendiente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "y",
+          "meaning": "altura techo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "roofBase+pitch·|x|"
+        }
+      ],
+      "constraints": [
+        "pitch es adimensional para que pitch·|x| sea longitud.",
+        "La sección es continua pero presenta cresta no diferenciable en x=0."
+      ],
+      "valid_domain": [
+        "W>0; coordenadas dentro del ancho."
+      ],
+      "boundary_conditions": [
+        "En x=0, y=roofBase.",
+        "En aleros x=±W/2, altura finita y simétrica."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:3",
+      "name": "Tejado curvo",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "coordenada horizontal",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "z0",
+          "meaning": "altura base",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "a",
+          "meaning": "curvatura cuadrática",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "z(x)",
+          "meaning": "altura",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "z0+a x²"
+        }
+      ],
+      "constraints": [
+        "a debe tener dimensión L⁻¹ para que a x² tenga longitud.",
+        "Si se usa spline, declarar unidades de tangentes y dominio."
+      ],
+      "valid_domain": [
+        "x dentro de intervalo de cubierta; a y z0 finitos."
+      ],
+      "boundary_conditions": [
+        "En x=0, z=z0; en bordes fijar continuidad con fascia/aleros."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:4",
+      "name": "Arco",
+      "variables": [
+        {
+          "symbol": "cx,cy",
+          "meaning": "centro del arco",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "r",
+          "meaning": "radio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r≥0"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "parámetro angular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "intervalo declarado"
+        },
+        {
+          "symbol": "x,y",
+          "meaning": "coordenadas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "círculo paramétrico"
+        }
+      ],
+      "constraints": [
+        "Trigonometría recibe radianes; radio no negativo."
+      ],
+      "valid_domain": [
+        "θ finito; r≥0."
+      ],
+      "boundary_conditions": [
+        "θ inicial/final define apertura; arco completo requiere costura 0/2π."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:5",
+      "name": "Columna estriada",
+      "variables": [
+        {
+          "symbol": "r0",
+          "meaning": "radio medio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r0≥0"
+        },
+        {
+          "symbol": "A",
+          "meaning": "amplitud de estría",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "|A|≤r0"
+        },
+        {
+          "symbol": "n",
+          "meaning": "número de estrías",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "n≥1"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "ángulo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "periódico"
+        },
+        {
+          "symbol": "r(θ)",
+          "meaning": "radio resultante",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r0+A cos(nθ)"
+        }
+      ],
+      "constraints": [
+        "A y r0 son longitudes; nθ es adimensional.",
+        "Para evitar radio negativo exigir r0≥|A|."
+      ],
+      "valid_domain": [
+        "n entero positivo; θ∈[0,2π]."
+      ],
+      "boundary_conditions": [
+        "r(0)=r(2π); continuidad periódica de derivadas."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:6",
+      "name": "Escalera paramétrica",
+      "variables": [
+        {
+          "symbol": "n",
+          "meaning": "índice de peldaño",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤n<N"
+        },
+        {
+          "symbol": "rise,run",
+          "meaning": "contrahuella y huella",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos o cero según diseño"
+        },
+        {
+          "symbol": "y0,z0",
+          "meaning": "origen",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "y_n,z_n",
+          "meaning": "coordenadas peldaño",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "y0+n·rise; z0+n·run"
+        }
+      ],
+      "constraints": [
+        "rise y run son longitudes por peldaño; n es adimensional discreto.",
+        "Validar altura total y desarrollo total frente a límites de diseño."
+      ],
+      "valid_domain": [
+        "N entero positivo; rise>0 y run>0 en escalera convencional."
+      ],
+      "boundary_conditions": [
+        "n=0 coincide con origen; último peldaño usa n=N−1 o N según convención declarada."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:7",
+      "name": "Puente por curva",
+      "variables": [
+        {
+          "symbol": "s",
+          "meaning": "parámetro de puente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "C(s)",
+          "meaning": "curva eje",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "regular y finita"
+        },
+        {
+          "symbol": "offset",
+          "meaning": "desplazamiento lateral",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "height",
+          "meaning": "altura baranda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "deck,railing",
+          "meaning": "posiciones",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo marco"
+        }
+      ],
+      "constraints": [
+        "offset y height son longitudes; offset debe proyectarse en marco local definido, no sumarse como escalar sin dirección."
+      ],
+      "valid_domain": [
+        "Curva sin discontinuidades; marco lateral definido."
+      ],
+      "boundary_conditions": [
+        "s=0 y s=1 conectan con estribos; barandas terminan con regla de cierre declarada."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:8",
+      "name": "Piedra de mampostería",
+      "variables": [
+        {
+          "symbol": "cell",
+          "meaning": "celda de partición",
+          "unit": "índice discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "partición finita"
+        },
+        {
+          "symbol": "seed",
+          "meaning": "semilla",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fija"
+        },
+        {
+          "symbol": "δ",
+          "meaning": "desplazamiento aleatorio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "bevel",
+          "meaning": "ancho bisel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "P",
+          "meaning": "vértices resultantes",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        }
+      ],
+      "constraints": [
+        "La magnitud del offset debe ser menor que separación local para evitar inversiones/interpenetración.",
+        "Bisel no puede superar dimensiones locales de la pieza."
+      ],
+      "valid_domain": [
+        "Partición finita; semilla entera; bevel acotado."
+      ],
+      "boundary_conditions": [
+        "bevel=0 conserva aristas duras.",
+        "En límites de celda mantener continuidad o juntas intencionales declaradas."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:9",
+      "name": "Fachada procedural",
+      "variables": [
+        {
+          "symbol": "bays,floors",
+          "meaning": "número de vanos y pisos",
+          "unit": "enteros",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos"
+        },
+        {
+          "symbol": "pattern",
+          "meaning": "patrón de aperturas",
+          "unit": "máscara discreta",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dimensiones compatibles con grid"
+        },
+        {
+          "symbol": "W,H",
+          "meaning": "ancho y altura fachada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivos"
+        },
+        {
+          "symbol": "opening",
+          "meaning": "dimensiones de huecos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativas"
+        }
+      ],
+      "constraints": [
+        "La suma de anchos de vanos y márgenes no debe exceder W; alturas de pisos no exceden H.",
+        "Aperturas deben quedar dentro de paños y no producir dimensiones negativas."
+      ],
+      "valid_domain": [
+        "bays,floors enteros ≥1; W,H>0."
+      ],
+      "boundary_conditions": [
+        "Primera y última columna respetan márgenes de fachada.",
+        "Patrón vacío produce fachada maciza."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:10",
+      "name": "Telas y banderas",
+      "variables": [
+        {
+          "symbol": "u,v",
+          "meaning": "parámetros de tela",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]²"
+        },
+        {
+          "symbol": "p0",
+          "meaning": "posición de reposo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "malla finita"
+        },
+        {
+          "symbol": "windDisplacement",
+          "meaning": "desplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "p(u,v,t)",
+          "meaning": "posición deformada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t≥0"
+        }
+      ],
+      "constraints": [
+        "Puntos de borde anclado no reciben desplazamiento normal a restricciones; solver debe declarar modelo de tensión.",
+        "No permitir paso temporal o deformación que produzca inestabilidad numérica."
+      ],
+      "valid_domain": [
+        "Malla regular y finita; viento y parámetros acotados."
+      ],
+      "boundary_conditions": [
+        "Borde fijado conserva posición en todo t.",
+        "Esquinas con restricciones múltiples deben ser compatibles."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D07:11",
+      "name": "Faroles pendulares",
+      "variables": [
+        {
+          "symbol": "θ",
+          "meaning": "ángulo del péndulo",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "pequeño para aproximación lineal"
+        },
+        {
+          "symbol": "A,φ",
+          "meaning": "amplitud y fase",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "g",
+          "meaning": "gravedad",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "g>0"
+        },
+        {
+          "symbol": "ℓ",
+          "meaning": "longitud",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ℓ>0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "sqrt(g/ℓ) es frecuencia angular; argumento del coseno adimensional.",
+        "A cos(...) es aproximación de ángulo pequeño."
+      ],
+      "valid_domain": [
+        "Péndulo ideal de longitud constante; sin amortiguamiento."
+      ],
+      "boundary_conditions": [
+        "Definir θ(0),θ′(0) mediante A,φ.",
+        "En amplitud cero queda en equilibrio."
+      ],
+      "dimensional_checks": [
+        "Coordenadas, radios, alturas, anchos y offsets tienen dimensión L.",
+        "Pendientes, parámetros normalizados y direcciones unitarias son adimensionales; curvatura a tiene L⁻¹.",
+        "Argumentos trigonométricos en radianes; índices discretos no se suman a magnitudes físicas."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "12/12 registros incluidos",
+      "Todos los registros incluyen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
