@@ -824,5 +824,61 @@ class TestVectorHatchCoverage(unittest.TestCase):
         with self.assertRaises(ValueError): hatch_coverage(.5,.4,.2)
         with self.assertRaises(ValueError): hatch_coverage(float("nan"),.1,.1)
 
+
+def sample_bilinear_2d(field, x, y):
+    if not field or not field[0] or any(len(row)!=len(field[0]) for row in field):
+        raise ValueError("field must be a nonempty rectangular grid")
+    h,w=len(field),len(field[0])
+    if not math.isfinite(x) or not math.isfinite(y):
+        raise ValueError("sample coordinates must be finite")
+    x=min(w-1.0,max(0.0,x)); y=min(h-1.0,max(0.0,y))
+    x0,y0=math.floor(x),math.floor(y)
+    x1,y1=min(x0+1,w-1),min(y0+1,h-1)
+    tx,ty=x-x0,y-y0
+    a=field[y0][x0]*(1-tx)+field[y0][x1]*tx
+    b=field[y1][x0]*(1-tx)+field[y1][x1]*tx
+    return a*(1-ty)+b*ty
+
+
+def semi_lagrangian_advect_2d(field, velocity_x, velocity_y, dt):
+    """First-order backward semi-Lagrangian advection on a cell-centred grid.
+    Velocity components are measured in grid cells per second.
+    """
+    if not math.isfinite(dt) or dt < 0:
+        raise ValueError("dt must be finite and nonnegative")
+    if not field or not field[0]:
+        raise ValueError("field must be nonempty")
+    h,w=len(field),len(field[0])
+    if any(len(row)!=w for row in field+velocity_x+velocity_y) or len(velocity_x)!=h or len(velocity_y)!=h:
+        raise ValueError("field and velocity grids must have identical rectangular shapes")
+    if any(not math.isfinite(v) for grid in (field,velocity_x,velocity_y) for row in grid for v in row):
+        raise ValueError("grid values must be finite")
+    return [[sample_bilinear_2d(field,x-dt*velocity_x[y][x],y-dt*velocity_y[y][x])
+             for x in range(w)] for y in range(h)]
+
+
+class TestSemiLagrangianPigmentAdvection(unittest.TestCase):
+    def test_constant_field_is_preserved_for_any_velocity(self):
+        field=[[3.25]*4 for _ in range(3)]
+        vx=[[2.0]*4 for _ in range(3)]; vy=[[-1.0]*4 for _ in range(3)]
+        self.assertEqual(semi_lagrangian_advect_2d(field,vx,vy,4.0),field)
+
+    def test_linear_ramp_matches_exact_constant_velocity_backtrace(self):
+        field=[list(map(float,range(5))) for _ in range(3)]
+        vx=[[1.0]*5 for _ in range(3)]; vy=[[0.0]*5 for _ in range(3)]
+        out=semi_lagrangian_advect_2d(field,vx,[[0.0]*5 for _ in range(3)],0.5)
+        self.assertEqual(out[1],[0.0,0.5,1.5,2.5,3.5])
+
+    def test_bilinear_sampling_preserves_convex_range(self):
+        field=[[0.0,1.0],[1.0,0.0]]
+        v=sample_bilinear_2d(field,.25,.25)
+        self.assertGreaterEqual(v,0.0); self.assertLessEqual(v,1.0)
+        self.assertAlmostEqual(v,.375)
+
+    def test_rejects_invalid_grid_and_time_step(self):
+        with self.assertRaises(ValueError): semi_lagrangian_advect_2d([[1]],[[0]],[[0]],-1)
+        with self.assertRaises(ValueError): semi_lagrangian_advect_2d([[1,2]],[[0]],[[0]],1)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
