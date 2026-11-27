@@ -1,0 +1,591 @@
+{
+  "title": "Auditoría dimensional punto 1 — D11 Agua, olas y superficies líquidas",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D11",
+    "domain": "Agua, océanos, lagos y cascadas",
+    "record_count": 6,
+    "excluded_protected_records": 7,
+    "excluded_reason": "D11:0, D11:1, D11:5, D11:8, D11:10, D11:11 y D11:12 están protegidos por el mapa Crimson Loong."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Longitud global; SI si se declara.",
+    "time": "Segundos.",
+    "uv": "Coordenadas UV adimensionales; campos de flujo deben declarar UV/s o desplazamiento por paso."
+  },
+  "records": [
+    {
+      "record_key": "D11:2",
+      "name": "Onda radial",
+      "variables": [
+        {
+          "symbol": "r",
+          "meaning": "distancia radial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r≥0"
+        },
+        {
+          "symbol": "A",
+          "meaning": "amplitud",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "α",
+          "meaning": "atenuación espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "α≥0"
+        },
+        {
+          "symbol": "k",
+          "meaning": "número de onda",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k≥0"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "frecuencia angular",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "αr y kr−ωt son adimensionales; A aporta longitud."
+      ],
+      "valid_domain": [
+        "r≥0; α,k≥0; t finito."
+      ],
+      "boundary_conditions": [
+        "En r=0 la onda no presenta singularidad en fórmula; la simetría radial depende del modelo.",
+        "Para α>0 la amplitud decae al aumentar r."
+      ],
+      "dimensional_checks": [
+        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
+        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
+        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D11:3",
+      "name": "Ripple impulse",
+      "variables": [
+        {
+          "symbol": "r",
+          "meaning": "distancia al centro",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "v",
+          "meaning": "velocidad de propagación",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "σ",
+          "meaning": "ancho espacial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "A",
+          "meaning": "amplitud",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "k",
+          "meaning": "número de onda",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "(r−vt)/σ y k(r−vt) son adimensionales."
+      ],
+      "valid_domain": [
+        "σ>0; r≥0; parámetros finitos."
+      ],
+      "boundary_conditions": [
+        "En r=vt, envolvente alcanza A.",
+        "En σ→0 evitar división por cero; imponer ancho mínimo."
+      ],
+      "dimensional_checks": [
+        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
+        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
+        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D11:4",
+      "name": "Flow map",
+      "variables": [
+        {
+          "symbol": "uv",
+          "meaning": "coordenada de textura",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "flow(uv)",
+          "meaning": "campo de flujo UV",
+          "unit": "UV/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "time",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "uv′",
+          "meaning": "coordenada advectada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dentro de tile según política"
+        }
+      ],
+      "constraints": [
+        "flow debe tener unidades UV/s para multiplicarse por tiempo.",
+        "Si flow es desplazamiento por frame, no multiplicar además por tiempo sin reinterpretarlo."
+      ],
+      "valid_domain": [
+        "Campo de flujo definido y coordenadas dentro del dominio UV."
+      ],
+      "boundary_conditions": [
+        "time=0 devuelve uv.",
+        "En límites aplicar wrap, clamp o extensión de flujo declarada."
+      ],
+      "dimensional_checks": [
+        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
+        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
+        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D11:6",
+      "name": "Fresnel water",
+      "variables": [
+        {
+          "symbol": "F0",
+          "meaning": "reflectancia normal-incidente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "N,V",
+          "meaning": "normal y vista",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "μ=|N·V|",
+          "meaning": "coseno",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "F",
+          "meaning": "Fresnel",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Coseno adimensional; N y V unitarios; aplicar Schlick."
+      ],
+      "valid_domain": [
+        "F0∈[0,1], μ∈[0,1]."
+      ],
+      "boundary_conditions": [
+        "μ=1 devuelve F0; μ=0 devuelve 1."
+      ],
+      "dimensional_checks": [
+        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
+        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
+        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D11:7",
+      "name": "Depth absorption",
+      "variables": [
+        {
+          "symbol": "σ",
+          "meaning": "coeficiente de absorción",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "depth",
+          "meaning": "profundidad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "C_water,C_surface,C",
+          "meaning": "colores",
+          "unit": "RGB lineal",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mismo espacio"
+        },
+        {
+          "symbol": "T",
+          "meaning": "transmitancia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "exp(−σ depth)"
+        }
+      ],
+      "constraints": [
+        "σ·depth adimensional; mezcla de color en espacio lineal."
+      ],
+      "valid_domain": [
+        "σ≥0; depth≥0; colores finitos."
+      ],
+      "boundary_conditions": [
+        "depth=0 devuelve C_surface; depth→∞ con σ>0 tiende a C_water."
+      ],
+      "dimensional_checks": [
+        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
+        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
+        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D11:9",
+      "name": "Shoreline",
+      "variables": [
+        {
+          "symbol": "waterLevel,bedHeight",
+          "meaning": "cotas de agua y lecho",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "width",
+          "meaning": "ancho transición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "profundidad",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "waterLevel−bedHeight"
+        },
+        {
+          "symbol": "shore",
+          "meaning": "factor costa",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "smoothstep(0,width,d)"
+        }
+      ],
+      "constraints": [
+        "d y width tienen longitud; shore es adimensional."
+      ],
+      "valid_domain": [
+        "width>0; cotas finitas."
+      ],
+      "boundary_conditions": [
+        "d≤0 produce 0; d≥width produce 1.",
+        "width=0 inválido para smoothstep; rechazar."
+      ],
+      "dimensional_checks": [
+        "Longitudes, amplitudes, profundidades y anchos tienen dimensión L.",
+        "Números de onda y coeficientes de absorción/atenuación tienen L⁻¹; frecuencia angular tiene T⁻¹.",
+        "Argumentos de seno, coseno y exponencial deben ser adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "6/13 técnicas no protegidas incluidas",
+      "7 registros protegidos excluidos; todos los registros incluidos tienen campos de punto 1"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
