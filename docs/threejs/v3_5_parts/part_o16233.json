@@ -1,0 +1,1432 @@
+      "F_max": "fuerza máxima",
+      "l": "longitud muscular",
+      "v": "velocidad de contracción"
+     },
+     "variants": [
+      "Hill-type muscle",
+      "simplified actuator",
+      "muscle volume preservation"
+     ],
+     "algorithm": [
+      "Medir longitud actual",
+      "Estimar velocidad",
+      "Evaluar curva fuerza-longitud",
+      "Evaluar curva fuerza-velocidad",
+      "Multiplicar por activación",
+      "Aplicar fuerza en inserciones"
+     ],
+     "threejs": "deformadores musculares procedurales; solver físico separado",
+     "model": "biomecánico",
+     "mathematical_derivation": "Separa activación neural, capacidad según longitud, capacidad según velocidad y tensión pasiva del tejido.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "F_m=a F_max f_l(l) f_v(v)+F_passive(l)",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "F_m=a F_max f_l(l) f_v(v)+F_passive(l)",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Curva fuerza-longitud muscular» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: F_m=a F_max f_l(l) f_v(v)+F_passive(l).",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Curva fuerza-longitud muscular\", normalizar)\nresultado = resolver_relacion(\"F_m=a F_max f_l(l) f_v(v)+F_passive(l)\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Curva fuerza-longitud muscular\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "deformadores musculares procedurales; solver físico separado",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Modelo Hill músculo-tendón",
+     "equation": "F_CE(l,v)+F_PE(l)=F_SE(l_t)",
+     "derivation": "El elemento contráctil y el elemento pasivo actúan en paralelo, conectados en serie con el tendón.",
+     "parameters": {
+      "CE": "elemento contráctil",
+      "PE": "elemento pasivo",
+      "SE": "tendón elástico"
+     },
+     "variants": [
+      "Hill 3-element",
+      "Hill-type muscle tendon",
+      "compliant tendon"
+     ],
+     "algorithm": [
+      "Calcular longitud músculo-tendón",
+      "Separar longitud fascículo y tendón",
+      "Resolver equilibrio de fuerza",
+      "Actualizar contracción",
+      "Actualizar inserciones"
+     ],
+     "threejs": "animación muscular avanzada",
+     "model": "biomecánico",
+     "mathematical_derivation": "El elemento contráctil y el elemento pasivo actúan en paralelo, conectados en serie con el tendón.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "F_CE(l,v)+F_PE(l)=F_SE(l_t)",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "F_CE(l,v)+F_PE(l)=F_SE(l_t)",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Modelo Hill músculo-tendón» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: F_CE(l,v)+F_PE(l)=F_SE(l_t).",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Modelo Hill músculo-tendón\", normalizar)\nresultado = resolver_relacion(\"F_CE(l,v)+F_PE(l)=F_SE(l_t)\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Modelo Hill músculo-tendón\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "animación muscular avanzada",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Volumen muscular conservado",
+     "equation": "V≈constant; A_2=A_1 L_1/L_2",
+     "derivation": "Para una fibra aproximadamente incompresible, reducir longitud requiere aumentar área transversal para conservar volumen.",
+     "parameters": {
+      "V": "volumen",
+      "L": "longitud",
+      "A": "área transversal"
+     },
+     "variants": [
+      "ellipsoid muscle bulge",
+      "implicit muscle",
+      "cage bulging"
+     ],
+     "algorithm": [
+      "Definir volumen base",
+      "Medir acortamiento",
+      "Calcular aumento de sección",
+      "Desplazar superficie según campo radial",
+      "Suavizar transiciones"
+     ],
+     "threejs": "SDF, deformación vertex shader, morph targets",
+     "model": "aproximado biomecánico",
+     "mathematical_derivation": "Para una fibra aproximadamente incompresible, reducir longitud requiere aumentar área transversal para conservar volumen.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "V≈constant; A_2=A_1 L_1/L_2",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "V≈constant; A_2=A_1 L_1/L_2",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Volumen muscular conservado» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: V≈constant; A_2=A_1 L_1/L_2.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Volumen muscular conservado\", normalizar)\nresultado = resolver_relacion(\"V≈constant; A_2=A_1 L_1/L_2\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Volumen muscular conservado\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "SDF, deformación vertex shader, morph targets",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Fascia y deslizamiento de tejidos",
+     "equation": "F_friction=μN; tangential slip constrained by tissue layers",
+     "derivation": "Las capas anatómicas se separan mediante contactos normales y fricción tangencial limitada.",
+     "parameters": {
+      "μ": "coeficiente fricción",
+      "N": "fuerza normal",
+      "layers": "capas de tejido"
+     },
+     "variants": [
+      "sliding boundary",
+      "frictional contact",
+      "layered spring tissue"
+     ],
+     "algorithm": [
+      "Crear capas",
+      "Vincular capas a estructuras",
+      "Detectar proximidad/contacto",
+      "Aplicar restricción normal",
+      "Permitir deslizamiento tangencial limitado"
+     ],
+     "threejs": "deformación procedural de capas y colisiones",
+     "model": "aproximado físico",
+     "mathematical_derivation": "Las capas anatómicas se separan mediante contactos normales y fricción tangencial limitada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "F_friction=μN; tangential slip constrained by tissue layers",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "F_friction=μN; tangential slip constrained by tissue layers",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Fascia y deslizamiento de tejidos» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: F_friction=μN; tangential slip constrained by tissue layers.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Fascia y deslizamiento de tejidos\", normalizar)\nresultado = resolver_relacion(\"F_friction=μN; tangential slip constrained by tissue layers\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Fascia y deslizamiento de tejidos\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "deformación procedural de capas y colisiones",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Corrective blendshape por pose",
+     "equation": "p'=p_skinning+Σ_k c_k(pose)Δp_k",
+     "derivation": "Una función de activación detecta combinaciones de ángulos problemáticas y añade una corrección aprendida o esculpida.",
+     "parameters": {
+      "c_k": "peso correctivo",
+      "Δp_k": "delta correctiva",
+      "pose": "ángulos o features articulares"
+     },
+     "variants": [
+      "pose-space deformation",
+      "RBF correctives",
+      "MLP correctives",
+      "wrinkle maps"
+     ],
+     "algorithm": [
+      "Elegir poses de referencia",
+      "Crear deltas de corrección",
+      "Calcular features de pose",
+      "Interpolar pesos con RBF",
+      "Sumar deltas después del skinning"
+     ],
+     "threejs": "morphTargets, onBeforeCompile o shader propio",
+     "model": "ejemplo/geométrico",
+     "mathematical_derivation": "Una función de activación detecta combinaciones de ángulos problemáticas y añade una corrección aprendida o esculpida.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "p'=p_skinning+Σ_k c_k(pose)Δp_k",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "p'=p_skinning+Σ_k c_k(pose)Δp_k",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Corrective blendshape por pose» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: p'=p_skinning+Σ_k c_k(pose)Δp_k.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Corrective blendshape por pose\", normalizar)\nresultado = resolver_relacion(\"p'=p_skinning+Σ_k c_k(pose)Δp_k\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Corrective blendshape por pose\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "morphTargets, onBeforeCompile o shader propio",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Anatomía segmentaria de mano",
+     "equation": "p_tip=T_wrist·R_wrist·Π_{j=1}^n(T_jR_j) p_local",
+     "derivation": "La punta de cada dedo depende de la composición de articulaciones metacarpofalángica, interfalángica proximal y distal.",
+     "parameters": {
+      "segments": "longitudes falángicas",
+      "jointAngles": "flexión/abducción",
+      "tendonCoupling": "acoplamiento entre dedos"
+     },
+     "variants": [
+      "anatomical hand rig",
+      "stylized hand rig",
+      "tendon-driven hand"
+     ],
+     "algorithm": [
+      "Crear palma y cinco cadenas",
+      "Definir longitudes y pivotes",
+      "Aplicar límites anatómicos aproximados",
+      "Añadir acoplamiento tendinoso",
+      "Resolver contacto con objetos"
+     ],
+     "threejs": "Bone hierarchy, IK, colliders",
+     "model": "geométrico/biomecánico",
+     "mathematical_derivation": "La punta de cada dedo depende de la composición de articulaciones metacarpofalángica, interfalángica proximal y distal.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "p_tip=T_wrist·R_wrist·Π_{j=1}^n(T_jR_j) p_local",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "p_tip=T_wrist·R_wrist·Π_{j=1}^n(T_jR_j) p_local",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Anatomía segmentaria de mano» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: p_tip=T_wrist·R_wrist·Π_{j=1}^n(T_jR_j) p_local.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Anatomía segmentaria de mano\", normalizar)\nresultado = resolver_relacion(\"p_tip=T_wrist·R_wrist·Π_{j=1}^n(T_jR_j) p_local\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Anatomía segmentaria de mano\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Bone hierarchy, IK, colliders",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Respiración torácica procedural",
+     "equation": "r(t)=r_0+A sin(2π f t+φ)",
+     "derivation": "Una señal periódica de baja frecuencia controla expansión torácica y abdominal con fases diferentes.",
+     "parameters": {
+      "A": "amplitud",
+      "f": "frecuencia respiratoria",
+      "φ": "fase"
+     },
+     "variants": [
+      "thoracic",
+      "abdominal",
+      "mixed breathing"
+     ],
+     "algorithm": [
+      "Definir caja torácica y abdomen",
+      "Generar ciclo respiratorio",
+      "Expandir costillas en inhalación",
+      "Retraer en exhalación",
+      "Añadir micro movimiento de hombros"
+     ],
+     "threejs": "bones, morph targets, vertex shader",
+     "model": "artístico/anatómico",
+     "mathematical_derivation": "Una señal periódica de baja frecuencia controla expansión torácica y abdominal con fases diferentes.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "r(t)=r_0+A sin(2π f t+φ)",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "r(t)=r_0+A sin(2π f t+φ)",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Respiración torácica procedural» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: r(t)=r_0+A sin(2π f t+φ).",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Respiración torácica procedural\", normalizar)\nresultado = resolver_relacion(\"r(t)=r_0+A sin(2π f t+φ)\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Respiración torácica procedural\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "bones, morph targets, vertex shader",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    }
+   ]
+  },
+  {
+   "id": "D38",
+   "domain": "Materiales avanzados, microestructura y apariencia",
+   "techniques": [
+    {
+     "name": "Microfacet BRDF Cook–Torrance",
+     "equation": "f_r=D(h)F(v,h)G(l,v,h)/(4(n·l)(n·v))",
+     "derivation": "Modela la superficie como microfacetas especulares; D distribuye normales, F describe Fresnel y G enmascaramiento/sombreado.",
+     "parameters": {
+      "roughness": "rugosidad",
+      "metalness": "conductividad metálica",
+      "F0": "reflectancia frontal",
+      "N": "normal"
+     },
+     "variants": [
+      "GGX",
+      "Beckmann",
+      "Blinn-Phong microfacet",
+      "Charlie sheen"
+     ],
+     "algorithm": [
+      "Calcular half vector",
+      "Evaluar distribución D",
+      "Evaluar Fresnel F",
+      "Evaluar geometría G",
+      "Combinar con término difuso",
+      "Aplicar energía conservada"
+     ],
+     "threejs": "MeshStandardMaterial, MeshPhysicalMaterial, shader personalizado",
+     "model": "óptico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Beer–Lambert absorption",
+     "equation": "T(d)=exp(-σ_a d)",
+     "derivation": "La pérdida diferencial de intensidad es proporcional a la intensidad existente y a la distancia; integrar dI/dd=-σ_a I produce exponencial.",
+     "parameters": {
+      "σ_a": "coeficiente de absorción por canal",
+      "d": "distancia recorrida"
+     },
+     "variants": [
+      "homogeneous absorption",
+      "colored absorption",
+      "spectral absorption"
+     ],
+     "algorithm": [
+      "Calcular distancia dentro del medio",
+      "Multiplicar transmisión por exponencial",
+      "Aplicar color de absorción",
+      "Combinar con reflexión y dispersión"
+     ],
+     "threejs": "MeshPhysicalMaterial transmission/thickness o shader volumétrico",
+     "model": "óptico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Subsurface scattering dipole approximation",
+     "equation": "R(r)≈(z_r(1+σ_tr d_r)e^{-σ_tr d_r}/d_r^3 + z_v(1+σ_tr d_v)e^{-σ_tr d_v}/d_v^3)/(4π)",
+     "derivation": "Aproxima difusión de luz dentro de un medio participativo con fuentes virtuales y distancias efectivas.",
+     "parameters": {
+      "σ_s": "dispersión",
+      "σ_a": "absorción",
+      "g": "anisotropía",
+      "η": "índice refractivo"
+     },
+     "variants": [
+      "dipole",
+      "multipole",
+      "random walk",
+      "screen-space SSS"
+     ],
+     "algorithm": [
+      "Definir coeficientes ópticos",
+      "Estimar radio de difusión",
+      "Acumular iluminación transmitida",
+      "Filtrar por profundidad y normal si screen-space",
+      "Combinar con reflexión superficial"
+     ],
+     "threejs": "MeshPhysicalMaterial y perfiles/shaders SSS personalizados",
+     "model": "óptico aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Oren–Nayar diffuse",
+     "equation": "f_r=(ρ/π)(A+B max(0,cos(φ_i-φ_r)) sinα tanβ)",
+     "derivation": "Extiende Lambert para microfacetas rugosas difusas, integrando geometría de cavidades.",
+     "parameters": {
+      "σ": "desviación de normales",
+      "ρ": "albedo",
+      "α": "ángulo mayor",
+      "β": "ángulo menor"
+     },
+     "variants": [
+      "Lambert",
+      "Oren-Nayar",
+      "rough diffuse"
+     ],
+     "algorithm": [
+      "Calcular ángulos de luz y vista",
+      "Evaluar A y B según σ",
+      "Evaluar término angular",
+      "Multiplicar por irradiancia"
+     ],
+     "threejs": "shader personalizado",
+     "model": "óptico aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Sheen cloth BRDF",
+     "equation": "f_sheen≈D_Charlie(N·H,roughness)·F_sheen",
+     "derivation": "Distribución Charlie modela microfibras orientadas que generan reflejos suaves sobre tejidos.",
+     "parameters": {
+      "roughness": "distribución de fibras",
+      "sheenColor": "tinte del reflejo",
+      "sheenRoughness": "dispersión"
+     },
+     "variants": [
+      "Charlie",
+      "Velvet",
+      "fabric anisotropic"
+     ],
+     "algorithm": [
+      "Calcular half vector",
+      "Evaluar distribución de microfibras",
+      "Evaluar Fresnel aproximado",
+      "Sumar sheen al BRDF base"
+     ],
+     "threejs": "MeshPhysicalMaterial sheen o shader",
+     "model": "óptico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Anisotropic GGX",
+     "equation": "D=1/[π α_x α_y ((h_x/α_x)^2+(h_y/α_y)^2+h_z²)^2]",
+     "derivation": "Sustituye rugosidad escalar por rugosidades distintas en dos ejes tangenciales.",
+     "parameters": {
+      "α_x": "rugosidad tangente",
+      "α_y": "rugosidad bitangente",
+      "TBN": "base tangente"
+     },
+     "variants": [
+      "anisotropic GGX",
+      "Ward",
+      "Ashikhmin–Shirley"
+     ],
+     "algorithm": [
+      "Construir base tangente",
+      "Transformar half vector a espacio tangente",
+      "Evaluar D anisotrópica",
+      "Evaluar Fresnel y masking",
+      "Combinar"
+     ],
+     "threejs": "shader personalizado; mapas de anisotropía",
+     "model": "óptico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Thin-film interference",
+     "equation": "δ=4π n d cosθ_t/λ + phase_shift",
+     "derivation": "La diferencia de camino óptico entre reflexiones de interfaces produce diferencia de fase; la intensidad depende de interferencia constructiva/destructiva.",
+     "parameters": {
+      "n": "índice película",
+      "d": "espesor",
+      "λ": "longitud de onda",
+      "θ_t": "ángulo interno"
+     },
+     "variants": [
+      "soap film",
+      "oil slick",
+      "iridescent coating"
+     ],
+     "algorithm": [
+      "Calcular ángulo refractado",
+      "Calcular fase por longitud de onda",
+      "Evaluar interferencia RGB o espectral",
+      "Modular reflectancia"
+     ],
+     "threejs": "shader espectral aproximado",
+     "model": "óptico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Fluorescence",
+     "equation": "L_em(λ_o)∝∫ E(λ_i)A(λ_i)K(λ_i,λ_o)dλ_i",
+     "derivation": "La energía absorbida a una longitud de onda se reemite en otra distribución espectral.",
+     "parameters": {
+      "A": "absorción",
+      "K": "kernel de emisión",
+      "λ_i/λ_o": "longitudes de onda incidente/salida"
+     },
+     "variants": [
+      "fluorescence",
+      "phosphorescence",
+      "bioluminescence"
+     ],
+     "algorithm": [
+      "Evaluar excitación por luz",
+      "Aplicar curva de absorción",
+      "Generar emisión desplazada",
+      "Sumar emisión al material"
+     ],
+     "threejs": "emissive shader o postproceso",
+     "model": "óptico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Layered material",
+     "equation": "f_total=f_base+T_in f_layer T_out",
+     "derivation": "Combina contribuciones de capas teniendo en cuenta la transmisión de energía entre interfaces.",
+     "parameters": {
+      "layers": "capas",
+      "thickness": "espesor",
+      "roughness": "rugosidad por capa"
+     },
+     "variants": [
+      "clearcoat",
+      "coat/base",
+      "paint over metal",
+      "skin layers"
+     ],
+     "algorithm": [
+      "Definir capas ordenadas",
+      "Calcular Fresnel de cada interfaz",
+      "Calcular atenuación entre capas",
+      "Evaluar BRDF por capa",
+      "Componer respetando energía"
+     ],
+     "threejs": "MeshPhysicalMaterial clearcoat o shader nodal propio",
+     "model": "óptico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Procedural bump y normal field",
+     "equation": "N'=normalize(N-∂h/∂u T-∂h/∂v B)",
+     "derivation": "La pendiente de una altura escalar modifica la normal en la base tangente.",
+     "parameters": {
+      "h": "campo de altura",
+      "T/B": "tangente/bitangente",
+      "scale": "amplitud"
+     },
+     "variants": [
+      "bump mapping",
+      "normal mapping",
+      "parallax mapping",
+      "relief mapping"
+     ],
+     "algorithm": [
+      "Evaluar altura o normal map",
+      "Calcular gradiente",
+      "Transformar a espacio de shading",
+      "Normalizar",
+      "Evaluar iluminación"
+     ],
+     "threejs": "bumpMap, normalMap, shader personalizado",
+     "model": "geométrico/óptico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Triplanar mapping",
+     "equation": "C=|N_x|^k C_x+|N_y|^k C_y+|N_z|^k C_z; normalize weights",
+     "derivation": "Proyecta textura en tres planos ortogonales y mezcla según orientación de la normal para evitar UV seams.",
+     "parameters": {
+      "k": "exponente de mezcla",
+      "scale": "escala de textura",
+      "N": "normal mundial"
+     },
+     "variants": [
+      "world triplanar",
+      "object triplanar",
+      "stochastic triplanar"
+     ],
+     "algorithm": [
+      "Calcular coordenadas XY, YZ, ZX",
+      "Muestrear las tres proyecciones",
+      "Calcular pesos desde normal",
+      "Normalizar pesos",
+      "Mezclar muestras"
+     ],
+     "threejs": "shader personalizado",
+     "model": "texturizado procedural",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Stochastic texture tiling",
+     "equation": "C(x)=Σ_i w_i(x) T(R_i x+o_i)",
+     "derivation": "Combina muestras transformadas de celdas vecinas con pesos espaciales para romper repetición visible.",
+     "parameters": {
+      "R_i": "rotación aleatoria",
+      "o_i": "offset",
+      "w_i": "peso de transición"
+     },
+     "variants": [
+      "random tile rotation",
+      "texture bombing",
+      "Wang tiles",
+      "procedural synthesis"
+     ],
+     "algorithm": [
+      "Particionar espacio en celdas",
+      "Asignar transformaciones pseudoaleatorias",
+      "Muestrear vecinos",
+      "Mezclar sin discontinuidades"
+     ],
+     "threejs": "shader procedural",
+     "model": "procedural",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D39",
+   "domain": "Iluminación, atmósfera y transporte radiativo",
+   "techniques": [
+    {
+     "name": "Radiative transfer equation",
+     "equation": "dL(s,ω)/ds=-σ_t L+σ_s∫p(ω',ω)L(ω')dω'+Q",
+     "derivation": "Balancea pérdida por absorción y dispersión fuera del rayo con ganancia por dispersión hacia el rayo y fuentes emisivas.",
+     "parameters": {
+      "σ_t": "extinción",
+      "σ_s": "dispersión",
+      "p": "fase angular",
+      "Q": "emisión"
+     },
+     "variants": [
+      "single scattering",
+      "multiple scattering",
+      "homogeneous medium",
+      "heterogeneous medium"
+     ],
+     "algorithm": [
+      "Definir densidad y coeficientes del medio",
+      "Recorrer rayo por pasos",
+      "Acumular transmisión",
+      "Muestrear iluminación local",
+      "Añadir scattering y emisión",
+      "Componer frente a fondo"
+     ],
+     "threejs": "ray marching en ShaderMaterial/TSL",
+     "model": "físico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Henyey–Greenstein phase function",
+     "equation": "p(cosθ)=(1-g²)/(4π(1+g²-2g cosθ)^{3/2})",
+     "derivation": "Función normalizada de dispersión angular con parámetro g que controla preferencia hacia delante o atrás.",
+     "parameters": {
+      "g": "anisotropía entre -1 y 1",
+      "θ": "ángulo entre luz y vista"
+     },
+     "variants": [
+      "isotropic g=0",
+      "forward g>0",
+      "backward g<0",
+      "Cornette–Shanks"
+     ],
+     "algorithm": [
+      "Calcular cosθ",
+      "Evaluar g",
+      "Calcular fase",
+      "Multiplicar scattering incidente"
+     ],
+     "threejs": "shader volumétrico",
+     "model": "físico aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Rayleigh scattering",
+     "equation": "β_R(λ)∝1/λ⁴",
+     "derivation": "En el régimen de partículas mucho menores que la longitud de onda, la intensidad dispersada varía aproximadamente con la cuarta potencia inversa de λ.",
+     "parameters": {
+      "λ": "longitud de onda",
+      "molecularDensity": "densidad molecular"
+     },
+     "variants": [
+      "single Rayleigh",
+      "spectral sky",
+      "analytic sky"
+     ],
+     "algorithm": [
+      "Evaluar coeficiente RGB/espectral",
+      "Integrar densidad atmosférica a lo largo del rayo",
+      "Evaluar fase angular",
+      "Componer radiancia"
+     ],
+     "threejs": "shader de cielo atmosférico",
+     "model": "físico aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Mie scattering",
+     "equation": "β_M(λ) determined by particle size distribution and refractive index",
+     "derivation": "La teoría de Mie resuelve dispersión electromagnética por esferas comparables o mayores que la longitud de onda; en tiempo real se usan aproximaciones parametrizadas.",
+     "parameters": {
+      "particleRadius": "radio de aerosoles",
+      "n": "índice refractivo",
+      "g": "anisotropía"
+     },
+     "variants": [
+      "Mie exact",
+      "Cornette–Shanks approximation",
+      "Henyey–Greenstein approximation"
+     ],
+     "algorithm": [
+      "Elegir distribución de aerosoles",
+      "Estimar extinción",
+      "Elegir fase angular",
+      "Integrar a lo largo de vista y luz"
+     ],
+     "threejs": "shader atmosférico",
+     "model": "físico/aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Volumetric cloud density",
+     "equation": "ρ(x)=Σ_i a_i max(0,noise_i(x)-threshold_i)",
+     "derivation": "Construye densidad a partir de ruido multiescala, perfiles verticales y máscaras de forma.",
+     "parameters": {
+      "baseShape": "macroforma",
+      "detailNoise": "erosión fina",
+      "coverage": "cobertura",
+      "density": "densidad"
+     },
+     "variants": [
+      "billboard clouds",
+      "layered 2.5D clouds",
+      "3D volume clouds",
+      "weather-map clouds",
+      "procedural cumulus"
+     ],
+     "algorithm": [
+      "Generar mapa meteorológico",
+      "Construir perfil vertical",
+      "Evaluar ruido de forma",
+      "Erosionar con ruido de detalle",
+      "Ray march con iluminación y self-shadow",
+      "Temporal reprojection opcional"
+     ],
+     "threejs": "3D texture o shader raymarch",
+     "model": "procedural/volumétrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Cloud self-shadowing",
+     "equation": "T_light=exp(-∫_light σ_t(s)ds)",
+     "derivation": "La luz solar que alcanza una muestra se atenúa por la densidad integrada entre el sol y esa muestra.",
+     "parameters": {
+      "stepSize": "paso de rayo solar",
+      "lightDensity": "densidad",
+      "σ_t": "extinción"
+     },
+     "variants": [
+      "secondary light march",
+      "deep shadow map",
+      "precomputed transmittance"
+     ],
+     "algorithm": [
+      "Para cada muestra de vista",
+      "Lanzar pasos hacia el sol",
+      "Acumular densidad",
+      "Calcular transmisión",
+      "Modular iluminación local"
+     ],
+     "threejs": "raymarch shader",
+     "model": "volumétrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Multiple importance sampling for environment",
+     "equation": "w_i=p_i²/(p_1²+p_2²)",
+     "derivation": "El estimador combina muestras de distribuciones distintas con pesos que reducen varianza; aquí balancea muestreo BSDF y entorno.",
+     "parameters": {
+      "p_i": "PDF de cada estrategia",
+      "samples": "cantidad de muestras"
+     },
+     "variants": [
+      "balance heuristic",
+      "power heuristic",
+      "environment alias sampling"
+     ],
+     "algorithm": [
+      "Muestrear dirección desde BSDF",
+      "Muestrear dirección desde entorno",
+      "Evaluar PDFs",
+      "Aplicar peso MIS",
+      "Sumar contribuciones"
+     ],
+     "threejs": "path tracer personalizado/WebGPU",
+     "model": "Monte Carlo",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Temporal accumulation",
+     "equation": "C_t=α C_current+(1-α) C_history",
+     "derivation": "Filtro exponencial que integra muestras temporales; exige reproyección y rechazo de historia inválida para evitar ghosting.",
+     "parameters": {
+      "α": "peso de muestra nueva",
+      "motion": "vector de movimiento",
+      "depth": "profundidad"
+     },
+     "variants": [
+      "TAA",
+      "temporal denoising",
+      "accumulation path tracing"
+     ],
+     "algorithm": [
+      "Renderizar con jitter",
+      "Reproyectar historia",
+      "Validar profundidad/normal",
+      "Clampear historia",
+      "Mezclar",
+      "Guardar buffers"
+     ],
+     "threejs": "EffectComposer custom pass o render targets",
+     "model": "aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Shadow mapping",
+     "equation": "visible if z_receiver≤z_shadowmap(u,v)+bias",
+     "derivation": "Renderizar profundidad desde la luz y comparar la profundidad del receptor con la almacenada.",
+     "parameters": {
+      "bias": "desplazamiento de profundidad",
+      "resolution": "resolución shadow map",
+      "filterRadius": "radio de filtro"
+     },
+     "variants": [
+      "PCF",
+      "VSM",
+      "EVSM",
+      "CSM",
+      "contact shadows",
+      "ray traced shadows"
+     ],
+     "algorithm": [
+      "Renderizar depth desde luz",
+      "Proyectar fragmento al espacio de luz",
+      "Comparar profundidades",
+      "Filtrar muestras",
+      "Aplicar visibilidad"
+     ],
+     "threejs": "DirectionalLight/SpotLight shadow maps, VSMShadowMap",
+     "model": "rasterización",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Cascaded shadow maps",
+     "equation": "split_i=λ·logSplit_i+(1-λ)·uniformSplit_i",
+     "derivation": "Combina particiones logarítmicas y uniformes para asignar más resolución cerca de cámara.",
+     "parameters": {
+      "cascadeCount": "número de cascadas",
+      "λ": "mezcla de partición",
+      "shadowResolution": "resolución"
+     },
+     "variants": [
+      "PSSM",
+      "CSM",
+      "stabilized CSM"
+     ],
+     "algorithm": [
+      "Calcular frustum splits",
+      "Ajustar bounds de luz por cascada",
+      "Renderizar mapas de profundidad",
+      "Seleccionar cascada por profundidad",
+      "Mezclar bordes"
+     ],
+     "threejs": "requiere implementación/addon personalizado",
+     "model": "renderizado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Global illumination probe interpolation",
+     "equation": "E(x,n)=Σ_i w_i(x) Σ_lm c_{i,lm}Y_lm(n)",
+     "derivation": "Interpolar irradiancia precalculada en probes espaciales y evaluar su representación armónica en la normal.",
+     "parameters": {
+      "probeSpacing": "separación probes",
+      "SH coefficients": "coeficientes armónicos",
+      "weights": "pesos espaciales"
+     },
+     "variants": [
+      "irradiance volumes",
+      "spherical harmonics probes",
+      "DDGI",
+      "lightmaps"
+     ],
+     "algorithm": [
+      "Distribuir probes",
+      "Capturar irradiancia",
+      "Proyectar a SH",
+      "Interpolar probes cercanos",
+      "Evaluar según normal"
+     ],
+     "threejs": "texturas/cubemaps y shader propio",
+     "model": "aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Fresnel Schlick y reflectancia angular",
+     "research_id": "R31-FRESNEL-SCHLICK-Y-REFLECTANCIA-ANGULAR",
+     "category": "óptica / shading",
+     "foundation": "Aproxima reflectancia angular a partir de F0, útil para dieléctricos y aproximaciones de materiales.",
+     "equations": [
+      "F(θ)=F0+(1−F0)(1−cosθ)^5"
+     ],
+     "algorithm_steps": [
+      "Normalizar normal y dirección de vista.",
+      "Calcular cosθ.",
+      "Evaluar potencia quinta.",
+      "Mezclar reflectancia con componente base según modelo BRDF."
+     ],
+     "pseudocode": "c=clamp(dot(N,V),0,1); F=F0+(1-F0)*pow(1-c,5)",
+     "threejs_adaptation": "Built-in MeshPhysicalMaterial o nodo TSL; shader propio si se necesita control.",
+     "compatibility": {
+      "javascript_cpu": "sí",
+      "webgl2_glsl_es_300": "sí, shader propio",
+      "webgpu_wgsl": "requiere portar shader",
+      "threejs_webglrenderer": "sí, ShaderMaterial/RawShaderMaterial o render targets",
+      "threejs_webgpurenderer_tsl": "requiere TSL/nodos; GLSL custom no es portable directamente"
+     },
+     "parameters": {
+      "F0_dielectric": "≈0.02–0.08",
+      "F0_conductor": "color RGB medido/parametrizado",
+      "cos_theta": "0–1"
+     },
+     "computational_cost": "O(1) por fragmento.",
+     "limitations": "No reemplaza Fresnel exacto espectral ni un BRDF completo.",
+     "source_ids": [
+      "SRC-THREE-WGPU"
+     ],
+     "evidence_status": "derivado/pendiente de prototipo",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D40",
+   "domain": "Geometría avanzada, superficies, topología y reconstrucción",
+   "techniques": [
+    {
+     "name": "Catmull–Clark subdivision",
+     "equation": "F=(v1+v2+v3+v4)/4; E=(P1+P2+F1+F2)/4; V'=(F̄+2Ē+(n-3)V)/n",
+     "derivation": "Cada iteración crea puntos de cara, arista y actualiza vértices para aproximar una superficie límite suave.",
+     "parameters": {
+      "iterations": "niveles",
+      "crease": "peso de aristas duras",
+      "boundaryRule": "regla de borde"
+     },
+     "variants": [
+      "Catmull-Clark",
+      "Loop subdivision",
+      "sqrt(3)",
+      "Doo-Sabin"
+     ],
+     "algorithm": [
+      "Crear face points",
+      "Crear edge points",
+      "Actualizar vertex points",
+      "Construir caras nuevas",
+      "Repetir iteraciones"
+     ],
+     "threejs": "BufferGeometry/subdivision addon o generación propia",
+     "model": "geométrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Loop subdivision",
+     "equation": "v'=(1-nβ)v+βΣ_i v_i; β≈(5/8-(3/8+1/4 cos(2π/n))²)/n",
+     "derivation": "Reglas de suavizado para mallas triangulares, con pesos dependientes del valence.",
+     "parameters": {
+      "n": "valence",
+      "β": "peso vecino",
+      "iterations": "subdivisiones"
+     },
+     "variants": [
+      "Loop",
+      "modified Butterfly",
+      "√3 subdivision"
+     ],
+     "algorithm": [
+      "Insertar puntos en aristas",
+      "Aplicar pesos a vértices antiguos",
+      "Generar triángulos nuevos",
+      "Recalcular normales"
+     ],
+     "threejs": "geometría procedural",
+     "model": "geométrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "NURBS surface",
+     "equation": "S(u,v)=Σ_iΣ_j N_{i,p}(u)N_{j,q}(v)w_{ij}P_{ij}/Σ_iΣ_j N_{i,p}N_{j,q}w_{ij}",
+     "derivation": "Funciones B-spline racionales ponderadas combinan puntos de control para definir superficies suaves con control local.",
+     "parameters": {
+      "degree": "grado p,q",
+      "knots": "vectores de nudos",
+      "weights": "pesos racionales",
+      "controlPoints": "puntos de control"
+     },
+     "variants": [
+      "Bézier",
+      "B-spline",
+      "NURBS",
+      "trimmed NURBS"
+     ],
+     "algorithm": [
+      "Definir red de control",
+      "Definir grado y knots",
+      "Evaluar bases Cox–de Boor",
+      "Evaluar superficie racional",
+      "Teselar para render"
+     ],
+     "threejs": "generador de BufferGeometry; addons NURBS",
+     "model": "geométrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "B-spline basis Cox–de Boor",
+     "equation": "N_{i,0}=1 if u_i≤u<u_{i+1}; N_{i,p}=((u-u_i)/(u_{i+p}-u_i))N_{i,p-1}+((u_{i+p+1}-u)/(u_{i+p+1}-u_{i+1}))N_{i+1,p-1}",
+     "derivation": "Recursión que construye funciones base locales por grado a partir de intervalos de nudos.",
+     "parameters": {
+      "p": "grado",
+      "u_i": "vector de nudos",
+      "u": "parámetro"
+     },
+     "variants": [
+      "uniform",
+      "clamped",
+      "nonuniform",
+      "periodic"
+     ],
+     "algorithm": [
+      "Definir knot vector",
+      "Inicializar bases grado cero",
+      "Aplicar recursión hasta p",
+      "Sumar puntos de control ponderados"
+     ],
+     "threejs": "superficies spline procedurales",
+     "model": "geométrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Bezier curve",
+     "equation": "B(t)=Σ_{i=0}^n C(n,i)(1-t)^{n-i}t^i P_i",
+     "derivation": "La combinación Bernstein interpola extremos y mantiene la curva dentro de la envolvente convexa de puntos de control.",
+     "parameters": {
+      "P_i": "puntos de control",
+      "t": "0..1"
+     },
+     "variants": [
+      "quadratic",
+      "cubic",
+      "rational Bezier",
+      "Bezier surface"
+     ],
+     "algorithm": [
+      "Elegir puntos de control",
+      "Evaluar Bernstein o De Casteljau",
+      "Muestrear t",
+      "Construir curva o superficie"
+     ],
+     "threejs": "CubicBezierCurve3, Curve, TubeGeometry",
+     "model": "geométrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "De Casteljau",
+     "equation": "P_i^{(r)}=(1-t)P_i^{(r-1)}+tP_{i+1}^{(r-1)}",
+     "derivation": "Interpolación lineal repetida reduce recursivamente los puntos de control hasta obtener un único punto de curva.",
+     "parameters": {
+      "t": "parámetro",
+      "P_i": "control points"
+     },
+     "variants": [
+      "curve evaluation",
+      "subdivision",
+      "rational extension"
+     ],
+     "algorithm": [
+      "Interpolar pares vecinos",
+      "Repetir sobre la lista reducida",
+      "El último punto es B(t)",
+      "Separar triángulo para subdividir curva"
+     ],
+     "threejs": "curvas personalizadas",
+     "model": "geométrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Discrete differential geometry cotangent Laplacian",
+     "equation": "(Lx)_i=Σ_j (cotα_ij+cotβ_ij)(x_i-x_j)/2",
+     "derivation": "Aproxima el laplaciano de Laplace–Beltrami en una malla triangular mediante pesos cotangentes derivados de áreas y ángulos.",
+     "parameters": {
+      "cotWeights": "pesos cotangentes",
+      "massMatrix": "matriz de masa",
+      "boundary": "condición de borde"
+     },
+     "variants": [
+      "cotangent Laplacian",
+      "uniform Laplacian",
+      "mean-value Laplacian"
+     ],
+     "algorithm": [
+      "Calcular ángulos opuestos",
+      "Asignar pesos cotangentes",
+      "Ensamblar L",
+      "Resolver difusión o suavizado",
+      "Controlar shrinkage"
+     ],
+     "threejs": "procesamiento de BufferGeometry",
+     "model": "geométrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Mean curvature flow",
+     "equation": "∂x/∂t=-Hn",
+     "derivation": "Mover cada punto en dirección normal con velocidad proporcional a curvatura media reduce área de superficie.",
+     "parameters": {
+      "H": "curvatura media",
+      "n": "normal",
+      "Δt": "paso"
+     },
+     "variants": [
+      "mean curvature flow",
+      "Taubin smoothing",
+      "bilateral mesh denoise"
+     ],
+     "algorithm": [
+      "Calcular curvatura media",
+      "Desplazar vértices a lo largo de normal",
+      "Recalcular normales",
+      "Repetir con control de volumen"
+     ],
+     "threejs": "malla procedural",
+     "model": "geométrico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Marching Cubes",
+     "equation": "interpolate t=(iso-v_a)/(v_b-v_a)",

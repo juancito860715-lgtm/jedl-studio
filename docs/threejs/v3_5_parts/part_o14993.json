@@ -1,0 +1,1240 @@
+      "Generar malla y numeración global.",
+      "Para cada elemento calcular jacobiano, funciones base y cuadratura.",
+      "Ensamblar matriz y vector elementales.",
+      "Aplicar condiciones esenciales y cargas naturales.",
+      "Resolver sistema global.",
+      "Postprocesar gradientes/tensiones y estimar error de malla."
+     ],
+     "pseudocode": "INPUT mesh, material D, source b, boundaryData\nK=zeroSparse(); f=zeroVector()\nFOR element e:\n  ASSERT det(J_e)>0\n  FOR quadrature point q:\n    B=gradShapeFunctions(e,q)\n    K_e += Bᵀ*D*B*weight(q)*det(J_e)\n    f_e += shape(q)*b(q)*weight(q)*det(J_e)\n  assemble(K,f,K_e,f_e,dofs(e))\napplyDirichlet(K,f); addNeumannLoads(f)\nu=solve(K,f)\nRETURN u, residual(K*u-f)",
+     "threejs_adaptation": "Three.js muestra la malla/resultados; el solver FEM es externo o propio",
+     "numerical_validation": {
+      "cases": [
+       [
+        "linear_patch",
+        "linear exact solution on suitable mesh",
+        "recover linear field exactly for linear elements",
+        1e-08
+       ],
+       [
+        "element_orientation",
+        "negative Jacobian",
+        "reject invalid element",
+        0
+       ],
+       [
+        "mesh_refinement",
+        "manufactured smooth solution",
+        "error decreases at theoretical order",
+        0.001
+       ]
+      ],
+      "metrics": [
+       "linear residual",
+       "energy norm",
+       "L2/H1 error",
+       "mesh convergence"
+      ],
+      "acceptance": "Check patch test, element Jacobian and expected convergence order; residual alone is insufficient."
+     },
+     "computational_cost": {
+      "time_complexity": "Assembly O(elements·quadrature·dofs²); sparse solve solver-dependent",
+      "memory_complexity": "O(nnz(K))",
+      "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+     },
+     "limitations": [
+      "Locking, poor mesh quality and unsuitable interpolation can degrade results.",
+      "Stress recovery is often lower order than displacement."
+     ],
+     "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+     "stability_error_analysis": {
+      "method": "weak form units consistent; K_ij=∫BᵀDB dΩ; essential BC applied; mesh convergence measured.",
+      "error": "report temporal and spatial convergence separately; compare h and h/2 or Δt and Δt/2; estimate observed order",
+      "acceptance": "residual and conservation/constitutive constraints below declared tolerances"
+     },
+     "test_cases": [
+      {
+       "id": "linear_patch",
+       "input": "linear exact solution on suitable mesh",
+       "expected": "recover linear field exactly for linear elements",
+       "tolerance": 1e-08
+      },
+      {
+       "id": "element_orientation",
+       "input": "negative Jacobian",
+       "expected": "reject invalid element",
+       "tolerance": 0
+      },
+      {
+       "id": "mesh_refinement",
+       "input": "manufactured smooth solution",
+       "expected": "error decreases at theoretical order",
+       "tolerance": 0.001
+      }
+     ],
+     "convergence_stability": "Coercivity and boundary constraints determine well-posedness; convergence requires stable approximation spaces.",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Smoothed Particle Hydrodynamics completo",
+     "equation": "A(r_i)≈Σ_j (m_j/ρ_j) A_j W(r_i-r_j,h); ρ_i=Σ_j m_j W(r_i-r_j,h)",
+     "derivation": "Aproximar un campo continuo mediante convolución con un kernel de soporte compacto y sustituir la integral por una suma sobre partículas.",
+     "parameters": {
+      "h": "radio de suavizado",
+      "W": "kernel normalizado",
+      "m_j": "masa",
+      "ρ_j": "densidad"
+     },
+     "variants": [
+      "WCSPH",
+      "ISPH",
+      "DFSPH",
+      "PCISPH",
+      "δ-SPH"
+     ],
+     "algorithm": [
+      "Distribuir partículas",
+      "Buscar vecinos con grid/hash",
+      "Calcular densidad",
+      "Calcular presión",
+      "Calcular fuerzas de presión, viscosidad y superficie",
+      "Integrar movimiento",
+      "Resolver límites y colisiones"
+     ],
+     "threejs": "Points/InstancedMesh para visualizar; compute shader para cálculo masivo",
+     "model": "Lagrangiano",
+     "mathematical_derivation": "SPH aproxima una integral A(r)=∫A(r′)W(r-r′,h)dr′ mediante cuadratura con partículas de volumen aproximado m_j/ρ_j. La discretización produce suma ponderada. El kernel debe normalizar ∫W dV=1, ser compacto y normalmente radial; densidad se estima sumando masas ponderadas. Gradientes se obtienen derivando W, con formulación simétrica para conservar momento.",
+     "variables_units": {
+      "explicit": "r,h [m]; m_j [kg]; ρ_j [kg/m³]; W [m⁻ᵈ]; A [unidad A].",
+      "all_symbols": "Kernel normalizado, h>0; dimensión d declarada; vecinos dentro de soporte κh."
+     },
+     "dimensional_analysis": {
+      "equation": "A(r_i)≈Σ_j (m_j/ρ_j) A_j W(r_i-r_j,h); ρ_i=Σ_j m_j W(r_i-r_j,h)",
+      "term_dimensions": {
+       "m/ρ": "m³",
+       "(m/ρ)W": "1",
+       "A_j weight": "[A]"
+      },
+      "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+      "status": "dimensionally_checked_in_manifest"
+     },
+     "assumptions": [
+      "Usar unidades coherentes y entradas finitas.",
+      "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+      "Partículas representan masa y volumen; kernel y soporte coherentes con dimensión."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "constraints": "ρ_i>0; h>0; búsqueda de vecinos cubre soporte; tratamiento de frontera/corrección de consistencia.",
+      "initial_conditions": "Posiciones, velocidades y masas iniciales.",
+      "boundary_conditions": "Ghost particles/renormalización o kernel correction cerca de fronteras."
+     },
+     "algorithm_steps": [
+      "Construir estructura de vecinos por radio κh.",
+      "Evaluar kernel W y derivada para vecinos.",
+      "Estimar densidad ρ_i.",
+      "Evaluar interpolación y gradiente con forma simétrica.",
+      "Calcular presión/fuerzas según ecuación de estado y actualizar con integrador.",
+      "Verificar masa, momento y estabilidad temporal."
+     ],
+     "pseudocode": "INPUT particles {r,m}, h, kernel W, dimension d\nASSERT h>0\nneighborLists=radiusSearch(r, supportRadius=kernel.support*h)\nFOR each particle i:\n  rho[i]=0\n  FOR j in neighbors[i]: rho[i]+=m[j]*W(r[i]-r[j],h)\n  ASSERT rho[i]>0\nFOR each particle i:\n  A[i]=SUM_j (m[j]/rho[j])*A[j]*W(r[i]-r[j],h)\nRETURN rho,A",
+     "threejs_adaptation": "Points/InstancedMesh para visualizar; compute shader para cálculo masivo",
+     "numerical_validation": {
+      "cases": [
+       [
+        "kernel_normalization",
+        "integrate W over support",
+        "integral≈1 in declared dimension",
+        0.001
+       ],
+       [
+        "constant_field",
+        "A_j=c",
+        "interpolated A_i≈c in interior",
+        1e-06
+       ],
+       [
+        "mass_conservation",
+        "closed system",
+        "Σm constant exactly",
+        1e-12
+       ]
+      ],
+      "metrics": [
+       "kernel normalization",
+       "density error",
+       "mass/momentum conservation",
+       "neighbor count"
+      ],
+      "acceptance": "Consistency tested on constant/linear fields; conservation depends on symmetric force discretization."
+     },
+     "computational_cost": {
+      "time_complexity": "O(N·k) with neighbor list; O(N²) naive",
+      "memory_complexity": "O(N+kN)",
+      "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+     },
+     "limitations": [
+      "Boundary deficiency biases kernel sums; tensile instability and pairing depend on kernel.",
+      "Smoothing length and timestep require coupled control."
+     ],
+     "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+     "stability_error_analysis": {
+      "method": "W [m^-d], h [m], m_j [kg], ρ_j [kg/m³]; kernel normalized ∫W dV=1.",
+      "error": "report temporal and spatial convergence separately; compare h and h/2 or Δt and Δt/2; estimate observed order",
+      "acceptance": "residual and conservation/constitutive constraints below declared tolerances"
+     },
+     "test_cases": [
+      {
+       "id": "kernel_normalization",
+       "input": "integrate W over support",
+       "expected": "integral≈1 in declared dimension",
+       "tolerance": 0.001
+      },
+      {
+       "id": "constant_field",
+       "input": "A_j=c",
+       "expected": "interpolated A_i≈c in interior",
+       "tolerance": 1e-06
+      },
+      {
+       "id": "mass_conservation",
+       "input": "closed system",
+       "expected": "Σm constant exactly",
+       "tolerance": 1e-12
+      }
+     ],
+     "convergence_stability": "CFL-like acoustic/force timestep restrictions; verify density positivity and conservation.",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Ecuación de elasticidad de Cauchy",
+     "equation": "ρ u¨=∇·σ+ρb; ε=½(∇u+∇uᵀ); σ=C:ε",
+     "derivation": "Aplicar conservación del momento lineal a un continuo; la divergencia del tensor de tensiones genera fuerza interna por volumen.",
+     "parameters": {
+      "ρ": "densidad",
+      "u": "desplazamiento",
+      "σ": "tensor de tensiones",
+      "b": "fuerza de cuerpo"
+     },
+     "variants": [
+      "elasticidad lineal",
+      "hiperelasticidad",
+      "viscoelasticidad",
+      "plasticidad"
+     ],
+     "algorithm": [
+      "Definir geometría y material",
+      "Calcular deformación",
+      "Obtener tensión mediante ley constitutiva",
+      "Calcular divergencia de tensión",
+      "Integrar aceleración",
+      "Resolver contactos"
+     ],
+     "threejs": "visualización de deformaciones con BufferGeometry y atributos GPU",
+     "model": "físico",
+     "mathematical_derivation": "Conservación de cantidad de movimiento para continuo: ρu¨=∇·σ+ρb. La deformación infinitesimal es la parte simétrica del gradiente de desplazamiento ε=½(∇u+∇uᵀ). En elasticidad lineal σ=C:ε. Multiplicar por desplazamiento virtual e integrar por partes produce forma débil con energía interna y tracciones de frontera.",
+     "variables_units": {
+      "explicit": "ρ [kg/m³]; u [m]; u¨ [m/s²]; σ [Pa=N/m²]; b [m/s²]; ε adimensional; C [Pa].",
+      "all_symbols": "Pequeñas deformaciones/rotaciones; C simétrico y positivo en subespacio elástico."
+     },
+     "dimensional_analysis": {
+      "equation": "ρ u¨=∇·σ+ρb; ε=½(∇u+∇uᵀ); σ=C:ε",
+      "term_dimensions": {
+       "ρu¨": "kg/m³·m/s²=N/m³",
+       "∇·σ": "Pa/m=N/m³",
+       "ρb": "N/m³"
+      },
+      "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+      "status": "dimensionally_checked_in_manifest"
+     },
+     "assumptions": [
+      "Usar unidades coherentes y entradas finitas.",
+      "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+      "Continuo Cauchy; material elástico lineal homogéneo o tensor C variable."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "constraints": "ρ>0; tensor constitutivo estable; restricciones suficientes para eliminar modos rígidos.",
+      "initial_conditions": "u0 y velocidad inicial v0 para dinámica.",
+      "boundary_conditions": "Desplazamiento prescrito en Γu; tracción σn=t en Γt."
+     },
+     "algorithm_steps": [
+      "Calcular gradiente de desplazamiento.",
+      "Simetrizar para obtener ε.",
+      "Aplicar constitutiva σ=C:ε.",
+      "Calcular divergencia de tensión y fuerzas de volumen.",
+      "Resolver equilibrio/dinámica con IC y BC.",
+      "Comprobar balance de fuerzas y energía."
+     ],
+     "pseudocode": "INPUT displacementField u, density rho, elasticityTensor C, bodyForce b\ngradU=gradient(u)\nepsilon=0.5*(gradU+transpose(gradU))\nsigma=contract(C,epsilon)\ninternalForce=divergence(sigma)\nacceleration=(internalForce+rho*b)/rho\nRETURN epsilon,sigma,acceleration",
+     "threejs_adaptation": "visualización de deformaciones con BufferGeometry y atributos GPU",
+     "numerical_validation": {
+      "cases": [
+       [
+        "rigid_translation",
+        "u constant",
+        "ε=0; σ=0",
+        1e-12
+       ],
+       [
+        "uniaxial_strain",
+        "εxx=ε0 isotropic linear elastic",
+        "σ=C:ε with correct units",
+        1e-08
+       ],
+       [
+        "force_balance",
+        "uniform stress",
+        "divσ=0 in interior",
+        1e-10
+       ]
+      ],
+      "metrics": [
+       "strain symmetry",
+       "stress symmetry",
+       "force residual",
+       "energy balance"
+      ],
+      "acceptance": "Patch tests and manufactured solutions; small-strain assumption checked by magnitude of ∇u."
+     },
+     "computational_cost": {
+      "time_complexity": "O(nodes·tensor operations) per evaluation",
+      "memory_complexity": "O(nodes·tensor fields)",
+      "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+     },
+     "limitations": [
+      "Small-strain model invalid for large rotations/deformations; use finite-strain formulation.",
+      "Material anisotropy requires full constitutive tensor."
+     ],
+     "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+     "stability_error_analysis": {
+      "method": "ρü and divσ and ρb all [N/m³]; initial displacement/velocity and boundary traction/displacement required.",
+      "error": "report temporal and spatial convergence separately; compare h and h/2 or Δt and Δt/2; estimate observed order",
+      "acceptance": "residual and conservation/constitutive constraints below declared tolerances"
+     },
+     "test_cases": [
+      {
+       "id": "rigid_translation",
+       "input": "u constant",
+       "expected": "ε=0; σ=0",
+       "tolerance": 1e-12
+      },
+      {
+       "id": "uniaxial_strain",
+       "input": "εxx=ε0 isotropic linear elastic",
+       "expected": "σ=C:ε with correct units",
+       "tolerance": 1e-08
+      },
+      {
+       "id": "force_balance",
+       "input": "uniform stress",
+       "expected": "divσ=0 in interior",
+       "tolerance": 1e-10
+      }
+     ],
+     "convergence_stability": "Dynamic stability depends on spatial discretization and time integrator; energy behavior must match damping/model.",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Viscoelasticidad Kelvin–Voigt",
+     "equation": "σ=Eε+η ε̇",
+     "derivation": "Combina un resorte elástico y un amortiguador viscoso en paralelo: las tensiones se suman.",
+     "parameters": {
+      "E": "módulo de Young",
+      "η": "viscosidad",
+      "ε": "deformación"
+     },
+     "variants": [
+      "Kelvin–Voigt",
+      "Maxwell",
+      "Standard Linear Solid",
+      "generalized Maxwell"
+     ],
+     "algorithm": [
+      "Calcular deformación",
+      "Calcular tasa de deformación",
+      "Evaluar tensión elástica",
+      "Evaluar tensión viscosa",
+      "Sumar tensiones"
+     ],
+     "threejs": "piel, gel, goma y tejidos blandos aproximados",
+     "model": "constitutivo",
+     "mathematical_derivation": "El modelo Kelvin–Voigt combina resorte y amortiguador en paralelo: ambos experimentan la misma deformación ε y sus tensiones se suman. La ley del resorte es σ_e=Eε; la del amortiguador viscoso σ_v=η ε̇. Por superposición σ=Eε+η ε̇. La relajación no es instantánea como en Maxwell; bajo deformación constante ε̇=0 queda σ=Eε.",
+     "variables_units": {
+      "explicit": "σ [Pa]; E [Pa]; ε [1]; η [Pa·s]; ε̇ [s⁻¹]; τ=η/E [s].",
+      "all_symbols": "E≥0; η≥0; deformación pequeña y lineal."
+     },
+     "dimensional_analysis": {
+      "equation": "σ=Eε+η ε̇",
+      "term_dimensions": {
+       "Eε": "Pa",
+       "η εdot": "Pa·s·s⁻¹=Pa"
+      },
+      "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+      "status": "dimensionally_checked_in_manifest"
+     },
+     "assumptions": [
+      "Usar unidades coherentes y entradas finitas.",
+      "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+      "Viscoelasticidad lineal; parámetros constantes; deformación pequeña."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "constraints": "E,η≥0; Δt>0; integrar tensión viscosa según discretización.",
+      "initial_conditions": "ε inicial y estado de deformación.",
+      "boundary_conditions": "No BC propias; heredadas del problema mecánico."
+     },
+     "algorithm_steps": [
+      "Calcular deformación y tasa de deformación.",
+      "Evaluar parte elástica Eε.",
+      "Evaluar parte viscosa η εdot.",
+      "Sumar tensiones.",
+      "Para dinámica acoplada, resolver implícitamente si τ es pequeño respecto de Δt."
+     ],
+     "pseudocode": "INPUT strain epsilon, strainRate, E, eta\nASSERT E>=0 AND eta>=0\nsigmaElastic=E*epsilon\nsigmaViscous=eta*strainRate\nsigma=sigmaElastic+sigmaViscous\nRETURN sigma",
+     "threejs_adaptation": "piel, gel, goma y tejidos blandos aproximados",
+     "numerical_validation": {
+      "cases": [
+       [
+        "static_strain",
+        "ε constant, εdot=0",
+        "σ=Eε",
+        1e-12
+       ],
+       [
+        "pure_viscous",
+        "E=0, εdot=2/s, η=3Pa·s",
+        "σ=6Pa",
+        1e-12
+       ],
+       [
+        "zero_strain",
+        "ε=0, εdot=0",
+        "σ=0",
+        1e-12
+       ]
+      ],
+      "metrics": [
+       "stress error",
+       "dissipated energy",
+       "unit consistency"
+      ],
+      "acceptance": "Viscous contribution dissipates nonnegative power η εdot² for η≥0."
+     },
+     "computational_cost": {
+      "time_complexity": "O(number of tensor components)",
+      "memory_complexity": "O(1) constitutive state",
+      "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+     },
+     "limitations": [
+      "No representa creep retardation con precisión en todos los materiales; no tiene relajación de tensión bajo strain fijo más allá del resorte.",
+      "Parámetros pueden depender de temperatura/tiempo."
+     ],
+     "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+     "stability_error_analysis": {
+      "method": "E [Pa], η [Pa·s], ε dimensionless, εdot [1/s], σ [Pa]; stable implicit integration preferred for stiff η/E.",
+      "error": "report temporal and spatial convergence separately; compare h and h/2 or Δt and Δt/2; estimate observed order",
+      "acceptance": "residual and conservation/constitutive constraints below declared tolerances"
+     },
+     "test_cases": [
+      {
+       "id": "static_strain",
+       "input": "ε constant, εdot=0",
+       "expected": "σ=Eε",
+       "tolerance": 1e-12
+      },
+      {
+       "id": "pure_viscous",
+       "input": "E=0, εdot=2/s, η=3Pa·s",
+       "expected": "σ=6Pa",
+       "tolerance": 1e-12
+      },
+      {
+       "id": "zero_strain",
+       "input": "ε=0, εdot=0",
+       "expected": "σ=0",
+       "tolerance": 1e-12
+      }
+     ],
+     "convergence_stability": "Dissipative term must not generate energy; implicit coupling recommended for stiff η/E.",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Plasticidad J2 von Mises",
+     "equation": "s=σ-(trσ/3)I; σ_eq=√(3/2 s:s); f=σ_eq-(σ_y+H α)≤0",
+     "derivation": "La energía de distorsión del tensor desviador define una superficie de fluencia independiente de la presión hidrostática.",
+     "parameters": {
+      "s": "tensor desviador",
+      "σ_y": "límite de fluencia",
+      "H": "endurecimiento"
+     },
+     "variants": [
+      "perfect plasticity",
+      "isotropic hardening",
+      "kinematic hardening",
+      "return mapping"
+     ],
+     "algorithm": [
+      "Calcular tensión de prueba",
+      "Evaluar criterio de fluencia",
+      "Si no fluye, aceptar",
+      "Si fluye, proyectar al yield surface",
+      "Actualizar deformación plástica y endurecimiento"
+     ],
+     "threejs": "deformación permanente de metales, barro o props",
+     "model": "constitutivo",
+     "mathematical_derivation": "La plasticidad J2 usa la parte desviadora s de la tensión porque la fluencia metálica ideal es insensible a presión hidrostática. El segundo invariante J2=½s:s define σ_eq=√(3J2). La función de fluencia f=σ_eq-σ_y(α); si f≤0 la respuesta es elástica. Si f>0, retorno radial proyecta el estado trial a la superficie de fluencia y actualiza deformación plástica equivalente α, con consistencia f=0.",
+     "variables_units": {
+      "explicit": "σ,s,σ_y,H [Pa]; α [1]; ε,εp [1]; Δγ [1].",
+      "all_symbols": "Pequeñas deformaciones; plasticidad asociada; isotropía J2; endurecimiento isotrópico lineal H≥0."
+     },
+     "dimensional_analysis": {
+      "equation": "s=σ-(trσ/3)I; σ_eq=√(3/2 s:s); f=σ_eq-(σ_y+H α)≤0",
+      "term_dimensions": {
+       "σ_eq": "Pa",
+       "Hα": "Pa",
+       "f": "Pa"
+      },
+      "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+      "status": "dimensionally_checked_in_manifest"
+     },
+     "assumptions": [
+      "Usar unidades coherentes y entradas finitas.",
+      "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+      "Tensor simétrico; material isotrópico; modelo de endurecimiento especificado."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "constraints": "σ_y>0; H≥0; Δγ≥0; tensión deviadora; retorno debe imponer f≤tol.",
+      "initial_conditions": "εp0 y α0 definidos.",
+      "boundary_conditions": "BC mecánicas en problema global; local return mapping por punto de integración."
+     },
+     "algorithm_steps": [
+      "Calcular ε_trial y σ_trial elástico.",
+      "Extraer s_trial y σ_eq_trial.",
+      "Calcular f_trial=σ_eq_trial-(σ_y+Hα).",
+      "Si f_trial≤tol, aceptar estado elástico.",
+      "Si fluye, Δγ=f_trial/(3G+H) para hardening lineal J2.",
+      "Corregir s=s_trial(1-3GΔγ/σ_eq_trial); actualizar εp y α.",
+      "Comprobar consistencia y simetría."
+     ],
+     "pseudocode": "INPUT strainIncrement, plasticStrainPrev, alphaPrev, G, sigmaY, H\nsigmaTrial=C:(epsilonPrev+strainIncrement-plasticStrainPrev)\nsTrial=deviator(sigmaTrial); seq=sqrt(1.5*doubleContract(sTrial,sTrial))\nfTrial=seq-(sigmaY+H*alphaPrev)\nIF fTrial<=tol: RETURN sigmaTrial,plasticStrainPrev,alphaPrev\nDeltaGamma=fTrial/(3*G+H)\nscale=1-3*G*DeltaGamma/seq\nsigma=meanStress(sigmaTrial)*I+scale*sTrial\nn=1.5*sTrial/seq\nplasticStrain=plasticStrainPrev+DeltaGamma*n\nalpha=alphaPrev+DeltaGamma\nASSERT abs(yieldFunction(sigma,alpha))<=tol\nRETURN sigma,plasticStrain,alpha",
+     "threejs_adaptation": "deformación permanente de metales, barro o props",
+     "numerical_validation": {
+      "cases": [
+       [
+        "hydrostatic",
+        "σ=pI",
+        "σeq=0; no J2 yielding",
+        1e-12
+       ],
+       [
+        "elastic_trial",
+        "f_trial<0",
+        "plastic state unchanged",
+        1e-10
+       ],
+       [
+        "plastic_return",
+        "f_trial>0",
+        "final f≈0 and Δγ≥0",
+        1e-07
+       ]
+      ],
+      "metrics": [
+       "yield residual",
+       "plastic multiplier",
+       "plastic dissipation",
+       "stress symmetry"
+      ],
+      "acceptance": "Return mapping must satisfy consistency and nonnegative plastic dissipation; tangent consistency required for global Newton."
+     },
+     "computational_cost": {
+      "time_complexity": "O(1) per integration point for 3D tensor",
+      "memory_complexity": "O(1) internal variables per point",
+      "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+     },
+     "limitations": [
+      "Formula Δγ assumes isotropic linear hardening and small-strain associative J2.",
+      "Perfect plasticity H=0 is allowed but needs robust tolerance; finite strain requires another formulation."
+     ],
+     "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+     "stability_error_analysis": {
+      "method": "σ_eq, σ_y [Pa]; yield function f=σ_eq-σ_y; return mapping must enforce f≤tol and plastic consistency.",
+      "error": "report temporal and spatial convergence separately; compare h and h/2 or Δt and Δt/2; estimate observed order",
+      "acceptance": "residual and conservation/constitutive constraints below declared tolerances"
+     },
+     "test_cases": [
+      {
+       "id": "hydrostatic",
+       "input": "σ=pI",
+       "expected": "σeq=0; no J2 yielding",
+       "tolerance": 1e-12
+      },
+      {
+       "id": "elastic_trial",
+       "input": "f_trial<0",
+       "expected": "plastic state unchanged",
+       "tolerance": 1e-10
+      },
+      {
+       "id": "plastic_return",
+       "input": "f_trial>0",
+       "expected": "final f≈0 and Δγ≥0",
+       "tolerance": 1e-07
+      }
+     ],
+     "convergence_stability": "Local return mapping stable under stated assumptions; global nonlinear equilibrium still needs consistent tangent and Newton convergence.",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Difusión anisotrópica",
+     "equation": "∂u/∂t=∇·(D(x)∇u)+s; q=-D∇u",
+     "derivation": "Generaliza la ley de Fick permitiendo que el tensor D cambie según posición y dirección.",
+     "parameters": {
+      "D": "tensor de difusión",
+      "u": "concentración o temperatura"
+     },
+     "variants": [
+      "isotrópica",
+      "anisotrópica",
+      "edge-preserving",
+      "reaction-diffusion"
+     ],
+     "algorithm": [
+      "Definir tensor D por celda",
+      "Calcular gradiente",
+      "Multiplicar por D",
+      "Calcular divergencia del flujo",
+      "Integrar con esquema estable"
+     ],
+     "threejs": "patrones, difusión térmica, pigmento y procesos biológicos estilizados",
+     "model": "PDE",
+     "mathematical_derivation": "Partir de conservación ∂tu+∇·q=s y ley de Fick anisotrópica q=-D∇u. Sustituir el flujo produce ∂tu=∇·(D∇u)+s. Si D es constante, se reduce a D:∇²u; si variable, no omitir el término (∇·D)·∇u implícito en la divergencia. D debe ser simétrico semidefinido positivo para difusión no negativa.",
+     "variables_units": {
+      "explicit": "u [U]; t [s]; ∇u [U/m]; q [U·m/s] si u es concentración por volumen con flujo correspondiente; D [m²/s]; s [U/s].",
+      "all_symbols": "D tensor d×d, simétrico PSD; Δt condicionado por autovalor máximo y malla para esquema explícito."
+     },
+     "dimensional_analysis": {
+      "equation": "∂u/∂t=∇·(D(x)∇u)+s; q=-D∇u",
+      "term_dimensions": {
+       "∂tu": "U/s",
+       "∇·(D∇u)": "m⁻¹·(m²/s·U/m)=U/s",
+       "s": "U/s"
+      },
+      "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+      "status": "dimensionally_checked_in_manifest"
+     },
+     "assumptions": [
+      "Usar unidades coherentes y entradas finitas.",
+      "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+      "Coeficiente de difusión simétrico PSD; campo y frontera definidos."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "constraints": "D⪰0; Δt>0; no-flux q·n=0, Dirichlet o Robin explícitos.",
+      "initial_conditions": "u(x,0)=u0.",
+      "boundary_conditions": "Flujo normal prescrito o valor de u en frontera."
+     },
+     "algorithm_steps": [
+      "Evaluar gradiente de u.",
+      "Calcular flujo q=-D∇u en caras.",
+      "Calcular divergencia conservativa del flujo.",
+      "Añadir fuente.",
+      "Actualizar u con esquema estable; para explícito verificar límite espectral/CFL difusivo.",
+      "Comprobar máximo-mínimo y balance de masa."
+     ],
+     "pseudocode": "INPUT uGrid,Dtensor,source,mesh,dt\nASSERT symmetric(D) AND minEigenvalue(D)>=0\nFOR each face: gradU=faceGradient(u); flux=-D*gradU\nFOR each cell: divFlux=conservativeDivergence(flux)\n  uNext=u+dt*( -divFlux + source )  // from ∂t u + div(q)=s\nCHECK diffusionStability(dt,D,mesh)\nRETURN uNext",
+     "threejs_adaptation": "patrones, difusión térmica, pigmento y procesos biológicos estilizados",
+     "numerical_validation": {
+      "cases": [
+       [
+        "constant_field",
+        "u constant, source=0, no-flux",
+        "u remains constant",
+        1e-12
+       ],
+       [
+        "linear_field",
+        "constant D and linear u",
+        "div(D grad u)=0",
+        1e-10
+       ],
+       [
+        "mass_conservation",
+        "closed no-flux domain",
+        "total mass changes only by integrated source",
+        1e-08
+       ]
+      ],
+      "metrics": [
+       "mass balance",
+       "minimum/maximum",
+       "energy decay",
+       "grid convergence"
+      ],
+      "acceptance": "For source-free closed domain, mass conserved and diffusion energy non-increasing; explicit step must satisfy spectral bound."
+     },
+     "computational_cost": {
+      "time_complexity": "O(cells·d²) dense tensor; sparse stencil O(cells·neighbors)",
+      "memory_complexity": "O(cells+faces)",
+      "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+     },
+     "limitations": [
+      "Explicit scheme can require very small Δt; anisotropy aligned poorly with grid can cause errors.",
+      "Tensor not PSD can produce anti-diffusion and instability."
+     ],
+     "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+     "stability_error_analysis": {
+      "method": "D [m²/s] tensor symmetric positive semidefinite; ∂u/∂t [U/s]; flux -D∇u; no-flux/Dirichlet BC explicit.",
+      "error": "report temporal and spatial convergence separately; compare h and h/2 or Δt and Δt/2; estimate observed order",
+      "acceptance": "residual and conservation/constitutive constraints below declared tolerances"
+     },
+     "test_cases": [
+      {
+       "id": "constant_field",
+       "input": "u constant, source=0, no-flux",
+       "expected": "u remains constant",
+       "tolerance": 1e-12
+      },
+      {
+       "id": "linear_field",
+       "input": "constant D and linear u",
+       "expected": "div(D grad u)=0",
+       "tolerance": 1e-10
+      },
+      {
+       "id": "mass_conservation",
+       "input": "closed no-flux domain",
+       "expected": "total mass changes only by integrated source",
+       "tolerance": 1e-08
+      }
+     ],
+     "convergence_stability": "Stability controlled by largest eigenvalue of D and discrete Laplacian; implicit methods preferred for stiff diffusion.",
+     "derivation_status": "derivada"
+    }
+   ],
+   "completion_status": "mathematical_specification_and_individual_algorithms_completed_in_manifest; independent_runtime_validation_pending",
+   "review_note": "Cada ficha contiene derivación específica, contrato dimensional, hipótesis, restricciones, algoritmo y pseudocódigo particular. La certificación requiere ejecutar las pruebas y revisar las convenciones de cada implementación."
+  },
+  {
+   "id": "D37",
+   "domain": "Anatomía procedural, biomecánica y deformación de personajes",
+   "techniques": [
+    {
+     "name": "Jerarquía ósea y transformaciones homogéneas",
+     "equation": "p_world=M_root·M_hip·M_joint1·…·M_jointn·p_local",
+     "derivation": "Las transformaciones rígidas se representan con matrices homogéneas 4×4; el producto en cadena compone los espacios locales hasta mundo.",
+     "parameters": {
+      "M": "matriz de transformación",
+      "T": "traslación",
+      "R": "rotación",
+      "S": "escala"
+     },
+     "variants": [
+      "skeleton FK",
+      "IK",
+      "dual quaternion skeleton",
+      "twist bones"
+     ],
+     "algorithm": [
+      "Definir huesos y padres",
+      "Guardar bind pose",
+      "Calcular matrices locales",
+      "Propagar matrices globales",
+      "Aplicar skinning a vértices"
+     ],
+     "threejs": "Skeleton, Bone, SkinnedMesh, Matrix4, Quaternion",
+     "model": "geométrico",
+     "mathematical_derivation": "Las transformaciones rígidas se representan con matrices homogéneas 4×4; el producto en cadena compone los espacios locales hasta mundo.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "p_world=M_root·M_hip·M_joint1·…·M_jointn·p_local",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "p_world=M_root·M_hip·M_joint1·…·M_jointn·p_local",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Jerarquía ósea y transformaciones homogéneas» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: p_world=M_root·M_hip·M_joint1·…·M_jointn·p_local.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Jerarquía ósea y transformaciones homogéneas\", normalizar)\nresultado = resolver_relacion(\"p_world=M_root·M_hip·M_joint1·…·M_jointn·p_local\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Jerarquía ósea y transformaciones homogéneas\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Skeleton, Bone, SkinnedMesh, Matrix4, Quaternion",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Linear Blend Skinning",
+     "equation": "p'=Σ_i w_i M_i M_i_bind^{-1} p; Σ_i w_i=1",
+     "derivation": "Cada vértice se transforma por las matrices de huesos influyentes y se combinan los resultados con pesos normalizados.",
+     "parameters": {
+      "w_i": "pesos por hueso",
+      "M_i": "matriz actual",
+      "M_i_bind": "matriz de bind"
+     },
+     "variants": [
+      "LBS",
+      "multi-weight skinning",
+      "corrective blendshapes",
+      "cage-based skinning"
+     ],
+     "algorithm": [
+      "Asignar pesos",
+      "Normalizar pesos",
+      "Calcular skin matrices",
+      "Para cada vértice sumar transformaciones ponderadas",
+      "Actualizar normales"
+     ],
+     "threejs": "SkinnedMesh y atributos skinIndex/skinWeight",
+     "model": "geométrico",
+     "mathematical_derivation": "Cada vértice se transforma por las matrices de huesos influyentes y se combinan los resultados con pesos normalizados.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "p'=Σ_i w_i M_i M_i_bind^{-1} p; Σ_i w_i=1",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "p'=Σ_i w_i M_i M_i_bind^{-1} p; Σ_i w_i=1",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Linear Blend Skinning» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: p'=Σ_i w_i M_i M_i_bind^{-1} p; Σ_i w_i=1.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Linear Blend Skinning\", normalizar)\nresultado = resolver_relacion(\"p'=Σ_i w_i M_i M_i_bind^{-1} p; Σ_i w_i=1\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Linear Blend Skinning\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "SkinnedMesh y atributos skinIndex/skinWeight",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Dual Quaternion Skinning",
+     "equation": "q_blend=normalize(Σ_i w_i q_i); p'=q_blend p q_blend*",
+     "derivation": "Representa rotación y traslación rígidas con quaternion dual; la combinación reduce el colapso de volumen típico de LBS en torsiones.",
+     "parameters": {
+      "q_i": "dual quaternion de hueso",
+      "w_i": "peso",
+      "sign": "alineación hemisférica de quaternions"
+     },
+     "variants": [
+      "DQS",
+      "hybrid LBS/DQS",
+      "scale-aware DQS"
+     ],
+     "algorithm": [
+      "Convertir skin matrices a dual quaternions",
+      "Alinear signos respecto a referencia",
+      "Combinar con pesos",
+      "Normalizar parte real y dual",
+      "Transformar posición y normal"
+     ],
+     "threejs": "requiere shader/skinning personalizado o extensión",
+     "model": "geométrico",
+     "mathematical_derivation": "Representa rotación y traslación rígidas con quaternion dual; la combinación reduce el colapso de volumen típico de LBS en torsiones.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "q_blend=normalize(Σ_i w_i q_i); p'=q_blend p q_blend*",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "q_blend=normalize(Σ_i w_i q_i); p'=q_blend p q_blend*",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Dual Quaternion Skinning» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: q_blend=normalize(Σ_i w_i q_i); p'=q_blend p q_blend*.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Dual Quaternion Skinning\", normalizar)\nresultado = resolver_relacion(\"q_blend=normalize(Σ_i w_i q_i); p'=q_blend p q_blend*\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Dual Quaternion Skinning\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "requiere shader/skinning personalizado o extensión",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Inverse Kinematics CCD",
+     "equation": "θ_i←θ_i+angle((e-p_i),(target-p_i))",
+     "derivation": "En cada iteración rota una articulación para alinear el vector hacia el efector con el vector hacia el objetivo.",
+     "parameters": {
+      "iterations": "iteraciones máximas",
+      "tolerance": "distancia aceptable",
+      "jointLimits": "límites articulares"
+     },
+     "variants": [
+      "CCD",
+      "FABRIK",
+      "Jacobian transpose",
+      "Damped Least Squares"
+     ],
+     "algorithm": [
+      "Empezar por articulación distal",
+      "Calcular ángulo hacia objetivo",
+      "Aplicar límite articular",
+      "Actualizar cadena",
+      "Repetir hasta tolerancia o iteraciones"
+     ],
+     "threejs": "quaternions y matrices propios; IK solver externo opcional",
+     "model": "geométrico",
+     "mathematical_derivation": "En cada iteración rota una articulación para alinear el vector hacia el efector con el vector hacia el objetivo.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "θ_i←θ_i+angle((e-p_i),(target-p_i))",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "θ_i←θ_i+angle((e-p_i),(target-p_i))",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Inverse Kinematics CCD» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: θ_i←θ_i+angle((e-p_i),(target-p_i)).",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Inverse Kinematics CCD\", normalizar)\nresultado = resolver_relacion(\"θ_i←θ_i+angle((e-p_i),(target-p_i))\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Inverse Kinematics CCD\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "quaternions y matrices propios; IK solver externo opcional",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "FABRIK",
+     "equation": "p_i'=p_{i+1}+l_i normalize(p_i-p_{i+1})",
+     "derivation": "Mantiene longitudes de segmentos mediante pasadas hacia delante y hacia atrás, sin resolver directamente ángulos.",
+     "parameters": {
+      "l_i": "longitud fija de cada segmento",
+      "target": "objetivo",
+      "root": "raíz fija"
+     },
+     "variants": [
+      "FABRIK 2D",
+      "FABRIK 3D",
+      "con restricciones angulares"
+     ],
+     "algorithm": [
+      "Comprobar alcance total",
+      "Fijar efector en target",
+      "Pasada backward manteniendo longitudes",
+      "Fijar raíz",
+      "Pasada forward manteniendo longitudes",
+      "Repetir"
+     ],
+     "threejs": "Vector3 y Quaternion",
+     "model": "geométrico",
+     "mathematical_derivation": "Mantiene longitudes de segmentos mediante pasadas hacia delante y hacia atrás, sin resolver directamente ángulos.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "p_i'=p_{i+1}+l_i normalize(p_i-p_{i+1})",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "p_i'=p_{i+1}+l_i normalize(p_i-p_{i+1})",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «FABRIK» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: p_i'=p_{i+1}+l_i normalize(p_i-p_{i+1}).",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"FABRIK\", normalizar)\nresultado = resolver_relacion(\"p_i'=p_{i+1}+l_i normalize(p_i-p_{i+1})\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"FABRIK\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Vector3 y Quaternion",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Jacobian Damped Least Squares IK",
+     "equation": "Δθ=Jᵀ(JJᵀ+λ²I)^{-1}e",
+     "derivation": "Minimiza error cartesiano y regulariza la inversión del Jacobiano para evitar singularidades.",
+     "parameters": {
+      "J": "Jacobiano del efector",
+      "λ": "amortiguación",
+      "e": "error objetivo"
+     },
+     "variants": [
+      "Jacobian inverse",
+      "transpose",
+      "DLS",
+      "selectively damped least squares"
+     ],
+     "algorithm": [
+      "Calcular posición del efector",
+      "Construir Jacobiano",
+      "Calcular error",
+      "Resolver Δθ amortiguado",
+      "Aplicar límites",
+      "Actualizar y repetir"
+     ],
+     "threejs": "solver matemático personalizado",
+     "model": "numérico",
+     "mathematical_derivation": "Minimiza error cartesiano y regulariza la inversión del Jacobiano para evitar singularidades.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "Δθ=Jᵀ(JJᵀ+λ²I)^{-1}e",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "Δθ=Jᵀ(JJᵀ+λ²I)^{-1}e",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Jacobian Damped Least Squares IK» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: Δθ=Jᵀ(JJᵀ+λ²I)^{-1}e.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Jacobian Damped Least Squares IK\", normalizar)\nresultado = resolver_relacion(\"Δθ=Jᵀ(JJᵀ+λ²I)^{-1}e\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Jacobian Damped Least Squares IK\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "solver matemático personalizado",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "derivada"
+    },
+    {
+     "name": "Curva fuerza-longitud muscular",
+     "equation": "F_m=a F_max f_l(l) f_v(v)+F_passive(l)",
+     "derivation": "Separa activación neural, capacidad según longitud, capacidad según velocidad y tensión pasiva del tejido.",
+     "parameters": {
+      "a": "activación 0..1",
