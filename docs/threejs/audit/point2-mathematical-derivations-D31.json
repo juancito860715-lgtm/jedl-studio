@@ -45,6 +45,10 @@
       "result": "Las coordenadas baricéntricas derivan de resolver combinación afín de los tres vértices.",
       "limits": [
         "Los pesos pueden ser negativos fuera del triángulo; degeneración requiere fallback."
+      ],
+      "dimensional_verification": [
+        "a,b,c,p tienen L; α,β,γ son adimensionales y suman 1.",
+        "La combinación afín conserva L."
       ]
     },
     {
@@ -86,6 +90,10 @@
       "result": "Möller–Trumbore resuelve el sistema rayo-plano-triángulo con productos cruzados y pruebas baricéntricas.",
       "limits": [
         "Rayos casi paralelos requieren tolerancia numérica robusta."
+      ],
+      "dimensional_verification": [
+        "o,a,b,c tienen L; dirección d es unitaria adimensional; t tiene L.",
+        "u,v son coordenadas baricéntricas adimensionales; det y productos conservan unidades compatibles."
       ]
     },
     {
@@ -122,6 +130,10 @@
       "result": "Slab test deriva de intersectar intervalos del rayo con cada intervalo de la caja.",
       "limits": [
         "Rayos paralelos a slab requieren caso especial para evitar división por cero."
+      ],
+      "dimensional_verification": [
+        "b_min,b_max,o tienen L; d es unitario adimensional; t_enter/t_exit tienen L.",
+        "Comparaciones de t usan el mismo parámetro/distancia del rayo."
       ]
     },
     {
@@ -163,6 +175,10 @@
       "result": "SAT prueba intersección proyectando convexos sobre ejes candidatos.",
       "limits": [
         "SAT requiere ejes adecuados; para poliedros convexos se incluyen normales y productos cruzados de aristas."
+      ],
+      "dimensional_verification": [
+        "Ejes SAT son unitarios/adimensionales; proyecciones a·axis y b·axis tienen L.",
+        "Los intervalos comparados tienen L; separación es una relación booleana adimensional."
       ]
     },
     {
@@ -204,6 +220,10 @@
       "result": "GJK reduce colisión convexa a comprobar si el origen está en diferencia de Minkowski.",
       "limits": [
         "GJK puede estancarse en degeneraciones y requiere tolerancias."
+      ],
+      "dimensional_verification": [
+        "Puntos de soporte y Minkowski difference tienen L; direcciones de búsqueda son adimensionales.",
+        "Distancia al origen y simplex conservan L."
       ]
     },
     {
@@ -245,6 +265,10 @@
       "result": "EPA expande simplex para estimar normal y profundidad geométrica de solapamiento.",
       "limits": [
         "EPA depende de simplex inicial y tolerancias; poliedros degenerados son problemáticos."
+      ],
+      "dimensional_verification": [
+        "Distancia de cara y supportDistance tienen L; normal de cara es adimensional.",
+        "ε tiene L; profundidad de penetración estimada tiene L."
       ]
     },
     {
@@ -286,6 +310,10 @@
       "result": "BVH acelera consultas mediante jerarquía de bounds y traversal selectivo.",
       "limits": [
         "SAH es heurística; construir BVH tiene coste y memoria."
+      ],
+      "dimensional_verification": [
+        "AABB bounds y ray origins tienen L; ray direction adimensional; t tiene L.",
+        "Áreas de caja tienen L²; razones SAH son adimensionales; índices de nodo son discretos."
       ]
     },
     {
@@ -322,6 +350,10 @@
       "result": "La normal de malla deriva del producto cruzado de dos aristas.",
       "limits": [
         "Área casi cero produce normal inestable."
+      ],
+      "dimensional_verification": [
+        "e1,e2 tienen L; e1×e2 tiene L²; normal normalizada adimensional.",
+        "Área del triángulo tiene L²."
       ]
     },
     {
@@ -358,6 +390,10 @@
       "result": "TBN deriva de derivadas de posición/UV y ortonormalización.",
       "limits": [
         "UV degeneradas no definen base tangente estable."
+      ],
+      "dimensional_verification": [
+        "P_u y P_v tienen L; derivadas UV son adimensionales; T_raw tiene L.",
+        "T,B,N y handedness son adimensionales; TBN conserva dirección unitaria."
       ]
     },
     {
@@ -394,6 +430,10 @@
       "result": "El Laplaciano discreto mide diferencia entre un vértice y su vecindad.",
       "limits": [
         "Laplacian smoothing encoge malla y elimina detalle."
+      ],
+      "dimensional_verification": [
+        "L=D−A es combinatorio/adimensional; Lp tiene L; λ es adimensional.",
+        "Si se usa Laplaciano cotangente normalizado por área, la escala cambia y debe declararse."
       ]
     },
     {
@@ -430,6 +470,10 @@
       "result": "La distancia geodésica es longitud de camino mínimo restringido a la superficie.",
       "limits": [
         "Dijkstra en aristas aproxima geodésica y depende de resolución de malla."
+      ],
+      "dimensional_verification": [
+        "γ'(s) es unitario si s es arco; integral de longitud tiene L.",
+        "Aristas del grafo tienen L; Dijkstra devuelve distancia geodésica aproximada con L."
       ]
     },
     {
@@ -441,31 +485,42 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "UV map φ:surface→plane",
-          "justification": "Definir parametrización de superficie."
+          "equation": "φ: S⊂R³→R²; J_φ=∂(u,v)/∂x",
+          "justification": "Definir el mapa UV y su Jacobiano local respecto a coordenadas físicas de superficie."
         },
         {
           "step": 2,
-          "equation": "E_stretch=∫||J_φ^T J_φ−I||²dA",
-          "justification": "Medir distorsión local de métrica."
+          "equation": "J̃=J_φ/s_0,  [J_φ]=[s_0]=L⁻¹",
+          "justification": "Normalizar el Jacobiano por densidad UV de referencia para que la deformación métrica sea adimensional."
         },
         {
           "step": 3,
-          "equation": "E_seam=λ·length(cutGraph)",
-          "justification": "Penalizar longitud/cantidad de cortes."
+          "equation": "E_stretch=(1/A_S)∫_S ||J̃ᵀJ̃−I||² dA",
+          "justification": "Comparar la métrica inducida con la métrica objetivo y normalizar por área de superficie."
         },
         {
           "step": 4,
-          "equation": "minimize E_stretch+E_seam over cuts/UV",
-          "justification": "Elegir costuras y UV que equilibran distorsión y cortes."
+          "equation": "E_seam=λ·length(cutGraph)/L_ref",
+          "justification": "Penalizar costuras mediante longitud relativa adimensional."
+        },
+        {
+          "step": 5,
+          "equation": "min_{cuts,φ} E_stretch+E_seam",
+          "justification": "Buscar cortes y parametrización que equilibran distorsión relativa y coste de costura."
         }
       ],
       "assumptions": [
-        "UV y malla consistentes; métrica de distorsión definida."
+        "UV y malla consistentes; métrica de distorsión definida.",
+        "s0 tiene unidad L⁻¹; L_ref y longitud de corte tienen L; A_S tiene L²."
       ],
-      "result": "UV seam minimization optimiza distorsión de parametrización y coste de cortes.",
+      "result": "La minimización UV compara una métrica normalizada adimensional y penaliza longitud de costura relativa a una escala de referencia.",
       "limits": [
-        "Optimizar UV es no convexo; puede requerir cortes adicionales."
+        "Optimizar UV es no convexo; puede requerir cortes adicionales.",
+        "La función objetivo depende de s0, L_ref y pesos; su elección cambia la distribución de distorsión."
+      ],
+      "dimensional_verification": [
+        "J_φ=∂UV/∂x tiene L⁻¹; escala UV objetivo s0 tiene L⁻¹; J̃=J_φ/s0 es adimensional.",
+        "La energía normalizada de stretch y longitud de corte/L_ref son adimensionales."
       ]
     },
     {
@@ -507,17 +562,24 @@
       "result": "Greedy meshing fusiona caras voxel expuestas coplanares de misma clave.",
       "limits": [
         "Greedy meshing requiere actualizar chunks vecinos y manejar bordes."
+      ],
+      "dimensional_verification": [
+        "VoxelSize tiene L; cell indices y material keys son discretos/adimensionales.",
+        "Los vértices emitidos son origin+voxelSize·index y tienen L; caras/triángulos son conteos."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "13/13 técnicas cubiertas, incluida investigación R31 de greedy meshing.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen geometría analítica, pruebas de intersección, estructuras de aceleración y optimización de mallas."
+      "13/13 técnicas D31 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Ray/triangle, ray/AABB, SAT, GJK y EPA distinguen longitud, dirección y tolerancia",
+      "Normals/TBN y Laplaciano discreto conservan dimensiones geométricas",
+      "UV seam minimization normaliza Jacobiano y coste de corte para evitar sumar magnitudes incompatibles",
+      "Voxel greedy meshing separa índices discretos y coordenadas físicas"
     ],
     "limitations": [
-      "Las pruebas geométricas requieren tolerancias robustas; no se incluyen respuestas dinámicas de impacto."
+      "Los algoritmos geométricos requieren pruebas numéricas de degeneración, tolerancias, robustez y rendimiento en las etapas posteriores."
     ]
   },
   "integrity": {
