@@ -40,7 +40,7 @@ test("Verlet and semi-implicit Euler use expected update order",()=>{
  assert.deepEqual(e.velocity,[1,-1]);assert.deepEqual(e.position,[.1,-.1]);
 });
 test("RK4 wrapper solves exponential growth accurately",()=>{
- const y=rk4Step((t,s)=>[s[0]],[0,1],.1);
+ const y=rk4Step((t,s)=>[s[0]],0,[1],.1);
  assert.ok(Math.abs(y[0]-Math.exp(.1))<1e-6);
 });
 test("boids computes separation, alignment and cohesion contributions",()=>{
