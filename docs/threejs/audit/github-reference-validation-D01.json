@@ -133,7 +133,6 @@
         "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/test/unit/addons/math/Octree.tests.js",
         "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
       ],
-      "research_note": "La técnica aparece como familia (grid, quadtree, octree, BVH); no se adjudica una referencia única sin fijar la variante. Próxima búsqueda debe seleccionar implementación con pruebas y licencia compatibles.",
       "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
       "certification_status": "PENDING_LOCAL_CI",
       "verified_source_behavior": "La referencia oficial implementa un Octree 3D que subdivide recursivamente el espacio, limita profundidad y triángulos por hoja; las pruebas QUnit verifican límites de subdivisión y que la consulta de rayo conserva la intersección/distancia esperadas. La adaptación local no copia el Octree: implementa una rejilla espacial uniforme AABB, más sencilla y verificable para consultas de objetos.",
@@ -161,7 +160,6 @@
         "https://threejs.org/manual/pages/rendering-on-demand.html",
         "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
       ],
-      "research_note": "No es una clase de Three.js; es un patrón de integración de aplicación. Se requiere proyecto GitHub concreto con modo demand y pruebas o demostración reproducible.",
       "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
       "certification_status": "PENDING_LOCAL_CI",
       "verified_source_behavior": "El manual oficial Three.js muestra render inicial único, invalidación por cambios de OrbitControls y resize, y el uso de requestAnimationFrame solo cuando se necesita. También advierte que el damping requiere seguir actualizando controles y evitar bucles de eventos. La página es una guía reproducible, no una suite automatizada upstream; por eso se añaden pruebas locales del planificador.",
