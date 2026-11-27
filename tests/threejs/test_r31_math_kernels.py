@@ -25,7 +25,7 @@ def evaluate_quantized_channel(keys, t, sample_rate, mode="hold"):
     if tq <= keys[0][0]:
         return keys[0][1]
     for i in range(1,len(keys)):
-        if tq <= keys[i][0]:
+        if tq < keys[i][0]:
             t0,v0=keys[i-1];t1,v1=keys[i]
             if mode=="hold":
                 return v0
