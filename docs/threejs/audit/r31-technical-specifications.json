@@ -4864,25 +4864,29 @@
             "expression": "d=abs(z0-z1)/max(min(z0,z1),z_floor)",
             "meaning": "dimensionless relative depth jump",
             "dimensional_check": "pass",
-            "status": "authored_heuristic"
+            "status": "authored_heuristic",
+            "evidence_status": "authored_heuristic"
           },
           {
             "expression": "r=1-clamp(dot(normalize(n0),normalize(n1)),-1,1)",
             "meaning": "dimensionless orientation discontinuity",
             "dimensional_check": "pass",
-            "status": "authored_heuristic"
+            "status": "authored_heuristic",
+            "evidence_status": "authored_heuristic"
           },
           {
             "expression": "E=d+lambda_n*r",
             "meaning": "fused local edge score",
             "dimensional_check": "pass",
-            "status": "authored_heuristic"
+            "status": "authored_heuristic",
+            "evidence_status": "authored_heuristic"
           },
           {
             "expression": "a=smoothstep(tau_0,tau_1,E)",
             "meaning": "antialiased outline coverage",
             "dimensional_check": "pass",
-            "status": "standard_smoothstep_mapping"
+            "status": "standard_smoothstep_mapping",
+            "evidence_status": "standard_smoothstep_mapping"
           }
         ],
         "assumptions": [
@@ -4953,7 +4957,8 @@
             "type": "AUTHORED_PROCEDURAL_RULE",
             "formula_level_status": "AUTHORED_CONVENTION",
             "exact_equation_locator": "This specification equations d, r, E and a.",
-            "formula_locator": "Project-authored equations in this record."
+            "formula_locator": "Project-authored equations in this record.",
+            "supported_claim": "Source context only; no equation-level attribution is claimed."
           }
         ],
         "independent_tests": {
@@ -4983,7 +4988,129 @@
           "threejs_api": "WebGLRenderTarget + DepthTexture or explicit linear-depth attachment + view-space normal pass + fullscreen ShaderMaterial; renderer integration still pending.",
           "cpu_reference": "tests/threejs/test_r31_math_kernels.py",
           "gpu_strategy": "The CPU kernels define scalar math only. The fullscreen GPU pass must preserve the same depth linearization, normal encoding, stencil reduction and smoothstep contract."
-        }
+        },
+        "variables": [
+          {
+            "symbol": "z0,z1",
+            "meaning": "positive linear view-space depth at center and neighbor",
+            "unit": "m (or one consistent scene-length unit)",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite positive linear eye-depth; never raw nonlinear depth-buffer samples"
+          },
+          {
+            "symbol": "z_floor",
+            "meaning": "positive lower bound for relative-depth denominator",
+            "unit": "m (same as z)",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >0; normally tied to camera near plane or a documented scene epsilon"
+          },
+          {
+            "symbol": "n0,n1",
+            "meaning": "surface normals in the same coordinate frame",
+            "unit": "1 (unit vectors)",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite nonzero 3-vectors; normalized before dot product"
+          },
+          {
+            "symbol": "lambda_n",
+            "meaning": "relative weight of normal discontinuity",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0; artistic/calibration parameter"
+          },
+          {
+            "symbol": "E",
+            "meaning": "combined local discontinuity score",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0"
+          },
+          {
+            "symbol": "tau_0,tau_1",
+            "meaning": "lower and upper antialiasing thresholds",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite; 0<=tau_0<tau_1"
+          },
+          {
+            "symbol": "a",
+            "meaning": "outline coverage/opacity",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "clamped to [0,1]"
+          },
+          {
+            "symbol": "delta_uv",
+            "meaning": "neighbor sample offset in texture coordinates",
+            "unit": "normalized UV",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite offset derived from render-target resolution and selected neighbor stencil"
+          }
+        ]
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
@@ -5168,31 +5295,36 @@
             "expression": "x'=cos(theta)*(x-cx)+sin(theta)*(y-cy)",
             "meaning": "rotated screen coordinate x",
             "dimensional_check": "pass",
-            "status": "coordinate_transform"
+            "status": "coordinate_transform",
+            "evidence_status": "coordinate_transform"
           },
           {
             "expression": "y'=-sin(theta)*(x-cx)+cos(theta)*(y-cy)",
             "meaning": "rotated screen coordinate y",
             "dimensional_check": "pass",
-            "status": "coordinate_transform"
+            "status": "coordinate_transform",
+            "evidence_status": "coordinate_transform"
           },
           {
             "expression": "m=0.5+0.5*sin(pi*f*x')*sin(pi*f*y')",
             "meaning": "periodic sinusoidal threshold mask",
             "dimensional_check": "pass",
-            "status": "authored_procedural_pattern"
+            "status": "authored_procedural_pattern",
+            "evidence_status": "authored_procedural_pattern"
           },
           {
             "expression": "ink=H(L-m)",
             "meaning": "binary threshold, H(q)=1 for q>=0",
             "dimensional_check": "pass",
-            "status": "threshold_definition"
+            "status": "threshold_definition",
+            "evidence_status": "threshold_definition"
           },
           {
             "expression": "a=smoothstep(-w,w,L-m)",
             "meaning": "antialiased coverage for w>0",
             "dimensional_check": "pass",
-            "status": "standard_smoothstep_filtering"
+            "status": "standard_smoothstep_filtering",
+            "evidence_status": "standard_smoothstep_filtering"
           }
         ],
         "assumptions": [
@@ -5261,7 +5393,8 @@
             "type": "AUTHORED_PROCEDURAL_RULE",
             "formula_level_status": "AUTHORED_CONVENTION",
             "exact_equation_locator": "Equations m, H(L-m), and smoothstep coverage in this specification.",
-            "formula_locator": "Project-authored equations; no publication equation attribution."
+            "formula_locator": "Project-authored equations; no publication equation attribution.",
+            "supported_claim": "Source context only; no equation-level attribution is claimed."
           }
         ],
         "independent_tests": {
@@ -5284,7 +5417,114 @@
           "edge_cases": [
             "f<=0; non-finite coordinates; coordinate units mismatch; zero antialias width; L=0 or 1; mask extrema; severe minification; UV seam and distortion; gamma-encoded luminance misuse."
           ]
-        }
+        },
+        "variables": [
+          {
+            "symbol": "x,y",
+            "meaning": "coordinates in the chosen screen or UV plane",
+            "unit": "px or UV",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite coordinates; x and y use the same coordinate system"
+          },
+          {
+            "symbol": "f",
+            "meaning": "inverse half-period parameter in the manifest's pi*f sinusoid",
+            "unit": "coordinate_unit^-1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >0; actual full period is 2/f, so cycles per coordinate unit are f/2"
+          },
+          {
+            "symbol": "theta",
+            "meaning": "screen rotation angle",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite angle; coordinate rotation occurs before evaluating the pattern"
+          },
+          {
+            "symbol": "L",
+            "meaning": "linear normalized luminance",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite [0,1]; derive from linear RGB, not gamma-encoded display RGB"
+          },
+          {
+            "symbol": "m",
+            "meaning": "sinusoidal threshold mask",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "[0,1] for finite coordinates and f"
+          },
+          {
+            "symbol": "w",
+            "meaning": "antialias transition half-width",
+            "unit": "1 (luminance difference)",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0; shader estimate from derivatives of L-m"
+          },
+          {
+            "symbol": "a",
+            "meaning": "ink coverage",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "clamped to [0,1]"
+          }
+        ]
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
