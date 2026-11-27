@@ -55,7 +55,11 @@
       "limits": [
         "Acantilados verticales no pueden representarse como una única función h(x,z); requieren malla general o parches."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "x,z,h tienen L; P(x,z) tiene L en sus tres componentes.",
+        "h_x y h_z son adimensionales cuando x,z son longitudes; P_x×P_z tiene L² y la normal normalizada es adimensional."
+      ]
     },
     {
       "record_key": "D06:2",
@@ -67,8 +71,8 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "n_i(p)=noise(λ^i p)",
-          "justification": "Evaluar ruido base en frecuencia creciente."
+          "equation": "n_i(p)=noise(f_0 λ^i p),  f_0[L⁻¹], p[L]",
+          "justification": "Convertir la coordenada física a argumento adimensional de ruido y aumentar la frecuencia por octava mediante λ>1."
         },
         {
           "step": 2,
@@ -87,20 +91,25 @@
         },
         {
           "step": 5,
-          "equation": "normalize h",
-          "justification": "Remapear rango final al intervalo de altura requerido."
+          "equation": "h(p)=h_0+A_h Σ_{i=0}^{N−1} a^i r_i(p)^2",
+          "justification": "Escalar la suma adimensional por amplitud física A_h y añadir altura base h_0 para obtener altura con unidad de longitud."
         }
       ],
       "assumptions": [
         "λ>1; 0≤a<1 para amplitud decreciente; N finito.",
         "El ruido base tiene dominio y rango declarados.",
-        "La coordenada λ^i p es adimensional/normalizada."
+        "La coordenada λ^i p es adimensional/normalizada.",
+        "f_0 tiene unidad L⁻¹; A_h y h_0 tienen L; las coordenadas de ruido son adimensionales."
       ],
-      "result": "La forma ridged se construye transformando cada octava de ruido y sumándola con pesos geométricos.",
+      "result": "La forma ridged se construye transformando cada octava de ruido en una señal de crestas adimensional y escalándola por amplitud física.",
       "limits": [
         "El rango final depende de ruido, octavas y amplitudes; normalizar después de acumular."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "f0 tiene L⁻¹ y p tiene L; f0λ^i p es adimensional para evaluar noise.",
+        "r_i, a y λ son adimensionales; A_h tiene L; h=h0+A_hΣa^ir_i² conserva L."
+      ]
     },
     {
       "record_key": "D06:3",
@@ -117,8 +126,8 @@
         },
         {
           "step": 2,
-          "equation": "p'=p+q·q(p)",
-          "justification": "Desplazar coordenada de evaluación mediante amplitud q."
+          "equation": "p'=p+A_warp n(p)",
+          "justification": "Desplazar la coordenada física p por una amplitud A_warp de longitud multiplicada por campo vectorial n adimensional."
         },
         {
           "step": 3,
@@ -127,20 +136,25 @@
         },
         {
           "step": 4,
-          "equation": "J(p)=I+q·∇q(p)",
-          "justification": "Derivar el mapeo para entender su estiramiento local y detectar pliegues."
+          "equation": "J(p)=I+A_warp∇n(p)",
+          "justification": "Derivar el mapeo deformado; el producto de amplitud L por gradiente L⁻¹ es adimensional."
         }
       ],
       "assumptions": [
         "q(p) comparte dimensión espacial con p después de escalar amplitud.",
         "La función base y ruido son evaluables en el dominio.",
-        "La deformación puede ser no inyectiva."
+        "La deformación puede ser no inyectiva.",
+        "n(p) es adimensional; A_warp tiene L."
       ],
       "result": "El domain warping compone un campo base con una transformación espacial no lineal.",
       "limits": [
         "Si el Jacobiano pierde rango o cambia orientación, aparecen pliegues; no asumir que el mapeo es invertible."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "p y A_warp tienen L; n(p) es vector adimensional; p' conserva L.",
+        "∇n tiene L⁻¹; A_warp∇n y el Jacobiano J son adimensionales."
+      ]
     },
     {
       "record_key": "D06:5",
@@ -152,40 +166,46 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "s_i=max(0,h_i−h_j)",
-          "justification": "Estimar pendiente entre celdas vecinas."
+          "equation": "S=|∇h|; q_w=F(water,S,Δx)",
+          "justification": "Obtener pendiente adimensional del terreno y calcular flujo de agua por unidad de ancho mediante una ley hidráulica elegida y calibrada."
         },
         {
           "step": 2,
-          "equation": "q_i=k_q·water_i·s_i",
-          "justification": "Modelar flujo de agua proporcional a cantidad de agua y pendiente."
+          "equation": "q_s=K_c |q_w| S",
+          "justification": "Definir capacidad/flujo de sedimento por unidad de ancho; K_c es adimensional en esta parametrización."
         },
         {
           "step": 3,
-          "equation": "capacity_i=K_c·|q_i|·s_i",
-          "justification": "Definir capacidad de transporte según flujo y pendiente."
+          "equation": "∂s/∂t=−∇·q_s+D_rate",
+          "justification": "Aplicar conservación local: la variación del espesor de sedimento es flujo neto saliente más tasa de deposición/erosión."
         },
         {
           "step": 4,
-          "equation": "Δsed_i=capacity_i−sed_i",
-          "justification": "Calcular déficit/exceso de sedimento transportado."
+          "equation": "s_i^{n+1}=s_i^n−(Δt/A_i)Σ_f(q_s·n_f)L_f+Δt D_i",
+          "justification": "Integrar el balance sobre el área de celda A_i y sus caras de longitud L_f; el flujo de una cara se comparte con la celda vecina."
         },
         {
           "step": 5,
-          "equation": "h_i'=h_i−erosion_i+deposition_i",
-          "justification": "Actualizar altura por conservación local de material entre celdas."
+          "equation": "water_i^{n+1}=water_i^n−(Δt/A_i)Σ_f(q_w·n_f)L_f+Δt R_i",
+          "justification": "Aplicar balance análogo de agua con aporte/lluvia R_i y registrar explícitamente las condiciones de frontera."
         }
       ],
       "assumptions": [
-        "La formulación es un modelo discreto simplificado; constantes absorben unidades y deben tiparse.",
-        "El flujo entre celdas se conserva: lo que sale de una celda entra en otra o se deposita.",
-        "El paso temporal y la escala de celda se declaran."
+        "water y sediment son espesores equivalentes en m; q_w y q_s son caudales por unidad de ancho en m²/s.",
+        "K_c es adimensional para la ley q_s=K_c|q_w|S; otras leyes requieren tipado propio.",
+        "A_i tiene m²; L_f tiene m; Δt tiene s; las celdas comparten flujo en caras internas.",
+        "D_i y R_i son tasas de espesor m/s; flujo saliente de una celda es flujo entrante de la vecina."
       ],
-      "result": "La erosión hidráulica se aproxima como transporte de agua/sedimento impulsado por pendiente y capacidad de carga.",
+      "result": "La erosión hidráulica se deriva de balances conservativos de agua y sedimento por volumen de control; la ley de caudal y capacidad debe calibrarse, pero el balance y sus unidades quedan fijados.",
       "limits": [
-        "La forma exacta de capacity y las tasas dependen del modelo; no es una ley universal de erosión."
+        "La ley q_w=F(water,S,Δx) y el transporte de sedimento requieren calibración y un régimen hidráulico explícito.",
+        "El clamp de espesor no debe destruir masa; las correcciones deben contabilizarse en el balance."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "q_w y q_s tienen L²/T; ∇·q_s tiene L/T, igual a ∂sediment/∂t.",
+        "Δt·∇·q_s tiene L; el balance finito-volumen conserva volumen si el flujo saliente de una celda es el entrante de la vecina."
+      ]
     },
     {
       "record_key": "D06:6",
@@ -197,35 +217,40 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "Δh=h_i−h_j",
-          "justification": "Calcular diferencia de altura entre celdas vecinas."
+          "equation": "Δh=h_i−h_j; Δh_crit=Δx tan(θ_r)",
+          "justification": "Convertir el ángulo de reposo en una diferencia de altura crítica para el espaciamiento Δx."
         },
         {
           "step": 2,
-          "equation": "if Δh>talus·distance",
-          "justification": "Activar transferencia cuando la pendiente supera el ángulo/umbral de reposo."
+          "equation": "excess=max(0,Δh−Δh_crit)",
+          "justification": "Calcular el exceso de altura sobre el umbral de estabilidad."
         },
         {
           "step": 3,
-          "equation": "transfer=k_t(Δh−talus·distance)",
-          "justification": "Calcular cantidad transferida proporcional al exceso sobre el umbral."
+          "equation": "ΔV=k_t A_eq·excess",
+          "justification": "Convertir el exceso de altura en volumen transferido mediante área efectiva y fracción de transferencia k_t adimensional."
         },
         {
           "step": 4,
-          "equation": "h_i'=h_i−transfer; h_j'=h_j+transfer",
-          "justification": "Restar y sumar la misma cantidad para conservar masa superficial discreta."
+          "equation": "h_i'=h_i−ΔV/A_i; h_j'=h_j+ΔV/A_j",
+          "justification": "Actualizar las dos celdas con el mismo volumen transferido; la conservación es exacta incluso si las áreas difieren."
         }
       ],
       "assumptions": [
-        "talus se expresa como pendiente o ángulo según convención; no mezclar ambas formas.",
-        "k_t y Δt deben mantener estabilidad; la transferencia no puede exceder material disponible.",
-        "Las celdas usan áreas iguales o se pondera por área."
+        "θ_r es ángulo en radianes; Δx y alturas tienen m.",
+        "k_t es adimensional y limitado para que ΔV no exceda material disponible.",
+        "A_i y A_j son áreas de celda en m²; A_eq debe elegirse según discretización."
       ],
-      "result": "La erosión térmica redistribuye material desde pendientes demasiado pronunciadas hacia vecinos bajos.",
+      "result": "La erosión térmica redistribuye volumen desde la celda alta a la baja cuando la pendiente supera tan(θ_r), conservando volumen mediante transferencia compartida.",
       "limits": [
-        "La conservación simple supone áreas de celda iguales; con áreas distintas conservar volumen, no altura."
+        "La regla de talud es una aproximación de transporte granular; estabilidad requiere controlar Δt y el volumen transferido.",
+        "Para celdas de área desigual, no sumar/restar la misma altura: transferir el mismo volumen ΔV."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "Δh y Δx tienen L; tan(θ_r) es adimensional; Δh_crit=Δx tanθ_r tiene L.",
+        "La transferencia de volumen se calcula con área de celda (L²); el cambio de altura es ΔV/A y tiene L."
+      ]
     },
     {
       "record_key": "D06:9",
@@ -265,7 +290,11 @@
       "limits": [
         "Octavas excesivas pueden introducir detalle por debajo de la resolución de malla/píxel y aliasing."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "f0λ^i p es adimensional; ruido y persistencia a^i son adimensionales.",
+        "A tiene L; D_total es adimensional; h_base+A D_total conserva L."
+      ]
     },
     {
       "record_key": "D06:10",
@@ -310,7 +339,11 @@
       "limits": [
         "No constituye un modelo ecológico validado; requiere datos y reglas calibradas para una región real."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "Altitud tiene L; pendiente, humedad/exposición normalizadas, pesos y scores son adimensionales.",
+        "Los máximos/mínimos de normalización deben ser distintos; especies e IDs son categorías discretas."
+      ]
     },
     {
       "record_key": "D06:11",
@@ -386,18 +419,26 @@
       "sources": [
         "SRC-HUANG-2022",
         "https://doi.org/10.1111/cgf.14588"
+      ],
+      "dimensional_verification": [
+        "L_o y L_i son radiancias W·m⁻²·sr⁻¹; S tiene sr⁻¹ y la integración angular conserva radiancia.",
+        "D y S_R,S_TT,S_TRT tienen sr⁻¹ bajo medida de ángulo sólido; Fresnel, G, índices relativos y cosenos son adimensionales.",
+        "σ_a tiene L⁻¹ y ℓ_path L; exp(−σ_aℓ_path) es adimensional.",
+        "Radio de fibra y recorridos internos tienen L; direcciones y ángulos son adimensionales."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "8/8 claves no protegidas cubiertas.",
-      "Cada derivación incluye pasos y justificación matemática.",
-      "El modelo de cabello se contrasta con la derivación primaria de Huang, Hullin y Hanika (2022).",
-      "No se modifican las cuatro claves protegidas."
+      "8/8 técnicas no protegidas cubiertas; cuatro claves protegidas excluidas",
+      "Todas las derivaciones tienen pasos matemáticos justificados, supuestos, límites y verificaciones dimensionales",
+      "Erosión hidráulica reformulada como balance finito-volumen conservativo con q_w/q_s en m²/s",
+      "Erosión térmica compara Δh con Δx·tan(θ_r) y conserva volumen aun con áreas distintas",
+      "Domain warping y ridged multifractal usan argumentos de ruido adimensionales y amplitudes físicas tipadas",
+      "Modelo BCSDF de cabello incluye dimensiones de radiancia, distribución angular y absorción interna"
     ],
     "limitations": [
-      "La derivación establece los modelos; calibración de parámetros, estabilidad de simulación y validación visual pertenecen a puntos posteriores."
+      "Las leyes constitutivas hidráulicas y térmicas requieren calibración; la derivación fija balances y unidades, no parámetros experimentales. La adaptación shader y validación visual pertenecen a puntos posteriores."
     ]
   },
   "integrity": {
