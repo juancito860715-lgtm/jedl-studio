@@ -1,0 +1,493 @@
+{
+  "title": "Point 3 — Algoritmos completos derivados de las matemáticas — D03",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D03",
+    "record_count": 8,
+    "excluded_protected_records": 11,
+    "excluded_keys": [
+      "D03:2",
+      "D03:4",
+      "D03:5",
+      "D03:6",
+      "D03:7",
+      "D03:8",
+      "D03:9",
+      "D03:10",
+      "D03:11",
+      "D03:12",
+      "D03:15"
+    ],
+    "excluded_reason": "Registros protegidos de Crimson Loong preservados sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D03:0",
+      "name": "Anatomía por volúmenes",
+      "inputs": [
+        "Primitivas anatómicas con SDF d_i(p)",
+        "Marco espacial y convención de signo común",
+        "Parámetro de suavizado k≥0",
+        "Bounds y resolución de muestreo"
+      ],
+      "outputs": [
+        "Campo combinado d_union",
+        "Malla de isosuperficie d_union=0",
+        "Normales de superficie"
+      ],
+      "preconditions": [
+        "Todos los SDF usan el mismo marco, unidad de longitud y signo: negativo dentro, cero en frontera, positivo fuera.",
+        "k=0 selecciona unión dura; k>0 selecciona smooth-min polinómico.",
+        "Bounds finitos que contienen las primitivas y resolución espacial h>0.",
+        "La lista de primitivas tiene orden estable por identificador."
+      ],
+      "algorithm_steps": [
+        "Validar que cada primitiva tiene parámetros finitos y un evaluador SDF válido.",
+        "Construir la rejilla 3D sobre bounds con paso h y añadir margen de al menos una celda.",
+        "Para cada punto de rejilla p, evaluar d_1(p) y combinar secuencialmente con el resto de campos.",
+        "Si k=0, usar d←min(d,d_i); si k>0, calcular h_s=max(k−|d−d_i|,0)/k y d←min(d,d_i)−k·h_s²/4.",
+        "Guardar d_union(p) en el volumen escalar y registrar valores no finitos como fallo de evaluación.",
+        "Extraer la isosuperficie cero con Marching Cubes usando la misma rejilla y convención de signo.",
+        "Calcular normales mediante gradiente del campo o gradientes interpolados; normalizar solo si la magnitud supera tolerancia.",
+        "Validar que los vértices quedan dentro de bounds y que no hay índices inválidos; publicar el resultado de forma atómica."
+      ],
+      "pseudocode": "function buildAnatomicalUnion(primitives, k, bounds, h):\n  require primitives not empty and h > 0 and k >= 0\n  sort primitives by stableId\n  grid = makeGrid(expand(bounds, h), h)\n  for p in grid.nodes:\n    d = primitives[0].sdf(p)\n    for primitive in primitives[1:]:\n      di = primitive.sdf(p)\n      if k == 0:\n        d = min(d, di)\n      else:\n        hs = max(k - abs(d - di), 0) / k\n        d = min(d, di) - k * hs * hs / 4\n    require finite(d)\n    grid.value[p] = d\n  mesh = marchingCubes(grid, iso=0)\n  for vertex in mesh.vertices:\n    g = gradient(grid, vertex.position)\n    vertex.normal = normalizeOrFallback(g)\n  validateMeshIndicesBoundsAndFiniteValues(mesh)\n  return mesh",
+      "invariants": [
+        "Cada combinación compara campos con idéntico convenio de signo y unidad.",
+        "La salida del campo tiene unidad de longitud; la superficie es su nivel cero.",
+        "Con k=0 el resultado coincide con la unión dura min de los SDF.",
+        "El orden de evaluación es determinista."
+      ],
+      "edge_cases": [
+        "Lista vacía: rechazar.",
+        "k<0, h≤0 o bounds no finitos: rechazar.",
+        "Gradiente casi nulo: usar normal geométrica de triángulo o marcar normal no definida.",
+        "Smooth-min cambia la forma en intersecciones; no afirmar que el campo resultante sea SDF exacto."
+      ],
+      "complexity": "O(G·P + V + T), donde G es número de nodos de rejilla, P número de primitivas, V vértices y T triángulos extraídos.",
+      "failure_conditions": [
+        "SDF con marcos/unidades incompatibles",
+        "Evaluación no finita",
+        "Bounds insuficientes o resolución no positiva",
+        "Malla extraída con índices o posiciones inválidas"
+      ],
+      "derived_from": [
+        "d_union=min_i d_i",
+        "h_s=max(k−|d_1−d_2|,0)/k",
+        "d_smooth=min(d_1,d_2)−k h_s²/4",
+        "S={p:d_union(p)=0}"
+      ]
+    },
+    {
+      "record_key": "D03:1",
+      "name": "Metaballs",
+      "inputs": [
+        "Centros c_i y radios R_i>0",
+        "Umbral iso>0",
+        "Bounds y rejilla de muestreo",
+        "Modo de singularidad: singular exacto o regularizado con ε>0"
+      ],
+      "outputs": [
+        "Campo metaball F(p)",
+        "Malla F(p)=iso"
+      ],
+      "preconditions": [
+        "Centros y radios finitos; radios estrictamente positivos.",
+        "iso>0; bounds finitos; paso de rejilla h>0.",
+        "El modo de núcleo queda fijado antes de evaluar: exacto o regularizado."
+      ],
+      "algorithm_steps": [
+        "Validar centros, radios, umbral, bounds y resolución.",
+        "Para cada nodo p inicializar F=0.",
+        "Para cada metaball calcular r²=||p−c_i||².",
+        "En modo exacto, si r²=0 asignar contribución +∞; en otro caso sumar R_i²/r².",
+        "En modo regularizado, exigir ε>0 y sumar R_i²/(r²+ε²); registrar que esta variante cambia el campo.",
+        "Guardar F y rechazar NaN; los infinitos permitidos solo se usan como interior y no se escriben como NaN.",
+        "Extraer la isosuperficie F=iso con Marching Cubes y validar la malla."
+      ],
+      "pseudocode": "function buildMetaballs(centers, radii, iso, bounds, h, epsilon):\n  require len(centers) == len(radii) and len(centers) > 0\n  require iso > 0 and h > 0\n  regularized = epsilon is not null\n  if regularized: require epsilon > 0\n  grid = makeGrid(bounds, h)\n  for p in grid.nodes:\n    F = 0\n    for i in 0..len(centers)-1:\n      r2 = squaredDistance(p, centers[i])\n      if regularized:\n        F += radii[i]^2 / (r2 + epsilon^2)\n      else if r2 == 0:\n        F = +infinity\n        break\n      else:\n        F += radii[i]^2 / r2\n    grid.value[p] = F\n  return validateMesh(marchingCubes(grid, iso))",
+      "invariants": [
+        "Cada contribución y F son adimensionales.",
+        "F≥0; al aumentar la distancia a todos los centros, cada contribución disminuye.",
+        "La misma definición de núcleo se usa en todos los nodos."
+      ],
+      "edge_cases": [
+        "p=c_i en modo exacto: tratar como interior (+∞), nunca NaN.",
+        "ε=0 en modo regularizado: rechazar.",
+        "Umbral fuera del rango del campo: devolver malla vacía con estado explícito.",
+        "Resolución insuficiente: advertir que la superficie puede quedar submuestreada."
+      ],
+      "complexity": "O(G·M + V + T), G nodos, M metaballs, V vértices y T triángulos.",
+      "failure_conditions": [
+        "Radios no positivos o datos no finitos",
+        "Umbral o resolución inválidos",
+        "NaN en campo",
+        "Bounds no contienen la región de isosuperficie"
+      ],
+      "derived_from": [
+        "r_i(p)=||p−c_i||",
+        "F(p)=Σ_i R_i²/r_i(p)²",
+        "S={p:F(p)=iso}"
+      ]
+    },
+    {
+      "record_key": "D03:3",
+      "name": "Perfil anatómico longitudinal",
+      "inputs": [
+        "Claves ordenadas (s_i,r_i)",
+        "Pendientes m_i=dr/ds opcionales",
+        "Longitud de eje L_body",
+        "Modo de extrapolación: clamp"
+      ],
+      "outputs": [
+        "Radio r(s)",
+        "Sección transversal por muestra s"
+      ],
+      "preconditions": [
+        "L_body>0; claves finitas con s_i estrictamente crecientes.",
+        "Radios r_i≥0; s_i dentro de [0,L_body].",
+        "Pendientes, si se suministran, tienen unidad de radio/longitud y son finitas.",
+        "Extrapolación fuera del rango se fija en clamp."
+      ],
+      "algorithm_steps": [
+        "Ordenar las claves por s_i y rechazar duplicados.",
+        "Validar que todas las claves están dentro de [0,L_body] y que r_i≥0.",
+        "Si faltan pendientes, calcular secantes Δr_i/Δs_i y pendientes interiores con regla monótona para impedir overshoot.",
+        "Para cada consulta s, aplicar clamp al intervalo de claves.",
+        "Localizar el segmento [s_i,s_{i+1}] por búsqueda binaria y calcular u=(s−s_i)/Δs.",
+        "Evaluar la base Hermite h00,h10,h01,h11 y r(s)=h00r_i+h10Δs m_i+h01r_{i+1}+h11Δs m_{i+1}.",
+        "Aplicar la limitación monótona declarada y garantizar r(s)≥0; si no puede garantizarse, rechazar la configuración de pendientes.",
+        "Emitir radio y sección asociada."
+      ],
+      "pseudocode": "function radiusAt(s, keys, L_body):\n  require L_body > 0 and strictlyIncreasing(keys.s)\n  s = clamp(s, keys[0].s, keys[last].s)\n  i = binarySearchSegment(keys.s, s)\n  ds = keys[i+1].s - keys[i].s\n  u = (s - keys[i].s) / ds\n  m0,m1 = monotoneTangents(keys, i)\n  r = h00(u)*keys[i].r + h10(u)*ds*m0 + h01(u)*keys[i+1].r + h11(u)*ds*m1\n  if r < -tolerance: fail(\"negative radius overshoot\")\n  return max(0, r)",
+      "invariants": [
+        "u∈[0,1] y es adimensional.",
+        "r(s) conserva unidad de longitud y nunca es negativa.",
+        "La curva reproduce exactamente radios en las claves.",
+        "No se extrapola fuera del dominio sin una regla explícita."
+      ],
+      "edge_cases": [
+        "Una sola clave: perfil constante solo si se declara explícitamente.",
+        "Δs=0: rechazar claves duplicadas.",
+        "r_i=0 en extremos: sección puntual; cerrar con tapa o geometría de punta.",
+        "Pendientes incompatibles: reducir con limitador monótono o rechazar."
+      ],
+      "complexity": "Preprocesamiento O(K); consulta O(log K) por búsqueda binaria y O(1) evaluación, con K claves.",
+      "failure_conditions": [
+        "Claves no ordenables o duplicadas",
+        "Radio negativo",
+        "Longitud de eje no positiva",
+        "Pendientes que producen overshoot no corregible"
+      ],
+      "derived_from": [
+        "u=(s−s_i)/(s_{i+1}−s_i)",
+        "r(s)=h00r_i+h10Δs m_i+h01r_{i+1}+h11Δs m_{i+1}",
+        "r(s)≥0"
+      ]
+    },
+    {
+      "record_key": "D03:13",
+      "name": "Skinning lineal",
+      "inputs": [
+        "Posiciones p_bind por vértice",
+        "Pesos w_ij por hueso",
+        "Matrices M_world,j y M_bind,j",
+        "Normales y tangentes opcionales"
+      ],
+      "outputs": [
+        "Posiciones deformadas p'",
+        "Normales deformadas",
+        "Estado de pesos inválidos"
+      ],
+      "preconditions": [
+        "Matrices finitas y misma convención de coordenadas/orden.",
+        "M_bind,j invertibles; pesos w_ij≥0 y suma 1 por vértice.",
+        "Número de influencias dentro del límite de datos/shader.",
+        "La transformación usada es afín; posición homogénea con w=1."
+      ],
+      "algorithm_steps": [
+        "Precalcular M_skin,j=M_world,j·inverse(M_bind,j) para cada hueso.",
+        "Para cada vértice, recopilar influencias válidas y eliminar pesos negativos o no finitos con error explícito.",
+        "Si la suma de pesos es cero, aplicar política declarada: rechazar vértice o asignar influencia de respaldo.",
+        "Normalizar pesos para que sumen 1 dentro de tolerancia.",
+        "Calcular p'_bind=Σ_j w_ij·(M_skin,j·p_bind) en coordenadas homogéneas.",
+        "Para normales, transformar cada normal con la matriz normal inversa-transpuesta del bloque lineal correspondiente, ponderar y normalizar; si degenerada, usar normal geométrica.",
+        "Validar que p' y normales son finitos; publicar buffers actualizados."
+      ],
+      "pseudocode": "function skinLBS(vertices, influences, bones):\n  for bone in bones:\n    require finite(bone.world) and invertible(bone.bind)\n    bone.skin = bone.world * inverse(bone.bind)\n  for v in vertices:\n    valid = filterFiniteNonnegative(influences[v])\n    total = sum(valid.weights)\n    if total <= weightEpsilon: failVertex(v)\n    normalizeWeights(valid, total)\n    p = vec4(v.bindPosition, 1)\n    out = vec4(0,0,0,0)\n    nOut = vec3(0)\n    for inf in valid:\n      out += inf.weight * bones[inf.bone].skin * p\n      nOut += inf.weight * normalMatrix(bones[inf.bone].skin) * v.normal\n    v.position = out.xyz / out.w\n    v.normal = normalizeOrGeometricFallback(nOut)\n  validateFiniteBuffers(vertices)",
+      "invariants": [
+        "Σw_ij=1 por vértice; pesos no negativos.",
+        "Una sola influencia de peso 1 reproduce exactamente esa transformación.",
+        "En bind pose, M_skin,j es identidad y p'=p dentro de tolerancia.",
+        "Las posiciones permanecen en el marco de salida declarado."
+      ],
+      "edge_cases": [
+        "Suma de pesos cero: fallo explícito o fallback configurado, nunca división por cero.",
+        "Matriz bind singular: rechazar hueso.",
+        "Escala no uniforme: normal con normalMatrix; advertir pérdida volumétrica de LBS.",
+        "Mezcla con coordenada homogénea w≈0: rechazar vértice."
+      ],
+      "complexity": "O(B) para matrices de huesos más O(V·I) para V vértices e I influencias máximas.",
+      "failure_conditions": [
+        "Matriz bind no invertible",
+        "Pesos inválidos o suma cero",
+        "Buffers no finitos",
+        "Índices de hueso fuera de rango"
+      ],
+      "derived_from": [
+        "M_skin,j=M_world,j M_bind,j⁻¹",
+        "p'=Σ_j w_j M_skin,j p",
+        "Σ_j w_j=1"
+      ]
+    },
+    {
+      "record_key": "D03:14",
+      "name": "Dual quaternion skinning",
+      "inputs": [
+        "Posiciones bind",
+        "Pesos por vértice",
+        "Transformaciones rígidas de huesos",
+        "Convención quaternion y dual quaternion"
+      ],
+      "outputs": [
+        "Posiciones deformadas",
+        "Normales transformadas",
+        "Diagnóstico de mezcla degenerada"
+      ],
+      "preconditions": [
+        "Cada transformación es rígida: rotación unitaria y traslación; no escala no uniforme ni cizalla.",
+        "Pesos no negativos y normalizados por vértice.",
+        "Todos los cuaterniones usan el mismo orden y convención.",
+        "Cada parte real tiene norma cercana a 1."
+      ],
+      "algorithm_steps": [
+        "Convertir cada transformación skin a Q_j=q_r,j+εq_d,j con q_d,j=0.5·t_quat,j⊗q_r,j.",
+        "Elegir como referencia el dual quaternion de mayor peso para cada vértice.",
+        "Para cada influencia, si dot(q_r,j,q_r,ref)<0, multiplicar ambas partes real y dual por −1.",
+        "Calcular Q_bar=Σ_j w_j s_j Q_j.",
+        "Calcular n=||q_bar,r||; si n≤ε_q, usar transformación de mayor peso y registrar fallback.",
+        "Normalizar q_r=q_bar,r/n y q_d0=q_bar,d/n.",
+        "Ortonormalizar q_d=q_d0−q_r·dot(q_r,q_d0) para imponer q_r·q_d=0.",
+        "Transformar p mediante q_r p q_r* + 2(q_d q_r*)_vector; transformar normal solo con q_r y normalizar.",
+        "Validar finitud y ortogonalidad real-dual."
+      ],
+      "pseudocode": "function skinDQS(vertex, influences, dualBones):\n  valid = normalizeInfluences(influences)\n  ref = dualBones[argMaxWeight(valid)]\n  realSum = 0; dualSum = 0\n  for inf in valid:\n    Q = dualBones[inf.bone]\n    if dot(Q.real, ref.real) < 0:\n      Q.real = -Q.real; Q.dual = -Q.dual\n    realSum += inf.weight * Q.real\n    dualSum += inf.weight * Q.dual\n  n = length(realSum)\n  if n <= quatEpsilon: return transformByHighestWeight(vertex)\n  qr = realSum / n\n  qd0 = dualSum / n\n  qd = qd0 - qr * dot(qr, qd0)\n  pOut = rotate(qr, vertex.position) + 2 * vectorPart(qd * conjugate(qr))\n  nOut = normalize(rotate(qr, vertex.normal))\n  return finite(pOut, nOut)",
+      "invariants": [
+        "La parte real queda unitaria; q_r·q_d≈0.",
+        "La suma de pesos es 1.",
+        "Una influencia de peso 1 reproduce la transformación rígida.",
+        "Alinear signos antes de sumar evita cancelación antipodal."
+      ],
+      "edge_cases": [
+        "Pesos nulos: error o fallback explícito.",
+        "Norma real casi cero: fallback a mayor peso.",
+        "Escala no uniforme/cizalla: rechazar o derivar a LBS.",
+        "Cuaternión no finito: rechazar hueso."
+      ],
+      "complexity": "O(B) para conversión de huesos y O(V·I) para deformación.",
+      "failure_conditions": [
+        "Transformación no rígida",
+        "Pesos inválidos",
+        "Mezcla dual quaternion degenerada sin fallback",
+        "Convención de quaternion inconsistente"
+      ],
+      "derived_from": [
+        "q_d=0.5 t_quat⊗q_r",
+        "Q_bar=Σ_i w_i s_i Q_i",
+        "q_r'=q_bar,r/||q_bar,r||",
+        "q_d'=q_bar,d/||q_bar,r||−q_r'(q_r'·q_bar,d/||q_bar,r||)",
+        "p'=q_r p q_r*+2(q_d q_r*)_vector"
+      ]
+    },
+    {
+      "record_key": "D03:16",
+      "name": "Ojos y pupilas",
+      "inputs": [
+        "Centro ocular e",
+        "Objetivo g",
+        "Normal ocular n unitaria",
+        "Radio de pupila r_p",
+        "Contorno de iris/abertura"
+      ],
+      "outputs": [
+        "Posición de pupila p_pupil",
+        "Dirección tangencial de mirada"
+      ],
+      "preconditions": [
+        "e,g finitos y en el mismo marco.",
+        "n unitaria; radio r_p≥0 y limitado por contorno.",
+        "Tolerancia ε_L tiene unidad de longitud.",
+        "Existe dirección tangencial previa o marco local de respaldo."
+      ],
+      "algorithm_steps": [
+        "Calcular v=g−e y su longitud.",
+        "Si ||v||≤ε_L, conservar última dirección válida; no normalizar vector nulo.",
+        "Normalizar g_dir=v/||v||.",
+        "Proyectar g_dir al plano ocular: t=g_dir−(g_dir·n)n.",
+        "Si ||t||≤ε_dir, usar la última dirección tangencial válida o el eje local de respaldo.",
+        "Normalizar u=t/||t||.",
+        "Calcular desplazamiento r_p u y limitarlo al contorno válido del iris mediante clamp radial/ellíptico.",
+        "Emitir p_pupil=e+r_p u_clamped y actualizar dirección válida."
+      ],
+      "pseudocode": "function updatePupil(e, target, n, radius, contour, lastDir):\n  v = target - e\n  if length(v) <= epsilonLength: return keepPrevious(e, lastDir)\n  g = normalize(v)\n  t = g - dot(g,n)*n\n  if length(t) <= epsilonDirection: t = fallbackTangent(n,lastDir)\n  u = normalize(t)\n  offset = clampToContour(radius*u, contour)\n  return {position:e+offset, direction:normalize(offset or u)}",
+      "invariants": [
+        "n y u son unitarios y ortogonales dentro de tolerancia.",
+        "La pupila permanece dentro del contorno permitido.",
+        "La posición final tiene unidad de longitud.",
+        "Un objetivo coincidente no produce NaN ni salto."
+      ],
+      "edge_cases": [
+        "Objetivo en centro del ojo: conservar última dirección.",
+        "Proyección tangencial nula: fallback estable.",
+        "r_p=0: pupila en centro.",
+        "Contorno degenerado: rechazar configuración o usar disco de respaldo."
+      ],
+      "complexity": "O(1) por ojo, más O(C) si el contorno usa C segmentos para clamp.",
+      "failure_conditions": [
+        "Normal ocular no unitaria/no finita",
+        "Contorno inválido",
+        "Radio negativo",
+        "Ausencia de fallback ante degeneración"
+      ],
+      "derived_from": [
+        "g=normalize(target−eye)",
+        "g_t=g−(g·n)n",
+        "u=normalize(g_t)",
+        "p_pupil=eye+r_p u"
+      ]
+    },
+    {
+      "record_key": "D03:17",
+      "name": "FABRIK para cadenas articuladas",
+      "inputs": [
+        "Raíz fija p_0",
+        "Longitudes l_i>0",
+        "Objetivo p_target",
+        "Tolerancia ε_L",
+        "Máximo de iteraciones",
+        "Direcciones previas de respaldo"
+      ],
+      "outputs": [
+        "Posiciones de articulaciones p_i",
+        "Error de efector final",
+        "Estado alcanzable/no alcanzable"
+      ],
+      "preconditions": [
+        "Al menos un segmento; todas las longitudes finitas y positivas.",
+        "Raíz y objetivo finitos; ε_L>0; maxIterations entero positivo.",
+        "Las posiciones iniciales respetan aproximadamente longitudes o pueden inicializarse en línea.",
+        "La política para objetivo inalcanzable queda definida."
+      ],
+      "algorithm_steps": [
+        "Calcular R=Σ_i l_i y d=||p_target−p_0||.",
+        "Si d>R, extender todos los segmentos hacia el objetivo conservando cada longitud y devolver estado UNREACHABLE.",
+        "Si d≤ε_L, conservar configuración válida o usar dirección previa para evitar vector nulo.",
+        "Para objetivo alcanzable, fijar efector final p_n=p_target.",
+        "Backward pass: para i=n−1…0, fijar p_i=p_{i+1}+l_i·normalize(p_i−p_{i+1}); usar dirección previa si el vector es degenerado.",
+        "Fijar raíz p_0 al ancla original.",
+        "Forward pass: para i=0…n−1, fijar p_{i+1}=p_i+l_i·normalize(p_{i+1}−p_i); usar fallback si es degenerado.",
+        "Calcular error ||p_n−p_target|| y comprobar longitudes de todos los segmentos.",
+        "Repetir hasta error≤ε_L o maxIterations; devolver convergencia explícita."
+      ],
+      "pseudocode": "function fabrik(root, target, lengths, positions, epsilon, maxIter):\n  R = sum(lengths)\n  d = distance(root, target)\n  if d > R:\n    dir = normalizeOrFallback(target-root)\n    positions[0] = root\n    for i in 0..len(lengths)-1:\n      positions[i+1] = positions[i] + lengths[i]*dir\n    return {positions, reachable:false}\n  for iter in 1..maxIter:\n    positions[last] = target\n    for i from last-1 downto 0:\n      dir = normalizeOrPrevious(positions[i]-positions[i+1])\n      positions[i] = positions[i+1] + lengths[i]*dir\n    positions[0] = root\n    for i in 0..last-1:\n      dir = normalizeOrPrevious(positions[i+1]-positions[i])\n      positions[i+1] = positions[i] + lengths[i]*dir\n    if distance(positions[last],target) <= epsilon:\n      return {positions, reachable:true, converged:true}\n  return {positions, reachable:true, converged:false}",
+      "invariants": [
+        "La raíz permanece fija en cada forward pass.",
+        "Cada segmento mantiene longitud l_i dentro de tolerancia.",
+        "No se normalizan vectores nulos sin fallback.",
+        "El estado de alcanzabilidad se informa separadamente de convergencia."
+      ],
+      "edge_cases": [
+        "Objetivo fuera de alcance: cadena extendida y estado UNREACHABLE.",
+        "Objetivo coincidente con raíz: usar configuración previa o eje estable.",
+        "Segmentos alineados/coincidentes: reutilizar dirección previa.",
+        "maxIterations agotado: devolver mejor configuración con converged=false."
+      ],
+      "complexity": "O(I·N), I iteraciones hasta maxIterations y N segmentos.",
+      "failure_conditions": [
+        "Longitud cero/negativa",
+        "Datos no finitos",
+        "Falta de fallback ante segmentos degenerados",
+        "Error superior a tolerancia al agotar iteraciones"
+      ],
+      "derived_from": [
+        "R=Σ_i l_i",
+        "p_i←p_{i+1}+l_i normalize(p_i−p_{i+1})",
+        "p_{i+1}←p_i+l_i normalize(p_{i+1}−p_i)"
+      ]
+    },
+    {
+      "record_key": "D03:18",
+      "name": "Skinning por dual quaternions con límite de influencias",
+      "inputs": [
+        "Posiciones bind",
+        "Influencias (boneId,weight)",
+        "Límite n_max",
+        "Dual quaternions de skin por hueso"
+      ],
+      "outputs": [
+        "Posiciones DQS deformadas",
+        "Pesos compactados",
+        "Diagnóstico de fallback"
+      ],
+      "preconditions": [
+        "1≤n_max≤límite real del formato/shader.",
+        "Pesos finitos y no negativos; transformaciones rígidas.",
+        "Convención de quaternion consistente y bind pose válida."
+      ],
+      "algorithm_steps": [
+        "Para cada vértice, ordenar influencias por peso descendente con desempate estable por boneId.",
+        "Conservar las primeras n_max influencias y descartar el resto; registrar peso descartado para diagnóstico.",
+        "Si la suma retenida es cero, rechazar vértice o usar fallback explícito.",
+        "Renormalizar pesos retenidos para que sumen 1.",
+        "Elegir dual quaternion de referencia de mayor peso y alinear signos antipodales.",
+        "Mezclar partes reales y duales; normalizar parte real y ortogonalizar dual.",
+        "Transformar posición y normal como en DQS rígido.",
+        "Validar el resultado y guardar conteo efectivo de influencias."
+      ],
+      "pseudocode": "function skinDQSBounded(vertex, influences, dualBones, nMax):\n  require 1 <= nMax <= shaderInfluenceLimit\n  kept = stableSortByWeightThenBoneId(influences).take(nMax)\n  total = sum(kept.weights)\n  if total <= weightEpsilon: failVertex(vertex)\n  normalizeWeights(kept,total)\n  return dqsBlendAndTransform(vertex, kept, dualBones)",
+      "invariants": [
+        "Número de influencias por vértice ≤n_max.",
+        "Pesos retenidos suman 1.",
+        "El resultado de una sola influencia coincide con la transformación rígida.",
+        "El truncamiento y desempate son deterministas."
+      ],
+      "edge_cases": [
+        "Más de n_max influencias: truncar según orden estable y registrar pérdida de peso.",
+        "Suma retenida cero: fallo/fallback declarado.",
+        "Mezcla degenerada: fallback a mayor peso.",
+        "Transformación no rígida: rechazar o derivar a LBS."
+      ],
+      "complexity": "O(I log I) por vértice para ordenar influencias; O(n_max) para mezcla y transformación.",
+      "failure_conditions": [
+        "n_max fuera del límite",
+        "Pesos no finitos/negativos o suma cero",
+        "Dual quaternion degenerado",
+        "Transformación con escala no uniforme o cizalla"
+      ],
+      "derived_from": [
+        "1≤n_b≤n_max",
+        "Σ_j w_j=1",
+        "Q_bar=Σ_j w_j s_j Q_j",
+        "Normalización dual quaternion y transformación de punto"
+      ]
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "8/8 técnicas no protegidas tienen entradas, salidas, precondiciones, pasos completos, pseudocódigo, invariantes, casos límite, complejidad y condiciones de fallo.",
+      "Cada algoritmo se deriva de las ecuaciones y restricciones de punto 1 y las derivaciones de punto 2.",
+      "No se incluyen decisiones arbitrarias sin declarar; los fallbacks y tolerancias se parametrizan explícitamente.",
+      "11 técnicas protegidas permanecen excluidas."
+    ],
+    "limitations": [
+      "La corrección numérica, los casos de prueba independientes y el contraste con referencias se validan en punto 5; la integración al manifiesto principal corresponde al punto 6."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
