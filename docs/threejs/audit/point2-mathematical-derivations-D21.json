@@ -1,0 +1,884 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D21 Mecánica de fluidos avanzada",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D21",
+    "record_count": 22,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D21 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D21:0",
+      "name": "Ecuación de continuidad",
+      "starting_principles": [
+        "Fluido continuo; densidad y velocidad diferenciables.",
+        "Volumen de control fijo o forma ALE declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "mass(V,t)=∫_Vρ dV",
+          "justification": "Definir masa en volumen de control."
+        },
+        {
+          "step": 2,
+          "equation": "d/dt∫_VρdV+∮_∂Vρu·n dA=0",
+          "justification": "Conservación: variación de masa más flujo neto saliente es cero."
+        },
+        {
+          "step": 3,
+          "equation": "∂ρ/∂t+∇·(ρu)=0",
+          "justification": "Aplicar teorema de divergencia y forma local."
+        }
+      ],
+      "assumptions": [
+        "Fluido continuo; densidad y velocidad diferenciables.",
+        "Volumen de control fijo o forma ALE declarada."
+      ],
+      "result": "La continuidad deriva de conservación local de masa.",
+      "limits": [
+        "No describe por sí sola la relación constitutiva ni la dinámica de presión."
+      ]
+    },
+    {
+      "record_key": "D21:1",
+      "name": "Navier–Stokes incomprensible",
+      "starting_principles": [
+        "ρ constante positiva; viscosidad μ≥0; fluido newtoniano.",
+        "∇·u=0; condiciones de borde y estado inicial definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ρ Du/Dt=∇·σ+ρf",
+          "justification": "Balance de momento lineal por unidad de volumen."
+        },
+        {
+          "step": 2,
+          "equation": "σ=−pI+2μD; D=(∇u+∇uᵀ)/2",
+          "justification": "Separar presión isotrópica y tensión viscosa newtoniana."
+        },
+        {
+          "step": 3,
+          "equation": "D/Dt=∂/∂t+u·∇",
+          "justification": "Expandir derivada material."
+        },
+        {
+          "step": 4,
+          "equation": "∂u/∂t+(u·∇)u=−∇p/ρ+ν∇²u+f",
+          "justification": "Para ρ constante y ∇·u=0, reducir divergencia de tensión viscosa a ν∇²u."
+        }
+      ],
+      "assumptions": [
+        "ρ constante positiva; viscosidad μ≥0; fluido newtoniano.",
+        "∇·u=0; condiciones de borde y estado inicial definidos."
+      ],
+      "result": "Navier–Stokes resulta de conservación de momento con tensión newtoniana y restricción de incomprensibilidad.",
+      "limits": [
+        "La ecuación requiere discretización y condiciones de contorno; no hay solución cerrada general."
+      ]
+    },
+    {
+      "record_key": "D21:2",
+      "name": "Euler inviscido",
+      "starting_principles": [
+        "Viscosidad despreciable en la escala de interés.",
+        "Fluido ideal; condiciones de borde compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ρ Du/Dt=∇·σ+ρf",
+          "justification": "Partir del balance de momento."
+        },
+        {
+          "step": 2,
+          "equation": "μ→0 ⇒ σ=−pI",
+          "justification": "Omitir tensión viscosa en el límite inviscido."
+        },
+        {
+          "step": 3,
+          "equation": "∂u/∂t+(u·∇)u=−∇p/ρ+f",
+          "justification": "Sustituir presión y derivada material."
+        }
+      ],
+      "assumptions": [
+        "Viscosidad despreciable en la escala de interés.",
+        "Fluido ideal; condiciones de borde compatibles."
+      ],
+      "result": "Euler se obtiene de Navier–Stokes al despreciar viscosidad.",
+      "limits": [
+        "No es apropiado cerca de capas límite donde la viscosidad domina."
+      ]
+    },
+    {
+      "record_key": "D21:3",
+      "name": "Ecuación de energía térmica",
+      "starting_principles": [
+        "c_p>0; k≥0; propiedades constantes o dependientes declaradas.",
+        "Temperatura y fuentes con unidades compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ρc_p DT/Dt",
+          "justification": "Tasa material de cambio de energía térmica por volumen."
+        },
+        {
+          "step": 2,
+          "equation": "q=−k∇T",
+          "justification": "Ley de Fourier para flujo de calor."
+        },
+        {
+          "step": 3,
+          "equation": "−∇·q+Q=k∇²T+Q",
+          "justification": "Sustituir flujo conductivo y fuente."
+        },
+        {
+          "step": 4,
+          "equation": "ρc_p(∂T/∂t+u·∇T)=k∇²T+Q",
+          "justification": "Combinar conducción, convección y fuente volumétrica."
+        }
+      ],
+      "assumptions": [
+        "c_p>0; k≥0; propiedades constantes o dependientes declaradas.",
+        "Temperatura y fuentes con unidades compatibles.",
+        "Fluido continuo."
+      ],
+      "result": "La ecuación deriva del primer principio aplicado a un elemento fluido con conducción y fuente.",
+      "limits": [
+        "La forma simplificada omite compresibilidad, disipación viscosa y cambios de fase."
+      ]
+    },
+    {
+      "record_key": "D21:4",
+      "name": "Advección semi-Lagrangiana",
+      "starting_principles": [
+        "Campo u interpolable; Δt finito.",
+        "Muestreo espacial y condiciones de borde definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dx/dt=u(x,t)",
+          "justification": "Definir trayectoria característica del campo de velocidad."
+        },
+        {
+          "step": 2,
+          "equation": "dq/dt=0 along characteristic",
+          "justification": "En advección pura, el escalar q permanece constante siguiendo la partícula."
+        },
+        {
+          "step": 3,
+          "equation": "x_back=x−u(x,t)Δt",
+          "justification": "Aproximar trayectoria hacia atrás durante un paso."
+        },
+        {
+          "step": 4,
+          "equation": "q^{n+1}(x)=q^n(x_back)",
+          "justification": "Muestrear el campo anterior en la posición de origen."
+        }
+      ],
+      "assumptions": [
+        "Campo u interpolable; Δt finito.",
+        "Muestreo espacial y condiciones de borde definidos."
+      ],
+      "result": "Semi-Lagrangiano deriva de evaluar el campo en la característica que llega al punto actual.",
+      "limits": [
+        "Es estable para pasos grandes en muchos casos, pero introduce difusión numérica."
+      ]
+    },
+    {
+      "record_key": "D21:5",
+      "name": "Proyección de presión",
+      "starting_principles": [
+        "ρ>0; Δt>0; operador Laplaciano y fronteras definidos.",
+        "El solver de Poisson y gradiente usan discretización compatible."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u*=u^n+Δt·(advection+viscosity+force)",
+          "justification": "Calcular velocidad tentativa sin imponer incomprensibilidad."
+        },
+        {
+          "step": 2,
+          "equation": "u^{n+1}=u*−(Δt/ρ)∇p",
+          "justification": "Corregir velocidad mediante gradiente de presión."
+        },
+        {
+          "step": 3,
+          "equation": "∇·u^{n+1}=0",
+          "justification": "Imponer restricción de divergencia nula."
+        },
+        {
+          "step": 4,
+          "equation": "∇²p=(ρ/Δt)∇·u*",
+          "justification": "Tomar divergencia de la corrección y despejar Poisson."
+        }
+      ],
+      "assumptions": [
+        "ρ>0; Δt>0; operador Laplaciano y fronteras definidos.",
+        "El solver de Poisson y gradiente usan discretización compatible."
+      ],
+      "result": "La proyección se deriva de separar velocidad tentativa y componente gradiente para proyectar sobre campos solenoidales.",
+      "limits": [
+        "Una discretización inconsistente puede dejar divergencia residual o checkerboarding."
+      ]
+    },
+    {
+      "record_key": "D21:6",
+      "name": "Vorticity confinement",
+      "starting_principles": [
+        "ε>0; campo u diferenciable.",
+        "La fuerza se calibra con escala y Δt."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ω=∇×u",
+          "justification": "Calcular vorticidad del campo de velocidad."
+        },
+        {
+          "step": 2,
+          "equation": "η=∇|ω|",
+          "justification": "Obtener dirección del gradiente de magnitud de vorticidad."
+        },
+        {
+          "step": 3,
+          "equation": "N=η/(||η||+ε)",
+          "justification": "Normalizar con regularización."
+        },
+        {
+          "step": 4,
+          "equation": "f_conf=ε_c(N×ω)",
+          "justification": "Construir fuerza perpendicular a gradiente de vorticidad y vorticidad."
+        },
+        {
+          "step": 5,
+          "equation": "u^{n+1}=u^n+Δt f_conf",
+          "justification": "Añadir confinamiento como corrección numérica/artística."
+        }
+      ],
+      "assumptions": [
+        "ε>0; campo u diferenciable.",
+        "La fuerza se calibra con escala y Δt.",
+        "Término es corrección numérica, no término físico original."
+      ],
+      "result": "Vorticity confinement deriva de un vector perpendicular que refuerza regiones de rotación concentrada.",
+      "limits": [
+        "Puede inyectar energía artificial; el coeficiente debe limitarse."
+      ]
+    },
+    {
+      "record_key": "D21:7",
+      "name": "SPH kernel density",
+      "starting_principles": [
+        "m_j>0; h>0; kernel y dimensión declarados.",
+        "Vecindad suficiente y posiciones finitas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "W(r,h)=h^{-d}w(r/h)",
+          "justification": "Escalar kernel normalizado con radio de soporte h en dimensión d."
+        },
+        {
+          "step": 2,
+          "equation": "ρ_i=Σ_j m_j W(||x_i−x_j||,h)",
+          "justification": "Aproximar densidad como suma de masas vecinas ponderadas."
+        },
+        {
+          "step": 3,
+          "equation": "∫W(r,h)dV=1",
+          "justification": "Normalización hace que kernel reproduzca masa en el límite continuo."
+        },
+        {
+          "step": 4,
+          "equation": "support: r≤κh",
+          "justification": "Limitar vecinos al soporte compacto."
+        }
+      ],
+      "assumptions": [
+        "m_j>0; h>0; kernel y dimensión declarados.",
+        "Vecindad suficiente y posiciones finitas."
+      ],
+      "result": "La densidad SPH deriva de aproximar una integral de masa por suma ponderada de partículas.",
+      "limits": [
+        "Distribución irregular de partículas puede sesgar densidad; kernel/boundaries requieren corrección."
+      ]
+    },
+    {
+      "record_key": "D21:8",
+      "name": "SPH pressure force",
+      "starting_principles": [
+        "Densidades positivas; kernel diferenciable.",
+        "Pares i,j y gradientes consistentes; presión con ecuación de estado definida."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "∇p/ρ",
+          "justification": "Término de aceleración de presión en ecuación de momento."
+        },
+        {
+          "step": 2,
+          "equation": "∇p_i≈ρ_iΣ_jm_j(p_j/ρ_j²)∇W_ij",
+          "justification": "Aproximar gradiente mediante kernel."
+        },
+        {
+          "step": 3,
+          "equation": "a_i^p=−Σ_jm_j(p_i/ρ_i²+p_j/ρ_j²)∇W_ij",
+          "justification": "Simetrizar interacción entre pares para conservar momento aproximadamente."
+        },
+        {
+          "step": 4,
+          "equation": "F_i^p=m_i a_i^p",
+          "justification": "Convertir aceleración en fuerza si se requiere."
+        }
+      ],
+      "assumptions": [
+        "Densidades positivas; kernel diferenciable.",
+        "Pares i,j y gradientes consistentes; presión con ecuación de estado definida."
+      ],
+      "result": "La fuerza de presión SPH se deriva de discretizar gradiente de presión y simetrizar contribuciones de pares.",
+      "limits": [
+        "La estabilidad depende de kernel, ecuación de estado, timestep y distribución de partículas."
+      ]
+    },
+    {
+      "record_key": "D21:9",
+      "name": "PBF position constraint",
+      "starting_principles": [
+        "ρ_0>0; masas positivas; gradientes y kernels compatibles.",
+        "ε>0; paso temporal y unidades de masa/longitud declarados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ρ_i=Σ_jm_jW_ij",
+          "justification": "Calcular densidad SPH actual."
+        },
+        {
+          "step": 2,
+          "equation": "C_i=ρ_i/ρ_0−1",
+          "justification": "Definir error relativo respecto a densidad objetivo."
+        },
+        {
+          "step": 3,
+          "equation": "Δλ_i=−C_i/(Σ_jw_j||∇_jC_i||²+ε)",
+          "justification": "Resolver corrección tipo multiplicador de Lagrange regularizado."
+        },
+        {
+          "step": 4,
+          "equation": "Δx_i=Σ_j(λ_i+λ_j)∇W_ij",
+          "justification": "Corregir posiciones para reducir compresión/expansión."
+        },
+        {
+          "step": 5,
+          "equation": "repeat density projection",
+          "justification": "Iterar hasta tolerancia o número máximo."
+        }
+      ],
+      "assumptions": [
+        "ρ_0>0; masas positivas; gradientes y kernels compatibles.",
+        "ε>0; paso temporal y unidades de masa/longitud declarados."
+      ],
+      "result": "PBF deriva de imponer densidad como restricción posicional y resolver multiplicadores iterativamente.",
+      "limits": [
+        "La fórmula abreviada omite factores/normalizaciones específicos de kernel; implementar forma completa del método."
+      ]
+    },
+    {
+      "record_key": "D21:10",
+      "name": "Shallow water equations",
+      "starting_principles": [
+        "Profundidad pequeña frente a escalas horizontales; presión hidrostática.",
+        "h≥0; g>0; velocidad promediada en profundidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h(x,y,t)=∫η_top^η_bottom dz",
+          "justification": "Definir profundidad integrada."
+        },
+        {
+          "step": 2,
+          "equation": "∂h/∂t+∇·(hu)=0",
+          "justification": "Integrar continuidad vertical y asumir presión hidrostática."
+        },
+        {
+          "step": 3,
+          "equation": "∂(hu)/∂t+∇·(hu⊗u+½gh²I)=gh(S_0−S_f)",
+          "justification": "Integrar momento en profundidad y representar pendientes/fricción como fuentes."
+        },
+        {
+          "step": 4,
+          "equation": "waveSpeed≈√(gh)",
+          "justification": "Obtener velocidad característica de ondas largas."
+        }
+      ],
+      "assumptions": [
+        "Profundidad pequeña frente a escalas horizontales; presión hidrostática.",
+        "h≥0; g>0; velocidad promediada en profundidad."
+      ],
+      "result": "Las ecuaciones shallow-water derivan de integrar Navier–Stokes verticalmente bajo hipótesis de profundidad pequeña.",
+      "limits": [
+        "No representa ondas cortas ni estructura vertical detallada."
+      ]
+    },
+    {
+      "record_key": "D21:11",
+      "name": "Lattice Boltzmann",
+      "starting_principles": [
+        "τ>Δt/2 para viscosidad positiva en BGK estándar.",
+        "Lattice y conjunto de velocidades definidos; fronteras válidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f_i(x,t)",
+          "justification": "Distribución discreta de partículas con velocidad de lattice c_i."
+        },
+        {
+          "step": 2,
+          "equation": "f_i^eq=equilibrium(ρ,u)",
+          "justification": "Construir distribución de equilibrio que reproduce momentos macroscópicos."
+        },
+        {
+          "step": 3,
+          "equation": "collision: f_i*=f_i−(Δt/τ)(f_i−f_i^eq)",
+          "justification": "Relajar hacia equilibrio con tiempo τ."
+        },
+        {
+          "step": 4,
+          "equation": "streaming: f_i(x+c_iΔt,t+Δt)=f_i*(x,t)",
+          "justification": "Transportar distribución a nodo vecino."
+        },
+        {
+          "step": 5,
+          "equation": "ρ=Σ_i f_i; ρu=Σ_i c_i f_i",
+          "justification": "Recuperar densidad y momento como momentos de distribución."
+        }
+      ],
+      "assumptions": [
+        "τ>Δt/2 para viscosidad positiva en BGK estándar.",
+        "Lattice y conjunto de velocidades definidos; fronteras válidas."
+      ],
+      "result": "Lattice Boltzmann deriva de discretizar una ecuación cinética de relajación y recuperar variables macroscópicas por momentos.",
+      "limits": [
+        "La estabilidad depende de τ, lattice, Mach y condiciones de borde."
+      ]
+    },
+    {
+      "record_key": "D21:12",
+      "name": "Level set",
+      "starting_principles": [
+        "φ Lipschitz; u definido y suficientemente suave.",
+        "Reinicialización conserva conjunto cero."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "φ(x,0)=signedDistance(x)",
+          "justification": "Inicializar campo con interfaz en φ=0."
+        },
+        {
+          "step": 2,
+          "equation": "dφ/dt=0 along moving interface",
+          "justification": "La interfaz conserva valor de φ mientras se transporta."
+        },
+        {
+          "step": 3,
+          "equation": "∂φ/∂t+u·∇φ=0",
+          "justification": "Expandir derivada material para obtener ecuación de advección."
+        },
+        {
+          "step": 4,
+          "equation": "surface(t)={x:φ(x,t)=0}",
+          "justification": "Extraer interfaz como nivel cero."
+        }
+      ],
+      "assumptions": [
+        "φ Lipschitz; u definido y suficientemente suave.",
+        "Reinicialización conserva conjunto cero."
+      ],
+      "result": "Level set representa interfaz implícita y deriva de transporte de un campo escalar.",
+      "limits": [
+        "La advección numérica puede distorsionar distancia; reinicialización y conservación de volumen pueden ser necesarias."
+      ]
+    },
+    {
+      "record_key": "D21:13",
+      "name": "Volume of Fluid",
+      "starting_principles": [
+        "Velocidad y fracción definidos en malla compatible.",
+        "Fluido incomprensible o compresibilidad declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "α=V_fluid/V_cell",
+          "justification": "Definir fracción volumétrica por celda."
+        },
+        {
+          "step": 2,
+          "equation": "∂α/∂t+∇·(αu)=0",
+          "justification": "Conservar volumen de fase transportada."
+        },
+        {
+          "step": 3,
+          "equation": "0≤α≤1",
+          "justification": "Restringir fracción física por celda."
+        },
+        {
+          "step": 4,
+          "equation": "interface reconstructed from α",
+          "justification": "Reconstruir superficie libre a partir de celdas mixtas."
+        }
+      ],
+      "assumptions": [
+        "Velocidad y fracción definidos en malla compatible.",
+        "Fluido incomprensible o compresibilidad declarada.",
+        "Flujos de fase conservativos."
+      ],
+      "result": "VOF deriva de transportar fracción de volumen de una fase en una malla fija.",
+      "limits": [
+        "La reconstrucción de interfaz afecta precisión y curvatura; mantener boundedness es esencial."
+      ]
+    },
+    {
+      "record_key": "D21:14",
+      "name": "FLIP",
+      "starting_principles": [
+        "P2G/G2P consistentes; grid y partículas comparten unidad.",
+        "Transferencia de momento y fronteras definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "v_grid^n=P2G(v_particles^n)",
+          "justification": "Transferir velocidades de partículas a malla."
+        },
+        {
+          "step": 2,
+          "equation": "v_grid^{n+1}=advance(v_grid^n)",
+          "justification": "Resolver actualización de velocidad en grid."
+        },
+        {
+          "step": 3,
+          "equation": "Δv_grid=v_grid^{n+1}−v_grid^n",
+          "justification": "Calcular incremento del campo de malla."
+        },
+        {
+          "step": 4,
+          "equation": "v_p^{n+1}=v_p^n+G2P(Δv_grid)",
+          "justification": "Sumar incremento interpolado a velocidad de partícula."
+        },
+        {
+          "step": 5,
+          "equation": "x_p^{n+1}=x_p^n+Δt v_p^{n+1}",
+          "justification": "Advectar partículas."
+        }
+      ],
+      "assumptions": [
+        "P2G/G2P consistentes; grid y partículas comparten unidad.",
+        "Transferencia de momento y fronteras definidas."
+      ],
+      "result": "FLIP deriva de actualizar partículas con el cambio de velocidad de malla en vez de reemplazar por velocidad interpolada total.",
+      "limits": [
+        "Puede conservar movimiento con menor disipación pero amplificar ruido si transferencia no se filtra."
+      ]
+    },
+    {
+      "record_key": "D21:15",
+      "name": "PIC",
+      "starting_principles": [
+        "Operadores P2G/G2P compatibles; grid definido.",
+        "Δt y unidades coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "v_grid^{n+1}=advance(P2G(v_p^n))",
+          "justification": "Resolver velocidad en malla."
+        },
+        {
+          "step": 2,
+          "equation": "v_p^{n+1}=G2P(v_grid^{n+1})",
+          "justification": "Reemplazar velocidad de partícula por interpolación de grid."
+        },
+        {
+          "step": 3,
+          "equation": "x_p^{n+1}=x_p^n+Δt v_p^{n+1}",
+          "justification": "Actualizar posición."
+        },
+        {
+          "step": 4,
+          "equation": "particle state→grid→particle",
+          "justification": "El ciclo alterna representación lagrangiana y euleriana."
+        }
+      ],
+      "assumptions": [
+        "Operadores P2G/G2P compatibles; grid definido.",
+        "Δt y unidades coherentes."
+      ],
+      "result": "PIC deriva de transferir el estado de partículas a malla, resolver y recuperar velocidad.",
+      "limits": [
+        "La interpolación amortigua ruido pero introduce disipación numérica."
+      ]
+    },
+    {
+      "record_key": "D21:16",
+      "name": "MacCormack advection",
+      "starting_principles": [
+        "Operador forward/backward compatible; Δt definido.",
+        "Limitador local y condiciones de borde coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "q_fwd=A(q^n)",
+          "justification": "Calcular predicción advectando hacia adelante."
+        },
+        {
+          "step": 2,
+          "equation": "q_back=A^{-1}(q_fwd)",
+          "justification": "Retrotransportar predicción para estimar error."
+        },
+        {
+          "step": 3,
+          "equation": "q_corr=q_fwd+½(q^n−q_back)",
+          "justification": "Corregir error de advección mediante predictor-corrector."
+        },
+        {
+          "step": 4,
+          "equation": "q_limited=clamp(q_corr,minNeighbors,maxNeighbors)",
+          "justification": "Aplicar limitador para evitar oscilaciones/overshoot."
+        }
+      ],
+      "assumptions": [
+        "Operador forward/backward compatible; Δt definido.",
+        "Limitador local y condiciones de borde coherentes."
+      ],
+      "result": "MacCormack deriva de corregir la difusión del predictor usando discrepancia de ida y vuelta.",
+      "limits": [
+        "Sin limitador puede generar oscilaciones cerca de discontinuidades."
+      ]
+    },
+    {
+      "record_key": "D21:17",
+      "name": "Buoyancy force",
+      "starting_principles": [
+        "Variaciones de densidad pequeñas; β coeficiente de expansión térmica.",
+        "Temperatura y gravedad definidas; Boussinesq válido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ρ(T)≈ρ_0[1−β(T−T_amb)]",
+          "justification": "Linealizar variación de densidad con temperatura bajo Boussinesq."
+        },
+        {
+          "step": 2,
+          "equation": "f_b=(ρ_0−ρ)g/ρ_0",
+          "justification": "Expresar fuerza de flotación por unidad de masa relativa al medio."
+        },
+        {
+          "step": 3,
+          "equation": "f_b≈β(T−T_amb)g",
+          "justification": "Sustituir aproximación lineal de densidad."
+        },
+        {
+          "step": 4,
+          "equation": "u_{n+1}=u_n+Δt f_b",
+          "justification": "Aplicar aceleración de flotación en el paso."
+        }
+      ],
+      "assumptions": [
+        "Variaciones de densidad pequeñas; β coeficiente de expansión térmica.",
+        "Temperatura y gravedad definidas; Boussinesq válido."
+      ],
+      "result": "La flotabilidad deriva de aproximar densidad variable solo en el término gravitatorio.",
+      "limits": [
+        "No usar Boussinesq para grandes cambios de densidad o compresibilidad fuerte."
+      ]
+    },
+    {
+      "record_key": "D21:18",
+      "name": "Divergence-free noise",
+      "starting_principles": [
+        "A suficientemente diferenciable; discretización de operadores compatible.",
+        "Dominio y condiciones de borde declarados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=∇×A",
+          "justification": "Construir campo vectorial como rotacional de potencial vectorial."
+        },
+        {
+          "step": 2,
+          "equation": "∇·u=∇·(∇×A)",
+          "justification": "Tomar divergencia."
+        },
+        {
+          "step": 3,
+          "equation": "∇·(∇×A)=0",
+          "justification": "Identidad vectorial para campos suficientemente suaves."
+        },
+        {
+          "step": 4,
+          "equation": "sample A procedurally",
+          "justification": "Generar potencial A y derivar u."
+        }
+      ],
+      "assumptions": [
+        "A suficientemente diferenciable; discretización de operadores compatible.",
+        "Dominio y condiciones de borde declarados."
+      ],
+      "result": "El rotacional de un potencial vectorial produce campo solenoidal en continuo.",
+      "limits": [
+        "En discretización, divergencia puede no ser exactamente cero si operadores no son compatibles."
+      ]
+    },
+    {
+      "record_key": "D21:19",
+      "name": "Kelvin–Helmholtz instability",
+      "starting_principles": [
+        "Dos capas ideales; densidades positivas; interfaz plana inicial.",
+        "Se omiten viscosidad, gravedad y tensión superficial en fórmula simplificada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "U_1−U_2=ΔU",
+          "justification": "Definir salto tangencial de velocidad entre capas."
+        },
+        {
+          "step": 2,
+          "equation": "perturbation η(x,t)=η_0e^{ikx+γt}",
+          "justification": "Suponer modo sinusoidal cuya amplitud crece exponencialmente."
+        },
+        {
+          "step": 3,
+          "equation": "γ≈k|ΔU|√(ρ_1ρ_2)/(ρ_1+ρ_2)",
+          "justification": "Para interfaz ideal inviscida sin gravedad ni tensión superficial, obtener tasa de crecimiento proporcional al número de onda y salto de velocidad."
+        },
+        {
+          "step": 4,
+          "equation": "η grows when γ>0",
+          "justification": "La amplitud crece y produce roll-up de interfaz."
+        }
+      ],
+      "assumptions": [
+        "Dos capas ideales; densidades positivas; interfaz plana inicial.",
+        "Se omiten viscosidad, gravedad y tensión superficial en fórmula simplificada."
+      ],
+      "result": "La inestabilidad se caracteriza por crecimiento de perturbaciones en una interfaz con cizalla.",
+      "limits": [
+        "La tasa simplificada no cubre estabilización viscosa ni tensión superficial; no es un modelo completo."
+      ]
+    },
+    {
+      "record_key": "D21:20",
+      "name": "Rayleigh–Taylor instability",
+      "starting_principles": [
+        "ρ_h>ρ_l>0; g>0; k>0.",
+        "Modelo lineal ideal; tensión superficial/viscosidad omitidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "A=(ρ_h−ρ_l)/(ρ_h+ρ_l)",
+          "justification": "Definir número de Atwood para densidades de fluido pesado/ligero."
+        },
+        {
+          "step": 2,
+          "equation": "η=η_0e^{γt}",
+          "justification": "Suponer perturbación exponencial en régimen lineal."
+        },
+        {
+          "step": 3,
+          "equation": "γ²≈A g k",
+          "justification": "Para interfaz idealizada sin tensión superficial, obtener tasa de crecimiento."
+        },
+        {
+          "step": 4,
+          "equation": "γ>0 when heavy fluid accelerates into light fluid",
+          "justification": "La perturbación crece bajo configuración gravitatoria inestable."
+        }
+      ],
+      "assumptions": [
+        "ρ_h>ρ_l>0; g>0; k>0.",
+        "Modelo lineal ideal; tensión superficial/viscosidad omitidas."
+      ],
+      "result": "La inestabilidad deriva del balance de flotabilidad para una interfaz acelerada entre densidades distintas.",
+      "limits": [
+        "No predice etapa no lineal ni mezcla turbulenta completa."
+      ]
+    },
+    {
+      "record_key": "D21:21",
+      "name": "Advección semi-Lagrangiana de pigmento",
+      "starting_principles": [
+        "D≥0; k≥0; c y u tipados; Δt válido.",
+        "Campo de velocidad definido en grid UV."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dx/dt=u(x,t)",
+          "justification": "Definir característica del flujo."
+        },
+        {
+          "step": 2,
+          "equation": "c^{n+1}(x)=c^n(x−uΔt)",
+          "justification": "Retrotrazar y muestrear concentración previa."
+        },
+        {
+          "step": 3,
+          "equation": "∂c/∂t+u·∇c=D∇²c−kc",
+          "justification": "Añadir difusión y secado/decaimiento al transporte."
+        },
+        {
+          "step": 4,
+          "equation": "c^{n+1}=Advect(c^n)+Δt(D∇²c−kc)",
+          "justification": "Combinar advección con corrección difusiva/reactiva por paso."
+        },
+        {
+          "step": 5,
+          "equation": "apply boundary and deposition rules",
+          "justification": "Aplicar depósito y secado en fronteras."
+        }
+      ],
+      "assumptions": [
+        "D≥0; k≥0; c y u tipados; Δt válido.",
+        "Campo de velocidad definido en grid UV.",
+        "El modelo es simulación pictórica, no química de pigmentos."
+      ],
+      "result": "La advección de pigmento se deriva de transporte por características más difusión y decaimiento.",
+      "limits": [
+        "La interpolación bilineal añade difusión numérica; no equivale a mezcla espectral real."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "22/22 técnicas cubiertas.",
+      "Cada derivación incluye pasos justificados, supuestos y límites de validez.",
+      "Se distinguen modelos físicos, discretizaciones numéricas y aproximaciones pictóricas."
+    ],
+    "limitations": [
+      "Las ecuaciones de inestabilidad son linealizadas e idealizadas; no se extrapolan a fenómenos no lineales o condiciones fuera de sus hipótesis."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
