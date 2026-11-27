@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D03 Personajes, criaturas y anatomía procedural",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -31,8 +31,8 @@
       "name": "Anatomía por volúmenes",
       "variables": [
         {
-          "symbol": "p,c_i",
-          "meaning": "punto y centros de volúmenes",
+          "symbol": "p",
+          "meaning": "Punto de evaluación en espacio local",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -43,11 +43,41 @@
             "N": 0,
             "J": 0
           },
-          "domain": "vectores finitos en marco común"
+          "domain": "p∈R³, coordenadas finitas"
+        },
+        {
+          "symbol": "c_i",
+          "meaning": "Centro de cada volumen anatómico",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "c_i∈R³, coordenadas finitas"
+        },
+        {
+          "symbol": "r_i",
+          "meaning": "Radio o semiejes de la primitiva",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_i>0"
         },
         {
           "symbol": "d_i(p)",
-          "meaning": "SDF de cada volumen",
+          "meaning": "Distancia firmada de cada primitiva",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -58,11 +88,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "distancias firmadas con signo coherente"
+          "domain": "campo continuo, signo interior/exterior coherente"
         },
         {
           "symbol": "k",
-          "meaning": "radio de suavizado",
+          "meaning": "Parámetro de suavizado de unión",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -73,11 +103,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "k>0; k=0 unión dura"
+          "domain": "k≥0; k=0 equivale a min duro"
         },
         {
           "symbol": "d_union",
-          "meaning": "campo combinado",
+          "meaning": "Campo combinado",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -88,24 +118,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "smooth-min consistente"
+          "domain": "finito donde se evalúa"
         }
       ],
       "constraints": [
-        "Los SDF comparten coordenadas y unidades.",
-        "k debe ser pequeño respecto a la escala anatómica; smooth-min no es unión booleana exacta."
+        "Todos los SDF deben compartir marco, orientación de signo y unidad de longitud.",
+        "El smooth-min solo combina distancias de dimensión L; k debe ser longitud y no un factor adimensional.",
+        "La unión suave modifica la forma respecto de la unión booleana exacta; su escala debe fijarse respecto del tamaño anatómico."
       ],
       "valid_domain": [
-        "Campos finitos en volumen de interés; superficie e isovalor declarados."
+        "Primitivas cerradas con radios/semiejes positivos y coordenadas finitas.",
+        "k≥0; para k=0 usar min(d_i,d_j); para k>0 aplicar la variante smooth-min definida explícitamente."
       ],
       "boundary_conditions": [
-        "k→0 recupera min(d_i).",
-        "En límites del volumen ampliar bounds o advertir truncamiento."
+        "La superficie resultante satisface d_union=0; normales por gradiente cuando ∇d_union≠0.",
+        "En gradiente casi nulo, usar normal de respaldo estable o declarar singularidad.",
+        "Cuando k→0, el campo debe converger a la unión dura min(d_i)."
       ],
       "dimensional_checks": [
-        "Posiciones y radios conservan dimensión de longitud.",
-        "Pesos, normales unitarias y parámetros normalizados son adimensionales; ángulos en radianes.",
-        "Matrices afines y cuaterniones duales se tratan como tipos geométricos con traslación dimensionalmente tipada."
+        "p, c_i, r_i, d_i y k tienen dimensión L; diferencias de posiciones también L.",
+        "Los cocientes d_i/k usados por fórmulas normalizadas son adimensionales; el campo de salida debe conservar L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -115,7 +147,7 @@
       "variables": [
         {
           "symbol": "p,c_i",
-          "meaning": "punto y centros",
+          "meaning": "Punto de consulta y centros metaball",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -130,7 +162,7 @@
         },
         {
           "symbol": "r_i",
-          "meaning": "radios",
+          "meaning": "Radio de influencia",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -144,8 +176,8 @@
           "domain": "r_i>0"
         },
         {
-          "symbol": "F(p),iso",
-          "meaning": "campo y umbral metaball",
+          "symbol": "F(p)",
+          "meaning": "Campo metaball",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -156,11 +188,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "F=sum r_i²/|p-c_i|²; adimensional"
+          "domain": "F≥0; finito fuera de singularidades"
+        },
+        {
+          "symbol": "iso",
+          "meaning": "Umbral de extracción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "iso>0"
         },
         {
           "symbol": "ε",
-          "meaning": "regularización",
+          "meaning": "Regularización opcional",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -171,24 +218,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "ε>0 si se evita singularidad"
+          "domain": "ε>0 solo si se usa denominador regularizado"
         }
       ],
       "constraints": [
-        "La fórmula diverge en p=c_i; tratar centro o regularizar explícitamente.",
-        "El umbral iso depende de la configuración y debe declararse."
+        "Cada término r_i²/|p−c_i|² es adimensional; iso también debe ser adimensional.",
+        "La expresión sin regularizar diverge en p=c_i; no evaluar directamente ese punto sin una política numérica.",
+        "Si se usa ε, definir el núcleo exacto, por ejemplo r_i²/(|p−c_i|²+ε²), y reconocer que cambia el campo."
       ],
       "valid_domain": [
-        "p≠c_i sin regularización; muestreo volumétrico suficiente."
+        "p,c_i∈R³; r_i>0; iso>0.",
+        "Sin regularización, p≠c_i; con regularización, ε>0 y la fórmula regularizada debe usarse consistentemente."
       ],
       "boundary_conditions": [
-        "En p=c_i el campo tiende a +∞; tratar como interior o regularizar.",
-        "No truncar isosuperficie en bounds sin advertencia."
+        "La isosuperficie se define por F(p)=iso; el sentido interior/exterior depende de la convención del extractor.",
+        "En el centro, tratar el límite como campo alto o usar regularización, evitando infinito numérico.",
+        "En límites del volumen de muestreo, ampliar bounds o declarar explícitamente el truncamiento."
       ],
       "dimensional_checks": [
-        "Posiciones y radios conservan dimensión de longitud.",
-        "Pesos, normales unitarias y parámetros normalizados son adimensionales; ángulos en radianes.",
-        "Matrices afines y cuaterniones duales se tratan como tipos geométricos con traslación dimensionalmente tipada."
+        "r_i² y |p−c_i|² tienen dimensión L²; su cociente y F(p) son adimensionales.",
+        "ε² tiene dimensión L² y es compatible con |p−c_i|²."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -198,10 +247,10 @@
       "variables": [
         {
           "symbol": "s",
-          "meaning": "parámetro longitudinal",
-          "unit": "1",
+          "meaning": "Coordenada longitudinal física",
+          "unit": "scene_length",
           "dimension": {
-            "L": 0,
+            "L": 1,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -209,11 +258,56 @@
             "N": 0,
             "J": 0
           },
-          "domain": "intervalo de claves"
+          "domain": "s∈[0,L_body]"
+        },
+        {
+          "symbol": "L_body",
+          "meaning": "Longitud del eje anatómico",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "L_body>0"
+        },
+        {
+          "symbol": "s_j",
+          "meaning": "Posición de cada clave",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "claves estrictamente ordenadas en [0,L_body]"
+        },
+        {
+          "symbol": "r_j",
+          "meaning": "Radio/semi-ancho de cada clave",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_j≥0"
         },
         {
           "symbol": "r(s)",
-          "meaning": "radio anatómico",
+          "meaning": "Radio interpolado",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -224,54 +318,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "r≥0"
-        },
-        {
-          "symbol": "P_i",
-          "meaning": "puntos de control",
-          "unit": "scene_length",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "finitos; claves ordenadas"
-        },
-        {
-          "symbol": "P(s)",
-          "meaning": "perfil evaluado",
-          "unit": "scene_length",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "finito"
+          "domain": "finito y no negativo"
         }
       ],
       "constraints": [
-        "Claves ordenadas y duplicados resueltos.",
-        "Impedir radios negativos y extrapolación no declarada."
+        "La spline interpola pares (s_j,r_j) con ambas coordenadas de dimensión L; si se usa parámetro normalizado u=s/L_body, declararlo adimensional y escalar la salida correctamente.",
+        "Impedir overshoot negativo mediante interpolación monotónica o limitación explícita.",
+        "Declarar continuidad requerida: C0 para unión posicional, C1/C2 si se exige continuidad de tangente/curvatura."
       ],
       "valid_domain": [
-        "s dentro del intervalo; spline continua según especificación."
+        "L_body>0; s dentro de [0,L_body]; claves finitas y estrictamente ordenadas.",
+        "Radios no negativos; extrapolación fuera del intervalo deshabilitada salvo regla explícita."
       ],
       "boundary_conditions": [
-        "Definir radios y tangentes terminales.",
-        "Perfil cerrado: imponer coincidencia de posición/tangente en costura."
+        "Definir radios terminales; r=0 en extremo si se requiere punta cerrada, o añadir tapa geométrica.",
+        "En claves interiores mantener continuidad de valor; continuidad de derivadas según el tipo de spline.",
+        "Fuera del dominio aplicar clamp o extrapolación declarada, nunca extrapolar implícitamente."
       ],
       "dimensional_checks": [
-        "Posiciones y radios conservan dimensión de longitud.",
-        "Pesos, normales unitarias y parámetros normalizados son adimensionales; ángulos en radianes.",
-        "Matrices afines y cuaterniones duales se tratan como tipos geométricos con traslación dimensionalmente tipada."
+        "s, L_body, s_j y r(s) tienen dimensión L.",
+        "u=s/L_body es adimensional; la salida radial debe mantener dimensión L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -281,7 +347,7 @@
       "variables": [
         {
           "symbol": "p",
-          "meaning": "posición de reposo",
+          "meaning": "Posición del vértice en bind space",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -292,26 +358,18 @@
             "N": 0,
             "J": 0
           },
-          "domain": "vector finito"
+          "domain": "punto homogéneo; xyz finitos"
         },
         {
           "symbol": "M_j",
-          "meaning": "transformación de hueso",
+          "meaning": "Matriz de skinning del hueso j",
           "unit": "matriz afín tipada",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "bloque lineal adimensional; traslación L"
+          "dimension": "bloque lineal adimensional; traslación L",
+          "domain": "bloque lineal finito; traslación finita"
         },
         {
           "symbol": "w_j",
-          "meaning": "peso",
+          "meaning": "Peso del hueso j",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -322,11 +380,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "w≥0; suma=1"
+          "domain": "w_j≥0; Σ_j w_j=1"
         },
         {
-          "symbol": "p′",
-          "meaning": "posición deformada",
+          "symbol": "p'",
+          "meaning": "Posición deformada",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -337,24 +395,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "vector finito"
+          "domain": "xyz finitos"
         }
       ],
       "constraints": [
-        "Todas las matrices comparten espacios origen/destino.",
-        "Pesos no negativos normalizados; LBS puede perder volumen en giros grandes."
+        "M_j debe mapear el espacio de bind al espacio de pose con la inversa de bind pose correspondiente.",
+        "Todos los M_j deben compartir el mismo convenio de coordenadas y orden de composición.",
+        "Los pesos por vértice se normalizan; LBS puede producir pérdida de volumen en torsiones."
       ],
       "valid_domain": [
-        "Influencias finitas y matrices afines finitas."
+        "Número de influencias finito y dentro del límite del shader/datos.",
+        "Matrices finitas; Σw_j=1 dentro de tolerancia; pesos no negativos."
       ],
       "boundary_conditions": [
-        "Suma de pesos cero: fallback definido, nunca dividir por cero.",
-        "Con w=1, coincide con transformación del hueso."
+        "Si Σw_j=0, no dividir: usar fallback determinista o rechazar el vértice.",
+        "Con una influencia de peso 1, p' debe ser M_j p.",
+        "En bind pose, la deformación debe reproducir p dentro de tolerancia numérica."
       ],
       "dimensional_checks": [
-        "Posiciones y radios conservan dimensión de longitud.",
-        "Pesos, normales unitarias y parámetros normalizados son adimensionales; ángulos en radianes.",
-        "Matrices afines y cuaterniones duales se tratan como tipos geométricos con traslación dimensionalmente tipada."
+        "w_j es adimensional; el bloque lineal de M_j multiplica L y su traslación suma L.",
+        "p' conserva dimensión L; una matriz afín completa no recibe una única dimensión escalar."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -363,23 +423,8 @@
       "name": "Dual quaternion skinning",
       "variables": [
         {
-          "symbol": "q_r,q_d",
-          "meaning": "partes real y dual",
-          "unit": "cuaternión dual tipado",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "q_r unitario; q_d codifica traslación L"
-        },
-        {
-          "symbol": "w_j",
-          "meaning": "pesos",
+          "symbol": "q_r",
+          "meaning": "Parte real: rotación",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -390,12 +435,34 @@
             "N": 0,
             "J": 0
           },
-          "domain": "no negativos; suma 1"
+          "domain": "cuaternión unitario"
         },
         {
-          "symbol": "q_blend",
-          "meaning": "mezcla normalizada",
-          "unit": "cuaternión dual",
+          "symbol": "t",
+          "meaning": "Vector de traslación",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "q_d",
+          "meaning": "Parte dual que codifica traslación",
+          "unit": "parte dual con escala scene_length",
+          "dimension": "parte real adimensional; parte dual tipada L",
+          "domain": "q_r·q_d=0 bajo convención de codificación"
+        },
+        {
+          "symbol": "w_j",
+          "meaning": "Peso de influencia",
+          "unit": "1",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -405,11 +472,18 @@
             "N": 0,
             "J": 0
           },
-          "domain": "alineado por signo"
+          "domain": "w_j≥0; Σw_j=1"
         },
         {
-          "symbol": "p,p′",
-          "meaning": "posiciones",
+          "symbol": "q_blend",
+          "meaning": "Dual quaternion combinado",
+          "unit": "real 1; dual scene_length",
+          "dimension": "tipo dual quaternion",
+          "domain": "parte real normalizada; parte dual escalada consistentemente"
+        },
+        {
+          "symbol": "p,p'",
+          "meaning": "Posición de entrada y salida",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -424,20 +498,22 @@
         }
       ],
       "constraints": [
-        "Alinear signos antipodales antes de mezclar.",
-        "Normalizar mezcla y cumplir ortogonalidad dual; método básico no cubre escala no uniforme."
+        "Alinear signos antipodales respecto de una referencia antes de sumar.",
+        "Normalizar la parte real y aplicar la normalización compatible a la parte dual; mantener q_r·q_d≈0.",
+        "El método representa transformaciones rígidas; no modela escala no uniforme/cizalla general."
       ],
       "valid_domain": [
-        "Rotaciones unitarias y transformaciones rígidas."
+        "Rotaciones unitarias y traslaciones finitas; pesos no negativos con suma 1.",
+        "Mezcla real no degenerada; todos los dual quaternions usan la misma convención."
       ],
       "boundary_conditions": [
-        "Mezcla degenerada: fallback determinista.",
-        "Una influencia reproduce transformación rígida."
+        "Una única influencia de peso 1 debe reproducir la transformación rígida original.",
+        "Si la norma de la mezcla real cae bajo tolerancia, seleccionar fallback determinista.",
+        "Tras normalizar, verificar ortogonalidad real-dual dentro de tolerancia."
       ],
       "dimensional_checks": [
-        "Posiciones y radios conservan dimensión de longitud.",
-        "Pesos, normales unitarias y parámetros normalizados son adimensionales; ángulos en radianes.",
-        "Matrices afines y cuaterniones duales se tratan como tipos geométricos con traslación dimensionalmente tipada."
+        "q_r y w_j son adimensionales; la parte dual codifica traslación y escala con L.",
+        "La acción sobre p combina rotación adimensional×L con traslación L; p' conserva L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -446,8 +522,8 @@
       "name": "Ojos y pupilas",
       "variables": [
         {
-          "symbol": "e,g",
-          "meaning": "centro ocular y objetivo",
+          "symbol": "e",
+          "meaning": "Centro del ojo",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -458,11 +534,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "vectores finitos"
+          "domain": "vector finito"
         },
         {
-          "symbol": "f",
-          "meaning": "dirección mirada",
+          "symbol": "g",
+          "meaning": "Objetivo de mirada",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "v",
+          "meaning": "Dirección normalizada de mirada",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -473,11 +564,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "unitaria; g≠e"
+          "domain": "‖v‖=1; requiere ‖g−e‖>ε"
         },
         {
           "symbol": "n",
-          "meaning": "normal plano ocular",
+          "meaning": "Normal unitaria del plano ocular",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -488,11 +579,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "unitaria"
+          "domain": "‖n‖=1"
         },
         {
           "symbol": "r_p",
-          "meaning": "radio pupila",
+          "meaning": "Radio/semi-eje pupilar",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -506,8 +597,8 @@
           "domain": "r_p≥0"
         },
         {
-          "symbol": "pupil",
-          "meaning": "posición proyectada",
+          "symbol": "u_p",
+          "meaning": "Posición proyectada de pupila",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -518,24 +609,26 @@
             "N": 0,
             "J": 0
           },
-          "domain": "dentro de región ocular"
+          "domain": "dentro del contorno ocular"
         }
       ],
       "constraints": [
-        "Normalización requiere g≠e.",
-        "Proyección en plano y marco ocular coherentes; limitar al contorno."
+        "La normalización requiere g≠e; ε de comparación tiene dimensión L.",
+        "Proyección ortogonal: (g−e)−[(g−e)·n]n; el resultado conserva dimensión L.",
+        "La pupila debe limitarse al contorno válido del ojo y respetar el marco tangente."
       ],
       "valid_domain": [
-        "Marco ocular y objetivo finitos; rango angular declarado."
+        "e,g finitos; n unitario; radio ocular positivo y r_p≥0.",
+        "Marco local del ojo ortonormal; objetivo en el rango angular definido."
       ],
       "boundary_conditions": [
-        "Si g=e conservar dirección anterior válida.",
-        "En límite angular saturar sin saltos."
+        "Si ‖g−e‖≤ε, conservar última dirección válida.",
+        "En el límite angular, saturar al borde del rango sin salto temporal.",
+        "Si la proyección cae fuera del contorno, proyectar al contorno o aplicar clamp geométrico explícito."
       ],
       "dimensional_checks": [
-        "Posiciones y radios conservan dimensión de longitud.",
-        "Pesos, normales unitarias y parámetros normalizados son adimensionales; ángulos en radianes.",
-        "Matrices afines y cuaterniones duales se tratan como tipos geométricos con traslación dimensionalmente tipada."
+        "g−e y u_p tienen dimensión L; v y n son adimensionales.",
+        "(g−e)·n tiene dimensión L; multiplicarlo por n conserva L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -544,8 +637,8 @@
       "name": "FABRIK para cadenas articuladas",
       "variables": [
         {
-          "symbol": "x_i,x_target",
-          "meaning": "articulaciones y objetivo",
+          "symbol": "p_i,p_target",
+          "meaning": "Posiciones de articulaciones y objetivo",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -560,7 +653,7 @@
         },
         {
           "symbol": "l_i",
-          "meaning": "longitudes de segmentos",
+          "meaning": "Longitud fija de segmento",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -575,7 +668,7 @@
         },
         {
           "symbol": "ε",
-          "meaning": "tolerancia",
+          "meaning": "Tolerancia de convergencia",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -586,12 +679,12 @@
             "N": 0,
             "J": 0
           },
-          "domain": "positiva"
+          "domain": "ε>0"
         },
         {
-          "symbol": "n_iter",
-          "meaning": "iteraciones",
-          "unit": "1",
+          "symbol": "N_iter",
+          "meaning": "Máximo de iteraciones",
+          "unit": "conteo entero adimensional",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -601,25 +694,41 @@
             "N": 0,
             "J": 0
           },
-          "domain": "entero 4–16 como rango inicial"
+          "domain": "entero ≥1"
+        },
+        {
+          "symbol": "d",
+          "meaning": "Distancia raíz-objetivo",
+          "unit": "scene_length",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
         }
       ],
       "constraints": [
-        "Conservar longitudes en pases backward/forward.",
-        "Alcance máximo suma de longitudes; objetivo fuera de alcance requiere política explícita."
+        "Cada proyección backward/forward debe conservar |p_(i+1)−p_i|=l_i dentro de tolerancia.",
+        "Alcance máximo R=Σl_i; si d>R, el objetivo es inalcanzable y la cadena debe adoptar política explícita de extensión.",
+        "Si d≈0, la dirección raíz-objetivo es indefinida; conservar dirección previa válida o usar eje de respaldo."
       ],
       "valid_domain": [
-        "Cadena finita, longitudes positivas, raíz fija y objetivo finito."
+        "Cadena de al menos un segmento, longitudes positivas y finitas, raíz fija.",
+        "Objetivo finito; ε>0; N_iter entero positivo y acotado."
       ],
       "boundary_conditions": [
-        "Objetivo en raíz: configuración de respaldo.",
-        "Objetivo inalcanzable: extensión alineada y estado no alcanzable.",
-        "Parar por ε o n_iter; devolver valores finitos."
+        "Si d≥R, devolver configuración extendida hacia el objetivo y marcar objetivo inalcanzable cuando d>R.",
+        "Si el objetivo es alcanzable, detener cuando ‖p_end−p_target‖≤ε o al alcanzar N_iter.",
+        "Si dos puntos coinciden durante una normalización, reutilizar dirección previa o fallback para evitar división por cero."
       ],
       "dimensional_checks": [
-        "Posiciones y radios conservan dimensión de longitud.",
-        "Pesos, normales unitarias y parámetros normalizados son adimensionales; ángulos en radianes.",
-        "Matrices afines y cuaterniones duales se tratan como tipos geométricos con traslación dimensionalmente tipada."
+        "Posiciones, diferencias, longitudes, d y ε tienen dimensión L.",
+        "N_iter y conteos de articulaciones son adimensionales; las comparaciones de convergencia son dimensionalmente homogéneas."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -629,8 +738,8 @@
       "variables": [
         {
           "symbol": "n_b",
-          "meaning": "influencias por vértice",
-          "unit": "1",
+          "meaning": "Número de influencias por vértice",
+          "unit": "conteo entero adimensional",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -640,11 +749,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "entero 1–8; rango sugerido 4–8"
+          "domain": "1≤n_b≤límite de implementación"
         },
         {
           "symbol": "w_j",
-          "meaning": "pesos",
+          "meaning": "Peso de cada hueso",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -655,12 +764,12 @@
             "N": 0,
             "J": 0
           },
-          "domain": "w≥0; suma 1"
+          "domain": "w_j≥0; Σw_j=1"
         },
         {
-          "symbol": "q_j",
-          "meaning": "dual quaternion de hueso",
-          "unit": "cuaternión dual tipado",
+          "symbol": "q_r,j",
+          "meaning": "Parte real del dual quaternion j",
+          "unit": "1",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -670,11 +779,18 @@
             "N": 0,
             "J": 0
           },
-          "domain": "rotación unitaria; dual codifica traslación L"
+          "domain": "‖q_r,j‖=1"
         },
         {
-          "symbol": "p,p′",
-          "meaning": "posiciones",
+          "symbol": "q_d,j",
+          "meaning": "Parte dual del dual quaternion j",
+          "unit": "parte dual con escala scene_length",
+          "dimension": "real 1; dual L",
+          "domain": "codifica traslación; ortogonal a la parte real"
+        },
+        {
+          "symbol": "p,p'",
+          "meaning": "Posición de entrada y salida",
           "unit": "scene_length",
           "dimension": {
             "L": 1,
@@ -689,21 +805,22 @@
         }
       ],
       "constraints": [
-        "Limitar influencias válidas y normalizar pesos.",
-        "Alinear signos antipodales y normalizar mezcla.",
-        "No confundir esta variante DQS con LBS."
+        "Limitar influencias al máximo real del formato y shader; normalizar pesos por vértice.",
+        "Alinear signos antipodales antes de la mezcla y normalizar parte real/dual conjuntamente.",
+        "No confundir DQS con LBS ni usar DQS rígido para escalas no uniformes o cizalla."
       ],
       "valid_domain": [
-        "n_b dentro del límite implementado; transformaciones rígidas finitas."
+        "1≤n_b≤n_max; transformaciones rígidas finitas; pesos no negativos y suma 1.",
+        "Mezcla no degenerada; convención de cuaternión consistente."
       ],
       "boundary_conditions": [
-        "n_b=1 reproduce transformación del hueso.",
-        "Peso total cero o mezcla degenerada: fallback explícito."
+        "n_b=1 debe reproducir exactamente la transformación del único hueso.",
+        "Peso total cero o mezcla degenerada: fallback determinista a influencia de mayor peso.",
+        "Identidad: q_r=(1,0,0,0), q_d=0."
       ],
       "dimensional_checks": [
-        "Posiciones y radios conservan dimensión de longitud.",
-        "Pesos, normales unitarias y parámetros normalizados son adimensionales; ángulos en radianes.",
-        "Matrices afines y cuaterniones duales se tratan como tipos geométricos con traslación dimensionalmente tipada."
+        "n_b y w_j son adimensionales; q_r es adimensional y q_d codifica traslación con dimensión L.",
+        "La transformación de p combina rotación×L y traslación L; p' conserva L."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -711,8 +828,11 @@
   "validation": {
     "structural_checks": [
       "8/19 técnicas no protegidas incluidas",
-      "8 registros contienen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
-      "11 registros protegidos excluidos"
+      "Cada uno de los 8 registros contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "11 registros protegidos excluidos según mapa Crimson Loong"
+    ],
+    "limitations": [
+      "Validación estructural y revisión dimensional razonada; no equivale a derivación matemática formal, algoritmo completo ni pruebas numéricas independientes, que pertenecen a puntos posteriores."
     ]
   },
   "integrity": {
