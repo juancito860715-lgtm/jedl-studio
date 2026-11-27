@@ -46,6 +46,9 @@ def specification_gaps(spec):
         if not tests.get(lang):
             gaps.append(f"independent_tests.{lang}")
     for i,s in enumerate(spec.get("source_claims") or []):
+        if not isinstance(s, dict):
+            gaps.append(f"source_claims[{i}].must_be_object")
+            continue
         for k in ("url","supported_claim","formula_locator","formula_level_status"):
             if not s.get(k):
                 gaps.append(f"source_claims[{i}].{k}")
