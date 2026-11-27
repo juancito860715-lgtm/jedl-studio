@@ -1,0 +1,569 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D35 Matemáticas de sistemas, control y optimización",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D35",
+    "record_count": 15,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D35 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D35:0",
+      "name": "PID controller",
+      "starting_principles": [
+        "Ganancias y error tipados; Δt>0; saturación anti-windup considerada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e(t)=r(t)−y(t)",
+          "justification": "Calcular error entre referencia y salida."
+        },
+        {
+          "step": 2,
+          "equation": "u_P=K_pe; u_I=K_i∫e dt; u_D=K_d de/dt",
+          "justification": "Construir términos proporcional, integral y derivativo."
+        },
+        {
+          "step": 3,
+          "equation": "u=u_P+u_I+u_D",
+          "justification": "Sumar acciones de control."
+        },
+        {
+          "step": 4,
+          "equation": "discrete: I_n=I_{n−1}+e_nΔt; D_n=(e_n−e_{n−1})/Δt",
+          "justification": "Discretizar integral y derivada con paso temporal."
+        }
+      ],
+      "assumptions": [
+        "Ganancias y error tipados; Δt>0; saturación anti-windup considerada."
+      ],
+      "result": "PID deriva de sumar corrección proporcional, acumulada y predictiva basada en derivada.",
+      "limits": [
+        "Integral windup y derivada ruidosa requieren anti-windup/filtrado."
+      ]
+    },
+    {
+      "record_key": "D35:1",
+      "name": "Proportional tracking",
+      "starting_principles": [
+        "K_p>0; objetivo constante por tramo; unidades velocidad/error compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "e=target−position",
+          "justification": "Calcular error."
+        },
+        {
+          "step": 2,
+          "equation": "v=K_pe",
+          "justification": "Asignar velocidad proporcional al error."
+        },
+        {
+          "step": 3,
+          "equation": "dx/dt=K_p(target−x)",
+          "justification": "Escribir dinámica continua."
+        },
+        {
+          "step": 4,
+          "equation": "x(t)=target+(x_0−target)e^(−K_pt)",
+          "justification": "Resolver ODE para objetivo constante."
+        }
+      ],
+      "assumptions": [
+        "K_p>0; objetivo constante por tramo; unidades velocidad/error compatibles."
+      ],
+      "result": "Proportional tracking deriva de una ODE de primer orden con error proporcional.",
+      "limits": [
+        "Ganancia excesiva produce overshoot si el sistema real tiene inercia/retardo."
+      ]
+    },
+    {
+      "record_key": "D35:2",
+      "name": "Critically damped spring",
+      "starting_principles": [
+        "ω>0; sistema lineal de segundo orden; target constante."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x''+2ωx'+ω²(x−target)=0",
+          "justification": "Definir sistema lineal con amortiguamiento crítico."
+        },
+        {
+          "step": 2,
+          "equation": "characteristic: r²+2ωr+ω²=0",
+          "justification": "Construir ecuación característica."
+        },
+        {
+          "step": 3,
+          "equation": "(r+ω)²=0",
+          "justification": "Identificar raíz doble."
+        },
+        {
+          "step": 4,
+          "equation": "x(t)=target+(A+Bt)e^(−ωt)",
+          "justification": "Escribir solución de raíz repetida sin oscilación ideal."
+        }
+      ],
+      "assumptions": [
+        "ω>0; sistema lineal de segundo orden; target constante."
+      ],
+      "result": "El resorte críticamente amortiguado tiene raíz doble y respuesta sin oscilación ideal.",
+      "limits": [
+        "Parámetros dependen de frecuencia natural; no modela saturación."
+      ]
+    },
+    {
+      "record_key": "D35:3",
+      "name": "Kalman state model",
+      "starting_principles": [
+        "Covarianzas Q,R semidefinidas positivas; matrices compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x^-_k=Ax̂_{k−1}; P^-_k=AP_{k−1}Aᵀ+Q",
+          "justification": "Predecir estado y covarianza."
+        },
+        {
+          "step": 2,
+          "equation": "K=P^-Hᵀ(HP^-Hᵀ+R)^{-1}",
+          "justification": "Calcular ganancia."
+        },
+        {
+          "step": 3,
+          "equation": "x̂=x^-+K(z−Hx^-)",
+          "justification": "Corregir con observación."
+        },
+        {
+          "step": 4,
+          "equation": "P=(I−KH)P^-",
+          "justification": "Actualizar incertidumbre posterior."
+        }
+      ],
+      "assumptions": [
+        "Covarianzas Q,R semidefinidas positivas; matrices compatibles."
+      ],
+      "result": "Kalman combina predicción del modelo y medición según incertidumbre.",
+      "limits": [
+        "Modelo lineal y gaussianidad aproximada pueden fallar en tracking no lineal."
+      ]
+    },
+    {
+      "record_key": "D35:4",
+      "name": "Gradient descent",
+      "starting_principles": [
+        "E diferenciable; η positivo y suficientemente pequeño."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E(θ+Δ)≈E(θ)+∇EᵀΔ",
+          "justification": "Usar expansión de Taylor de primer orden."
+        },
+        {
+          "step": 2,
+          "equation": "Δ=−η∇E",
+          "justification": "Elegir desplazamiento opuesto al gradiente."
+        },
+        {
+          "step": 3,
+          "equation": "E(θ−η∇E)≈E(θ)−η||∇E||²",
+          "justification": "Para η pequeño, el primer orden reduce E."
+        },
+        {
+          "step": 4,
+          "equation": "θ_{n+1}=θ_n−η∇E(θ_n)",
+          "justification": "Iterar actualización."
+        }
+      ],
+      "assumptions": [
+        "E diferenciable; η positivo y suficientemente pequeño."
+      ],
+      "result": "Gradient descent usa expansión local para moverse en dirección de descenso.",
+      "limits": [
+        "η grande puede divergir; η pequeño converge lentamente."
+      ]
+    },
+    {
+      "record_key": "D35:5",
+      "name": "Levenberg–Marquardt",
+      "starting_principles": [
+        "Residuo diferenciable; λ≥0; J y parámetros escalados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r(θ+Δ)≈r(θ)+JΔ",
+          "justification": "Linealizar residuo no lineal."
+        },
+        {
+          "step": 2,
+          "equation": "min_Δ||r+JΔ||²+λ||Δ||²",
+          "justification": "Añadir regularización a mínimos cuadrados."
+        },
+        {
+          "step": 3,
+          "equation": "(JᵀJ+λI)Δ=−Jᵀr",
+          "justification": "Derivar respecto a Δ e igualar a cero."
+        },
+        {
+          "step": 4,
+          "equation": "θ_next=θ+Δ",
+          "justification": "Actualizar parámetros."
+        }
+      ],
+      "assumptions": [
+        "Residuo diferenciable; λ≥0; J y parámetros escalados."
+      ],
+      "result": "Levenberg–Marquardt deriva de mínimos cuadrados linealizados con regularización.",
+      "limits": [
+        "λ y escalado condicionan estabilidad; mínimos locales posibles."
+      ]
+    },
+    {
+      "record_key": "D35:6",
+      "name": "Newton method",
+      "starting_principles": [
+        "f diferenciable; f' no nula cerca de iteración."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f(x+Δ)≈f(x)+f'(x)Δ",
+          "justification": "Linealizar función cerca de x."
+        },
+        {
+          "step": 2,
+          "equation": "0=f(x)+f'(x)Δ",
+          "justification": "Imponer raíz aproximada."
+        },
+        {
+          "step": 3,
+          "equation": "Δ=−f(x)/f'(x)",
+          "justification": "Despejar corrección."
+        },
+        {
+          "step": 4,
+          "equation": "x_next=x−f(x)/f'(x)",
+          "justification": "Iterar."
+        }
+      ],
+      "assumptions": [
+        "f diferenciable; f' no nula cerca de iteración."
+      ],
+      "result": "Newton deriva de resolver la aproximación lineal local de f(x)=0.",
+      "limits": [
+        "Puede divergir si f'≈0 o si la semilla está lejos."
+      ]
+    },
+    {
+      "record_key": "D35:7",
+      "name": "Bisection",
+      "starting_principles": [
+        "f continua y signo opuesto en extremos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f(a)f(b)<0",
+          "justification": "Exigir cambio de signo en intervalo."
+        },
+        {
+          "step": 2,
+          "equation": "m=(a+b)/2",
+          "justification": "Partir intervalo por mitad."
+        },
+        {
+          "step": 3,
+          "equation": "retain [a,m] if f(a)f(m)≤0 else [m,b]",
+          "justification": "Conservar subintervalo que mantiene raíz por teorema del valor intermedio."
+        },
+        {
+          "step": 4,
+          "equation": "width_n=(b−a)/2^n",
+          "justification": "El ancho disminuye geométricamente."
+        }
+      ],
+      "assumptions": [
+        "f continua y signo opuesto en extremos."
+      ],
+      "result": "Bisection reduce a la mitad un intervalo que contiene raíz por cambio de signo.",
+      "limits": [
+        "Converge lentamente pero es robusto; exige bracket inicial."
+      ]
+    },
+    {
+      "record_key": "D35:8",
+      "name": "Cubic interpolation",
+      "starting_principles": [
+        "t_0≠t_1; condiciones de frontera compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p(t)=a+bt+ct²+dt³",
+          "justification": "Suponer polinomio cúbico."
+        },
+        {
+          "step": 2,
+          "equation": "p(t_0)=p_0; p(t_1)=p_1",
+          "justification": "Imponer valores extremos."
+        },
+        {
+          "step": 3,
+          "equation": "p'(t_0)=v_0; p'(t_1)=v_1",
+          "justification": "Imponer pendientes para determinar cuatro coeficientes."
+        },
+        {
+          "step": 4,
+          "equation": "solve 4×4 linear system",
+          "justification": "Resolver coeficientes únicos si t_0≠t_1."
+        }
+      ],
+      "assumptions": [
+        "t_0≠t_1; condiciones de frontera compatibles."
+      ],
+      "result": "Interpolación cúbica determina cuatro coeficientes con dos valores y dos derivadas.",
+      "limits": [
+        "Oscilación/overshoot según tangentes; usar limitadores cuando necesario."
+      ]
+    },
+    {
+      "record_key": "D35:9",
+      "name": "Fourier series",
+      "starting_principles": [
+        "Señal periódica/integrable; base ortogonal en periodo T."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f(t)=a_0+Σ_n(a_n cos nωt+b_n sin nωt)",
+          "justification": "Expandir señal periódica en base trigonométrica."
+        },
+        {
+          "step": 2,
+          "equation": "a_n=(2/T)∫_0^T f(t)cos(nωt)dt",
+          "justification": "Proyectar señal sobre cosenos usando ortogonalidad."
+        },
+        {
+          "step": 3,
+          "equation": "b_n=(2/T)∫_0^T f(t)sin(nωt)dt",
+          "justification": "Proyectar sobre senos."
+        },
+        {
+          "step": 4,
+          "equation": "ω=2π/T",
+          "justification": "Relacionar periodo y frecuencia angular."
+        }
+      ],
+      "assumptions": [
+        "Señal periódica/integrable; base ortogonal en periodo T."
+      ],
+      "result": "Fourier proyecta señal periódica sobre base seno/coseno ortogonal.",
+      "limits": [
+        "Señales no periódicas sufren leakage si no se ventanean."
+      ]
+    },
+    {
+      "record_key": "D35:10",
+      "name": "FFT",
+      "starting_principles": [
+        "N y frecuencia de muestreo definidos; radix-2 para forma clásica."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "X_k=Σ_{n=0}^{N−1}x_n e^(−i2πkn/N)",
+          "justification": "Definir DFT."
+        },
+        {
+          "step": 2,
+          "equation": "split even/odd samples",
+          "justification": "Separar secuencia en índices pares e impares."
+        },
+        {
+          "step": 3,
+          "equation": "X_k=E_k+W_N^kO_k; X_{k+N/2}=E_k−W_N^kO_k",
+          "justification": "Combinar transformadas de mitades para reducir coste."
+        },
+        {
+          "step": 4,
+          "equation": "recursive complexity O(NlogN)",
+          "justification": "La descomposición radix-2 produce FFT."
+        }
+      ],
+      "assumptions": [
+        "N y frecuencia de muestreo definidos; radix-2 para forma clásica."
+      ],
+      "result": "FFT reduce coste de DFT mediante descomposición par/impar.",
+      "limits": [
+        "FFT clásica requiere muestreo uniforme; ventana y zero-padding cambian lectura."
+      ]
+    },
+    {
+      "record_key": "D35:11",
+      "name": "Wavelet transform",
+      "starting_principles": [
+        "Wavelet de energía finita; a≠0; condición de admisibilidad para reconstrucción."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ψ_{a,b}(t)=1/√|a| ψ((t−b)/a)",
+          "justification": "Dilar y trasladar wavelet con normalización de energía."
+        },
+        {
+          "step": 2,
+          "equation": "W(a,b)=∫f(t)ψ*_{a,b}(t)dt",
+          "justification": "Correlacionar señal con wavelet a escala a y posición b."
+        },
+        {
+          "step": 3,
+          "equation": "vary a for scale; b for time",
+          "justification": "Separar información temporal y frecuencial local."
+        },
+        {
+          "step": 4,
+          "equation": "reconstruct using admissibility condition",
+          "justification": "Recuperar señal si wavelet cumple condición de admisibilidad."
+        }
+      ],
+      "assumptions": [
+        "Wavelet de energía finita; a≠0; condición de admisibilidad para reconstrucción."
+      ],
+      "result": "Wavelet analiza señal mediante funciones dilatadas y trasladadas.",
+      "limits": [
+        "Resolución tiempo-frecuencia depende de wavelet/escala."
+      ]
+    },
+    {
+      "record_key": "D35:12",
+      "name": "Monte Carlo sampling",
+      "starting_principles": [
+        "p normalizada y positiva en soporte de f; varianza finita."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "I=∫f(x)p(x)/p(x)dx",
+          "justification": "Introducir densidad de muestreo."
+        },
+        {
+          "step": 2,
+          "equation": "x_i∼p(x)",
+          "justification": "Muestrear de distribución p."
+        },
+        {
+          "step": 3,
+          "equation": "I=E_p[f(x)/p(x)]",
+          "justification": "Reescribir como esperanza."
+        },
+        {
+          "step": 4,
+          "equation": "I_hat=(1/N)Σf(x_i)/p(x_i)",
+          "justification": "Estimar por promedio."
+        }
+      ],
+      "assumptions": [
+        "p normalizada y positiva en soporte de f; varianza finita."
+      ],
+      "result": "Monte Carlo estima integral como esperanza bajo distribución de muestreo.",
+      "limits": [
+        "Varianza alta puede requerir muchas muestras."
+      ]
+    },
+    {
+      "record_key": "D35:13",
+      "name": "Blue-noise sampling",
+      "starting_principles": [
+        "Dominio y distancia mínima definidos; espectro estimado con tamaño finito."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "generate Poisson-separated candidates",
+          "justification": "Imponer distancia mínima entre muestras."
+        },
+        {
+          "step": 2,
+          "equation": "compute structure factor S(k)=|Σ_j e^(−ik·x_j)|²/N",
+          "justification": "Medir energía espectral de conjunto."
+        },
+        {
+          "step": 3,
+          "equation": "penalize low-frequency S(k)",
+          "justification": "Reducir agrupamientos de baja frecuencia."
+        },
+        {
+          "step": 4,
+          "equation": "accept/reposition points to minimize spectral penalty",
+          "justification": "Ajustar distribución conservando separación."
+        }
+      ],
+      "assumptions": [
+        "Dominio y distancia mínima definidos; espectro estimado con tamaño finito."
+      ],
+      "result": "Blue-noise sampling combina separación espacial con supresión espectral de baja frecuencia.",
+      "limits": [
+        "El objetivo espectral depende de dominio y densidad; no hay un único blue-noise universal."
+      ]
+    },
+    {
+      "record_key": "D35:14",
+      "name": "Integración volumétrica Beer–Lambert",
+      "starting_principles": [
+        "σ_t≥σ_s≥0; paso espacial y coeficientes compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dT/ds=−σ_tT",
+          "justification": "La transmisión decae proporcional a la extinción local."
+        },
+        {
+          "step": 2,
+          "equation": "T(s)=exp(−∫_0^sσ_t(u)du)",
+          "justification": "Resolver con T(0)=1."
+        },
+        {
+          "step": 3,
+          "equation": "dL= Tσ_sρp(θ)L_i ds",
+          "justification": "Acumular dispersión local ponderada por transmisión."
+        },
+        {
+          "step": 4,
+          "equation": "L≈Σ_iT_iσ_sρ_i p_iL_iΔs",
+          "justification": "Aproximar integral por raymarch discreto."
+        }
+      ],
+      "assumptions": [
+        "σ_t≥σ_s≥0; paso espacial y coeficientes compatibles."
+      ],
+      "result": "Beer–Lambert volumétrico integra transmisión y dispersión a lo largo del rayo.",
+      "limits": [
+        "Raymarch discreto tiene error y omite múltiples dispersión si no se incluye."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "15/15 técnicas cubiertas, incluida investigación R31 de Beer–Lambert volumétrico.",
+      "Cada derivación contiene pasos, supuestos y límites.",
+      "Se distinguen control, optimización, raíces, interpolación, análisis espectral y transporte."
+    ],
+    "limitations": [
+      "Las fórmulas de control/optimización requieren estabilidad y calibración; la derivación no sustituye pruebas numéricas independientes del punto 5."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
