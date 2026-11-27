@@ -1,5 +1,4 @@
 import * as THREE from "three";
-import { generateFractalBranches } from "./d03-character-geometry.mjs";
 import { createParallelTransportSweep, createParametricSurface } from "./d02-procedural-geometry.mjs";
 import { computeBoidsAcceleration, semiImplicitEulerStep, particlePositionAt } from "./d04-motion-simulation.mjs";
 
@@ -10,8 +9,28 @@ function mulberry32(seed){let a=seed>>>0;return()=>{a=(a+0x6D2B79F5)>>>0;let t=a
 
 export function generateRecursiveTree(options={}){
  const {origin=[0,0,0],direction=[0,1,0],length=1,depth=4,branchAngle=Math.PI/5,scale=.7,seed=1}=options;
- if(!(scale>0&&scale<1))throw new RangeError("scale must be in (0,1)");
- return generateFractalBranches({origin,direction,length,depth,branchAngle,shrink:scale,seed});
+ if(!(Number.isFinite(length)&&length>0&&Number.isInteger(depth)&&depth>=0&&Number.isFinite(branchAngle)&&scale>0&&scale<1&&Number.isInteger(seed)))throw new RangeError("invalid recursive tree parameters");
+ const start=new THREE.Vector3(...vector(origin,"origin")),dir=new THREE.Vector3(...vector(direction,"direction"));
+ if(dir.lengthSq()<EPS)throw new RangeError("tree direction must be nonzero");
+ const segments=[];
+ function visit(a,d,len,level,phase){
+  const b=a.clone().addScaledVector(d,len);
+  segments.push({start:a.clone(),end:b.clone(),level});
+  if(level===0)return;
+  let side=new THREE.Vector3(0,0,1).cross(d);
+  if(side.lengthSq()<EPS)side=new THREE.Vector3(1,0,0).cross(d);
+  side.normalize();
+  const binormal=new THREE.Vector3().crossVectors(d,side).normalize();
+  const jitter=deterministicNoise(seed,phase,level,0)*0.04;
+  for(const sign of [-1,1]){
+   const child=d.clone().multiplyScalar(Math.cos(branchAngle+jitter))
+    .addScaledVector(side,sign*Math.sin(branchAngle+jitter))
+    .addScaledVector(binormal,0.05*(phase%2?1:-1)).normalize();
+   visit(b,child,len*scale,level-1,phase*2+(sign>0?2:1));
+  }
+ }
+ visit(start,dir.normalize(),length,depth,0);
+ return segments;
 }
 
 export function expandLSystem(axiom,rules,iterations,{maxSymbols=1000000}={}){
