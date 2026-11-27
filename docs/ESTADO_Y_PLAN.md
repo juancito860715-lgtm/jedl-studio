@@ -130,3 +130,16 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - 2026-11-24 — PR #38: autorización del usuario para unificar publicación de Pages; el despliegue nativo de GitHub Pages es el único publicador y el workflow del episodio queda como validador.
 
 - 2026-11-24 — PR #38: se unifica la publicación con el flujo nativo de GitHub Pages y se elimina el paso de etiqueta de aprobación duplicada del workflow de PR; se conserva la validación obligatoria de actualización de esta memoria del proyecto.
+
+
+## 7. Auditoría matemática del manifiesto Three.js (2026-11-26)
+
+- Alcance separado: completar las especificaciones matemáticas del manifiesto Three.js; esta tarea no cambia el motor de la aplicación ni autoriza alterar los registros preservados de Crimson Loong.
+- PR #43 permanece abierta y en borrador. El manifiesto contiene 541 técnicas: 46 preservadas, 495 no preservadas pendientes y 0 certificadas como `IMPLEMENTATION_READY`.
+- Se ampliaron las notas de derivación y localización de fuentes para XPBD, Kuwahara anisotrópico, Boids y el modelo microfacet de cabello. Ninguna de estas fichas se declara lista.
+- XPBD: fuente primaria localizada en Macklin, Müller y Chentanez (2016), §4, Ecs. (16)-(18) y Algoritmo 1. Se documentaron la aproximación cuasi-Newton, el acumulador de multiplicadores y los casos singulares. La variante amortiguada (Ec. 26) queda separada.
+- Kuwahara anisotrópico: fuente primaria localizada en Kyprianidis, Kang y Döllner (2009), §3.1-§3.2, Ecs. (1)-(4) y regla de pesos posterior. Se añadió un kernel de referencia Python/JavaScript con la fórmula publicada `alpha_i = 1/(1 + ||s_i||^q)`, q=8 en los ejemplos. La función anterior `weighted_sector_mean` se conserva como convención genérica y no debe presentarse como la ecuación publicada del filtro.
+- Boids: se aclaró que la suma ponderada del manifiesto es una parametrización de implementación, no una ecuación textual única de Reynolds (1987). Falta fijar dimensionalmente si cada término es desplazamiento, velocidad deseada o aceleración.
+- Cabello microfacet: se fijaron los localizadores §3.1 Ecs. (2), (4)-(12), Ecs. (13)-(25) y Appendix A Ecs. (41)-(44). Las fórmulas están como ecuaciones-imagen en la fuente web; se requiere transcripción y verificación de los términos antes de implementar.
+- La primera ejecución de gobernanza falló porque el candado del repositorio exige actualizar este archivo cuando cambian pruebas/código. La ejecución matemática debe revisarse por separado; no se declara CI global verde por ese fallo.
+- Próximo bloque: terminar pruebas independientes y contrato dimensional de XPBD/Kuwahara; extraer las ecuaciones completas de cabello; derivar Boids con magnitudes dimensionalmente homogéneas; después continuar las otras 19 R31 y procesar las 472 fichas históricas por dominio.
