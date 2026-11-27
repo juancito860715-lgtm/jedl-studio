@@ -40,6 +40,10 @@
       "result": "XYZ deriva de transformar RGB lineal a un espacio colorimétrico basado en primarias y blanco.",
       "limits": [
         "Conversión depende del perfil y no puede ser exacta sin primarias/blanco/transferencia."
+      ],
+      "dimensional_verification": [
+        "RGB_linear y XYZ son tristímulos relativos adimensionales; M_RGB es adimensional.",
+        "Si RGB representa radiancia, XYZ conserva la unidad radiométrica; no mezclar con RGB normalizado sin declarar."
       ]
     },
     {
@@ -81,6 +85,10 @@
       "result": "Lab deriva de normalizar XYZ y aplicar función no lineal perceptual; ΔE76 es distancia euclidiana.",
       "limits": [
         "ΔE76 no modela uniformidad perceptual perfecta; ΔE2000 es más avanzado."
+      ],
+      "dimensional_verification": [
+        "L*,a*,b* y ΔE son coordenadas/distancia perceptual adimensionales bajo escala CIE declarada.",
+        "La distancia euclídea compara colores en el mismo espacio y adaptación de blanco."
       ]
     },
     {
@@ -117,6 +125,10 @@
       "result": "HSV/HSL se derivan de máximo, mínimo y diferencia de canales RGB.",
       "limits": [
         "HSV/HSL no son espacios perceptualmente uniformes."
+      ],
+      "dimensional_verification": [
+        "H,S,V/L son adimensionales; hue es ángulo en grados/radianes.",
+        "La transformación RGB↔HSV/HSL opera en el mismo espacio/codificación de entrada declarada."
       ]
     },
     {
@@ -148,6 +160,10 @@
       "result": "La luminancia relativa es una suma ponderada de canales lineales.",
       "limits": [
         "Los coeficientes cambian con primarias; sRGB encoded debe linearizarse."
+      ],
+      "dimensional_verification": [
+        "R,G,B lineales y Y son adimensionales para color relativo; coeficientes son adimensionales.",
+        "Para RGB radiométrico, Y conserva unidad de radiancia; no aplicar a valores gamma-encoded."
       ]
     },
     {
@@ -179,6 +195,10 @@
       "result": "El contraste es cociente de luminancias relativas con offset.",
       "limits": [
         "El ratio no describe toda la percepción de legibilidad ni contexto."
+      ],
+      "dimensional_verification": [
+        "L1,L2 y 0.05 son luminancias relativas adimensionales; el ratio es adimensional.",
+        "L1≥L2≥0; el denominador positivo."
       ]
     },
     {
@@ -215,6 +235,10 @@
       "result": "La armonía cromática se deriva de relaciones angulares en círculo de hue.",
       "limits": [
         "Armonía es heurística artística, no regla perceptual universal."
+      ],
+      "dimensional_verification": [
+        "hue_0 y Δh son ángulos; suma y módulo 360° conservan ángulo.",
+        "Saturación/valor y separaciones armónicas son parámetros adimensionales."
       ]
     },
     {
@@ -246,11 +270,16 @@
         }
       ],
       "assumptions": [
-        "Filtro y factor de reducción declarados; niveles alineados."
+        "Filtro y factor de reducción declarados; niveles alineados.",
+        "El kernel de blur está normalizado para que la media/energía de señal no cambie arbitrariamente por escala."
       ],
       "result": "La pirámide deriva de blur y submuestreo repetidos.",
       "limits": [
         "Cada nivel pierde altas frecuencias; filtro define aliasing/blur."
+      ],
+      "dimensional_verification": [
+        "L_k conserva unidad de luminancia de entrada si blur kernel suma 1.",
+        "Downsample cambia resolución en píxeles, no unidad del valor."
       ]
     },
     {
@@ -287,11 +316,16 @@
         }
       ],
       "assumptions": [
-        "Features normalizadas y pesos calibrados; mapa espacial alineado."
+        "Features normalizadas y pesos calibrados; mapa espacial alineado.",
+        "Cada feature C,E,M,F se normaliza a una escala adimensional común antes de aplicar pesos w_i."
       ],
       "result": "La saliencia combina mapas de características normalizados.",
       "limits": [
         "Saliencia depende de pesos y no predice atención humana exacta."
+      ],
+      "dimensional_verification": [
+        "C,E,M,F y S son adimensionales tras normalización; w_i adimensionales.",
+        "Si M se mide px/s o E en px⁻¹, normalizar antes de sumar con contrast/face features."
       ]
     },
     {
@@ -328,6 +362,10 @@
       "result": "La regla de tercios divide el cuadro en tercios iguales y genera guías.",
       "limits": [
         "La regla de tercios es guía, no ley de composición."
+      ],
+      "dimensional_verification": [
+        "W,H,x,y tienen px; W/3 y H/3 tienen px.",
+        "Las proporciones x/W e y/H son adimensionales."
       ]
     },
     {
@@ -364,6 +402,10 @@
       "result": "La proporción áurea se deriva de la solución positiva de φ²=φ+1.",
       "limits": [
         "φ es una proporción geométrica; no garantiza composición atractiva."
+      ],
+      "dimensional_verification": [
+        "φ=(1+√5)/2 es adimensional; W/H es razón adimensional.",
+        "Las coordenadas de encuadre derivadas de φ conservan px."
       ]
     },
     {
@@ -400,17 +442,24 @@
       "result": "La profundidad se sugiere combinando escala proyectada, pérdida de contraste y reducción de detalle.",
       "limits": [
         "Las pistas de profundidad dependen de cámara, luz y medio."
+      ],
+      "dimensional_verification": [
+        "d tiene L; contraste y detalle son adimensionales; coeficiente k_atm tiene L⁻¹.",
+        "C(d)=C0 exp(−k_atm d) conserva contraste adimensional."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "11/11 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen colorimetría, luminancia, métricas, escalas espaciales y heurísticas compositivas."
+      "11/11 técnicas D29 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "CIE XYZ, Lab, HSV/HSL y luminancia distinguen color relativo de radiancia física",
+      "Contraste y armonía operan sobre magnitudes normalizadas y ángulos coherentes",
+      "Saliency exige normalización de features antes de combinarlas",
+      "Composición y profundidad separan píxeles, razones y distancias físicas"
     ],
     "limitations": [
-      "Las métricas y guías son aproximaciones; perfiles de color y condiciones de visualización deben declararse."
+      "Las métricas perceptuales dependen del observador, pantalla, adaptación, espacio de color y contenido; las ecuaciones no garantizan por sí solas calidad artística."
     ]
   },
   "integrity": {
