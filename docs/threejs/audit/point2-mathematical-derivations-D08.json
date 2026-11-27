@@ -49,7 +49,11 @@
       "limits": [
         "Una proyección no garantiza distorsión nula; costuras y solapamientos requieren reglas explícitas."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "P y la superficie tienen L; UV=(u,v) son adimensionales.",
+        "El filtrado/interpolación de UV conserva coordenadas normalizadas; resolución de textura se mide en texels/píxeles."
+      ]
     },
     {
       "record_key": "D08:1",
@@ -71,8 +75,8 @@
         },
         {
           "step": 3,
-          "equation": "T_x=texture(P_yz); T_y=texture(P_xz); T_z=texture(P_xy)",
-          "justification": "Proyectar posición sobre los tres planos ortogonales."
+          "equation": "T_x=texture(f_tex·P_yz); T_y=texture(f_tex·P_xz); T_z=texture(f_tex·P_xy),  f_tex[L⁻¹]",
+          "justification": "Proyectar posición física sobre cada plano y convertirla a coordenada UV adimensional mediante frecuencia espacial f_tex."
         },
         {
           "step": 4,
@@ -88,7 +92,11 @@
       "limits": [
         "El filtrado y la escala deben evitar cambios visibles en la transición entre ejes."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "N y w_i son adimensionales; w_i normalizados suman 1.",
+        "Las coordenadas de proyección deben ser P·f_tex con f_tex L⁻¹ para obtener UV adimensionales; las tres texturas deben compartir escala/color space."
+      ]
     },
     {
       "record_key": "D08:2",
@@ -100,18 +108,18 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "n=noise(p)",
-          "justification": "Calcular característica continua a partir de coordenada de muestra."
+          "equation": "n=noise(f_0 p),  f_0[L⁻¹]",
+          "justification": "Normalizar la coordenada física antes de evaluar ruido procedural."
         },
         {
           "step": 2,
-          "equation": "v=voronoi(p)",
-          "justification": "Calcular característica celular o distancia a sitios."
+          "equation": "v=voronoi(f_v p),  f_v[L⁻¹]",
+          "justification": "Evaluar partición celular con argumento adimensional y frecuencia espacial declarada."
         },
         {
           "step": 3,
-          "equation": "κ=curvature(p)",
-          "justification": "Obtener característica geométrica local si está disponible."
+          "equation": "κ_norm=ℓ_ref·κ",
+          "justification": "Normalizar curvatura κ (L⁻¹) mediante longitud de referencia ℓ_ref (L) antes de combinarla con features adimensionales."
         },
         {
           "step": 4,
@@ -122,13 +130,18 @@
       "assumptions": [
         "Cada característica se normaliza a un rango conocido antes de mezclar.",
         "Curvatura y coordenadas deben estar definidas en el espacio de evaluación.",
-        "La paleta opera en un espacio de color declarado."
+        "La paleta opera en un espacio de color declarado.",
+        "Los campos de ruido/Voronoi reciben argumentos adimensionales; curvatura se normaliza antes de la paleta."
       ],
       "result": "La textura se genera evaluando campos procedurales y convirtiendo sus valores a atributos de material.",
       "limits": [
         "Cambios de escala de p alteran frecuencia de ruido y celdas; normalizar coordenadas si se requiere escala estable."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "noise y Voronoi reciben coordenadas adimensionales; si p tiene L, multiplicar por frecuencia f0 con L⁻¹.",
+        "Curvatura tiene L⁻¹; antes de combinarla con ruido/color debe normalizarse por una escala de longitud; paleta recibe features adimensionales."
+      ]
     },
     {
       "record_key": "D08:3",
@@ -168,7 +181,11 @@
       "limits": [
         "Mipmap y filtrado bilineal pueden mezclar texels de regiones vecinas si no hay padding."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "uv, offset y scale son adimensionales; uv' conserva dimensión 1.",
+        "W,H y gutters son conteos/píxeles; no se suman a coordenadas físicas."
+      ]
     },
     {
       "record_key": "D08:4",
@@ -208,7 +225,11 @@
       "limits": [
         "UV degeneradas o base TBN inválida producen normales inestables."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "n_t, T, B, N y N' son vectores adimensionales.",
+        "La matriz TBN es adimensional y conserva el tipo de normal."
+      ]
     },
     {
       "record_key": "D08:5",
@@ -230,8 +251,8 @@
         },
         {
           "step": 3,
-          "equation": "N_raw=N−s(T·h_u+B·h_v)",
-          "justification": "Desviar normal en dirección opuesta al gradiente tangencial."
+          "equation": "N_raw=N−s∇_S h,  s[1]",
+          "justification": "Usar el gradiente superficial de altura, derivado respecto de coordenadas físicas sobre la superficie, para obtener una pendiente adimensional."
         },
         {
           "step": 4,
@@ -240,15 +261,19 @@
         }
       ],
       "assumptions": [
-        "h y escala s deben tener unidades compatibles con coordenadas UV/espacio.",
-        "T y B unitarios; la pendiente se convierte al espacio de shading.",
-        "La amplitud se mantiene dentro de rango estable."
+        "h tiene unidad de longitud; ∇_S h es gradiente superficial adimensional.",
+        "s es una ganancia adimensional; si se derivan respecto de UV, aplicar Jacobiano de parametrización para convertir a gradiente superficial.",
+        "T y B son direcciones unitarias."
       ],
       "result": "Bump mapping aproxima microrelieve mediante la perturbación de la normal derivada de un campo de altura.",
       "limits": [
         "No altera geometría, silueta, sombras geométricas ni paralaje real."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "h tiene L; el gradiente superficial ∇_S h es adimensional porque deriva altura respecto de coordenadas físicas L.",
+        "s es una ganancia adimensional; N−s∇_S h es adimensional antes de normalizar."
+      ]
     },
     {
       "record_key": "D08:6",
@@ -288,7 +313,11 @@
       "limits": [
         "El valor no representa directamente una medida física única de rugosidad superficial."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "roughness, wear, wetness y máscaras son adimensionales.",
+        "La salida roughness queda en el rango adimensional del modelo microfacet."
+      ]
     },
     {
       "record_key": "D08:7",
@@ -328,7 +357,11 @@
       "limits": [
         "La mezcla es una convención de workflow PBR, no una ley material universal para mezclas microscópicas."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "metalness m, albedo y F0 son adimensionales; BRDF dieléctrica y conductora tienen la misma unidad angular sr⁻¹.",
+        "La mezcla ponderada conserva unidad de BRDF; el término difuso se anula cuando m→1."
+      ]
     },
     {
       "record_key": "D08:8",
@@ -368,7 +401,11 @@
       "limits": [
         "La fórmula simplificada omite interferencia multicapa y absorción espectral del barniz."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "F_c es adimensional; f_base y f_coat comparten unidad BRDF sr⁻¹.",
+        "(1−F_c)² es adimensional; f_total conserva sr⁻¹."
+      ]
     },
     {
       "record_key": "D08:9",
@@ -408,7 +445,11 @@
       "limits": [
         "No reproduce perfiles espaciales de difusión ni dependencia espectral completa."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "d y ℓ tienen L; d/ℓ es adimensional para Beer–Lambert.",
+        "wrap es adimensional; C_transmitted y C_surface deben compartir unidad/espacio lineal."
+      ]
     },
     {
       "record_key": "D08:10",
@@ -448,7 +489,11 @@
       "limits": [
         "Si TBN es inestable o la dirección tangente cambia abruptamente, aparece parpadeo."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "α_t y α_b son rugosidades adimensionales; TBN y direcciones son unitarios.",
+        "D_aniso tiene unidad de distribución angular sr⁻¹; BRDF conserva sr⁻¹."
+      ]
     },
     {
       "record_key": "D08:11",
@@ -488,7 +533,11 @@
       "limits": [
         "Una máscara visual no simula drenaje, películas de agua ni capilaridad."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "w, roughness y normal son adimensionales; colores seco/mojado comparten espacio lineal.",
+        "La interpolación conserva unidad/escala de color y parámetros de material."
+      ]
     },
     {
       "record_key": "D08:12",
@@ -528,7 +577,11 @@
       "limits": [
         "La interpolación en RGB no lineal puede producir resultados distintos a interpolación lineal de luz."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "α,β,γ son adimensionales y suman 1; los colores de vértice comparten espacio y codificación.",
+        "C interpolado conserva unidad/escala del atributo color."
+      ]
     },
     {
       "record_key": "D08:13",
@@ -568,7 +621,11 @@
       "limits": [
         "El bake pierde dependencia de variables no incluidas (vista, iluminación dinámica, tiempo)."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "u,v y coordenadas de texel normalizadas son adimensionales; W,H son conteos de píxeles.",
+        "C(u,v) hereda el tipo/unidad del atributo horneado; la discretización no cambia ese tipo."
+      ]
     },
     {
       "record_key": "D08:14",
@@ -612,13 +669,18 @@
       "assumptions": [
         "I es luminancia en espacio lineal o señal consistente; gradientes finitos.",
         "σ en píxeles; ε>0 evita división por cero.",
-        "La matriz J es simétrica."
+        "La matriz J es simétrica.",
+        "ε tiene las mismas unidades que los autovalores de J; I_x,I_y se calculan respecto a píxeles o coordenadas normalizadas con escala explícita."
       ],
       "result": "El tensor de estructura se deriva del promedio local del producto exterior del gradiente; sus autovectores describen orientación dominante.",
       "limits": [
         "En regiones planas o isotrópicas λ_1≈λ_2 y θ es inestable; usar coherencia para reducir peso."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "I_x,I_y tienen unidad de luminancia por píxel; J tiene luminancia²/px² y sus autovalores la misma unidad.",
+        "La razón en atan2 es adimensional; coherencia es adimensional si ε tiene unidad igual a λ_1+λ_2."
+      ]
     },
     {
       "record_key": "D08:15",
@@ -663,7 +725,11 @@
       "limits": [
         "El coste crece con número de sectores, muestras y escalas; variación temporal de θ puede causar flicker."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "μ_k y C_out conservan unidad de color; σ²_k tiene unidad de color².",
+        "w_k y a_s son adimensionales; el denominador Σw_k debe ser positivo."
+      ]
     },
     {
       "record_key": "D08:16",
@@ -690,8 +756,8 @@
         },
         {
           "step": 4,
-          "equation": "N'=normalize(N−s(T h_u+B h_v))",
-          "justification": "Perturbar normal según pendiente del relieve."
+          "equation": "N'=normalize(N−s∇_S h)",
+          "justification": "Perturbar la normal mediante gradiente superficial adimensional, no mediante derivadas UV sin conversión métrica."
         },
         {
           "step": 5,
@@ -700,25 +766,32 @@
         }
       ],
       "assumptions": [
-        "a_i y h tienen unidad de altura; distancia usa misma unidad.",
-        "TBN ortonormal; escala s compatible con coordenadas.",
+        "a_i y h tienen unidad de longitud; d_i y stroke width se miden en el mismo espacio.",
+        "∇_S h es adimensional; s es adimensional; TBN ortonormal.",
         "El perfil φ_i se define por tipo de pincelada."
       ],
       "result": "Los trazos generan un campo de altura que perturba normales y rugosidad para simular impasto.",
       "limits": [
         "Bump no cambia silueta ni paralaje; desplazamiento geométrico requiere malla o displacement mapping."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "d_i y strokeWidth tienen L; a_i y h tienen L; φ_i es adimensional.",
+        "El gradiente superficial ∇_S h es adimensional; N, T y B son unitarios y N' es adimensional."
+      ]
     }
   ],
   "validation": {
     "checks": [
-      "17/17 técnicas cubiertas, incluidas tres investigaciones R31 explícitas.",
-      "Cada derivación contiene pasos matemáticos justificados, supuestos y límites.",
-      "Las derivaciones distinguen magnitudes geométricas, ópticas, colorimétricas y raster."
+      "17/17 técnicas D08 cubiertas; ninguna protegida",
+      "Cada derivación tiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Triplanar/procedural noise convierten coordenadas físicas a argumentos adimensionales",
+      "Bump/impasto usan gradiente superficial con dimensión coherente",
+      "Tensor de estructura tipa ε con la misma unidad que sus autovalores",
+      "BRDF, distribución angular, señales de color y raster se mantienen separados"
     ],
     "limitations": [
-      "Los modelos de shading son aproximaciones según sus supuestos; prototipos y validación visual/perceptual se realizan en puntos posteriores."
+      "La derivación define modelos matemáticos y dimensionales; prototipos, filtros de GPU y validación perceptual corresponden a puntos posteriores."
     ]
   },
   "integrity": {
