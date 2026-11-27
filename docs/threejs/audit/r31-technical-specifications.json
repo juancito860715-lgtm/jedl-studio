@@ -4391,61 +4391,230 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "BEER_LAMBERT_TRANSMITTANCE_AND_SEGMENT_COMPOSITING",
+        "symbol_table": [
+          {
+            "symbol": "s, Delta s",
+            "meaning": "distance along ray and segment length",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "sigma_t",
+            "meaning": "base extinction coefficient",
+            "unit": "m^-1",
+            "dimension": {
+              "L": -1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "rho",
+            "meaning": "dimensionless density multiplier in the reference kernel",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "mu_t=sigma_t*rho",
+            "meaning": "effective volumetric extinction coefficient",
+            "unit": "m^-1",
+            "dimension": {
+              "L": -1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "T",
+            "meaning": "transmittance",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "alpha",
+            "meaning": "segment opacity",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "L",
+            "meaning": "radiance",
+            "unit": "W m^-2 sr^-1",
+            "dimension": {
+              "L": 0,
+              "M": 1,
+              "T": -3,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "S",
+            "meaning": "conditional source radiance assigned to an extinction event in the segment",
+            "unit": "same as L",
+            "dimension": {
+              "L": 0,
+              "M": 1,
+              "T": -3,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "μ_t:1/longitud; Δs:longitud; μ_tΔs adimensional; radiancia consistente."
+            "Dimensional audit applies only to the declared scalar formulation and its explicit conventions."
           ]
         },
+        "equations": [
+          {
+            "expression": "T(s)=exp(-integral_0^s mu_t(x) dx)",
+            "meaning": "Beer-Lambert transmittance for spatially varying extinction",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "alpha_i=1-exp(-mu_t,i*Delta s)",
+            "meaning": "exact opacity of a constant-extinction segment",
+            "dimensional_check": "pass",
+            "status": "derived_from_transmittance"
+          },
+          {
+            "expression": "L_(i+1)=L_i+T_i*alpha_i*S_i; T_(i+1)=T_i*(1-alpha_i)",
+            "meaning": "front-to-back segment compositing under piecewise-constant segment source",
+            "dimensional_check": "pass",
+            "status": "derived_discrete_compositing"
+          }
+        ],
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "Beer-Lambert attenuation solves dT/ds=-mu_t(s)T with T(0)=1; separation gives dT/T=-mu_t ds.",
+            "Integrating yields ln T(s)=-integral mu_t ds, hence T(s)=exp(-integral mu_t ds).",
+            "For constant mu_t over a segment of length Delta s, the segment transmittance is exp(-mu_t Delta s), so alpha=1-exp(-mu_t Delta s).",
+            "Front-to-back compositing adds the segment's conditional source radiance weighted by the incoming transmittance and segment opacity; the remaining transmittance multiplies by 1-alpha.",
+            "rho in the current kernel is a dimensionless density multiplier. If physical mass density is used instead, sigma_t must be a mass-specific coefficient and units must be changed consistently."
+          ]
         },
         "assumptions": [
-          "Single scattering simplificado; phase function normalizada; fondo opaco compuesto como L_acc+T_final·L_scene."
+          "Single-scattering/locally constant source approximation; not a complete solution of the radiative transfer equation.",
+          "Source S_i is defined as the radiance contribution conditioned on an extinction event in segment i; it is not an arbitrary per-unit-length source term.",
+          "Segment density and source are treated as constant within each step.",
+          "Radiance is accumulated in linear light and the opaque background is composed as L_total=L_acc+T_final*L_background."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "valid_domain": [
+          "sigma_t>=0 m^-1; rho>=0 dimensionless; Delta s>=0 m; finite source radiance; ray samples ordered front to back."
+        ],
+        "boundary_conditions": [
+          "sigma_t=0 or rho=0 or Delta s=0 gives alpha=0 and unchanged transmittance.",
+          "For a homogeneous medium total transmittance is independent of subdivision up to floating-point error.",
+          "Very large mu_t*Delta s makes alpha approach 1; use numerically stable expm1 when required.",
+          "Negative extinction or segment length is invalid."
+        ],
+        "inputs": [
+          "Per-segment sigma_t, rho, Delta s and conditional source radiance S",
+          "Initial transmittance 1 and radiance accumulator 0"
+        ],
+        "outputs": [
+          "Accumulated radiance and residual transmittance"
+        ],
+        "algorithm_completeness": "CORE_KERNEL_COMPLETE_FULL_BRDF_OR_VOLUME_INTEGRATOR_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_REFERENCE_KERNEL_TESTED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(N) per ray for N segments",
+          "space": "O(1) streaming accumulation"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_FULL_RENDERER_INTEGRATION_PENDING",
+          "details": "Use a custom raymarching ShaderMaterial or TSL node graph with front-to-back accumulation. `sigma_t` must be in inverse world units and `ds` in the same world units. The existing CPU reference kernel validates constant segments and transmittance, not phase-function sampling, shadows, multiple scattering, or the complete volume renderer."
         },
         "source_claims": [
           {
-            "url": "https://doi.org/10.1145/3711853",
-            "type": "PRIMARY_ARTICLE",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "url": "https://graphics.stanford.edu/papers/fourier/Levoy_GI92_VolumeRendering.pdf",
+            "type": "PRIMARY_TECHNICAL_REPORT",
+            "supported_claim": "Attenuation-only exponential integral Eq. (1.2) and volume-ray integral Eq. (1.1), with t explicitly defined as distance along the ray.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Levoy 1992, §1, Eqs. (1.1)-(1.2), PDF p. 1; Eq. (1.2) is the attenuation-only Beer-Lambert form."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "sigma_t=2 m^-1,rho=1,ds=.5m -> T=e^-1.",
+              "oracle": "Python standard-library reference fixture"
+            },
+            {
+              "description": "Four equal segments of optical depth .25 yield total T=e^-1.",
+              "oracle": "Python standard-library reference fixture"
+            },
+            {
+              "description": "Zero extinction preserves T=1 and L=0.",
+              "oracle": "Python standard-library reference fixture"
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Existing Python/JS fixtures: transmittance(2,.5)=e^-1; four segment compositing returns T=e^-1 and L=1-e^-1 for S=1.",
+              "oracle": "JavaScript parity fixture"
+            }
+          ],
+          "edge_cases": [
+            "rho dimension convention; variable density quadrature; alpha underflow/rounding; very opaque medium; segment order; colored extinction; phase function and shadows are out of scope."
+          ]
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Validate variable-density integration against a higher-order numerical quadrature oracle",
+        "Derive and test source term from the selected phase function and lighting convention",
+        "Add shadow transmittance, colored extinction and multi-scattering policy",
+        "Test raymarch integration and opaque-scene compositing in Three.js"
       ]
     },
     {
@@ -4487,61 +4656,180 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "SCHLICK_FRESNEL_FIFTH_POWER_APPROXIMATION",
+        "symbol_table": [
+          {
+            "symbol": "F",
+            "meaning": "approximated Fresnel reflectance",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "F0",
+            "meaning": "reflectance at normal incidence",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "u=cos(theta)",
+            "meaning": "cosine between surface normal and incident/view half direction as specified by the BRDF",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "N,V",
+            "meaning": "unit surface normal and unit direction vector",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "eta_i,eta_t",
+            "meaning": "refractive indices of incident and transmitted media",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "F y F0 adimensionales; IOR adimensional."
+            "Dimensional audit applies only to the declared scalar formulation and its explicit conventions."
           ]
         },
+        "equations": [
+          {
+            "expression": "F(u)=F0+(1-F0)(1-u)^5",
+            "meaning": "fifth-power Schlick approximation with grazing reflectance fixed to 1",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "F0=((eta_i-eta_t)/(eta_i+eta_t))^2",
+            "meaning": "normal-incidence reflectance for a non-absorbing dielectric",
+            "dimensional_check": "pass",
+            "status": "standard_fresnel_boundary_condition"
+          }
+        ],
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "Schlick's Eq. (15) defines a function with endpoint conditions F(0)=1, F(1)=F0, F'(1)=0 and F''(1)=0.",
+            "Set the polynomial as F(u)=F0+(1-F0)g(u), with g(1)=g'(1)=g''(1)=0 and g(0)=1.",
+            "The lowest-degree polynomial satisfying those constraints is g(u)=(1-u)^3 times a quadratic; imposing the derivative constraints yields the fifth power used in Eq. (15).",
+            "All terms are dimensionless; the power is a scalar approximation, not the complete Fresnel equations or a complete BRDF."
+          ]
         },
         "assumptions": [
-          "Schlick aproxima Fresnel; no sustituye la BRDF ni garantiza modelo completo de energía al combinarse incorrectamente con diffuse/specular."
+          "Use linear-light reflectance values, not gamma-encoded display values.",
+          "F0 is scalar for an ideal dielectric and may be RGB for a conductor/material parameterization.",
+          "u must represent the cosine argument of the selected BRDF convention; for a common Cook-Torrance shader this is V·H, not automatically N·V.",
+          "The equation assumes grazing reflectance 1.0; Schlick's more general F90 form is a distinct extension."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "valid_domain": [
+          "F0 in [0,1] per channel; u in [0,1] after clamping; unit vectors required before dot product."
+        ],
+        "boundary_conditions": [
+          "u=1 gives F=F0.",
+          "u=0 gives F=1.",
+          "F0=1 yields F=1 at every angle.",
+          "Backface handling is a material/interface policy and must not be hidden inside this one-sided scalar kernel."
+        ],
+        "inputs": [
+          "F0 linear reflectance",
+          "Cosine u, normally V·H after normalized vector evaluation"
+        ],
+        "outputs": [
+          "Scalar or RGB Fresnel reflectance F"
+        ],
+        "algorithm_completeness": "CORE_KERNEL_COMPLETE_FULL_BRDF_OR_VOLUME_INTEGRATOR_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_REFERENCE_KERNEL_TESTED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(1) scalar operations per shading sample",
+          "space": "O(1)"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_FULL_RENDERER_INTEGRATION_PENDING",
+          "details": "Implement in a ShaderMaterial/TSL material function or CPU reference. For Cook-Torrance use the half-vector cosine V·H; do not substitute N·V without changing the BRDF convention. Three.js built-in physical materials should not be assumed to expose this kernel as a separately configurable function."
         },
         "source_claims": [
           {
-            "url": "https://doi.org/10.1111/1467-8659.1330233",
-            "type": "PRIMARY_JOURNAL_ARTICLE",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "url": "https://wiki.jmonkeyengine.org/docs/3.4/tutorials/_attachments/Schlick94.pdf",
+            "type": "PRIMARY_PAPER",
+            "supported_claim": "Fifth-power Fresnel approximation and its four kernel conditions.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Schlick 1994, §4.2, Eq. (15), PDF pp. 7-8; same spectral-factor expression restated in §5.1 Eq. (24)."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "F0=.04,u=1 -> .04; F0=.04,u=0 -> 1.",
+              "oracle": "Python standard-library reference fixture"
+            },
+            {
+              "description": "F0=.04,u=.5 -> .07.",
+              "oracle": "Python standard-library reference fixture"
+            },
+            {
+              "description": "Monotonic decrease with u for F0<1.",
+              "oracle": "Python standard-library reference fixture"
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Same endpoint and midpoint fixtures as Python.",
+              "oracle": "JavaScript parity fixture"
+            }
+          ],
+          "edge_cases": [
+            "u outside [0,1] clamps; F0 endpoints 0 and 1; vector normalization; backface/interface handling; RGB F0."
+          ]
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Add full angular error comparison against exact dielectric/conductor Fresnel curves",
+        "Validate integration with the selected microfacet BRDF and energy conservation",
+        "Add RGB/conductor and generalized F90 coverage"
       ]
     },
     {
