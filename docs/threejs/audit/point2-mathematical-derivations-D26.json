@@ -40,6 +40,10 @@
       "result": "La deformación facial se deriva de una suma lineal de deltas de forma.",
       "limits": [
         "Mezclas grandes pueden producir volumen/auto-intersección; correctivos pueden ser necesarios."
+      ],
+      "dimensional_verification": [
+        "p and Δp_i have L; w_i are dimensionless; p' retains L.",
+        "All morph targets share the same topology, vertex order and coordinate frame."
       ]
     },
     {
@@ -71,6 +75,10 @@
       "result": "Las action units se combinan como coordenadas de control interpretables sobre la cara.",
       "limits": [
         "Las AU son aproximaciones artísticas; no representan medición clínica."
+      ],
+      "dimensional_verification": [
+        "base and AU_i displacements have L; w_i(t) are dimensionless activations.",
+        "The weighted sum has L and face(t) remains in the same coordinate frame."
       ]
     },
     {
@@ -102,6 +110,10 @@
       "result": "La mandíbula rota alrededor de pivote mediante transformación afín compuesta.",
       "limits": [
         "El modelo de bisagra no incluye deformación de labios/tejidos blandos."
+      ],
+      "dimensional_verification": [
+        "pivot has L; axis and angle are dimensionless/angular; rotation matrix is dimensionless.",
+        "T(pivot)R T(−pivot) transforms positions with L."
       ]
     },
     {
@@ -138,6 +150,10 @@
       "result": "La sincronía labial mezcla visemas con pesos temporales normalizados.",
       "limits": [
         "Pesos normalizados no garantizan fonética correcta; timing y audio son esenciales."
+      ],
+      "dimensional_verification": [
+        "Viseme targets share units (vertex positions L or displacement L); weights are dimensionless and sum to 1.",
+        "The interpolated face preserves the unit of the target data."
       ]
     },
     {
@@ -174,6 +190,10 @@
       "result": "La coarticulación deriva de sumar influencias temporales de fonemas vecinos.",
       "limits": [
         "Gauss temporal es heurística; requiere ajuste por idioma y velocidad del habla."
+      ],
+      "dimensional_verification": [
+        "t, center_j and coarticulation window τ_j have T; normalized time is dimensionless.",
+        "Influence weights are dimensionless; weighted viseme output preserves L."
       ]
     },
     {
@@ -210,6 +230,10 @@
       "result": "Una sacada se representa como trayectoria corta y balística interpolada hacia nueva fijación.",
       "limits": [
         "Las sacadas reales tienen dinámica oculomotora compleja; curva es aproximación."
+      ],
+      "dimensional_verification": [
+        "Gaze direction is dimensionless/unit length; transition time has T; angular amplitudes are radians.",
+        "Interpolated direction remains dimensionless and normalized."
       ]
     },
     {
@@ -246,6 +270,10 @@
       "result": "El parpadeo se construye como producto de envolventes de cierre y apertura.",
       "limits": [
         "Parpadeos naturales varían en duración y asimetría; esta es una forma procedural."
+      ],
+      "dimensional_verification": [
+        "Time and close/open durations have T; normalized phase and blink envelope are dimensionless.",
+        "Eye aperture/scale parameter is dimensionless; geometry displacement has L if applied to vertices."
       ]
     },
     {
@@ -267,8 +295,8 @@
         },
         {
           "step": 3,
-          "equation": "Δp(p)=Σ_i activation_i a_i(p) direction_i",
-          "justification": "Combinar campos de deformación."
+          "equation": "Δp=Σ_i a_i·activation_i·falloff_i(d_i/r_i)·direction_i",
+          "justification": "Multiplicar el perfil escalar adimensional por amplitud física a_i y dirección unitaria para obtener un desplazamiento con unidad L."
         },
         {
           "step": 4,
@@ -277,11 +305,16 @@
         }
       ],
       "assumptions": [
-        "σ_i>0; direcciones y activaciones acotadas."
+        "σ_i>0; direcciones y activaciones acotadas.",
+        "a_i y r_i tienen L; activation y falloff son adimensionales; direction_i es unitario."
       ],
       "result": "El campo muscular procedural es una suma de falloffs espaciales vectoriales.",
       "limits": [
         "Falloff isotrópico puede ser insuficiente para músculos con dirección/anclaje complejos."
+      ],
+      "dimensional_verification": [
+        "Distance to muscle has L; falloff(distance/radius) is dimensionless; direction is unit length.",
+        "A displacement amplitude a_i has L; Δp=Σa_i activation_i falloff_i direction_i therefore has L."
       ]
     },
     {
@@ -318,6 +351,10 @@
       "result": "El espacio emocional es una mezcla controlada de targets y neutral.",
       "limits": [
         "Emociones no son coordenadas universales; los targets deben diseñarse y probarse."
+      ],
+      "dimensional_verification": [
+        "Emotion intensity and blend weights are dimensionless; target morph displacements have L.",
+        "The blended expression preserves L and remains within declared activation range."
       ]
     },
     {
@@ -354,17 +391,24 @@
       "result": "La mirada coordinada se deriva de una señal de cabeza retardada más offset ocular.",
       "limits": [
         "El retardo constante no captura anticipación variable ni coordinación cognitiva."
+      ],
+      "dimensional_verification": [
+        "Head target, eye target and offset share the same representation/unit (direction 1 or position L).",
+        "Delay τ has T; t−τ is a valid time argument; gaze output preserves target type."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "10/10 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen deformación geométrica, control facial, temporización fonética y mirada."
+      "10/10 técnicas D26 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Blendshapes, FACS, visemas y emociones usan pesos adimensionales sobre desplazamientos compatibles",
+      "Jaw hinge y gaze coordination conservan marcos/unidades",
+      "Campo muscular facial incluye amplitud de desplazamiento con L explícita",
+      "Coarticulación y blink envelopes usan tiempos y fases normalizadas"
     ],
     "limitations": [
-      "Los modelos son herramientas de animación; la interpretación emocional y la sincronía requieren diseño/validación de actuación."
+      "La ficha deriva control geométrico/actuación; no certifica captura facial, calidad perceptual, lip-sync lingüístico ni anatomía clínica."
     ]
   },
   "integrity": {
