@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { createParametricSurface } from "./d02-procedural-geometry.mjs";
-import { solveXpbdDistanceConstraints, pendulumStep } from "./d04-motion-simulation.mjs";
+import { solveXpbdDistanceConstraints } from "./d04-motion-simulation.mjs";
 
 const EPS=1e-10;
 function v3(a,name){if(!Array.isArray(a)||a.length!==3||!a.every(Number.isFinite))throw new RangeError(name+" must be a finite 3D vector");return a;}
@@ -37,8 +37,7 @@ export function assembleModularBuilding({modules,placements}={}){
   const module=modules[type],mesh=new THREE.InstancedMesh(module.geometry,module.material,items.length),dummy=new THREE.Object3D();
   items.forEach((item,i)=>{
    const position=item.position||[0,0,0],rotation=item.rotation||[0,0,0],scale=item.scale||[1,1,1];
-   dummy.position.fromArray(v3(position,"module position"));
-   dummy.rotation.set(...rotation);dummy.scale.fromArray(v3(scale,"module scale"));dummy.updateMatrix();
+   dummy.position.fromArray(v3(position,"module position"));v3(rotation,"module rotation");dummy.rotation.set(...rotation);dummy.scale.fromArray(v3(scale,"module scale"));dummy.updateMatrix();
    mesh.setMatrixAt(i,dummy.matrix);
   });
   mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();group.add(mesh);
@@ -149,11 +148,11 @@ export function createProceduralFacade({width=8,height=10,bays=4,floors=5,wallDe
   const cx=-width/2+(bay+.5)*bayW,cy=(floor+.5)*floorH;
   if(floor===0&&bay===Math.floor(bays/2)){
    const w=Math.min(doorWidth,bayW*.8),h=Math.min(doorHeight,floorH*.9);
-   const doorBottom=Math.min(.02,h*.05);const path=new THREE.Path();path.moveTo(cx-w/2,doorBottom);path.lineTo(cx+w/2,doorBottom);path.lineTo(cx+w/2,h);path.lineTo(cx-w/2,h);path.closePath();holes.push(path);
+   const doorBottom=Math.min(.02,h*.05);const path=new THREE.Path();path.moveTo(cx-w/2,doorBottom);path.lineTo(cx-w/2,h);path.lineTo(cx+w/2,h);path.lineTo(cx+w/2,doorBottom);path.closePath();holes.push(path);
    openings.push({type:"door",x:cx,y:h/2,width:w,height:h});
   }else{
    const w=bayW*windowRatio,h=floorH*windowRatio;
-   const path=new THREE.Path();path.moveTo(cx-w/2,cy-h/2);path.lineTo(cx+w/2,cy-h/2);path.lineTo(cx+w/2,cy+h/2);path.lineTo(cx-w/2,cy+h/2);path.closePath();holes.push(path);
+   const path=new THREE.Path();path.moveTo(cx-w/2,cy-h/2);path.lineTo(cx-w/2,cy+h/2);path.lineTo(cx+w/2,cy+h/2);path.lineTo(cx+w/2,cy-h/2);path.closePath();holes.push(path);
    openings.push({type:"window",x:cx,y:cy,width:w,height:h});
   }
  }
@@ -209,7 +208,7 @@ export function createFlagGeometry(state){
 
 export function createPendulumLantern({pivot=[0,0,0],length=1,gravity=9.81,amplitude=.2,phase=0,time=0}={}){
  const p=v3(pivot,"pivot");
- if(!(Number.isFinite(length)&&length>0&&Number.isFinite(gravity)&&gravity>=0&&Number.isFinite(amplitude)&&Number.isFinite(phase)&&Number.isFinite(time)&&time>=0))throw new RangeError("invalid pendulum lantern");
+ if(!(Number.isFinite(length)&&length>0&&Number.isFinite(gravity)&&gravity>=0&&Number.isFinite(amplitude)&&Math.abs(amplitude)<=.5&&Number.isFinite(phase)&&Number.isFinite(time)&&time>=0))throw new RangeError("invalid pendulum lantern");
  const omega=Math.sqrt(gravity/length),theta=amplitude*Math.cos(omega*time+phase);
  return {theta,position:[p[0]+length*Math.sin(theta),p[1]-length*Math.cos(theta),p[2]],angularVelocity:-amplitude*omega*Math.sin(omega*time+phase)};
 }
