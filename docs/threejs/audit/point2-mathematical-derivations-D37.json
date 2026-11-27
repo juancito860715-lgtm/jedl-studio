@@ -45,6 +45,10 @@
       "result": "La jerarquía compone matrices locales hasta mundo y matrices de skinning.",
       "limits": [
         "Escala no uniforme y shear requieren tratamiento específico de normales y DQS."
+      ],
+      "dimensional_verification": [
+        "Matrices lineales/rotaciones son adimensionales; traslaciones y puntos tienen L.",
+        "La composición padre-hijo y bind inverse conserva coordenadas L."
       ]
     },
     {
@@ -81,6 +85,10 @@
       "result": "LBS combina transformaciones de huesos con pesos normalizados.",
       "limits": [
         "LBS puede producir candy-wrapper collapse en torsiones grandes."
+      ],
+      "dimensional_verification": [
+        "p y deltas tienen L; w_i son adimensionales y suman 1; skin matrices tienen bloque lineal 1 y traslación L.",
+        "La mezcla de posiciones conserva L; normales requieren inverse-transpose bajo escala no uniforme."
       ]
     },
     {
@@ -117,6 +125,10 @@
       "result": "DQS combina transformaciones rígidas en espacio de cuaterniones duales.",
       "limits": [
         "DQS básico no maneja escala no uniforme arbitraria."
+      ],
+      "dimensional_verification": [
+        "Parte real dual quaternion es adimensional; parte dual codifica traslación con L.",
+        "Pesos adimensionales; normalización conserva tipo de transformación rígida."
       ]
     },
     {
@@ -153,6 +165,10 @@
       "result": "CCD alinea sucesivamente cada articulación hacia el objetivo.",
       "limits": [
         "CCD puede oscilar o quedarse en mínimos locales; límites articulares afectan convergencia."
+      ],
+      "dimensional_verification": [
+        "e, pivotes y target tienen L; vectores normalizados son adimensionales; Δθ es radianes.",
+        "tolerance tiene L; rotación no altera unidad de posición."
       ]
     },
     {
@@ -194,6 +210,10 @@
       "result": "FABRIK resuelve posiciones mediante pasadas backward/forward preservando longitudes.",
       "limits": [
         "Objetivos fuera de alcance requieren extensión o fallback."
+      ],
+      "dimensional_verification": [
+        "p_i,target y longitudes l_i tienen L; normalize produce dirección adimensional.",
+        "ε tiene L; cada pasada conserva longitudes de segmento."
       ]
     },
     {
@@ -225,11 +245,16 @@
         }
       ],
       "assumptions": [
-        "J diferenciable; damping λ>0; unidades angulares y cartesianas coherentes."
+        "J diferenciable; damping λ>0; unidades angulares y cartesianas coherentes.",
+        "Para θ en radianes (adimensionales) y f(θ) en metros, J y λ tienen unidad m; si el efector incluye posición y orientación, escalar cada bloque por su unidad."
       ],
       "result": "DLS minimiza error cartesiano con regularización del Jacobiano.",
       "limits": [
         "Singularidades y Jacobianos mal condicionados exigen damping y límites."
+      ],
+      "dimensional_verification": [
+        "e tiene L; J=∂f/∂θ tiene L si θ son ángulos adimensionales; JJᵀ tiene L².",
+        "λ tiene L; Δθ es adimensional angular; con DOFs mixtos se requiere escalado por tipo."
       ]
     },
     {
@@ -261,11 +286,16 @@
         }
       ],
       "assumptions": [
-        "Curvas musculares son aproximaciones empíricas; activación a∈[0,1]."
+        "Curvas musculares son aproximaciones empíricas; activación a∈[0,1].",
+        "w y l_opt tienen L; f_v usa v/v_max adimensional; F_max y F_passive se expresan en N."
       ],
       "result": "El modelo fuerza-longitud combina activación, longitud, velocidad y tensión pasiva.",
       "limits": [
         "Las curvas son aproximaciones biomecánicas, no parámetros clínicos."
+      ],
+      "dimensional_verification": [
+        "l,l_opt,w tienen L; v y v_max tienen L/T; sus cocientes son adimensionales.",
+        "F_max y F_passive tienen N; activación, f_l y f_v son adimensionales."
       ]
     },
     {
@@ -307,6 +337,10 @@
       "result": "Hill músculo-tendón impone equilibrio entre fascículo y tendón con geometría de pennation.",
       "limits": [
         "Modelo simplificado; tejido real tiene activación, viscoelasticidad y geometría complejas."
+      ],
+      "dimensional_verification": [
+        "l_MT,l_t,l_f tienen L; ángulo α es adimensional; cosα adimensional.",
+        "F_CE,F_PE,F_SE tienen N; equilibrio de fuerzas conserva N."
       ]
     },
     {
@@ -343,6 +377,10 @@
       "result": "La conservación de volumen deriva de A·L constante en segmento aproximado.",
       "limits": [
         "El volumen segmentario no se conserva exactamente con deformaciones arbitrarias."
+      ],
+      "dimensional_verification": [
+        "V tiene L³; A tiene L²; L tiene L; A·L tiene L³.",
+        "radius tiene L; sqrt(L1/L2) es adimensional."
       ]
     },
     {
@@ -374,11 +412,16 @@
         }
       ],
       "assumptions": [
-        "Capas y normales de contacto definidos; μ,k_t son parámetros del modelo."
+        "Capas y normales de contacto definidos; μ,k_t son parámetros del modelo.",
+        "k_t tiene N/m; μ es adimensional; N representa fuerza normal en N."
       ],
       "result": "El deslizamiento de fascia combina restricción normal y movimiento tangencial limitado.",
       "limits": [
         "Fricción de tejidos es aproximada y no constituye modelo médico validado."
+      ],
+      "dimensional_verification": [
+        "d,d0,Δs tienen L; C_n tiene L; k_t tiene N/m; k_tΔs tiene N.",
+        "μ es adimensional; N y F_t tienen N."
       ]
     },
     {
@@ -410,11 +453,16 @@
         }
       ],
       "assumptions": [
-        "Poses de referencia compatibles; σ_k>0; features normalizadas."
+        "Poses de referencia compatibles; σ_k>0; features normalizadas.",
+        "σ_k tiene las mismas unidades que cada bloque de features; si son heterogéneas, normalizarlas por separado antes de calcular RBF."
       ],
       "result": "Correctives por pose se derivan de interpolación RBF en espacio de características articulares.",
       "limits": [
         "Correctives dependen de poses de entrenamiento/esculpido y no extrapolan bien."
+      ],
+      "dimensional_verification": [
+        "Pose features φ_k y σ_k comparten unidades; el cociente cuadrático es adimensional.",
+        "w'_k es adimensional; Δp_k tiene L; p' conserva L."
       ]
     },
     {
@@ -451,6 +499,10 @@
       "result": "La mano se modela como cadenas jerárquicas de segmentos articulados.",
       "limits": [
         "Anatomía estilizada no reproduce todas las restricciones tendinosas."
+      ],
+      "dimensional_verification": [
+        "Segment lengths and pivot translations have L; joint angles are radians; rotation matrices are dimensionless.",
+        "p_tip and transformed positions retain L."
       ]
     },
     {
@@ -487,17 +539,24 @@
       "result": "La respiración procedural se deriva de señales periódicas desfasadas aplicadas al rig.",
       "limits": [
         "Frecuencia/amplitud son controles de animación, no parámetros de salud."
+      ],
+      "dimensional_verification": [
+        "r0,A,A_a,A_s tienen L; f tiene T⁻¹; t tiene T; phase is dimensionless angular.",
+        "r(t), abdomen and shoulder offsets preserve L."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "13/13 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen transformaciones geométricas, IK, constitutivas musculares y deformación artística."
+      "13/13 técnicas D37 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "LBS/DQS y jerarquía ósea distinguen rotación adimensional de traslación L",
+      "CCD, FABRIK y DLS tipan error, longitud, damping y ángulos",
+      "Fuerza muscular, Hill, volumen, fascia y respiración conservan unidades de fuerza/longitud/tiempo",
+      "Corrective blendshape normaliza features antes de RBF y suma deltas L"
     ],
     "limitations": [
-      "Los modelos biomecánicos son aproximaciones para animación; no constituyen diagnóstico ni parámetros clínicos."
+      "Los modelos biomecánicos son aproximaciones para animación; no constituyen diagnósticos, prescripciones ni simulación médica validada."
     ]
   },
   "integrity": {
