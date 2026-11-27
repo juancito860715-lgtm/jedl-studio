@@ -131,7 +131,7 @@ export function greedyMeshVoxels({data,size,empty=0,mergeKey=v=>v}={}) {
         const p=[0,0,0];p[axis]=slice;p[u]=i;p[v]=j;
         const q=p.slice();q[axis]+=sign;
         const a=at(...p),b=q[axis]>=0&&q[axis]<nd?at(...q):empty;
-        if(a!==empty&&b===empty)mask[i+nu*j]={material:a,key:mergeKey(a),normal:sign};
+        if(a!==empty&&(b===empty||!Object.is(mergeKey(a),mergeKey(b))))mask[i+nu*j]={material:a,key:mergeKey(a),normal:sign};
       }
       for(let j=0;j<nv;j++)for(let i=0;i<nu;i++){
         const face=mask[i+nu*j];if(!face)continue;
