@@ -1,0 +1,276 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D11 Agua, océanos, lagos y cascadas",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D11",
+    "record_count": 6,
+    "excluded_protected_records": 7,
+    "excluded_keys": [
+      "D11:0",
+      "D11:1",
+      "D11:5",
+      "D11:8",
+      "D11:10",
+      "D11:11",
+      "D11:12"
+    ],
+    "excluded_reason": "Se preservan siete técnicas de Crimson Loong sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D11:2",
+      "name": "Onda radial",
+      "starting_principles": [
+        "α≥0; k>0; ω>0.",
+        "r y σ en unidad de longitud; k inverso de longitud."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r=||p−c||",
+          "justification": "Calcular distancia radial al centro del impacto."
+        },
+        {
+          "step": 2,
+          "equation": "A(r)=A_0 exp(−αr)",
+          "justification": "Aplicar atenuación exponencial de amplitud con distancia."
+        },
+        {
+          "step": 3,
+          "equation": "φ(r,t)=kr−ωt",
+          "justification": "Definir fase que avanza radialmente."
+        },
+        {
+          "step": 4,
+          "equation": "h(r,t)=A(r)sinφ(r,t)",
+          "justification": "Multiplicar portadora oscilatoria por envolvente espacial."
+        },
+        {
+          "step": 5,
+          "equation": "v_phase=ω/k",
+          "justification": "Derivar velocidad de fase de la condición kr−ωt=constante."
+        }
+      ],
+      "assumptions": [
+        "α≥0; k>0; ω>0.",
+        "r y σ en unidad de longitud; k inverso de longitud.",
+        "La fuente es radialmente simétrica."
+      ],
+      "result": "Una onda radial combina fase propagante con amplitud atenuada por distancia.",
+      "limits": [
+        "No modela conservación exacta de energía en una superficie 3D ni dispersión no lineal."
+      ]
+    },
+    {
+      "record_key": "D11:3",
+      "name": "Ripple impulse",
+      "starting_principles": [
+        "σ>0; v≥0; k y r usan unidades recíprocas/compatibles.",
+        "A tiene unidad de altura; el centro y tiempo de impacto están definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ξ=r−vt",
+          "justification": "Definir coordenada en el marco que se desplaza a velocidad v."
+        },
+        {
+          "step": 2,
+          "equation": "G(ξ)=exp(−(ξ/σ)²)",
+          "justification": "Crear envolvente gaussiana localizada alrededor del frente."
+        },
+        {
+          "step": 3,
+          "equation": "h(r,t)=A G(ξ) cos(kξ)",
+          "justification": "Modular oscilación por envolvente para obtener anillos visibles."
+        },
+        {
+          "step": 4,
+          "equation": "front(t): ξ=0 ⇒ r=vt",
+          "justification": "La cresta central del paquete se desplaza radialmente a velocidad v."
+        }
+      ],
+      "assumptions": [
+        "σ>0; v≥0; k y r usan unidades recíprocas/compatibles.",
+        "A tiene unidad de altura; el centro y tiempo de impacto están definidos."
+      ],
+      "result": "El ripple es un paquete de onda localizado cuya envolvente se desplaza hacia fuera.",
+      "limits": [
+        "La forma gaussiana es un efecto procedural, no solución completa de una ecuación de ondas con dispersión."
+      ]
+    },
+    {
+      "record_key": "D11:4",
+      "name": "Flow map",
+      "starting_principles": [
+        "F comparte unidad UV por segundo; UV normalizadas adimensionales.",
+        "Δt en segundos; integración estable."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dUV/dt=F(UV,t)",
+          "justification": "Interpretar el flow map como campo de velocidad en el dominio de textura."
+        },
+        {
+          "step": 2,
+          "equation": "UV_{n+1}=UV_n+F(UV_n,t_n)Δt",
+          "justification": "Aplicar Euler explícito para advectar coordenadas."
+        },
+        {
+          "step": 3,
+          "equation": "sample=Texture(UV_n)",
+          "justification": "Consultar textura en coordenada transportada."
+        },
+        {
+          "step": 4,
+          "equation": "repeat over t",
+          "justification": "Acumular deformación temporal o integrar trayectoria de coordenada."
+        }
+      ],
+      "assumptions": [
+        "F comparte unidad UV por segundo; UV normalizadas adimensionales.",
+        "Δt en segundos; integración estable.",
+        "Wrap/clamp de coordenadas declarado."
+      ],
+      "result": "La distorsión de textura se deriva de la ecuación de advección de coordenadas en un campo de flujo.",
+      "limits": [
+        "Euler explícito puede introducir deriva; integrar con RK o conservar estado UV si el campo cambia rápidamente."
+      ]
+    },
+    {
+      "record_key": "D11:6",
+      "name": "Fresnel water",
+      "starting_principles": [
+        "N,V unitarios; índices de refracción positivos.",
+        "F_0 y F adimensionales; reflexión/transmisión en mismo espacio lineal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "cosθ=|N·V|",
+          "justification": "Obtener coseno de incidencia/salida entre normal de agua y vista."
+        },
+        {
+          "step": 2,
+          "equation": "F_0=((n_1−n_2)/(n_1+n_2))²",
+          "justification": "Para dieléctricos, calcular reflectancia frontal en incidencia normal."
+        },
+        {
+          "step": 3,
+          "equation": "F=F_0+(1−F_0)(1−cosθ)^5",
+          "justification": "Aplicar aproximación de Schlick para aumentar reflexión al ángulo rasante."
+        },
+        {
+          "step": 4,
+          "equation": "C=F C_reflection+(1−F)C_transmission",
+          "justification": "Combinar reflexión y transmisión según fracción de Fresnel."
+        }
+      ],
+      "assumptions": [
+        "N,V unitarios; índices de refracción positivos.",
+        "F_0 y F adimensionales; reflexión/transmisión en mismo espacio lineal.",
+        "La superficie se aproxima como interfaz dieléctrica."
+      ],
+      "result": "La reflectancia del agua aumenta al mirar rasante por las condiciones de Fresnel; Schlick ofrece aproximación de bajo coste.",
+      "limits": [
+        "La mezcla simplificada omite absorción, dispersión y múltiples interfaces."
+      ]
+    },
+    {
+      "record_key": "D11:7",
+      "name": "Depth absorption",
+      "starting_principles": [
+        "σ tiene unidad inversa a profundidad; d en misma unidad.",
+        "C_surface y C_water lineales y compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T(d)=exp(−σd)",
+          "justification": "Derivar transmitancia de Beer–Lambert para profundidad d."
+        },
+        {
+          "step": 2,
+          "equation": "C(d)=T(d)C_surface+(1−T(d))C_water",
+          "justification": "Mezclar señal superficial atenuada con color de agua acumulado."
+        },
+        {
+          "step": 3,
+          "equation": "σ≥0; d≥0",
+          "justification": "Garantizar que T∈[0,1] y la mezcla permanezca convexa."
+        },
+        {
+          "step": 4,
+          "equation": "d=0 ⇒ T=1; d→∞ ⇒ T→0",
+          "justification": "Verificar límites: agua somera deja ver superficie; agua profunda tiende al color del medio."
+        }
+      ],
+      "assumptions": [
+        "σ tiene unidad inversa a profundidad; d en misma unidad.",
+        "C_surface y C_water lineales y compatibles.",
+        "La fórmula es aproximación homogénea."
+      ],
+      "result": "El color por profundidad se deriva de atenuación exponencial y mezcla con el color del medio.",
+      "limits": [
+        "El modelo no resuelve absorción espectral ni dispersión volumétrica por longitud de onda."
+      ]
+    },
+    {
+      "record_key": "D11:9",
+      "name": "Shoreline",
+      "starting_principles": [
+        "width>0; waterLevel y bedHeight en misma unidad.",
+        "u adimensional; máscara en [0,1]."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d=waterLevel−bedHeight",
+          "justification": "Calcular profundidad local del agua respecto al lecho."
+        },
+        {
+          "step": 2,
+          "equation": "u=clamp(d/width,0,1)",
+          "justification": "Normalizar profundidad sobre el ancho de transición."
+        },
+        {
+          "step": 3,
+          "equation": "s(u)=u²(3−2u)",
+          "justification": "Aplicar smoothstep cúbico con derivada cero en extremos."
+        },
+        {
+          "step": 4,
+          "equation": "shore=s(u)",
+          "justification": "Usar el valor como máscara continua de agua/orilla."
+        }
+      ],
+      "assumptions": [
+        "width>0; waterLevel y bedHeight en misma unidad.",
+        "u adimensional; máscara en [0,1].",
+        "El borde se calcula en coordenadas de mundo coherentes."
+      ],
+      "result": "La transición agua-tierra se obtiene normalizando profundidad y aplicando una curva C¹.",
+      "limits": [
+        "Una máscara de orilla no modela dinámica de oleaje ni transporte de sedimento."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "6/6 técnicas no protegidas cubiertas.",
+      "Cada derivación contiene pasos justificados, supuestos y límites.",
+      "Las siete claves protegidas se excluyen sin modificación."
+    ],
+    "limitations": [
+      "Las fórmulas describen aproximaciones visuales de agua; la simulación hidrodinámica completa no está implícita."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
