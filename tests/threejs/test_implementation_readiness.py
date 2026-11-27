@@ -35,6 +35,28 @@ class TestImplementationReadinessGate(unittest.TestCase):
         result=validate_dimensional_audit(payload,["R31-X"])
         self.assertEqual(result["status"],"FAIL")
 
+    def test_dimensional_audit_rejects_known_unit_dimension_mismatch(self):
+        payload={"records":[{"research_id":"R31-X","variables":[{"symbol":"x","meaning":"position","unit":"m","domain":"finite","dimension":{"L":0,"M":0,"T":0,"I":0,"Theta":0,"N":0,"J":0}}]}]}
+        result=validate_dimensional_audit(payload,["R31-X"])
+        self.assertEqual(result["status"],"FAIL")
+        self.assertEqual(result["invalid_entries"][0]["reason"],"unit_dimension_mismatch")
+
+    def test_dimensional_audit_marks_custom_units_as_conditional(self):
+        payload={"records":[{"research_id":"R31-X","variables":[{"symbol":"x","meaning":"pixel intensity","unit":"intensity/pixel","domain":"finite","dimension":{"L":0,"M":0,"T":0,"I":0,"Theta":0,"N":0,"J":0}}]}]}
+        result=validate_dimensional_audit(payload,["R31-X"])
+        self.assertEqual(result["status"],"PASS")
+        self.assertEqual(result["unit_audit"]["status"],"CONDITIONAL")
+        self.assertEqual(len(result["unit_audit"]["unresolved_units"]),1)
+
+    def test_dimensional_audit_rejects_duplicate_ids_and_nonfinite_exponents(self):
+        variable={"symbol":"x","meaning":"position","unit":"m","domain":"finite","dimension":{"L":1,"M":0,"T":0,"I":0,"Theta":0,"N":0,"J":0}}
+        bad=dict(variable);bad["dimension"]={**variable["dimension"],"L":float("nan")}
+        payload={"records":[{"research_id":"R31-X","variables":[variable]},{"research_id":"R31-X","variables":[bad]}]}
+        result=validate_dimensional_audit(payload,["R31-X"])
+        self.assertEqual(result["status"],"FAIL")
+        self.assertEqual(result["duplicate_research_ids"],["R31-X"])
+        self.assertTrue(any(x["reason"]=="dimension_exponents_must_be_finite_numbers" for x in result["invalid_entries"]))
+
     def test_malformed_source_claim_is_reported_not_crashes(self):
         spec={"source_claims":[["not","an","object"]]}
         gaps=specification_gaps(spec)
