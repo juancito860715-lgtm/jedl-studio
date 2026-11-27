@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D16 Audio procedural y sincronización audiovisual",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -441,16 +441,23 @@
           "step": 4,
           "equation": "mix(y_a,y_b)=Σ_j g_j y_j",
           "justification": "Los nodos conectados en paralelo se suman con ganancias."
+        },
+        {
+          "step": 5,
+          "equation": "F_total=F_n∘…∘F_2∘F_1",
+          "justification": "Para nodos no lineales o dependientes del estado, la composición de operadores es válida pero no se reduce al producto de funciones de transferencia."
         }
       ],
       "assumptions": [
         "Nodos y sample rate compatibles.",
         "Los nodos no lineales/no estacionarios no se describen por una única H(ω).",
-        "Gains y buffers tienen rango válido."
+        "Gains y buffers tienen rango válido.",
+        "El producto H_total=ΠH_i se aplica solo a nodos LTI en serie; nodos no lineales se describen por composición de operadores."
       ],
       "result": "Un grafo de audio representa composición de operadores en serie y paralelo.",
       "limits": [
-        "La ecuación de transferencia aplica solo a sistemas lineales invariantes en el tiempo; waveshapers y compresores son no lineales."
+        "La ecuación de transferencia aplica solo a sistemas lineales invariantes en el tiempo; waveshapers y compresores son no lineales.",
+        "Compresores, limitadores, waveshapers y automatización no lineal no tienen una única H(ω) independiente de la señal."
       ],
       "dimensional_verification": [
         "Gain y transfer functions son adimensionales; el flujo conserva tipo/unidad de la señal.",
@@ -464,7 +471,8 @@
       "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
       "Se distinguen unidades de convolución continua y discreta para reverberación",
       "Frecuencias, tiempos, envolventes, señales y paneo estéreo conservan unidades",
-      "La sincronización BPM se convierte explícitamente a segundos"
+      "La sincronización BPM se convierte explícitamente a segundos",
+      "Web Audio graph distingue producto de transferencias para nodos LTI de composición general para nodos no lineales."
     ],
     "limitations": [
       "La derivación cubre síntesis/procesamiento matemático; calidad sonora, latencia real, licencias de muestras y sincronización audiovisual se validan en etapas posteriores."
