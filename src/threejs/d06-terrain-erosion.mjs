@@ -72,6 +72,7 @@ export function hydraulicErosionStep({heightMap,waterMap,sedimentMap,width,heigh
    ![rainRate,flowRate,capacityCoefficient,erosionRate,depositionRate,evaporationRate,minHeight].every(Number.isFinite)||
    [rainRate,flowRate,capacityCoefficient,erosionRate,depositionRate,evaporationRate].some(v=>v<0)||evaporationRate*dt>1)throw new RangeError("invalid hydraulic erosion parameters");
  const h=gridArray(heightMap,n,"heightMap"),w=gridArray(waterMap,n,"waterMap"),s=gridArray(sedimentMap,n,"sedimentMap");
+ if(Array.from(w).some(v=>v<0)||Array.from(s).some(v=>v<0))throw new RangeError("water and sediment values must be nonnegative");
  const waterDelta=new Float64Array(n),sedimentDelta=new Float64Array(n),outflow=new Float64Array(n),maxSlope=new Float64Array(n);
  for(let z=0;z<height;z++)for(let x=0;x<width;x++){
   const i=z*width+x;w[i]+=rainRate*dt;
@@ -133,10 +134,10 @@ export function classifyBiome({altitude,slope,moisture,exposure,seed=1}={}){
   forest:.15*z[0]-.45*z[1]+.85*z[2]-.15*z[3],
   grassland:.1*z[0]-.65*z[1]+.25*z[2]+.1*z[3],
   desert:-.1*z[0]+.25*z[1]-.95*z[2]+.85*z[3],
-  wetland:-.35*z[0]-.8*z[1]+.9*z[2]-.2*z[3]
+  wetland:-.3*z[0]-.8*z[1]+1.05*z[2]-.15*z[3]
  };
  const biome=Object.keys(scores).sort((a,b)=>scores[b]-scores[a])[0];
- const variant=((seed>>>0)*2654435761>>>0)%4;
+ const variant=(Math.imul(seed>>>0,0x9e3779b1)>>>0)%4;
  return {biome,variant,scores};
 }
 
@@ -147,7 +148,7 @@ function gaussian(x,sigma){return Math.exp(-.5*(x/sigma)**2)/(Math.sqrt(2*Math.P
 function fresnelSchlick(cosine,ior){const f0=((ior-1)/(ior+1))**2;return f0+(1-f0)*Math.pow(1-Math.max(0,Math.min(1,cosine)),5);}
 export function evaluateHairMicrofacetApproximation({wi,wo,tangent=[0,1,0],albedo=[.25,.12,.06],radius=.04,ior=1.55,absorption=1,roughness=.25,azimuthalRoughness=.35,cuticleTilt=.05}={}){
  const I=normalize(Array.from(wi),"wi"),O=normalize(Array.from(wo),"wo"),T=normalize(Array.from(tangent),"tangent");
- if(!Array.isArray(albedo)||albedo.length!==3||!albedo.every(Number.isFinite)||!(radius>0&&ior>1&&absorption>=0&&roughness>0&&azimuthalRoughness>0))throw new RangeError("invalid hair scattering parameters");
+ if(!Array.isArray(albedo)||albedo.length!==3||!albedo.every(Number.isFinite)||![radius,ior,absorption,roughness,azimuthalRoughness,cuticleTilt].every(Number.isFinite)||!(radius>0&&ior>1&&absorption>=0&&roughness>0&&azimuthalRoughness>0))throw new RangeError("invalid hair scattering parameters");
  const sinI=Math.max(-1,Math.min(1,dot(I,T))),sinO=Math.max(-1,Math.min(1,dot(O,T)));
  const thetaI=Math.asin(sinI),thetaO=Math.asin(sinO);
  const perpI=I.map((v,i)=>v-sinI*T[i]),perpO=O.map((v,i)=>v-sinO*T[i]);
