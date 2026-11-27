@@ -32,3 +32,19 @@ test("boids steering vectors match reference directions",()=>{const [s,a,c]=k.bo
 test("greedy mesher merges equal rectangle and splits keys",()=>{assert.equal(k.greedyRectangles([[1,1],[1,1]]).length,1);assert.equal(k.greedyRectangles([[1,2],[1,2]]).length,2);});
 test("volume compositing matches Beer-Lambert reference",()=>{const [L,T]=k.volumeComposite(Array(4).fill([2,.5,.25,1]));near(T,.36787944117144233);near(L,.6321205588285577);});
 test("regularized dual contour QEF recovers plane location",()=>{const c=[[[.25,.1,.1],[1,0,0]],[[.25,.8,.2],[1,0,0]],[[.25,.3,.9],[1,0,0]]];near(k.regularizedPlaneQef(c,[.5,.5,.5],1e-6)[0],.25,1e-5);});
+
+test("Teschner spatial hash maps integer cells into a bounded table bucket",()=>{
+  const expected=(((73856093^(2*19349663)^(3*83492791))>>>0)%97);
+  assert.equal(k.spatialHashIndex([1,2,3],97),expected);
+  assert.ok(k.spatialHashIndex([-1,-2,-3],97)>=0);
+  assert.throws(()=>k.spatialHashIndex([1,2,3],0),RangeError);
+});
+test("dual-quaternion blending corrects antipodal signs before normalization",()=>{
+  const [qr,qd]=k.blendDualQuaternions([
+    {qr:[1,0,0,0],qd:[0,0,0,0],weight:.5},
+    {qr:[-1,0,0,0],qd:[0,0,0,0],weight:.5}
+  ]);
+  vec(qr,[1,0,0,0]);vec(qd,[0,0,0,0]);
+  near(qr.reduce((s,v,i)=>s+v*qd[i],0),0);
+  assert.throws(()=>k.blendDualQuaternions([{qr:[1,0,0,0],qd:[0,0,0,0],weight:0}]),RangeError);
+});
