@@ -130,3 +130,14 @@ test("sinusoidal halftone mask has period 2/f and remains in [0,1]",()=>{
   near(k.halftonePattern(.5/f,.5/f,f),1);
   near(k.halftonePattern(1.5/f,.5/f,f),0);
 });
+
+
+test("vector-field hatching repeats and antialiases around the stripe",()=>{
+  near(k.hatchCoverage(.5,.1,.1),1);
+  near(k.hatchCoverage(.35,.1,.1),.5);
+  near(k.hatchCoverage(.25,.1,.1),0);
+  near(k.hatchCoverage(1.5,.1,.1),1);
+  near(k.hatchCoverage(.5,.1,0),1);
+  near(k.hatchCoverage(.2,.1,0),0);
+  assert.throws(()=>k.hatchCoverage(.5,.4,.2),RangeError);
+});
