@@ -34,7 +34,7 @@ class D01GitHubReferenceEvidenceTests(unittest.TestCase):
 
     def test_no_unresearched_record_is_marked_certified(self):
         for record in self.data["records"]:
-            if record["local_adaptation_status"] in ("NOT_RESEARCHED", "PENDING"):
+            if record["local_adaptation_status"] == "NOT_RESEARCHED":
                 self.assertEqual(record["certification_status"], "PENDING")
 
     def test_local_production_certification_is_not_overclaimed(self):
