@@ -90,3 +90,22 @@ test("structure tensor separates gradient normal from brush tangent",()=>{
 test("structure tensor rejects non-positive-semidefinite matrices",()=>{
   assert.throws(()=>k.structureTensorFeatures(1,2,1),RangeError);
 });
+
+
+test("depth-normal contour score uses normalized dimensionless cues",()=>{
+  near(k.depthNormalEdgeScore(2,4,[0,0,2],[0,0,1],.1,2),1);
+  near(k.depthNormalEdgeScore(20,40,[0,0,1],[0,0,1],.1,2),1);
+  near(k.depthNormalEdgeScore(4,4,[1,0,0],[0,1,0],.1,2),2);
+  near(k.depthNormalEdgeScore(4,4,[1,0,0],[-1,0,0],.1,2),4);
+  near(k.depthNormalEdgeScore(3,3,[0,0,1],[0,0,1],.1,2),0);
+  assert.throws(()=>k.depthNormalEdgeScore(0,1,[1,0,0],[1,0,0],.1,1),RangeError);
+  assert.throws(()=>k.depthNormalEdgeScore(1,2,[0,0,0],[1,0,0],.1,1),RangeError);
+});
+test("depth-normal contour coverage has analytic smoothstep boundaries",()=>{
+  near(k.edgeCoverage(0,.5,1.5),0);
+  near(k.edgeCoverage(.5,.5,1.5),0);
+  near(k.edgeCoverage(1,.5,1.5),.5);
+  near(k.edgeCoverage(1.5,.5,1.5),1);
+  near(k.edgeCoverage(2,.5,1.5),1);
+  assert.throws(()=>k.edgeCoverage(1,1,1),RangeError);
+});
