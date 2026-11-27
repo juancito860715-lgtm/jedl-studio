@@ -73,6 +73,27 @@ def structure_tensor_orientation(jxx, jxy, jyy):
     return 0.5 * math.atan2(2.0 * jxy, jxx - jyy)
 
 
+def structure_tensor_features(jxx,jxy,jyy,epsilon=1e-12):
+    """Eigenstructure of a symmetric 2x2 structure tensor.
+    Returns (lambda_max, lambda_min, gradient_angle, tangent_angle, coherence).
+    """
+    if not all(math.isfinite(v) for v in (jxx,jxy,jyy,epsilon)) or epsilon<=0:
+        raise ValueError("tensor entries must be finite and epsilon positive")
+    if jxx<0 or jyy<0 or jxx*jyy-jxy*jxy < -1e-10:
+        raise ValueError("structure tensor must be positive semidefinite")
+    trace=jxx+jyy
+    gap=math.hypot(jxx-jyy,2*jxy)
+    lmax=max(0.0,(trace+gap)/2)
+    lmin=max(0.0,(trace-gap)/2)
+    if gap<=1e-15:
+        gradient_angle=0.0
+    else:
+        gradient_angle=0.5*math.atan2(2*jxy,jxx-jyy)
+    tangent_angle=(gradient_angle+math.pi/2)%math.pi
+    coherence=(lmax-lmin)/(lmax+lmin+epsilon)
+    return lmax,lmin,gradient_angle,tangent_angle,coherence
+
+
 def dual_quaternion_normalize(qr, qd):
     norm = math.sqrt(sum(v*v for v in qr))
     if norm == 0:
@@ -686,6 +707,16 @@ def blend_dual_quaternions(items):
         self.assertVecAlmostEqual(r,(1,0,0))
         self.assertVecAlmostEqual(s,(0,1,0))
         self.assertVecAlmostEqual(t,(0,0,1))
+
+
+    def test_structure_tensor_features_distinguish_gradient_and_stroke_tangent(self):
+        lmax,lmin,grad,tangent,coh=structure_tensor_features(4,0,1)
+        self.assertAlmostEqual(lmax,4);self.assertAlmostEqual(lmin,1)
+        self.assertAlmostEqual(grad,0);self.assertAlmostEqual(tangent,math.pi/2)
+        self.assertAlmostEqual(coh,3/5)
+        iso=structure_tensor_features(2,0,2)
+        self.assertAlmostEqual(iso[4],0)
+        self.assertAlmostEqual(iso[3],math.pi/2)
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)
