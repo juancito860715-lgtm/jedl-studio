@@ -45,6 +45,10 @@
       "result": "La derivada material deriva de la regla de la cadena siguiendo una partícula.",
       "limits": [
         "La derivada material no fija constitutiva ni cierre del modelo."
+      ],
+      "dimensional_verification": [
+        "φ tiene unidad X; ∂φ/∂t tiene X/T; ∇φ tiene X/L; u tiene L/T.",
+        "u·∇φ y Dφ/Dt tienen X/T."
       ]
     },
     {
@@ -76,6 +80,10 @@
       "result": "Euler explícito deriva del truncamiento de Taylor de primer orden.",
       "limits": [
         "Euler explícito puede ser inestable con Δt grande."
+      ],
+      "dimensional_verification": [
+        "y tiene unidad Y; f tiene Y/T; Δt tiene T.",
+        "Δt·f tiene Y y se suma a y."
       ]
     },
     {
@@ -112,6 +120,10 @@
       "result": "RK4 combina cuatro pendientes para integrar una EDO con error local de orden cinco.",
       "limits": [
         "Mayor coste por paso; no garantiza estabilidad para cualquier Δt."
+      ],
+      "dimensional_verification": [
+        "Cada k_i tiene unidad de estado/T; Δt·k_i tiene unidad de estado.",
+        "La combinación ponderada RK4 conserva la unidad del estado."
       ]
     },
     {
@@ -148,6 +160,10 @@
       "result": "Verlet deriva de sumar expansiones de Taylor simétricas y cancelar términos impares.",
       "limits": [
         "Paso fijo y tratamiento de restricciones/colisiones afectan conservación."
+      ],
+      "dimensional_verification": [
+        "x tiene L; v L/T; a L/T²; Δt T.",
+        "aΔt² tiene L y la velocidad reconstruida tiene L/T."
       ]
     },
     {
@@ -184,6 +200,10 @@
       "result": "CFL relaciona distancia de propagación por paso con tamaño de celda.",
       "limits": [
         "C_max depende del esquema y dimensión; no es constante universal."
+      ],
+      "dimensional_verification": [
+        "u tiene L/T; Δt T; Δx L; C=|u|Δt/Δx es adimensional.",
+        "C_max es adimensional; el paso límite tiene T."
       ]
     },
     {
@@ -220,6 +240,10 @@
       "result": "Poisson relaciona Laplaciano de potencial con una fuente.",
       "limits": [
         "Resolver Poisson requiere condiciones de contorno y control de nullspace."
+      ],
+      "dimensional_verification": [
+        "Si φ tiene unidad X, ∇²φ tiene X/L²; f debe tener X/L².",
+        "Condiciones de contorno y solución conservan unidad X."
       ]
     },
     {
@@ -256,11 +280,16 @@
         }
       ],
       "assumptions": [
-        "A simétrica definida positiva; tolerancia y precondicionador declarados."
+        "A simétrica definida positiva; tolerancia y precondicionador declarados.",
+        "La fórmula α=(rᵀr)/(pᵀAp) se refiere a CG no precondicionado; en PCG los vectores precondicionados y productos internos se tipan según el precondicionador."
       ],
       "result": "CG minimiza forma cuadrática en direcciones conjugadas.",
       "limits": [
         "CG requiere SPD; matrices mal condicionadas ralentizan convergencia."
+      ],
+      "dimensional_verification": [
+        "Para Ax=b, si x tiene X y b tiene B, A tiene B/X; residuo r y p del CG no precondicionado tienen B.",
+        "α=(rᵀr)/(pᵀAp) tiene X/B; αp tiene X; β es adimensional."
       ]
     },
     {
@@ -302,6 +331,10 @@
       "result": "Multigrid separa error de alta y baja frecuencia entre niveles.",
       "limits": [
         "Multigrid necesita coarsening y suavizador adecuados al operador."
+      ],
+      "dimensional_verification": [
+        "Error, residuo y corrección tienen la unidad del campo solución.",
+        "Restriction/prolongation normalizados son adimensionales y conservan unidad del campo."
       ]
     },
     {
@@ -338,6 +371,10 @@
       "result": "Volúmenes finitos deriva de integrar conservación en volúmenes de control.",
       "limits": [
         "Flujos numéricos incorrectos rompen conservación o estabilidad."
+      ],
+      "dimensional_verification": [
+        "U tiene unidad U; flujo F tiene U·L/T; fuente S U/T.",
+        "Términos integrados d/dt∫U dV, ∮F·n dA y ∫S dV tienen U·L³/T."
       ]
     },
     {
@@ -374,11 +411,16 @@
         }
       ],
       "assumptions": [
-        "Malla válida; funciones de forma y constitutiva definidas."
+        "Malla válida; funciones de forma y constitutiva definidas.",
+        "En elasticidad lineal 3D, B tiene m⁻¹, D Pa, K N/m y d m; las cargas se expresan en N."
       ],
       "result": "FEM deriva de forma débil y aproximación por funciones de forma.",
       "limits": [
         "Elementos de baja calidad causan error/locking; solver debe ser adecuado."
+      ],
+      "dimensional_verification": [
+        "B tiene L⁻¹; D Pa; dV L³; K tiene N/m; desplazamiento d L; Kd N.",
+        "Fuerzas de volumen b tienen N/m³; al integrar sobre volumen dan N."
       ]
     },
     {
@@ -420,6 +462,10 @@
       "result": "SPH aproxima integrales continuas por sumas kernel sobre partículas.",
       "limits": [
         "SPH sufre errores de frontera y distribución irregular."
+      ],
+      "dimensional_verification": [
+        "W tiene L⁻³; m_j kg; ρ_j kg/m³; m_j/ρ_j tiene L³.",
+        "(m_j/ρ_j)W es adimensional; gradiente kernel tiene L⁻⁴ y gradiente de campo tiene unidad(A)/L."
       ]
     },
     {
@@ -456,6 +502,10 @@
       "result": "Cauchy deriva del balance de momento con tensor de tensión.",
       "limits": [
         "Forma lineal no aplica a grandes deformaciones."
+      ],
+      "dimensional_verification": [
+        "ρ tiene kg/m³; u L; ü L/T²; σ Pa; ∇·σ N/m³.",
+        "ρb tiene N/m³; todos los términos de Cauchy son fuerza por volumen."
       ]
     },
     {
@@ -492,6 +542,10 @@
       "result": "Kelvin–Voigt suma tensión elástica y viscosa bajo deformación común.",
       "limits": [
         "Kelvin–Voigt no captura relajación instantánea de Maxwell ni histéresis general."
+      ],
+      "dimensional_verification": [
+        "E tiene Pa; ε es adimensional; η tiene Pa·s; ε̇ T⁻¹.",
+        "Eε y ηε̇ tienen Pa."
       ]
     },
     {
@@ -503,32 +557,39 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "s=σ−(trσ/3)I",
-          "justification": "Separar parte desviadora de tensión."
+          "equation": "p(t)=clamp((t−t_0)/(t_1−t_0),0,1)",
+          "justification": "Definir progreso visual normalizado dentro de una ventana temporal."
         },
         {
           "step": 2,
-          "equation": "σ_eq=√(3/2 s:s)",
-          "justification": "Definir esfuerzo equivalente por energía de distorsión."
+          "equation": "M(x)=smoothMask(field(x),threshold,width)",
+          "justification": "Construir máscara artística adimensional a partir de un campo de control visual, no de tensión física."
         },
         {
           "step": 3,
-          "equation": "yield if σ_eq>σ_y",
-          "justification": "Comparar con superficie de fluencia."
+          "equation": "Δx(x,t)=A·p(t)·M(x)·d(x)",
+          "justification": "Multiplicar amplitud física A por progreso y máscara adimensional y dirección unitaria."
         },
         {
           "step": 4,
-          "equation": "return mapping projects trial stress to yield surface",
-          "justification": "Corregir estado y actualizar deformación plástica bajo algoritmo constitutivo."
+          "equation": "x'(t)=x+Δx(x,t)",
+          "justification": "Aplicar deformación visual con desplazamiento de longitud."
         }
       ],
       "assumptions": [
-        "Tensor de tensión simétrico; σ_y>0; modelo elastoplástico definido."
+        "A tiene L; progreso y máscara son adimensionales; d(x) es dirección unitaria.",
+        "La deformación se controla por parámetros artísticos y se limita para evitar inversión de malla."
       ],
-      "result": "J2 von Mises deriva de energía de distorsión de la tensión desviadora.",
+      "result": "La técnica se representa como deformación plástica estilizada controlada por máscara y curvas de animación; no calcula fluencia ni fallo físico de materiales.",
       "limits": [
-        "El criterio J2 no modela anisotropía ni daño por sí solo."
-      ]
+        "No incluye tensión equivalente, límite de fluencia, retorno plástico ni predicción de daño real.",
+        "La apariencia no debe interpretarse como simulación constitutiva certificada."
+      ],
+      "dimensional_verification": [
+        "A tiene L; p(t), M(x) y direction son adimensionales; Δx=A·p·M·direction tiene L.",
+        "x y x' tienen L; no se usa tensión, energía de fractura ni criterio físico de fluencia."
+      ],
+      "status": "VISUAL_ONLY_SAFE_REFORMULATION"
     },
     {
       "record_key": "D36:14",
@@ -564,21 +625,39 @@
       "result": "Difusión anisotrópica deriva de ley de Fick con tensor D.",
       "limits": [
         "D variable y malla irregular requieren discretización conservativa."
+      ],
+      "dimensional_verification": [
+        "u tiene unidad U; D tiene L²/T; ∇u tiene U/L; D∇u tiene U·L/T.",
+        "La divergencia tiene U/T, igual que ∂u/∂t."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "15/15 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen identidades continuas, discretizaciones temporales, solvers algebraicos y constitutivas."
+      "15/15 técnicas D36 cubiertas mediante derivaciones matemáticas o proxy visual seguro",
+      "Cada registro contiene pasos, resultado, supuestos, límites y verificación dimensional",
+      "Euler, RK4, Verlet y CFL conservan unidades temporales y espaciales",
+      "Poisson, CG, multigrid, volúmenes finitos y FEM tipan operador, residuo, solución y carga",
+      "SPH, Cauchy y Kelvin–Voigt conservan densidad, tensión, fuerza y viscosidad",
+      "Plasticidad se sustituye por deformación visual art-directed sin criterio de fallo físico",
+      "Difusión anisotrópica mantiene flujo y tasa de cambio dimensionalmente compatibles"
     ],
     "limitations": [
-      "La estabilidad y precisión deben verificarse con pruebas independientes y convergencia en el punto 5."
+      "La ficha D36:13 no modela fluencia ni daño físico; es una alternativa visual. Los solvers restantes requieren pruebas numéricas, estabilidad y convergencia en puntos posteriores."
     ]
   },
   "integrity": {
     "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
     "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  },
+  "safety_scope": {
+    "record": "D36:13",
+    "mode": "VISUAL_ONLY_NONPHYSICAL",
+    "excluded_physical_content": [
+      "criterio de fluencia J2/von Mises",
+      "return mapping constitutivo",
+      "predicción de deformación/daño físico bajo cargas"
+    ],
+    "replacement": "deformación artística por máscara, progreso y amplitud controlada"
   }
 }
