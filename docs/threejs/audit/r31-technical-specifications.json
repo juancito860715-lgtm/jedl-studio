@@ -4697,8 +4697,9 @@
           "outline=step(τ,E)"
         ],
         "clarification": [
-          "No sumar directamente gradiente de profundidad y cambio angular sin normalización: usar diferencias de profundidad linealizadas/normalizadas por distancia y una escala λ con unidades compatibles.",
-          "La comparación de normales requiere normalizar ambas y tratar muestras fuera de pantalla; umbral dependiente de cámara/profundidad."
+          "The original E=|∇z|+lambda*(1-dot(n,n_neighbor)) is dimensionally ambiguous unless depth is normalized and normals are normalized.",
+          "The revised local score uses a symmetric relative depth jump and normalized normal dot product; its equations are project-authored, not DepthCut equations.",
+          "DepthCut (Guerrero et al. 2018) §4 instead defines contour probability from the positive Laplacian of disparity-gradient magnitude and crease probability from summed normal-component gradient magnitudes, then fuses probabilities."
         ],
         "assumptions": [
           "Definir depth en view-space lineal o eye-space; no mezclar depth buffer no lineal con unidades de mundo."
@@ -4706,86 +4707,289 @@
         "units": [
           "E y τ adimensionales tras normalización; δ en píxeles."
         ],
-        "status": "CLARIFICATION_PROPOSED",
+        "status": "CORRECTED_AUTHORED_FORMULA_SEPARATED_FROM_DEPTHCUT",
         "source": "REF-DEPTHCUT-2018"
       },
       "existing_source_coverage": {
         "research_id": "R31-CONTORNO-POR-DISCONTINUIDAD-DE-PROFUNDID",
         "source_type": "PRIMARY_ARTICLE",
-        "reference": "https://link.springer.com/article/10.1007/s00371-018-1551-5",
-        "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
+        "reference": "Guerrero et al. (2018), DepthCut, §4. Exact paper formulas are described separately from this authored shader heuristic.",
+        "formula_level_status": "PRIMARY_SOURCE_CONTEXT_ONLY_CUSTOM_LOCAL_FORMULA_AUTHORED"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "AUTHORED_LOCAL_DEPTH_NORMAL_DISCONTINUITY_HEURISTIC",
+        "symbol_table": [
+          {
+            "symbol": "z0,z1",
+            "meaning": "positive linear view-space depth at center and neighbor",
+            "unit": "m (or one consistent scene-length unit)",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite positive linear eye-depth; never raw nonlinear depth-buffer samples"
+          },
+          {
+            "symbol": "z_floor",
+            "meaning": "positive lower bound for relative-depth denominator",
+            "unit": "m (same as z)",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >0; normally tied to camera near plane or a documented scene epsilon"
+          },
+          {
+            "symbol": "n0,n1",
+            "meaning": "surface normals in the same coordinate frame",
+            "unit": "1 (unit vectors)",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite nonzero 3-vectors; normalized before dot product"
+          },
+          {
+            "symbol": "lambda_n",
+            "meaning": "relative weight of normal discontinuity",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0; artistic/calibration parameter"
+          },
+          {
+            "symbol": "E",
+            "meaning": "combined local discontinuity score",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite and >=0"
+          },
+          {
+            "symbol": "tau_0,tau_1",
+            "meaning": "lower and upper antialiasing thresholds",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite; 0<=tau_0<tau_1"
+          },
+          {
+            "symbol": "a",
+            "meaning": "outline coverage/opacity",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "clamped to [0,1]"
+          },
+          {
+            "symbol": "delta_uv",
+            "meaning": "neighbor sample offset in texture coordinates",
+            "unit": "normalized UV",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite offset derived from render-target resolution and selected neighbor stencil"
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "PASS_FOR_AUTHORED_SCORE",
           "notes": [
-            "E y τ adimensionales tras normalización; δ en píxeles."
+            "The relative depth jump |z0-z1|/max(min(z0,z1),z_floor) is dimensionless.",
+            "The normalized normal dot product and 1-dot are dimensionless; lambda_n is dimensionless, so both score terms may be added.",
+            "The smoothstep thresholds and resulting coverage are dimensionless. Pixel offsets are sampling coordinates, not lengths in world space."
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "COMPLETE_FOR_AUTHORED_LOCAL_HEURISTIC_NOT_DEPTHCUT",
+          "steps": [
+            "Decode the depth sample and convert it to positive linear view-space depth z; do not compare nonlinear hardware depth values.",
+            "Use the symmetric relative jump d=|z0-z1|/max(min(z0,z1),z_floor). This makes the cue dimensionless and approximately invariant to uniform scene-depth scaling away from z_floor.",
+            "Normalize both normal vectors and clamp their dot product c to [-1,1] to absorb small floating-point overshoot.",
+            "Define the normal discontinuity r=1-c; identical normals yield 0, orthogonal normals 1, and opposing normals 2.",
+            "Fuse the two nonnegative cues as E=d+lambda_n*r. This additive fusion is a project-authored shader heuristic, not an equation transcribed from DepthCut.",
+            "Convert E to antialiased coverage a=smoothstep(tau_0,tau_1,E); the interval controls the transition width."
+          ]
         },
-        "assumptions": [
-          "Definir depth en view-space lineal o eye-space; no mezclar depth buffer no lineal con unidades de mundo."
+        "equations": [
+          {
+            "expression": "d=abs(z0-z1)/max(min(z0,z1),z_floor)",
+            "meaning": "dimensionless relative depth jump",
+            "dimensional_check": "pass",
+            "status": "authored_heuristic"
+          },
+          {
+            "expression": "r=1-clamp(dot(normalize(n0),normalize(n1)),-1,1)",
+            "meaning": "dimensionless orientation discontinuity",
+            "dimensional_check": "pass",
+            "status": "authored_heuristic"
+          },
+          {
+            "expression": "E=d+lambda_n*r",
+            "meaning": "fused local edge score",
+            "dimensional_check": "pass",
+            "status": "authored_heuristic"
+          },
+          {
+            "expression": "a=smoothstep(tau_0,tau_1,E)",
+            "meaning": "antialiased outline coverage",
+            "dimensional_check": "pass",
+            "status": "standard_smoothstep_mapping"
+          }
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "assumptions": [
+          "Both depths are positive, finite, linear view-space depths from the same camera and same frame.",
+          "Normals represent comparable surfaces and use the same coordinate frame; if the normal buffer is encoded, decode before normalization.",
+          "A local neighbor comparison is a screen-space stylization heuristic; it is not a learned depth-edge estimator and does not resolve occlusion ambiguity.",
+          "lambda_n, tau_0 and tau_1 require scene/camera calibration; no universal values are asserted.",
+          "Out-of-screen samples, background/clear-depth samples, invalid normals and MSAA resolve policy must be handled explicitly by the renderer."
+        ],
+        "valid_domain": [
+          "z0,z1,z_floor are finite and strictly positive.",
+          "n0,n1 are finite nonzero 3-vectors.",
+          "lambda_n is finite and nonnegative.",
+          "tau_0 and tau_1 are finite with 0<=tau_0<tau_1."
+        ],
+        "boundary_conditions": [
+          "Equal depths and equal normals produce E=0.",
+          "Equal depths and orthogonal normals produce E=lambda_n.",
+          "Equal depths and opposing normals produce E=2*lambda_n.",
+          "If z0/z1 are both scaled by the same positive factor and z_floor is not active, the depth cue is unchanged.",
+          "If z_floor dominates the denominator, the depth cue is intentionally regularized near the camera.",
+          "Coverage is 0 for E<=tau_0 and 1 for E>=tau_1; it is 0.5 at the midpoint."
+        ],
+        "inputs": [
+          "Linear view-depth center and neighbor samples",
+          "Decoded normal center and neighbor samples",
+          "Positive depth floor",
+          "Normal cue weight",
+          "Lower and upper coverage thresholds",
+          "Neighbor stencil and render-target texel size"
+        ],
+        "outputs": [
+          "Dimensionless edge score E",
+          "Antialiased outline coverage a in [0,1]"
+        ],
+        "algorithm_completeness": "LOCAL_PAIRWISE_CUE_FUSION_COMPLETE_FULL_SCREEN_PASS_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_PYTHON_AND_JAVASCRIPT_REFERENCE_KERNELS_TESTED_IN_CI_PENDING",
+        "algorithm_steps": [
+          "Render scene depth and view-space normals to aligned targets.",
+          "Resolve multisampling and identify background/invalid samples.",
+          "Convert depth-buffer samples to positive linear view depth using the active camera projection.",
+          "For each output pixel, sample a documented four- or eight-neighbor stencil at integer texel offsets.",
+          "For every valid pair, compute the relative depth cue and normalized normal cue.",
+          "Fuse cues and take the maximum or another explicitly documented stencil reduction; keep this reduction choice fixed for the material.",
+          "Apply smoothstep thresholds and composite ink color with premultiplied-alpha-correct blending.",
+          "Expose z_floor, lambda_n, thresholds, stencil and line width as material parameters; revalidate after camera or resolution changes."
+        ],
+        "pseudocode": "function edgeCoverageForPair(z0,z1,n0,n1,zFloor,lambdaN,tau0,tau1):\\n  require finite(z0,z1,zFloor,lambdaN,tau0,tau1)\\n  require z0>0 and z1>0 and zFloor>0 and lambdaN>=0\\n  require 0<=tau0<tau1\\n  require finiteNonzero3(n0) and finiteNonzero3(n1)\\n  d = abs(z0-z1) / max(min(z0,z1),zFloor)\\n  c = clamp(dot(normalize(n0),normalize(n1)),-1,1)\\n  E = d + lambdaN*(1-c)\\n  x = clamp((E-tau0)/(tau1-tau0),0,1)\\n  return x*x*(3-2*x)",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(N*K) for N output pixels and K neighbor samples (K=4 or 8); O(N) render-target storage",
+          "space": "O(N) for depth/normal targets and output; O(1) per pixel in the local kernel"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "API_CONTRACT_DEFINED_RENDER_VALIDATION_PENDING",
+          "details": "Render aligned depth and view-space normal data into WebGLRenderTarget attachments; use a depth texture or explicit linear-depth color attachment, and a normal pass (for example an override material with a documented view-space normal encoding). Run a fullscreen ShaderMaterial pass that samples the center plus fixed texel offsets. For perspective cameras, linearize depth with the camera near/far parameters; for orthographic cameras, use the orthographic mapping. Three.js renderer integration, target formats, color-space handling, MSAA resolve and Safari/mobile validation remain pending."
         },
         "source_claims": [
           {
             "url": "https://link.springer.com/article/10.1007/s00371-018-1551-5",
-            "type": "PRIMARY_ARTICLE",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null,
-            "formula_locator": "Exact locator pending; claim must remain incomplete."
+            "type": "PRIMARY_ARTICLE_CONTEXT_ONLY",
+            "formula_level_status": "NOT_THE_SOURCE_OF_THE_AUTHORED_LOCAL_SCORE",
+            "exact_equation_locator": "Guerrero et al. (2018), §4 'Depth edges': definitions of P_c from the positive Laplacian of disparity-gradient magnitude, P_r from summed image-plane gradients of the three normal components, and P_e=1-(1-P_c)(1-P_r).",
+            "formula_locator": "§4, Depth edges; the article's cues are disparity and normal derivative probabilities, not the pairwise relative-depth plus normal-dot formula in this specification.",
+            "supported_claim": "The paper supports the motivation that depth and normal channels provide complementary edge cues and explains why naive high-order derivatives on noisy estimates are unreliable. It does not publish the local shader heuristic defined here."
+          },
+          {
+            "url": "Project-authored shader heuristic; no external paper is claimed for E=d+lambda_n*r.",
+            "type": "AUTHORED_PROCEDURAL_RULE",
+            "formula_level_status": "AUTHORED_CONVENTION",
+            "exact_equation_locator": "This specification equations d, r, E and a.",
+            "formula_locator": "Project-authored equations in this record."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "Closed-form relative depth jump and invariance under uniform positive depth scaling.",
+              "oracle": "Analytic value: |2-4|/min(2,4)=1; scaling both depths by 10 leaves the ratio 1."
+            },
+            {
+              "description": "Orthogonal/opposing normal cues and smoothstep endpoints/midpoint.",
+              "oracle": "Analytic dot products 0 and -1; smoothstep(0.5)=0.5."
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Parity against the Python reference on analytic fixtures, including non-unit input normals.",
+              "oracle": "Closed-form mathematical fixtures and Python/JavaScript parity."
+            }
+          ],
+          "edge_cases": [
+            "Zero or negative depth; non-finite values; z_floor<=0; zero-length normals; negative normal weight.",
+            "Equal samples; orthogonal and opposite normals; depth-scale invariance; thresholds at and beyond endpoints.",
+            "Background depth sentinel; out-of-bounds neighbor; discontinuity at screen edge; camera near/far changes; orthographic projection."
+          ]
         },
-        "variables": [],
-        "algorithm_steps": [
-          "Renderizar depth y normal.",
-          "Linearizar profundidad.",
-          "Comparar vecinos en cuatro u ocho direcciones.",
-          "Aplicar umbral dependiente de profundidad.",
-          "Componer tinta y antialiasing."
-        ],
-        "pseudocode": "edge=max(abs(z-zN),lambda*(1-dot(n,nN))); ink=smoothstep(t0,t1,edge);",
         "implementation_mapping": {
-          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
-          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
-          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
+          "threejs_api": "WebGLRenderTarget + DepthTexture or explicit linear-depth attachment + view-space normal pass + fullscreen ShaderMaterial; renderer integration still pending.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py",
+          "gpu_strategy": "The CPU kernels define scalar math only. The fullscreen GPU pass must preserve the same depth linearization, normal encoding, stencil reduction and smoothstep contract."
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Implement and validate the aligned Three.js depth/normal render-target pass and fullscreen ShaderMaterial on perspective and orthographic cameras",
+        "Define and test background, out-of-bounds, MSAA resolve, normal encoding and camera-change policies in the actual renderer",
+        "Calibrate thresholds and compare rendered contour masks against a controlled synthetic ground-truth scene"
       ]
     },
     {
