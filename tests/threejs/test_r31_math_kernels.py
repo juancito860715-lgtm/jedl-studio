@@ -645,6 +645,12 @@ def blend_dual_quaternions(items):
         raise ValueError("weight sum must be positive")
     return dual_quaternion_normalize(real, dual)
 
+class TestR31ExtendedKernels(unittest.TestCase):
+    def assertVecAlmostEqual(self, actual, expected, places=9):
+        self.assertEqual(len(actual), len(expected))
+        for a,e in zip(actual,expected):
+            self.assertAlmostEqual(a,e,places=places)
+
     def test_spatial_hash_matches_published_integer_cell_hash(self):
         # Teschner et al. Sec. 4.1; positive modulo maps to a table bucket.
         cell = (1, 2, 3)
