@@ -230,3 +230,11 @@ Estado a fecha de la última actualización de este archivo. Leyenda: ✅ cerrad
 - Se mantiene el alcance correcto: una familia de líneas con dirección local; no equivale a integrar un campo vectorial espacialmente variable ni a resolver automáticamente cross-hatching. No se atribuye la fórmula a un paper.
 - D14:17 permanece INCOMPLETE: falta validar el campo de dirección y derivadas en el render Three.js/WebGPU, imágenes de referencia con rotación/UV seams y política para combinar varias familias.
 - R31 con especificación sustancial: 18 de 23; quedan 5 por desarrollar a ese nivel. Todas las R31 continúan INCOMPLETE hasta cerrar sus brechas específicas; el registro global permanece en 0 IMPLEMENTATION_READY. Las 46 preservadas no se reauditan y las 472 históricas siguen pendientes.
+
+
+## 16. Noveno bloque R31: advección semi-Lagrangiana de pigmento (2026-11-26)
+
+- D21:21 se contrastó con Stam (1999): §2.2 pp. 122–123 documenta retrotrazado por características y el interpolador lineal; §2.4 p. 124 cubre sustancias escalares y separa advección, difusión, disipación y fuente; Appendix A p. 126 desarrolla las características.
+- Se corrigió la atribución: c(x,t+dt)=c(p(x,-dt),t) es la relación de características; x-dt*u(x) es una aproximación de primer orden, no una trayectoria exacta para todo campo variable. D y k se mantienen como operadores separados, no dentro del kernel de advección.
+- Se añadieron kernels Python/JavaScript de backtrace 2D cell-centered y muestreo bilineal, con pruebas analíticas de campo constante, rampa lineal trasladada y propiedad de rango convexo. Se documentaron unidades físicas y conversión a índices de grid.
+- D21:21 permanece INCOMPLETE: faltan validación del render target real, 3D trilineal, obstáculos/bordes, difusión/secado/deposición y mediciones de difusión numérica/conservación. No se afirma que el método sea una simulación química completa de acuarela.
