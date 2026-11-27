@@ -533,5 +533,66 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertAlmostEqual(x[0],0.25,places=5)
 
 
+
+
+def spatial_hash_index(cell, table_size):
+    if not isinstance(table_size, int) or table_size <= 0:
+        raise ValueError("table_size must be a positive integer")
+    if len(cell) != 3 or any(not isinstance(v, int) for v in cell):
+        raise ValueError("cell must be an integer 3-vector")
+    x, y, z = cell
+    # Python integers avoid overflow; mask to the same uint32 domain as JS.
+    mixed = ((x * 73856093) ^ (y * 19349663) ^ (z * 83492791)) & 0xffffffff
+    return mixed % table_size
+
+
+def blend_dual_quaternions(items):
+    """Antipodal-corrected weighted blend; returns a Study-normalized pair."""
+    if not items:
+        raise ValueError("at least one transform is required")
+    reference = None
+    real = [0.0] * 4
+    dual = [0.0] * 4
+    weight_sum = 0.0
+    for qr, qd, weight in items:
+        if weight < 0 or not math.isfinite(weight) or len(qr) != 4 or len(qd) != 4:
+            raise ValueError("invalid weighted dual quaternion")
+        if not all(math.isfinite(v) for v in tuple(qr) + tuple(qd)):
+            raise ValueError("quaternion components must be finite")
+        if weight == 0:
+            continue
+        if reference is None:
+            reference = qr
+        sign = -1.0 if sum(a*b for a, b in zip(qr, reference)) < 0 else 1.0
+        for i in range(4):
+            real[i] += weight * sign * qr[i]
+            dual[i] += weight * sign * qd[i]
+        weight_sum += weight
+    if weight_sum <= 0:
+        raise ValueError("weight sum must be positive")
+    return dual_quaternion_normalize(real, dual)
+
+    def test_spatial_hash_matches_published_integer_cell_hash(self):
+        # Teschner et al. Sec. 4.1; positive modulo maps to a table bucket.
+        cell = (1, 2, 3)
+        expected = ((73856093 ^ (2*19349663) ^ (3*83492791)) & 0xffffffff) % 97
+        self.assertEqual(spatial_hash_index(cell, 97), expected)
+        self.assertEqual(spatial_hash_index((-1, -2, -3), 97),
+                         spatial_hash_index((-1, -2, -3), 97))
+        with self.assertRaises(ValueError):
+            spatial_hash_index((1, 2, 3), 0)
+
+    def test_dual_quaternion_blend_antipodal_and_weight_scale_invariant(self):
+        identity = ((1,0,0,0), (0,0,0,0), 0.5)
+        antipodal = ((-1,0,0,0), (0,0,0,0), 0.5)
+        qr, qd = blend_dual_quaternions([identity, antipodal])
+        self.assertVecAlmostEqual(qr, (1,0,0,0))
+        self.assertVecAlmostEqual(qd, (0,0,0,0))
+        self.assertAlmostEqual(sum(a*b for a,b in zip(qr,qd)), 0.0)
+        with self.assertRaises(ValueError):
+            blend_dual_quaternions([((1,0,0,0),(0,0,0,0),0.0)])
+
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
