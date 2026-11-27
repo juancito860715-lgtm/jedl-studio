@@ -68,3 +68,15 @@ test("regularized dual contour QEF solves non-axis-aligned planes",()=>{
 test("dual contour QEF rejects singular unregularized normal systems",()=>{
   assert.throws(()=>k.regularizedPlaneQef([[[0,0,0],[1,0,0]]],[0,0,0],0),RangeError);
 });
+
+test("double-reflection camera frame is orthonormal",()=>{
+  const [r,s,t]=k.doubleReflectionFrame([1,0,0],[0,1,0],[0,1,0],[-1,0,0],[0,0,1]);
+  for(const v of [r,s,t])near(Math.hypot(...v),1);
+  near(r.reduce((a,v,i)=>a+v*t[i],0),0);
+  near(s.reduce((a,v,i)=>a+v*t[i],0),0);
+  near(r.reduce((a,v,i)=>a+v*s[i],0),0);
+});
+test("double-reflection camera frame preserves straight-line orientation",()=>{
+  const [r,s,t]=k.doubleReflectionFrame([0,0,0],[0,0,1],[0,0,1],[0,0,1],[1,0,0]);
+  vec(r,[1,0,0]);vec(s,[0,1,0]);vec(t,[0,0,1]);
+});
