@@ -60,7 +60,8 @@ class D07ReferenceValidationTests(unittest.TestCase):
         summary = self.data["summary"]
         self.assertEqual(summary["records_in_scope"], 12)
         self.assertEqual(summary["local_adaptations_implemented"], 12)
-        self.assertEqual(summary["local_adaptations_tested"], 0)
+        self.assertEqual(summary["local_adaptations_tested"], 12)
+        self.assertEqual(summary["pending_local_ci"], 0)
         self.assertEqual(summary["certified_as_locally_operational"], 0)
 
 if __name__ == "__main__":
