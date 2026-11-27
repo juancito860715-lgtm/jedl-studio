@@ -109,3 +109,24 @@ test("depth-normal contour coverage has analytic smoothstep boundaries",()=>{
   near(k.edgeCoverage(2,.5,1.5),1);
   assert.throws(()=>k.edgeCoverage(1,1,1),RangeError);
 });
+
+
+test("halftone threshold coverage has binary and antialiased limits",()=>{
+  near(k.halftoneCoverage(.6,.5,0),1);
+  near(k.halftoneCoverage(.4,.5,0),0);
+  near(k.halftoneCoverage(.5,.5,.1),.5);
+  near(k.halftoneCoverage(.6,.5,.1),1);
+  near(k.halftoneCoverage(.4,.5,.1),0);
+  assert.throws(()=>k.halftoneCoverage(.5,.5,-.1),RangeError);
+});
+test("sinusoidal halftone mask has period 2/f and remains in [0,1]",()=>{
+  const f=.25;
+  for(let i=0;i<50;i++){
+    const x=i*.13,y=i*.07,m=k.halftonePattern(x,y,f);
+    assert.ok(m>=0&&m<=1);
+    near(k.halftonePattern(x+2/f,y,f),m,1e-12);
+    near(k.halftonePattern(x,y+2/f,f),m,1e-12);
+  }
+  near(k.halftonePattern(.5/f,.5/f,f),1);
+  near(k.halftonePattern(1.5/f,.5/f,f),0);
+});
