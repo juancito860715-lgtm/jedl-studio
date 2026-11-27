@@ -4,6 +4,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 AUDIT = ROOT / "docs/threejs/audit/github-reference-validation-D04.json"
+POINT3 = ROOT / "docs/threejs/audit/point3-complete-algorithms-D04.json"
 
 class D04ReferenceValidationTests(unittest.TestCase):
     @classmethod
@@ -55,6 +56,22 @@ class D04ReferenceValidationTests(unittest.TestCase):
         self.assertEqual(summary["local_adaptations_implemented"], 19)
         self.assertEqual(summary["local_adaptations_tested"], 0)
         self.assertEqual(summary["certified_as_locally_operational"], 0)
+
+    def test_complete_algorithm_document_covers_all_unprotected_records(self):
+        point3 = json.loads(POINT3.read_text(encoding="utf-8"))
+        records = point3["records"]
+        self.assertEqual(len(records), 19)
+        self.assertEqual(
+            {r["record_key"] for r in records},
+            {r["record_key"] for r in self.data["records"]},
+        )
+        for record in records:
+            with self.subTest(record=record["record_key"]):
+                self.assertTrue(record["inputs"])
+                self.assertTrue(record["outputs"])
+                self.assertTrue(record["preconditions"])
+                self.assertTrue(record["algorithm_steps"])
+                self.assertTrue(record["pseudocode"])
 
 if __name__ == "__main__":
     unittest.main()
