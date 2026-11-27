@@ -1,0 +1,514 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D23 Destrucción, fractura, granularidad y sólidos",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D23",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D23 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D23:0",
+      "name": "Voronoi fracture",
+      "starting_principles": [
+        "Semillas y bounds en mismo marco/unidad.",
+        "Espesor y transforms son parámetros de escena."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "cell_i={p:||p−s_i||≤||p−s_j|| ∀j}",
+          "justification": "Partitionar el dominio por sitio más cercano."
+        },
+        {
+          "step": 2,
+          "equation": "poly_i=clip(cell_i,bounds)",
+          "justification": "Recortar cada celda al volumen del objeto."
+        },
+        {
+          "step": 3,
+          "equation": "piece_i=extrude(poly_i,thickness)",
+          "justification": "Dar espesor visual a cada región."
+        },
+        {
+          "step": 4,
+          "equation": "piece_i(t)=M_i(t)piece_i(0)",
+          "justification": "Animar cada pieza con transformación artística independiente."
+        }
+      ],
+      "assumptions": [
+        "Semillas y bounds en mismo marco/unidad.",
+        "Espesor y transforms son parámetros de escena.",
+        "La partición es geométrica y no representa fallo material."
+      ],
+      "result": "Voronoi produce fragmentos visuales por partición espacial y extrusión geométrica.",
+      "limits": [
+        "No derivar resistencia ni patrón físico de rotura a partir de esta partición."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:1",
+      "name": "Stress-based fracture — proxy visual",
+      "starting_principles": [
+        "s_visual no es tensión física ni se calibra con propiedades materiales.",
+        "Umbral τ_i es parámetro gráfico sin unidades de ingeniería."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "s_visual(p)=noise(p)+mask(p)",
+          "justification": "Crear campo procedural abstracto, no tensión mecánica."
+        },
+        {
+          "step": 2,
+          "equation": "region_i={p:s_visual(p)>τ_i}",
+          "justification": "Seleccionar regiones de efecto mediante umbral artístico."
+        },
+        {
+          "step": 3,
+          "equation": "seam_i=boundary(region_i)",
+          "justification": "Extraer contornos para dibujar líneas de rotura estilizadas."
+        },
+        {
+          "step": 4,
+          "equation": "τ_i=artistParameter(seed,i)",
+          "justification": "Controlar densidad/posición de líneas de forma reproducible."
+        }
+      ],
+      "assumptions": [
+        "s_visual no es tensión física ni se calibra con propiedades materiales.",
+        "Umbral τ_i es parámetro gráfico sin unidades de ingeniería.",
+        "El resultado se usa solo como máscara/partición visual."
+      ],
+      "result": "Se sustituye el criterio físico por un campo gráfico y umbrales de composición.",
+      "limits": [
+        "No se deriva ni proporciona un modelo operativo de fallo por tensión real."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:2",
+      "name": "Griffith crack criterion — alternativa gráfica",
+      "starting_principles": [
+        "La curva es un recurso gráfico, no una trayectoria calculada por energía de fractura.",
+        "Semilla fija; ancho en unidad de escena o píxel declarada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "curve_0=seededPolyline(start,end)",
+          "justification": "Definir una línea inicial de grieta como trazo visual."
+        },
+        {
+          "step": 2,
+          "equation": "curve_{n+1}=extend(curve_n,noiseDirection(seed,n))",
+          "justification": "Extender el trazo con variación pseudoaleatoria acotada."
+        },
+        {
+          "step": 3,
+          "equation": "width(s)=w_0(1−s)^γ",
+          "justification": "Reducir grosor hacia la punta para una terminación gráfica."
+        },
+        {
+          "step": 4,
+          "equation": "mask=stroke(curve,width)",
+          "justification": "Rasterizar la línea como máscara de grieta."
+        }
+      ],
+      "assumptions": [
+        "La curva es un recurso gráfico, no una trayectoria calculada por energía de fractura.",
+        "Semilla fija; ancho en unidad de escena o píxel declarada.",
+        "Longitud y ramificación limitadas por dirección artística."
+      ],
+      "result": "Se reemplaza el criterio físico de propagación por una curva procedural controlada.",
+      "limits": [
+        "No se deriva ni proporciona cálculo de energía crítica, intensidad de tensión ni propagación física de grietas."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:3",
+      "name": "Cohesive zone — transición de interfaz visual",
+      "starting_principles": [
+        "width>0; distancia en espacio declarado.",
+        "La función de apertura es animación visual."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d=distanceToSeam(p)",
+          "justification": "Calcular distancia a una costura geométrica."
+        },
+        {
+          "step": 2,
+          "equation": "u=clamp(d/width,0,1)",
+          "justification": "Normalizar distancia a ancho de transición."
+        },
+        {
+          "step": 3,
+          "equation": "α=1−smoothstep(0,1,u)",
+          "justification": "Generar máscara de adhesión/visibilidad."
+        },
+        {
+          "step": 4,
+          "equation": "separation(t)=keyframed(t)",
+          "justification": "Animar apertura de interfaz mediante claves artísticas, sin ley constitutiva física."
+        }
+      ],
+      "assumptions": [
+        "width>0; distancia en espacio declarado.",
+        "La función de apertura es animación visual.",
+        "No se calcula tracción ni energía material."
+      ],
+      "result": "La interfaz se revela con una máscara espacial y una curva temporal de apertura.",
+      "limits": [
+        "No se proporciona una ley física de tracción–separación."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:4",
+      "name": "Rigid body translation of pre-separated pieces",
+      "starting_principles": [
+        "Las piezas existen antes de animar; no se modela evento de rotura.",
+        "Posición y rotación en marcos/unidades coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "M_i(t)=T_i(t)R_i(t)",
+          "justification": "Definir transformación afín por pieza ya separada."
+        },
+        {
+          "step": 2,
+          "equation": "p_i(t)=M_i(t)p_i(0)",
+          "justification": "Transformar vértices locales."
+        },
+        {
+          "step": 3,
+          "equation": "q_i(t)=slerp(q_0,q_1,u)",
+          "justification": "Interpolar orientación."
+        },
+        {
+          "step": 4,
+          "equation": "x_i(t)=Spline(x_0,x_1,u)",
+          "justification": "Interpolar traslación de manera determinista."
+        }
+      ],
+      "assumptions": [
+        "Las piezas existen antes de animar; no se modela evento de rotura.",
+        "Posición y rotación en marcos/unidades coherentes.",
+        "Claves temporales ordenadas."
+      ],
+      "result": "La animación de fragmentos predefinidos se deriva de transformaciones y splines temporales.",
+      "limits": [
+        "No incluye fuerzas, impulso, contacto ni predicción física de fragmentación."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:5",
+      "name": "Impulse collision — rebote estilizado",
+      "starting_principles": [
+        "A, λ, ω son controles artísticos, no parámetros de colisión física.",
+        "El efecto es una curva de animación reproducible."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u=(t−t_0)/duration",
+          "justification": "Normalizar tiempo del efecto."
+        },
+        {
+          "step": 2,
+          "equation": "y(t)=A·exp(−λu)·|sin(ωu)|",
+          "justification": "Crear oscilación amortiguada como movimiento gráfico."
+        },
+        {
+          "step": 3,
+          "equation": "p(t)=p_base+y(t)·up",
+          "justification": "Desplazar objeto en eje visual."
+        },
+        {
+          "step": 4,
+          "equation": "finish when u≥1",
+          "justification": "Detener al terminar duración."
+        }
+      ],
+      "assumptions": [
+        "A, λ, ω son controles artísticos, no parámetros de colisión física.",
+        "El efecto es una curva de animación reproducible.",
+        "No se calcula masa, velocidad relativa ni impulso."
+      ],
+      "result": "El rebote se representa con una curva amortiguada de animación, no con una ecuación de impacto.",
+      "limits": [
+        "No se proporciona cálculo físico de impulso ni respuesta de colisión."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:6",
+      "name": "Coulomb friction — deslizamiento visual",
+      "starting_principles": [
+        "γ no se interpreta como coeficiente físico μ.",
+        "Δt y posición con unidades consistentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "v_{n+1}=γv_n",
+          "justification": "Reducir velocidad por factor de damping artístico."
+        },
+        {
+          "step": 2,
+          "equation": "0≤γ≤1",
+          "justification": "Limitar factor para decaimiento no creciente."
+        },
+        {
+          "step": 3,
+          "equation": "p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Actualizar posición."
+        },
+        {
+          "step": 4,
+          "equation": "stop when ||v||<ε",
+          "justification": "Detener movimiento al alcanzar umbral visual."
+        }
+      ],
+      "assumptions": [
+        "γ no se interpreta como coeficiente físico μ.",
+        "Δt y posición con unidades consistentes.",
+        "El movimiento es una curva de animación, no un modelo de contacto."
+      ],
+      "result": "El deslizamiento se aproxima con amortiguación geométrica por paso.",
+      "limits": [
+        "No se deriva ni proporciona ley de fricción física o coeficiente de material."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:7",
+      "name": "DEM granular contact — disposición visual de granos",
+      "starting_principles": [
+        "Relajación solo resuelve composición visual y no fuerzas de contacto.",
+        "Semillas reproducibles; radios positivos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "sites_i=sample(seed,domain)",
+          "justification": "Generar posiciones iniciales de granos."
+        },
+        {
+          "step": 2,
+          "equation": "r_i=visualRadius(materialClass_i)",
+          "justification": "Asignar radios por clase visual."
+        },
+        {
+          "step": 3,
+          "equation": "candidate_i=relaxSpacing(sites,r_i,iterations)",
+          "justification": "Reducir solapamientos de dibujo mediante relajación geométrica abstracta."
+        },
+        {
+          "step": 4,
+          "equation": "render grains with material variation",
+          "justification": "Dibujar granos con tamaño/color controlados."
+        }
+      ],
+      "assumptions": [
+        "Relajación solo resuelve composición visual y no fuerzas de contacto.",
+        "Semillas reproducibles; radios positivos.",
+        "Dominio de escena acotado."
+      ],
+      "result": "La granularidad se representa con distribución y relajación visual de instancias.",
+      "limits": [
+        "No se proporciona un modelo de contacto DEM ni parámetros físicos de escombros."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:8",
+      "name": "Angle of repose — perfil gráfico de pila",
+      "starting_principles": [
+        "τ_visual es parámetro gráfico, no ángulo de reposo físico.",
+        "Perfil y dominio en unidad de escena."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r(θ)=R·g(θ,seed)",
+          "justification": "Generar radio de contorno por dirección."
+        },
+        {
+          "step": 2,
+          "equation": "h(r)=h_0·profile(r/R)",
+          "justification": "Definir altura de pila por perfil artístico."
+        },
+        {
+          "step": 3,
+          "equation": "slopeMask=threshold(|∇h|,τ_visual)",
+          "justification": "Marcar zonas demasiado inclinadas para corrección visual."
+        },
+        {
+          "step": 4,
+          "equation": "relax h with blur/redistribution",
+          "justification": "Suavizar perfil para apariencia de acumulación."
+        }
+      ],
+      "assumptions": [
+        "τ_visual es parámetro gráfico, no ángulo de reposo físico.",
+        "Perfil y dominio en unidad de escena.",
+        "La distribución de granos es decorativa."
+      ],
+      "result": "La pila se genera con un perfil radial/ruido y un suavizado de forma.",
+      "limits": [
+        "No se deriva la estabilidad física de taludes ni relación con fricción."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:9",
+      "name": "Rigid cluster approximation",
+      "starting_principles": [
+        "Cluster assignment fijo antes de animación.",
+        "Transformaciones finitas y marcos coherentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "cluster_i={vertices with same clusterId}",
+          "justification": "Agrupar geometría en piezas rígidas predefinidas."
+        },
+        {
+          "step": 2,
+          "equation": "M_i(t)=T_i(t)R_i(t)",
+          "justification": "Definir pose temporal por cluster."
+        },
+        {
+          "step": 3,
+          "equation": "p'_v=M_{cluster(v)}(t)p_v",
+          "justification": "Transformar cada vértice según cluster."
+        },
+        {
+          "step": 4,
+          "equation": "same seed/time ⇒ same transforms",
+          "justification": "Garantizar reproducción determinista."
+        }
+      ],
+      "assumptions": [
+        "Cluster assignment fijo antes de animación.",
+        "Transformaciones finitas y marcos coherentes.",
+        "No se calcula fallo ni respuesta a impacto."
+      ],
+      "result": "La aproximación de clusters deriva de agrupar malla y aplicar una transformación rígida por grupo.",
+      "limits": [
+        "No predice qué fragmentos se separan ni cuándo; esa decisión es predefinida."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:10",
+      "name": "Bond break graph — eventos de separación",
+      "starting_principles": [
+        "t_break es clave/guion artístico, no umbral de tensión.",
+        "G finito y sin aristas duplicadas no controladas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "G=(V,E)",
+          "justification": "Representar piezas como nodos y uniones visuales como aristas."
+        },
+        {
+          "step": 2,
+          "equation": "active_e(t)=1 for t<t_break(e)",
+          "justification": "Mantener unión visible hasta un instante de evento."
+        },
+        {
+          "step": 3,
+          "equation": "active_e(t)=0 for t≥t_break(e)",
+          "justification": "Desactivar unión mediante evento temporizado."
+        },
+        {
+          "step": 4,
+          "equation": "connectedComponents(G_active(t))",
+          "justification": "Calcular grupos visuales que permanecen conectados."
+        }
+      ],
+      "assumptions": [
+        "t_break es clave/guion artístico, no umbral de tensión.",
+        "G finito y sin aristas duplicadas no controladas.",
+        "Las piezas tienen IDs estables."
+      ],
+      "result": "La separación se deriva de un grafo de conectividad actualizado por eventos de timeline.",
+      "limits": [
+        "No se calcula ruptura física por carga ni umbral mecánico."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    },
+    {
+      "record_key": "D23:11",
+      "name": "Crack branching — ramificación gráfica",
+      "starting_principles": [
+        "θ_max y length_b son parámetros artísticos.",
+        "Seed fija; curvas finitas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P(s)=baseCurve(s)",
+          "justification": "Definir curva principal."
+        },
+        {
+          "step": 2,
+          "equation": "s_b∈(0,1); θ_b=hash(seed,branchId)·θ_max",
+          "justification": "Seleccionar punto y ángulo de rama de forma reproducible."
+        },
+        {
+          "step": 3,
+          "equation": "d_b=rotate(T(s_b),θ_b)",
+          "justification": "Orientar rama respecto a tangente principal."
+        },
+        {
+          "step": 4,
+          "equation": "B(u)=P(s_b)+u·length_b·d_b+noise(u)",
+          "justification": "Construir ramificación gráfica."
+        },
+        {
+          "step": 5,
+          "equation": "width_b(u)=w_0(1−u)^γ",
+          "justification": "Reducir ancho hacia el extremo."
+        }
+      ],
+      "assumptions": [
+        "θ_max y length_b son parámetros artísticos.",
+        "Seed fija; curvas finitas.",
+        "No se usa criterio físico de propagación."
+      ],
+      "result": "Las ramas se generan como splines hijas con ángulos pseudoaleatorios acotados.",
+      "limits": [
+        "No se deriva la ramificación a partir de esfuerzos ni energía de fractura."
+      ],
+      "status": "VISUAL_PROXY_DERIVATION"
+    }
+  ],
+  "validation": {
+    "checks": [
+      "12/12 técnicas cubiertas mediante derivaciones geométricas/visuales.",
+      "Los métodos de esfuerzo, Griffith, cohesión, impulso, fricción y DEM se limitan a proxies gráficos no físicos.",
+      "No se incluyen parámetros ni ecuaciones operativas para causar, optimizar o predecir daño real."
+    ],
+    "limitations": [
+      "Por seguridad, esta ficha no deriva mecánica real de fractura, impacto, fricción, contacto granular ni propagación de grietas; proporciona alternativas exclusivamente visuales para animación 3D."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
