@@ -398,23 +398,25 @@
         },
         {
           "step": 4,
-          "equation": "v_des=w_sS_i+w_aA_i+w_cC_i",
-          "justification": "Para que la salida sea velocidad L/T, asignar w_s=L²/T, w_a=1 y w_c=T⁻¹; cada término queda en L/T."
+          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i",
+          "justification": "Las ganancias con unidades explícitas convierten separación, alineación y cohesión en aceleraciones L/T² antes de sumarlas."
         },
         {
           "step": 5,
-          "equation": "v_{n+1}=clamp(v_des,v_max); p_{n+1}=p_n+v_{n+1}Δt",
-          "justification": "Limitar velocidad deseada y convertirla en desplazamiento mediante un paso temporal."
+          "equation": "v_{n+1}=clamp(v_n+a_iΔt,v_max); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Integrar la aceleración en velocidad y la velocidad actualizada en posición."
         }
       ],
       "assumptions": [
         "Vecindad y radio declarados; posiciones/velocidades finitas.",
         "Para salida aceleración: w_s L²/T², w_a T⁻¹, w_c T⁻².",
-        "Pares coincidentes requieren tratamiento para evitar división por cero."
+        "Pares coincidentes requieren tratamiento para evitar división por cero.",
+        "S_i tiene L⁻¹, A_i L/T y C_i L; w_s L²/T², w_a T⁻¹ y w_c T⁻²; a_i tiene L/T²."
       ],
-      "result": "La conducta emergente resulta de tres reglas locales ponderadas con ganancias dimensionales que producen una velocidad deseada; la posición se actualiza con esa velocidad y Δt.",
+      "result": "La conducta emergente se calcula como aceleración resultante de tres reglas locales dimensionalmente compatibles, seguida de integración semiimplícita.",
       "limits": [
-        "Los pesos no son adimensionales en esta forma abreviada; usar unidades de D27 para que la suma sea homogénea."
+        "Los pesos no son adimensionales en esta forma abreviada; usar unidades de D27 para que la suma sea homogénea.",
+        "El clamp de velocidad no sustituye el límite de aceleración; si se requiere, aplicar a_max antes de integrar."
       ],
       "dimensional_verification": [
         "S_i tiene L⁻¹; A_i tiene L/T; C_i tiene L.",
