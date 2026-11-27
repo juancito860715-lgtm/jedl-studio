@@ -1627,13 +1627,23 @@
           ]
         },
         "derivation": {
-          "status": "partial",
+          "status": "complete_for_scalar_distance_constraint_xpbd_update",
           "steps": [
             "Partir de la restricción escalar C(x)=0 y de la discretización implícita regularizada del artículo, Ecs. (8)-(9).",
             "Aplicar la aproximación cuasi-Newton K≈M y asumir g(x_i,lambda_i)=0, explícitamente declaradas en §4, para obtener el sistema reducido (16).",
             "Resolver el incremento del multiplicador mediante el paso Gauss-Seidel por restricción, Ec. (18): Δλ_j=−(C_j(x_i)+α̃_j λ_ij)/(∇C_j M⁻¹ ∇C_jᵀ+α̃_j).",
             "Obtener la corrección posicional con Ec. (17): Δx=M⁻¹∇CᵀΔλ; acumular λ←λ+Δλ y x←x+Δx.",
             "La escala de compliance es α̃=α/Δt² (definición en §4, anterior a Ec. (8)); no confundir la variante amortiguada de Ec. (26) con el núcleo elástico de Ec. (18)."
+          ],
+          "complete_steps": [
+            "Definir C(x)=0 para la restricción escalar y formular la energía de compliance E_C=C(x)^2/(2α), con α≥0; para α=0 se obtiene el límite rígido y se usa la forma de actualización XPBD sin dividir por α.",
+            "Discretizar el paso implícito con Δt>0 y linealizar la restricción en la configuración iterada x_i: C(x_i+Δx)≈C(x_i)+∇C(x_i)Δx.",
+            "Aplicar la aproximación cuasi-Newton K≈M indicada por el método y eliminar el desplazamiento mediante el sistema reducido de multiplicadores: (∇C M⁻¹∇Cᵀ+α̃)Δλ=−C(x_i)−α̃λ_i.",
+            "Calcular α̃=α/Δt². Para una restricción de distancia C en metros, comprobar que α̃ y ∇C M⁻¹∇Cᵀ tienen unidad kg⁻¹ y que C+α̃λ tiene unidad m.",
+            "Resolver el incremento Δλ por restricción mediante Gauss-Seidel; si el denominador es cero o no finito, detener esa restricción como degenerada en vez de dividir.",
+            "Obtener Δx=M⁻¹∇CᵀΔλ, aplicar la corrección a cada partícula móvil y acumular λ←λ+Δλ durante las iteraciones del mismo subpaso.",
+            "Repetir las restricciones en el orden del solver durante el número de iteraciones configurado; reiniciar λ a cero al comenzar el siguiente subpaso temporal.",
+            "Reconstruir velocidades como v=(x_corrected−x_previous)/Δt y validar finitud, límites y residuo de las restricciones después de completar el subpaso."
           ]
         },
         "assumptions": [
@@ -1709,7 +1719,7 @@
             "unit": "m/s"
           }
         ],
-        "algorithm_completeness": "SCALAR_DISTANCE_CONSTRAINT_DERIVATION_COMPLETE; GENERAL_MULTICONSTRAINT_SOLVER_NOT_CERTIFIED",
+        "algorithm_completeness": "SCALAR_DISTANCE_CONSTRAINT_DERIVATION_AND_ITERATION_STEPS_COMPLETE; GENERAL_MULTICONSTRAINT_SOLVER_NOT_CERTIFIED",
         "pseudocode_status": "SCALAR_DISTANCE_REFERENCE_PSEUDOCODE; MULTICONSTRAINT_EXECUTION_PENDING",
         "complexity": {
           "time": "O(I·K·G), I iterations, K constraints, G evaluation cost per constraint",
