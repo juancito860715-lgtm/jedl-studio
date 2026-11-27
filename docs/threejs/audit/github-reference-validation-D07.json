@@ -1,0 +1,597 @@
+{
+  "document": "Investigación de referencias y adaptación local — D07 Arquitectura, edificios, puentes y ciudades",
+  "manifest": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+  "manifest_version": "3.1",
+  "domain_id": "D07",
+  "domain_name": "Arquitectura, edificios, puentes y ciudades",
+  "reference_projects": [
+    {
+      "repository": "Aljullu/threejs-procedural-building-generator",
+      "commit": "8850b8fd4bf617e25c85ae00ce2a606272f343f6",
+      "license": "MIT",
+      "url": "https://github.com/Aljullu/threejs-procedural-building-generator/tree/8850b8fd4bf617e25c85ae00ce2a606272f343f6"
+    },
+    {
+      "repository": "mrdoob/three.js",
+      "commit": "0de0346de82a0d01923ffeb27f33240ad8b4863f",
+      "license": "MIT",
+      "url": "https://github.com/mrdoob/three.js/tree/0de0346de82a0d01923ffeb27f33240ad8b4863f"
+    },
+    {
+      "repository": "avianphysics/avian",
+      "commit": "e496f4a7620a61e0c6481c9e0a43f80423eb193a",
+      "license": "MIT OR Apache-2.0",
+      "url": "https://github.com/avianphysics/avian/tree/e496f4a7620a61e0c6481c9e0a43f80423eb193a"
+    },
+    {
+      "repository": "hxtnv/citygen",
+      "commit": "3cee5d844398c741b971b16a425160c1e45e41f9",
+      "license": "MIT",
+      "url": "https://github.com/hxtnv/citygen/tree/3cee5d844398c741b971b16a425160c1e45e41f9"
+    },
+    {
+      "repository": "tangent-to/ode",
+      "commit": "fa5990adf6915abfe95f8767a2b159eeabde5ff9",
+      "license": "MIT",
+      "url": "https://github.com/tangent-to/ode/tree/fa5990adf6915abfe95f8767a2b159eeabde5ff9"
+    }
+  ],
+  "protected_records": {
+    "excluded_keys": [],
+    "reason": "No hay fichas D07 protegidas en el mapa Crimson Loong."
+  },
+  "records": [
+    {
+      "record_key": "D07:0",
+      "technique": "Gramática de formas",
+      "mathematics": "S_0=axiom — Definir una forma inicial o módulo base.; S_{n+1}=R(S_n,parameters) — Aplicar reglas de producción para sustituir/expandir partes de la forma.; G_{n+1}=interpret(S_{n+1}) — Interpretar símbolos/reglas como operaciones geométricas.; stop if depth=n_max or budget — Detener expansión para limitar complejidad.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "S_0=axiom",
+          "justification": "Definir una forma inicial o módulo base."
+        },
+        {
+          "step": 2,
+          "equation": "S_{n+1}=R(S_n,parameters)",
+          "justification": "Aplicar reglas de producción para sustituir/expandir partes de la forma."
+        },
+        {
+          "step": 3,
+          "equation": "G_{n+1}=interpret(S_{n+1})",
+          "justification": "Interpretar símbolos/reglas como operaciones geométricas."
+        },
+        {
+          "step": 4,
+          "equation": "stop if depth=n_max or budget",
+          "justification": "Detener expansión para limitar complejidad."
+        }
+      ],
+      "algorithm": "Inicializar axioma de símbolos con parámetros; en cada iteración sustituir cada símbolo mediante su producción; respetar maxSymbols; entregar tokens de construcción.",
+      "pseudocode": "Inicializar axioma de símbolos con parámetros; en cada iteración sustituir cada símbolo mediante su producción; respetar maxSymbols; entregar tokens de construcción.",
+      "source_files": [
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/js/FloorShapeRule.js",
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/js/Building.js",
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/LICENSE"
+      ],
+      "verified_source_behavior": "Aljullu's MIT procedural building generator uses FloorShapeRule and recursive floor/child polygon rules to generate building forms; local implementation models a parameterized grammar and modern BufferGeometry output.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:1",
+      "technique": "Módulos arquitectónicos",
+      "mathematics": "M_i=T_i R_i S_i — Construir transformación afín de cada módulo.; M_world,i=M_parent M_i — Componer transformación local con el marco del edificio.; Building=⋃_i M_world,i·Module_i — Instanciar módulos en sus ubicaciones.; Module_i=Module_j for repeated type — Reutilizar la misma geometría para módulos del mismo tipo.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "M_i=T_i R_i S_i",
+          "justification": "Construir transformación afín de cada módulo."
+        },
+        {
+          "step": 2,
+          "equation": "M_world,i=M_parent M_i",
+          "justification": "Componer transformación local con el marco del edificio."
+        },
+        {
+          "step": 3,
+          "equation": "Building=⋃_i M_world,i·Module_i",
+          "justification": "Instanciar módulos en sus ubicaciones."
+        },
+        {
+          "step": 4,
+          "equation": "Module_i=Module_j for repeated type",
+          "justification": "Reutilizar la misma geometría para módulos del mismo tipo."
+        }
+      ],
+      "algorithm": "Agrupar placements por tipo de módulo; crear un InstancedMesh por geometría/material; componer matrices de traslación/rotación/escala; actualizar instanceMatrix.",
+      "pseudocode": "Agrupar placements por tipo de módulo; crear un InstancedMesh por geometría/material; componer matrices de traslación/rotación/escala; actualizar instanceMatrix.",
+      "source_files": [
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/js/BuildingUtils.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/InstancedMesh.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js provides the modern geometry/instancing primitive used by the local architectural helper; local implementation adds explicit dimensions, topology and tests.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:2",
+      "technique": "Tejado a dos aguas",
+      "mathematics": "x∈[−W/2,W/2]; h_ridge=roofBase+pitch·W/2 — Tomar roofBase como altura de alero y calcular la cota de cumbrera a partir de la semianchura y la pendiente.; y(x)=h_ridge−pitch·|x|=roofBase+pitch·(W/2−|x|) — La distancia horizontal desde la cumbrera es |x|; restarla con pendiente positiva produce dos planos que descienden hacia los aleros.; dy/dx=+pitch para x<0; dy/dx=−pitch para x>0 — Las derivadas opuestas describen las dos aguas simétricas y el cambio de signo en la cumbrera.; y(0)=roofBase+pitch·W/2; y(±W/2)=roofBase — Evaluar centro y extremos confirma que la cumbrera es el máximo y ambos aleros quedan a la altura base.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x∈[−W/2,W/2]; h_ridge=roofBase+pitch·W/2",
+          "justification": "Tomar roofBase como altura de alero y calcular la cota de cumbrera a partir de la semianchura y la pendiente."
+        },
+        {
+          "step": 2,
+          "equation": "y(x)=h_ridge−pitch·|x|=roofBase+pitch·(W/2−|x|)",
+          "justification": "La distancia horizontal desde la cumbrera es |x|; restarla con pendiente positiva produce dos planos que descienden hacia los aleros."
+        },
+        {
+          "step": 3,
+          "equation": "dy/dx=+pitch para x<0; dy/dx=−pitch para x>0",
+          "justification": "Las derivadas opuestas describen las dos aguas simétricas y el cambio de signo en la cumbrera."
+        },
+        {
+          "step": 4,
+          "equation": "y(0)=roofBase+pitch·W/2; y(±W/2)=roofBase",
+          "justification": "Evaluar centro y extremos confirma que la cumbrera es el máximo y ambos aleros quedan a la altura base."
+        }
+      ],
+      "algorithm": "Para x∈[−w/2,w/2], y=baseY+pitch*abs(x); construir las dos caras inclinadas desde alero hasta cumbrera y triangular.",
+      "pseudocode": "Para x∈[−w/2,w/2], y=baseY+pitch*abs(x); construir las dos caras inclinadas desde alero hasta cumbrera y triangular.",
+      "source_files": [
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/js/Building.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/core/BufferGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js provides the modern geometry/instancing primitive used by the local architectural helper; local implementation adds explicit dimensions, topology and tests.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:3",
+      "technique": "Tejado curvo",
+      "mathematics": "z(x)=z_0+a x² — Elegir perfil parabólico con vértice en x=0.; z'(x)=2ax — Derivar para obtener pendiente local.; z''(x)=2a — La segunda derivada controla curvatura del perfil.; P(x,s)=(x,y(s),z(x)) — Extender perfil a lo largo de la dirección longitudinal s.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "z(x)=z_0+a x²",
+          "justification": "Elegir perfil parabólico con vértice en x=0."
+        },
+        {
+          "step": 2,
+          "equation": "z'(x)=2ax",
+          "justification": "Derivar para obtener pendiente local."
+        },
+        {
+          "step": 3,
+          "equation": "z''(x)=2a",
+          "justification": "La segunda derivada controla curvatura del perfil."
+        },
+        {
+          "step": 4,
+          "equation": "P(x,s)=(x,y(s),z(x))",
+          "justification": "Extender perfil a lo largo de la dirección longitudinal s."
+        }
+      ],
+      "algorithm": "Muestrear x,z; evaluar perfil zRoof(x)=z0+a*x² o perfil suministrado; conectar la malla paramétrica.",
+      "pseudocode": "Muestrear x,z; evaluar perfil zRoof(x)=z0+a*x² o perfil suministrado; conectar la malla paramétrica.",
+      "source_files": [
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/js/Building.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/ExtrudeGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js provides the modern geometry/instancing primitive used by the local architectural helper; local implementation adds explicit dimensions, topology and tests.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:4",
+      "technique": "Arco",
+      "mathematics": "x(θ)=c_x+r cosθ; y(θ)=c_y+r sinθ — Parametrizar una circunferencia de radio r.; (x−c_x)²+(y−c_y)²=r² — Eliminar θ usando sin²θ+cos²θ=1.; θ∈[θ_0,θ_1] — Seleccionar el tramo de arco deseado.; P(θ,z)=(x(θ),y(θ),z) — Extruir el perfil circular a lo largo de z para obtener un arco 3D.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x(θ)=c_x+r cosθ; y(θ)=c_y+r sinθ",
+          "justification": "Parametrizar una circunferencia de radio r."
+        },
+        {
+          "step": 2,
+          "equation": "(x−c_x)²+(y−c_y)²=r²",
+          "justification": "Eliminar θ usando sin²θ+cos²θ=1."
+        },
+        {
+          "step": 3,
+          "equation": "θ∈[θ_0,θ_1]",
+          "justification": "Seleccionar el tramo de arco deseado."
+        },
+        {
+          "step": 4,
+          "equation": "P(θ,z)=(x(θ),y(θ),z)",
+          "justification": "Extruir el perfil circular a lo largo de z para obtener un arco 3D."
+        }
+      ],
+      "algorithm": "Construir contorno exterior circular y contorno interior inverso; cerrar la forma; extruir en profundidad con bisel opcional.",
+      "pseudocode": "Construir contorno exterior circular y contorno interior inverso; cerrar la forma; extruir en profundidad con bisel opcional.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/ExtrudeGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/extras/ShapeUtils.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js provides the modern geometry/instancing primitive used by the local architectural helper; local implementation adds explicit dimensions, topology and tests.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:5",
+      "technique": "Columna estriada",
+      "mathematics": "r(θ)=r_0+A cos(nθ) — Modular el radio base con una oscilación angular.; x(θ)=r(θ)cosθ; z(θ)=r(θ)sinθ — Convertir radio polar variable a sección cartesiana.; θ∈[0,2π); n∈N — La periodicidad cierra la sección y n determina número de estrías.; P(θ,y)=(x(θ),y,z(θ)) — Extruir sección a lo largo del eje de columna.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r(θ)=r_0+A cos(nθ)",
+          "justification": "Modular el radio base con una oscilación angular."
+        },
+        {
+          "step": 2,
+          "equation": "x(θ)=r(θ)cosθ; z(θ)=r(θ)sinθ",
+          "justification": "Convertir radio polar variable a sección cartesiana."
+        },
+        {
+          "step": 3,
+          "equation": "θ∈[0,2π); n∈N",
+          "justification": "La periodicidad cierra la sección y n determina número de estrías."
+        },
+        {
+          "step": 4,
+          "equation": "P(θ,y)=(x(θ),y,z(θ))",
+          "justification": "Extruir sección a lo largo del eje de columna."
+        }
+      ],
+      "algorithm": "Para theta,y, calcular r(theta)=r0+A*cos(n*theta); emitir (r*cosθ,y,r*sinθ); conectar anillos.",
+      "pseudocode": "Para theta,y, calcular r(theta)=r0+A*cos(n*theta); emitir (r*cosθ,y,r*sinθ); conectar anillos.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/core/BufferGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/extras/curves/CatmullRomCurve3.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js provides the modern geometry/instancing primitive used by the local architectural helper; local implementation adds explicit dimensions, topology and tests.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:6",
+      "technique": "Escalera paramétrica",
+      "mathematics": "y_n=y_0+n·rise — Acumular elevación por peldaño.; z_n=z_0+n·run — Acumular avance horizontal por peldaño.; P_n=(x_0,y_n,z_n) — Ubicar cada peldaño en la secuencia.; slope=rise/run — Derivar pendiente global de la sucesión si run>0.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "y_n=y_0+n·rise",
+          "justification": "Acumular elevación por peldaño."
+        },
+        {
+          "step": 2,
+          "equation": "z_n=z_0+n·run",
+          "justification": "Acumular avance horizontal por peldaño."
+        },
+        {
+          "step": 3,
+          "equation": "P_n=(x_0,y_n,z_n)",
+          "justification": "Ubicar cada peldaño en la secuencia."
+        },
+        {
+          "step": 4,
+          "equation": "slope=rise/run",
+          "justification": "Derivar pendiente global de la sucesión si run>0."
+        }
+      ],
+      "algorithm": "Para n=0..steps−1, crear tread en y0+(n+0.5)rise y z0+(n+0.5)run; instanciar BoxGeometry común.",
+      "pseudocode": "Para n=0..steps−1, crear tread en y0+(n+0.5)rise y z0+(n+0.5)run; instanciar BoxGeometry común.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/objects/InstancedMesh.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/BoxGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js provides the modern geometry/instancing primitive used by the local architectural helper; local implementation adds explicit dimensions, topology and tests.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:7",
+      "technique": "Puente por curva",
+      "mathematics": "C(s) — Definir línea central del tablero.; T=normalize(C'(s)) — Obtener tangente de trayectoria.; deck(s)=C(s)+offset·N(s) — Desplazar el tablero en dirección transversal/vertical según marco local.; rail(s)=deck(s)+height·up(s) — Construir barandilla a altura constante en el marco local.; P(s,u)=deck(s)+u·width·B(s) — Generar superficie del tablero a partir de ancho y marco.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(s)",
+          "justification": "Definir línea central del tablero."
+        },
+        {
+          "step": 2,
+          "equation": "T=normalize(C'(s))",
+          "justification": "Obtener tangente de trayectoria."
+        },
+        {
+          "step": 3,
+          "equation": "deck(s)=C(s)+offset·N(s)",
+          "justification": "Desplazar el tablero en dirección transversal/vertical según marco local."
+        },
+        {
+          "step": 4,
+          "equation": "rail(s)=deck(s)+height·up(s)",
+          "justification": "Construir barandilla a altura constante en el marco local."
+        },
+        {
+          "step": 5,
+          "equation": "P(s,u)=deck(s)+u·width·B(s)",
+          "justification": "Generar superficie del tablero a partir de ancho y marco."
+        }
+      ],
+      "algorithm": "Muestrear curva C(s); obtener tangente y lateral; emitir deck(s,v)=C(s)+(v−0.5)width*side; emitir railings a ±width/2 y altura.",
+      "pseudocode": "Muestrear curva C(s); obtener tangente y lateral; emitir deck(s,v)=C(s)+(v−0.5)width*side; emitir railings a ±width/2 y altura.",
+      "source_files": [
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/extras/curves/CatmullRomCurve3.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/src/geometries/TubeGeometry.js",
+        "https://github.com/mrdoob/three.js/blob/0de0346de82a0d01923ffeb27f33240ad8b4863f/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js CatmullRomCurve3 and TubeGeometry provide curve sampling and swept geometry; local bridge builds a deck strip and two rail paths.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:8",
+      "technique": "Piedra de mampostería",
+      "mathematics": "site_i=cellCenter_i+jitter_i — Generar semilla por celda con desplazamiento determinista.; cell_i={p:||p−site_i||≤||p−site_j|| ∀j} — Construir celdas de Voronoi como regiones más cercanas a cada semilla.; polygon_i=clip(cell_i,bounds) — Recortar la celda al dominio de muro/pavimento.; bevel(polygon_i,b) — Desplazar aristas o extruir bisel para suavizar bordes visuales.; material_i=hash(seed,i) — Asignar variación reproducible de tono/escala.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "site_i=cellCenter_i+jitter_i",
+          "justification": "Generar semilla por celda con desplazamiento determinista."
+        },
+        {
+          "step": 2,
+          "equation": "cell_i={p:||p−site_i||≤||p−site_j|| ∀j}",
+          "justification": "Construir celdas de Voronoi como regiones más cercanas a cada semilla."
+        },
+        {
+          "step": 3,
+          "equation": "polygon_i=clip(cell_i,bounds)",
+          "justification": "Recortar la celda al dominio de muro/pavimento."
+        },
+        {
+          "step": 4,
+          "equation": "bevel(polygon_i,b)",
+          "justification": "Desplazar aristas o extruir bisel para suavizar bordes visuales."
+        },
+        {
+          "step": 5,
+          "equation": "material_i=hash(seed,i)",
+          "justification": "Asignar variación reproducible de tono/escala."
+        }
+      ],
+      "algorithm": "Dividir pared en filas/columnas; desplazar juntas alternas; generar variación determinista de ancho/alto; extruir cada bloque con bevel.",
+      "pseudocode": "Dividir pared en filas/columnas; desplazar juntas alternas; generar variación determinista de ancho/alto; extruir cada bloque con bevel.",
+      "source_files": [
+        "https://github.com/hxtnv/citygen/blob/3cee5d844398c741b971b16a425160c1e45e41f9/src/core/blocks.ts",
+        "https://github.com/hxtnv/citygen/blob/3cee5d844398c741b971b16a425160c1e45e41f9/src/core/city.ts",
+        "https://github.com/hxtnv/citygen/blob/3cee5d844398c741b971b16a425160c1e45e41f9/LICENSE"
+      ],
+      "verified_source_behavior": "Three.js provides the modern geometry/instancing primitive used by the local architectural helper; local implementation adds explicit dimensions, topology and tests.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:9",
+      "technique": "Fachada procedural",
+      "mathematics": "x_i=x_0+i·bayWidth; y_j=y_0+j·floorHeight — Definir rejilla de ejes por crujías y niveles.; cell_{ij}=[x_i,x_{i+1}]×[y_j,y_{j+1}] — Construir cada módulo de fachada.; opening_{ij}=rule(i,j,seed,style) — Decidir hueco/ventana/puerta según gramática y parámetros.; facade=union(solidCells)−union(openings) — Componer macizos y restar huecos en representación geométrica.; material=style(cell,orientation) — Asignar materiales por regla de estilo.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x_i=x_0+i·bayWidth; y_j=y_0+j·floorHeight",
+          "justification": "Definir rejilla de ejes por crujías y niveles."
+        },
+        {
+          "step": 2,
+          "equation": "cell_{ij}=[x_i,x_{i+1}]×[y_j,y_{j+1}]",
+          "justification": "Construir cada módulo de fachada."
+        },
+        {
+          "step": 3,
+          "equation": "opening_{ij}=rule(i,j,seed,style)",
+          "justification": "Decidir hueco/ventana/puerta según gramática y parámetros."
+        },
+        {
+          "step": 4,
+          "equation": "facade=union(solidCells)−union(openings)",
+          "justification": "Componer macizos y restar huecos en representación geométrica."
+        },
+        {
+          "step": 5,
+          "equation": "material=style(cell,orientation)",
+          "justification": "Asignar materiales por regla de estilo."
+        }
+      ],
+      "algorithm": "Crear contorno de fachada; generar huecos por bay/floor; extruir pared con holes; añadir cristales y puerta en posiciones calculadas.",
+      "pseudocode": "Crear contorno de fachada; generar huecos por bay/floor; extruir pared con holes; añadir cristales y puerta en posiciones calculadas.",
+      "source_files": [
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/js/FloorShapeRule.js",
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/js/Building.js",
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/js/BuildingUtils.js",
+        "https://github.com/Aljullu/threejs-procedural-building-generator/blob/8850b8fd4bf617e25c85ae00ce2a606272f343f6/LICENSE"
+      ],
+      "verified_source_behavior": "Aljullu's MIT procedural building generator uses FloorShapeRule and recursive floor/child polygon rules to generate building forms; local implementation models a parameterized grammar and modern BufferGeometry output.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:10",
+      "technique": "Telas y banderas",
+      "mathematics": "w(u,v,t)=A(u,v)sin(ωt−kv+φ) — Definir desplazamiento normal como una amplitud espacial multiplicada por una oscilación temporal-espacial.; P(u,v,t)=P_0(u,v)+w(u,v,t)N(u,v) — Desplazar cada punto de la superficie de reposo sobre su normal local unitaria.; A(0,v)=0 — Hacer nula la amplitud sobre el borde sujeto para satisfacer la condición de frontera fija.; P(u_fixed,v,t)=P_0(u_fixed,v) — La condición geométrica impone desplazamiento cero en todos los puntos anclados.; N′=normalize(P_u×P_v) — Obtener la normal de la superficie deformada a partir de las tangentes paramétricas.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "w(u,v,t)=A(u,v)sin(ωt−kv+φ)",
+          "justification": "Definir desplazamiento normal como una amplitud espacial multiplicada por una oscilación temporal-espacial."
+        },
+        {
+          "step": 2,
+          "equation": "P(u,v,t)=P_0(u,v)+w(u,v,t)N(u,v)",
+          "justification": "Desplazar cada punto de la superficie de reposo sobre su normal local unitaria."
+        },
+        {
+          "step": 3,
+          "equation": "A(0,v)=0",
+          "justification": "Hacer nula la amplitud sobre el borde sujeto para satisfacer la condición de frontera fija."
+        },
+        {
+          "step": 4,
+          "equation": "P(u_fixed,v,t)=P_0(u_fixed,v)",
+          "justification": "La condición geométrica impone desplazamiento cero en todos los puntos anclados."
+        },
+        {
+          "step": 5,
+          "equation": "N′=normalize(P_u×P_v)",
+          "justification": "Obtener la normal de la superficie deformada a partir de las tangentes paramétricas."
+        }
+      ],
+      "algorithm": "Crear grid de partículas; fijar borde superior; crear restricciones estructurales, diagonales y bending; integrar gravedad/viento con Verlet; resolver XPBD iterativo.",
+      "pseudocode": "Crear grid de partículas; fijar borde superior; crear restricciones estructurales, diagonales y bending; integrar gravedad/viento con Verlet; resolver XPBD iterativo.",
+      "source_files": [
+        "https://github.com/avianphysics/avian/blob/e496f4a7620a61e0c6481c9e0a43f80423eb193a/src/dynamics/solver/xpbd/joints/distance.rs",
+        "https://github.com/avianphysics/avian/blob/e496f4a7620a61e0c6481c9e0a43f80423eb193a/LICENSE-MIT",
+        "https://github.com/juancito860715-lgtm/jedl-studio/blob/audit/implementation-ready-manifest/src/threejs/d04-motion-simulation.mjs"
+      ],
+      "verified_source_behavior": "Avian's MIT XPBD distance-joint solver stores compliance and accumulated Lagrange multipliers; local flag cloth uses distance constraints with pinned top row.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    },
+    {
+      "record_key": "D07:11",
+      "technique": "Faroles pendulares",
+      "mathematics": "τ=−mgL sinθ — El peso genera torque restaurador alrededor del punto de suspensión.; I=mL² — Para masa puntual a distancia L, momento de inercia.; θ''+(g/L)sinθ=0 — Aplicar balance de torque y dividir por I.; sinθ≈θ ⇒ ω_0=√(g/L) — Linealizar para oscilación pequeña.; θ(t)=A cos(ω_0t+φ) — Solución armónica del sistema linealizado.",
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "τ=−mgL sinθ",
+          "justification": "El peso genera torque restaurador alrededor del punto de suspensión."
+        },
+        {
+          "step": 2,
+          "equation": "I=mL²",
+          "justification": "Para masa puntual a distancia L, momento de inercia."
+        },
+        {
+          "step": 3,
+          "equation": "θ''+(g/L)sinθ=0",
+          "justification": "Aplicar balance de torque y dividir por I."
+        },
+        {
+          "step": 4,
+          "equation": "sinθ≈θ ⇒ ω_0=√(g/L)",
+          "justification": "Linealizar para oscilación pequeña."
+        },
+        {
+          "step": 5,
+          "equation": "θ(t)=A cos(ω_0t+φ)",
+          "justification": "Solución armónica del sistema linealizado."
+        }
+      ],
+      "algorithm": "omega=sqrt(g/L); theta=A*cos(omega*t+phi); lantern=pivot+[L*sin(theta),−L*cos(theta),0].",
+      "pseudocode": "omega=sqrt(g/L); theta=A*cos(omega*t+phi); lantern=pivot+[L*sin(theta),−L*cos(theta),0].",
+      "source_files": [
+        "https://github.com/tangent-to/ode/blob/fa5990adf6915abfe95f8767a2b159eeabde5ff9/src/fixed.js",
+        "https://github.com/tangent-to/ode/blob/fa5990adf6915abfe95f8767a2b159eeabde5ff9/LICENSE",
+        "https://github.com/juancito860715-lgtm/jedl-studio/blob/audit/implementation-ready-manifest/src/threejs/d04-motion-simulation.mjs"
+      ],
+      "verified_source_behavior": "Three.js provides the modern geometry/instancing primitive used by the local architectural helper; local implementation adds explicit dimensions, topology and tests.",
+      "local_adaptation_status": "IMPLEMENTED_TESTS_PENDING",
+      "certification_status": "PENDING_LOCAL_CI",
+      "implementation_files": [
+        "src/threejs/d07-architecture.mjs",
+        "tests/threejs/d07-architecture.test.mjs"
+      ],
+      "implementation_note": "Adaptación local y pruebas escritas; pendientes de ejecución CI."
+    }
+  ],
+  "overall_status": "D07_RESEARCH_AND_LOCAL_IMPLEMENTATION_ADDED_AWAITING_CI",
+  "summary": {
+    "records_in_scope": 12,
+    "protected_records_preserved": 0,
+    "records_with_reference_research": 12,
+    "local_adaptations_implemented": 12,
+    "local_adaptations_tested": 0,
+    "pending_local_ci": 12,
+    "certified_as_locally_operational": 0
+  },
+  "limitations": [
+    "D07:0 implementa un grammar expander de tokens con parámetros, no un compilador CGA completo ni un parser de geometría arbitraria.",
+    "D07:1 agrupa módulos por geometría/material y usa InstancedMesh; el caller suministra módulos y transforms.",
+    "D07:2 y D07:3 generan superficies de cubierta; no añaden por sí solos capas de tejas, impermeabilización o detalles constructivos.",
+    "D07:4 genera un arco extruido con perfil anular; no calcula cargas estructurales.",
+    "D07:5 genera la superficie lateral de una columna estriada; capiteles y basas son módulos separados.",
+    "D07:7 el tablero y barandillas siguen una curva central; no resuelve análisis estructural de puente.",
+    "D07:8 utiliza celdas escalonadas y jitter determinista con bisel, no Voronoi exacto.",
+    "D07:9 crea huecos de ventanas/puerta en fachada; no genera interiores ni normativa de evacuación.",
+    "D07:10 flag cloth es un modelo XPBD de partículas con constraints estructurales/shear/bend; no incluye aerodinámica CFD.",
+    "D07:11 usa el régimen de ángulo pequeño; amplitudes limitadas a 0.5 rad."
+  ]
+}
