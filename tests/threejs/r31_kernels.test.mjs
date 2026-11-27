@@ -48,3 +48,14 @@ test("dual-quaternion blending corrects antipodal signs before normalization",()
   near(qr.reduce((s,v,i)=>s+v*qd[i],0),0);
   assert.throws(()=>k.blendDualQuaternions([{qr:[1,0,0,0],qd:[0,0,0,0],weight:0}]),RangeError);
 });
+
+test("Schlick Fresnel interior value and monotonicity",()=>{
+  near(k.fresnelSchlick(.04,.5),.07);
+  const values=Array.from({length:11},(_,i)=>k.fresnelSchlick(.04,i/10));
+  for(let i=0;i<10;i++) assert.ok(values[i]>=values[i+1]);
+});
+test("Beer-Lambert transmittance is invariant to homogeneous segment subdivision",()=>{
+  const whole=k.beerLambertTransmittance(1.7,2.4);
+  const part=k.beerLambertTransmittance(1.7,2.4/8);
+  near(whole,part**8,1e-14);
+});
