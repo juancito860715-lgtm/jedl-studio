@@ -1,0 +1,584 @@
+{
+  "title": "Auditoría dimensional punto 1 — D15 Postproducción cinematográfica",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D15",
+    "domain": "Postproducción cinematográfica",
+    "catalog_records": 14,
+    "record_count": 8,
+    "excluded_protected_records": 6,
+    "excluded_reason": "D15:0, D15:1, D15:3, D15:5, D15:6 y D15:8 están protegidos por el mapa Crimson Loong."
+  },
+  "conventions": {
+    "SI_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Unidad global de longitud de escena; Three.js no impone metros.",
+    "dimensionless": "1",
+    "pixels": "Píxel es unidad discreta; kernels espaciales se expresan en px o en coordenadas físicas, sin mezclarlos.",
+    "color": "RGB/colorimetría no se trata como longitud SI; conservar espacio lineal, radiométrico relativo y codificación destino por separado."
+  },
+  "records": [
+    {
+      "record_key": "D15:2",
+      "name": "Screen-space AO",
+      "variables": [
+        {
+          "symbol": "depth",
+          "meaning": "Profundidad de escena",
+          "unit": "m o depth-buffer normalizado",
+          "dimension": "L si lineal; adimensional si normalizado",
+          "domain": "linearizar antes de reconstruir"
+        },
+        {
+          "symbol": "N",
+          "meaning": "Normal reconstruida",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "K",
+          "meaning": "Kernel de muestras",
+          "unit": "direcciones y radios tipados",
+          "dimension": "direcciones 1; radios L",
+          "domain": "finito"
+        },
+        {
+          "symbol": "AO",
+          "meaning": "Oclusión",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "La profundidad debe linearizarse/reconstruirse en espacio de vista antes de medir distancias; no mezclar depth-buffer normalizado con metros.",
+        "Kernel y radios deben compartir marco/escala; AO es un factor adimensional."
+      ],
+      "valid_domain": [
+        "Depth/normal buffers válidos; near/far conocidos; kernel finito y radios positivos."
+      ],
+      "boundary_conditions": [
+        "Fondo/clear depth debe excluirse de muestras geométricas.",
+        "Sin vecinos válidos, AO neutro=1 o fallback declarado."
+      ],
+      "dimensional_checks": [
+        "Distancias de muestreo y profundidad reconstruida tienen L; normales y AO son adimensionales.",
+        "Comparaciones y radios usan la misma unidad espacial."
+      ]
+    },
+    {
+      "record_key": "D15:4",
+      "name": "Gaussian blur",
+      "variables": [
+        {
+          "symbol": "x",
+          "meaning": "Coordenada de filtro",
+          "unit": "px o m",
+          "dimension": "unidad del dominio",
+          "domain": "misma que sigma"
+        },
+        {
+          "symbol": "σ",
+          "meaning": "Desviación estándar",
+          "unit": "misma unidad que x",
+          "dimension": "dimensión espacial",
+          "domain": "σ>0"
+        },
+        {
+          "symbol": "G(x)",
+          "meaning": "Kernel gaussiano",
+          "unit": "unidad inversa a x",
+          "dimension": "px^-1 o m^-1",
+          "domain": "integral normalizada"
+        },
+        {
+          "symbol": "C",
+          "meaning": "Color muestreado",
+          "unit": "RGB lineal",
+          "dimension": "tipo color/radiancia",
+          "domain": "finito"
+        },
+        {
+          "symbol": "C_blur",
+          "meaning": "Color filtrado",
+          "unit": "mismo tipo que C",
+          "dimension": "tipo color/radiancia",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Exponente x²/(2σ²) debe ser adimensional.",
+        "La normalización 1/(√(2π)σ) da kernel con unidad inversa a x; en blur discreto usar pesos normalizados cuya suma sea 1."
+      ],
+      "valid_domain": [
+        "σ>0; soporte y muestras finitos; kernel truncado con normalización reescalada."
+      ],
+      "boundary_conditions": [
+        "σ→0 tiende a identidad (delta discreta); implementación debe evitar división por cero.",
+        "Bordes de imagen requieren clamp, mirror, wrap o renormalización explícita."
+      ],
+      "dimensional_checks": [
+        "x y σ comparten unidad; x²/σ² es adimensional.",
+        "G(x)·dx es adimensional; convolución ponderada conserva unidades de color."
+      ]
+    },
+    {
+      "record_key": "D15:7",
+      "name": "Vignette",
+      "variables": [
+        {
+          "symbol": "uv,center",
+          "meaning": "Coordenadas de pantalla y centro",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizadas"
+        },
+        {
+          "symbol": "d",
+          "meaning": "Distancia en pantalla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "misma métrica normalizada"
+        },
+        {
+          "symbol": "r0,r1",
+          "meaning": "Radios de transición",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤r0<r1"
+        },
+        {
+          "symbol": "strength",
+          "meaning": "Intensidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "v",
+          "meaning": "Factor de viñeta",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        }
+      ],
+      "constraints": [
+        "uv, center, d, r0 y r1 deben usar el mismo espacio de coordenadas y relación de aspecto corregida.",
+        "smoothstep devuelve factor adimensional; strength debe ser adimensional."
+      ],
+      "valid_domain": [
+        "r1>r0; strength finita; uv dentro del viewport."
+      ],
+      "boundary_conditions": [
+        "En d≤r0 la viñeta conserva el centro; en d≥r1 alcanza el borde de efecto.",
+        "Si r1≤r0, rechazar parámetros o aplicar fallback definido."
+      ],
+      "dimensional_checks": [
+        "Todas las variables de pantalla y radios son adimensionales si UV normalizada.",
+        "v es adimensional y multiplica color sin cambiar sus unidades."
+      ]
+    },
+    {
+      "record_key": "D15:9",
+      "name": "Film grain",
+      "variables": [
+        {
+          "symbol": "uv",
+          "meaning": "Coordenada de pantalla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizada"
+        },
+        {
+          "symbol": "time",
+          "meaning": "Tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "noise",
+          "meaning": "Ruido",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "media/varianza declaradas"
+        },
+        {
+          "symbol": "grainAmount",
+          "meaning": "Amplitud",
+          "unit": "unidad de canal de color",
+          "dimension": "misma que C",
+          "domain": "acotada"
+        },
+        {
+          "symbol": "C,C′",
+          "meaning": "Color original y granulado",
+          "unit": "RGB lineal",
+          "dimension": "tipo color/radiancia",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "noise debe ser adimensional; grainAmount aporta la unidad de la perturbación de color.",
+        "Si ruido cambia con tiempo, la frecuencia temporal tiene T^-1 y su producto con time es adimensional."
+      ],
+      "valid_domain": [
+        "uv y time finitos; ruido acotado y reproducible si se requiere consistencia temporal."
+      ],
+      "boundary_conditions": [
+        "grainAmount=0 devuelve C.",
+        "En regiones cercanas a negro/blanco, limitar ruido para evitar valores fuera de gamut o rango HDR."
+      ],
+      "dimensional_checks": [
+        "grainAmount·noise tiene la misma unidad que C y puede sumarse.",
+        "uv es adimensional; time tiene T; C′ conserva tipo/color space de C."
+      ]
+    },
+    {
+      "record_key": "D15:10",
+      "name": "Sharpen",
+      "variables": [
+        {
+          "symbol": "C",
+          "meaning": "Color central",
+          "unit": "RGB lineal",
+          "dimension": "tipo color/radiancia",
+          "domain": "finito"
+        },
+        {
+          "symbol": "neighborBlur",
+          "meaning": "Color promedio vecinos",
+          "unit": "mismo tipo que C",
+          "dimension": "tipo color/radiancia",
+          "domain": "mismo espacio"
+        },
+        {
+          "symbol": "k",
+          "meaning": "Ganancia de enfoque",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "C′",
+          "meaning": "Color realzado",
+          "unit": "mismo tipo que C",
+          "dimension": "tipo color/radiancia",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "C−neighborBlur es una diferencia del mismo espacio y tipo; k es adimensional.",
+        "Aplicar en color lineal o declarar el espacio; sharpen en gamma-space cambia la respuesta."
+      ],
+      "valid_domain": [
+        "Kernel definido; vecinos válidos; k finito y limitado para evitar ringing excesivo."
+      ],
+      "boundary_conditions": [
+        "k=0 devuelve C.",
+        "Bordes de imagen aplican política de muestreo declarada."
+      ],
+      "dimensional_checks": [
+        "C y neighborBlur comparten unidades; k·(C−neighborBlur) conserva esas unidades.",
+        "C′ mantiene el tipo de color original antes de clipping/tonemapping."
+      ]
+    },
+    {
+      "record_key": "D15:11",
+      "name": "Tone mapping",
+      "variables": [
+        {
+          "symbol": "C_HDR",
+          "meaning": "Color HDR lineal",
+          "unit": "RGB lineal / radiancia relativa",
+          "dimension": "tipo color/radiancia",
+          "domain": "componentes finitas"
+        },
+        {
+          "symbol": "exposure",
+          "meaning": "Multiplicador de exposición",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
+        },
+        {
+          "symbol": "ToneMap",
+          "meaning": "Operador",
+          "unit": "mapeo no lineal",
+          "dimension": "adimensional en canal relativo",
+          "domain": "definido"
+        },
+        {
+          "symbol": "C_display",
+          "meaning": "Color display-referred",
+          "unit": "RGB display",
+          "dimension": "codificación destino",
+          "domain": "rango del display"
+        }
+      ],
+      "constraints": [
+        "exposure·C_HDR conserva unidades de color/radiancia relativa; ToneMap transforma a rango display-referred.",
+        "Aplicar una sola transformación de tono y después codificar en el espacio de salida elegido."
+      ],
+      "valid_domain": [
+        "C_HDR finito y exposición positiva; operador definido para el rango de entrada."
+      ],
+      "boundary_conditions": [
+        "exposure=0 produce negro en el modelo multiplicativo; valores muy altos deben saturarse de forma controlada.",
+        "La salida debe respetar gamut/rango de destino o aplicar gamut mapping."
+      ],
+      "dimensional_checks": [
+        "Exposure es adimensional; la multiplicación conserva unidades relativas de C_HDR.",
+        "Tone mapping es una transformación de representación; salida no debe confundirse con radiancia física."
+      ]
+    },
+    {
+      "record_key": "D15:12",
+      "name": "Lens distortion",
+      "variables": [
+        {
+          "symbol": "uv",
+          "meaning": "Coordenada normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "centro óptico y escala definidos"
+        },
+        {
+          "symbol": "r",
+          "meaning": "Radio respecto al centro",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        },
+        {
+          "symbol": "k1,k2",
+          "meaning": "Coeficientes radiales",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "calibrados para coordenada normalizada"
+        },
+        {
+          "symbol": "uv′",
+          "meaning": "Coordenada distorsionada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "uv′=uv·(1+k1r²+k2r⁴) usa coordenadas normalizadas; r, k1 y k2 son adimensionales bajo esa normalización.",
+        "Si r está en píxeles o metros, los coeficientes adquieren unidades inversas correspondientes y no pueden reutilizarse directamente."
+      ],
+      "valid_domain": [
+        "Centro óptico y escala de normalización declarados; uv y coeficientes finitos."
+      ],
+      "boundary_conditions": [
+        "En r=0, uv′=uv (sin desplazamiento radial respecto del centro).",
+        "Si el mapeo pliega la imagen (jacobiano no positivo), restringir coeficientes o marcar zona inválida."
+      ],
+      "dimensional_checks": [
+        "r, k1, k2 y factor radial son adimensionales; uv′ conserva dimensión de UV.",
+        "No mezclar coeficientes calibrados en píxeles con coordenadas normalizadas."
+      ]
+    },
+    {
+      "record_key": "D15:13",
+      "name": "Output color management",
+      "variables": [
+        {
+          "symbol": "C_linear",
+          "meaning": "Color lineal de escena",
+          "unit": "RGB lineal / radiancia relativa",
+          "dimension": "tipo color/radiancia",
+          "domain": "finito"
+        },
+        {
+          "symbol": "displayTransform",
+          "meaning": "Transformación de visualización",
+          "unit": "mapeo",
+          "dimension": "no dimensional",
+          "domain": "definida por espacio destino"
+        },
+        {
+          "symbol": "outputSpace",
+          "meaning": "Espacio de color destino",
+          "unit": "primarias/función de transferencia",
+          "dimension": "metadatos de color",
+          "domain": "compatible con display"
+        },
+        {
+          "symbol": "C_out",
+          "meaning": "Color codificado de salida",
+          "unit": "RGB codificado",
+          "dimension": "codificación destino",
+          "domain": "finito y gamut controlado"
+        }
+      ],
+      "constraints": [
+        "Convertir desde working color space lineal a espacio de display mediante transformación definida; no aplicar gamma dos veces.",
+        "Primarias, white point, transfer function y tone mapping deben declararse."
+      ],
+      "valid_domain": [
+        "Espacio fuente y destino conocidos; valores finitos; transformación soportada."
+      ],
+      "boundary_conditions": [
+        "Valores fuera de gamut requieren gamut mapping/clipping explícito.",
+        "Si la transformación de salida no está disponible, no etiquetar el buffer con un espacio que no representa."
+      ],
+      "dimensional_checks": [
+        "Los valores RGB son señales/colorimetría, no longitudes físicas; transformación conserva naturaleza de color.",
+        "La función de transferencia cambia codificación, no dimensiones físicas; metadatos de salida deben coincidir con la codificación real."
+      ]
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "8/14 técnicas no protegidas incluidas",
+      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "6 registros protegidos excluidos"
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
