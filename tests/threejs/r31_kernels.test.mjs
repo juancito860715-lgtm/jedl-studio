@@ -86,3 +86,7 @@ test("structure tensor separates gradient normal from brush tangent",()=>{
   near(lmax,4);near(lmin,1);near(grad,0);near(tangent,Math.PI/2);near(coh,3/5);
   near(k.structureTensorFeatures(2,0,2)[4],0);
 });
+
+test("structure tensor rejects non-positive-semidefinite matrices",()=>{
+  assert.throws(()=>k.structureTensorFeatures(1,2,1),RangeError);
+});
