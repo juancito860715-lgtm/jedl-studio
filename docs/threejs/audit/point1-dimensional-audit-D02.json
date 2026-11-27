@@ -88,7 +88,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "Puntos, radios y dimensiones de primitivas usan L; parámetros angulares son adimensionales en radianes.",
+        "Los índices y conteos de segmentos son discretos y no se suman a longitudes."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -168,7 +169,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "Posiciones de atributo tienen L; normales/direcciones son adimensionales; UV son adimensionales.",
+        "Índices de vértice son enteros y deben estar dentro del rango de posiciones."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -233,7 +235,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "u,v son adimensionales; P(u,v) tiene L en cada componente.",
+        "Derivadas ∂P/∂u y ∂P/∂v tienen L si u,v son normalizados."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -313,7 +316,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "r(u) y y(u) tienen L; θ es adimensional angular; P conserva L.",
+        "El producto r·sinθ y r·cosθ tiene L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -408,7 +412,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "C(u), s y d deben tener tipos coherentes: si s es longitud, d es dirección unitaria y s·d tiene L.",
+        "El parámetro de curva u es adimensional; C(u) conserva L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -503,7 +508,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "C(s) y r(s) tienen L; el marco N/B es adimensional; el producto r·N conserva L.",
+        "Si s es arco, tiene L; la parametrización normalizada debe declararse para derivadas."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -583,7 +589,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "T,N,B son vectores unitarios adimensionales; C(s) tiene L.",
+        "La derivada respecto a longitud de arco tiene dimensión L⁻¹."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -663,7 +670,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "Vértices nuevos son combinaciones afines de vértices con pesos adimensionales; conservan L.",
+        "El número de iteraciones y valence son conteos discretos."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -743,7 +751,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "Transformaciones fractales tienen escala adimensional; traslaciones geométricas tienen L.",
+        "Cada iteración debe preservar tipo espacial y acotar crecimiento/overflow."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -823,7 +832,8 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "Valores escalares y isolevel comparten unidad de campo; t de interpolación es adimensional.",
+        "Vértices interpolados conservan L; el denominador v_b−v_a no puede ser cero sin regla de caso."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -918,15 +928,20 @@
         "En extremos, costuras, degeneraciones o singularidades aplicar la política específica indicada en constraints; no extrapolar fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Comprobar que toda suma/resta combina magnitudes de igual dimensión; argumentos trigonométricos adimensionales (radianes); productos escalar/vectorial conservan las dimensiones esperadas."
+        "t y fps tienen T y T⁻¹; t·fps es adimensional; t_q conserva T.",
+        "El jitter posicional tiene L y el angular radianes; no sumar ambas magnitudes."
       ],
       "status": "REVIEWED_POINT1"
     }
   ],
   "validation": {
     "structural_checks": [
-      "11/16 registros no protegidos incluidos; claves protegidas excluidas",
-      "Todos los registros incluidos contienen los campos requeridos"
+      "11/16 registros no protegidos incluidos; 5 claves protegidas excluidas",
+      "Todos los registros incluidos contienen variables, restricciones, dominio, condiciones límite y al menos dos comprobaciones dimensionales",
+      "Cada comprobación distingue unidades geométricas, parámetros, índices y tiempo según la técnica"
+    ],
+    "limitations": [
+      "Las cinco técnicas protegidas no se reauditan. Derivaciones completas y pruebas numéricas pertenecen a puntos posteriores."
     ]
   },
   "integrity": {
