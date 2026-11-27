@@ -49,6 +49,28 @@
         "D36:6",
         "D36:7"
       ]
+    },
+    {
+      "id": "SRC-NUMERICAL-METHODS",
+      "repository": "https://github.com/djeada/Numerical-Methods",
+      "commit": "87ad98711b89ad4a6bf6023b5e6e48d28cb2ebdd",
+      "license": "MIT",
+      "upstream_ci": "NOT_RECHECKED",
+      "mapped_techniques": [
+        "D35:4",
+        "D35:6",
+        "D35:7"
+      ]
+    },
+    {
+      "id": "SRC-THREEJS-CUBIC",
+      "repository": "https://github.com/mrdoob/three.js",
+      "commit": "0de0346de82a0d01923ffeb27f33240ad8b4863f",
+      "license": "MIT",
+      "upstream_ci": "NOT_RECHECKED",
+      "mapped_techniques": [
+        "D35:8"
+      ]
     }
   ],
   "records": [
@@ -135,7 +157,31 @@
     {
       "record_key": "D35:4",
       "name": "Gradient descent",
-      "status": "SOURCE_RESEARCH_PENDING"
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
+      "source": {
+        "repository": "https://github.com/djeada/Numerical-Methods",
+        "commit": "87ad98711b89ad4a6bf6023b5e6e48d28cb2ebdd",
+        "files": [
+          "src/1_root_and_extrema_finding/gradient_descent/implementation/gradient_descent.py"
+        ],
+        "tests": [
+          "src/1_root_and_extrema_finding/gradient_descent/tests/test_gradient_descent.py"
+        ],
+        "license": "MIT",
+        "evidence": "Inspected MIT upstream gradient-descent implementation and pytest suite. Local JavaScript adaptation adds Armijo backtracking, projection hook, finite/dimension validation and explicit convergence status."
+      },
+      "certification": "NOT_CERTIFIED",
+      "implementation": "src/threejs/numerics/optimization-roots.mjs",
+      "local_tests": "tests/threejs/d35-optimization-roots.test.mjs",
+      "local_ci": {
+        "run_id": 46020334225,
+        "commit": "7485b219b0d99f95487b6737a7b1935e636d2cfd",
+        "status": "success",
+        "python_tests": 103,
+        "javascript_tests": 138,
+        "failed": 0,
+        "full_workflow_jobs": 43
+      }
     },
     {
       "record_key": "D35:5",
@@ -145,17 +191,89 @@
     {
       "record_key": "D35:6",
       "name": "Newton method",
-      "status": "SOURCE_RESEARCH_PENDING"
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
+      "source": {
+        "repository": "https://github.com/djeada/Numerical-Methods",
+        "commit": "87ad98711b89ad4a6bf6023b5e6e48d28cb2ebdd",
+        "files": [
+          "src/1_root_and_extrema_finding/newton_raphson/implementation/newton_raphson.py"
+        ],
+        "tests": [
+          "src/1_root_and_extrema_finding/newton_raphson/tests/test_newton_raphson.py"
+        ],
+        "license": "MIT",
+        "evidence": "Inspected MIT upstream scalar/system Newton implementation and pytest suite. Local scalar JavaScript adaptation adds optional residual-decreasing backtracking, explicit domain and separate residual/step criteria."
+      },
+      "certification": "NOT_CERTIFIED",
+      "implementation": "src/threejs/numerics/optimization-roots.mjs",
+      "local_tests": "tests/threejs/d35-optimization-roots.test.mjs",
+      "local_ci": {
+        "run_id": 46020334225,
+        "commit": "7485b219b0d99f95487b6737a7b1935e636d2cfd",
+        "status": "success",
+        "python_tests": 103,
+        "javascript_tests": 138,
+        "failed": 0,
+        "full_workflow_jobs": 43
+      }
     },
     {
       "record_key": "D35:7",
       "name": "Bisection",
-      "status": "SOURCE_RESEARCH_PENDING"
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
+      "source": {
+        "repository": "https://github.com/djeada/Numerical-Methods",
+        "commit": "87ad98711b89ad4a6bf6023b5e6e48d28cb2ebdd",
+        "files": [
+          "src/1_root_and_extrema_finding/bisection_search/implementation/bisection_search.py"
+        ],
+        "tests": [
+          "src/1_root_and_extrema_finding/bisection_search/tests/test_bisection_search.py"
+        ],
+        "license": "MIT",
+        "evidence": "Inspected MIT upstream bisection implementation and pytest suite. Local JavaScript adaptation adds independent position/residual tolerances, sign-safe comparisons and explicit floating-point precision-limit status."
+      },
+      "certification": "NOT_CERTIFIED",
+      "implementation": "src/threejs/numerics/scalar-methods.mjs",
+      "local_tests": "tests/threejs/d35-scalar-methods.test.mjs",
+      "local_ci": {
+        "run_id": 46020334225,
+        "commit": "7485b219b0d99f95487b6737a7b1935e636d2cfd",
+        "status": "success",
+        "python_tests": 103,
+        "javascript_tests": 138,
+        "failed": 0,
+        "full_workflow_jobs": 43
+      }
     },
     {
       "record_key": "D35:8",
       "name": "Cubic interpolation",
-      "status": "SOURCE_RESEARCH_PENDING"
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
+      "source": {
+        "repository": "https://github.com/mrdoob/three.js",
+        "commit": "0de0346de82a0d01923ffeb27f33240ad8b4863f",
+        "files": [
+          "src/math/interpolants/CubicInterpolant.js"
+        ],
+        "tests": [
+          "test/unit/src/math/interpolants/CubicInterpolant.tests.js"
+        ],
+        "license": "MIT",
+        "evidence": "Inspected MIT Three.js CubicInterpolant Hermite construction and unit tests. Local independent kernel accepts explicit endpoint derivatives and supports scalar/vector values, derivative evaluation and clamped boundaries."
+      },
+      "certification": "NOT_CERTIFIED",
+      "implementation": "src/threejs/numerics/scalar-methods.mjs",
+      "local_tests": "tests/threejs/d35-scalar-methods.test.mjs",
+      "local_ci": {
+        "run_id": 46020334225,
+        "commit": "7485b219b0d99f95487b6737a7b1935e636d2cfd",
+        "status": "success",
+        "python_tests": 103,
+        "javascript_tests": 138,
+        "failed": 0,
+        "full_workflow_jobs": 43
+      }
     },
     {
       "record_key": "D35:9",
@@ -377,7 +495,7 @@
       "status": "SOURCE_RESEARCH_PENDING"
     }
   ],
-  "global_status": "D35_D36_PARTIAL; 3_IMPLEMENTED; NO_CERTIFIED",
+  "global_status": "FOUR_ADDITIONAL_D35_KERNELS_IMPLEMENTED_AND_LOCAL_CI_PASSED; CERTIFICATION_PENDING",
   "next_sequence": [
     "Completar adaptación y pruebas de D35:10",
     "Adaptar y ampliar D36:5 y D36:6 con límites de contorno explícitos",
