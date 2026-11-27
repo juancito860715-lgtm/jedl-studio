@@ -28,17 +28,21 @@ function sampleIncrementalVoronoi(count, bounds, minDistance, seed=1) {
   if(!Number.isInteger(count)||count<0||!(minDistance>=0)||bounds.length!==4) throw new RangeError("invalid sampling parameters");
   const [xmin,ymin,xmax,ymax]=bounds;finite(bounds,"bounds");
   if(!(xmax>xmin&&ymax>ymin))throw new RangeError("bounds must have positive area");
-  const rand=mulberry32(seed),points=[];
-  // Low-discrepancy sequence with seeded Cranley-Patterson rotation. Rejecting
-  // points closer than minDistance yields an incremental Poisson/Voronoi-like
-  // distribution while preserving deterministic order.
-  const ox=rand(),oy=rand(),limit=Math.max(count*100,1000);
-  for(let i=1;i<=limit&&points.length<count;i++){
-    const x=xmin+(((radicalInverse(i,2)+ox)%1)*(xmax-xmin));
-    const y=ymin+(((radicalInverse(i,3)+oy)%1)*(ymax-ymin));
-    if(points.every(p=>hypot2(p,[x,y])>=minDistance))points.push([x,y]);
+  if(count===0)return [];
+  const rand=mulberry32(seed),ox=rand(),oy=rand(),candidateCount=Math.min(12000,Math.max(1024,count*64));
+  const candidates=[];
+  for(let i=1;i<=candidateCount;i++)candidates.push([xmin+(((radicalInverse(i,2)+ox)%1)*(xmax-xmin)),ymin+(((radicalInverse(i,3)+oy)%1)*(ymax-ymin))]);
+  // Discrete incremental Voronoi sequence: add the candidate farthest from its nearest existing site.
+  const selected=[],nearest=candidates.map(()=>Infinity);
+  let chosen=Math.floor(rand()*candidateCount);
+  for(let k=0;k<count;k++){
+    const p=candidates[chosen];selected.push(p.slice());
+    let next=-1,best=-1;
+    for(let i=0;i<candidateCount;i++){const d=hypot2(candidates[i],p);if(d<nearest[i])nearest[i]=d;if(nearest[i]>best){best=nearest[i];next=i;}}
+    if(best<=minDistance&&k+1<count)break;
+    chosen=next;
   }
-  return points;
+  return selected;
 }
 export function generateLayeredImpasto({bounds=[-1,-1,1,1],layers=[{scale:.18,count:36},{scale:.08,count:90},{scale:.035,count:180}],seed=19,tangentField=([x,y])=>[-y,x],steps=8,stepLength=.025,brushHeight=(u,v)=>Math.max(0,1-u*u)*Math.max(0,1-v*v)}={}) {
   if(!Array.isArray(layers)||steps<1||!(stepLength>0))throw new RangeError("invalid impasto configuration");
