@@ -3,6 +3,7 @@ import { MarchingCubes } from "three/addons/objects/MarchingCubes.js";
 
 const finite = (values,label) => { if(!values.every(Number.isFinite)) throw new RangeError(label+" must be finite"); };
 const EPS=1e-10;
+const scaleQuaternion=(q,s)=>q.set(q.x*s,q.y*s,q.z*s,q.w*s);
 
 export function evaluateSmoothUnionSdf(fields, point, smoothness=0) {
   if(!Array.isArray(fields)||fields.length===0||fields.some(f=>typeof f!=="function")) throw new TypeError("one or more SDF functions required");
@@ -148,7 +149,7 @@ export function dualQuaternionFromRigidTransform(rotation,translation) {
   if(![real.x,real.y,real.z,real.w,t.x,t.y,t.z].every(Number.isFinite)||real.lengthSq()<EPS) throw new RangeError("invalid rigid transform");
   real.normalize();
   const tq=new THREE.Quaternion(t.x,t.y,t.z,0);
-  const dual=tq.multiply(real).multiplyScalar(0.5);
+  const dual=scaleQuaternion(tq.multiply(real),0.5);
   return {real,dual};
 }
 
@@ -164,7 +165,7 @@ function dqsTransform(position,normal,influences,dualBones,maxInfluences=Infinit
   }
   const norm=r.length();
   if(!(norm>EPS)) throw new RangeError("degenerate dual quaternion blend");
-  r.multiplyScalar(1/norm); d.multiplyScalar(1/norm);
+  scaleQuaternion(r,1/norm); scaleQuaternion(d,1/norm);
   const orthogonality=r.dot(d);
   d.x-=r.x*orthogonality;d.y-=r.y*orthogonality;d.z-=r.z*orthogonality;d.w-=r.w*orthogonality;
   const p=new THREE.Vector3(...position).applyQuaternion(r);
