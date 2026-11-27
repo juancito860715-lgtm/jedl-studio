@@ -35,6 +35,11 @@ class TestImplementationReadinessGate(unittest.TestCase):
         result=validate_dimensional_audit(payload,["R31-X"])
         self.assertEqual(result["status"],"FAIL")
 
+    def test_malformed_source_claim_is_reported_not_crashes(self):
+        spec={"source_claims":[["not","an","object"]]}
+        gaps=specification_gaps(spec)
+        self.assertIn("source_claims[0].must_be_object",gaps)
+
     def test_authored_rule_must_be_explicitly_labelled(self):
         spec={"source_claims":[{"url":"https://example.org","supported_claim":"claim","formula_locator":"none","formula_level_status":"not_verified"}]}
         gaps=specification_gaps(spec)
