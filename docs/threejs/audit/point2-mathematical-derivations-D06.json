@@ -1,0 +1,407 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D06 Terrenos, montañas, rocas y erosión",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D06",
+    "record_count": 8,
+    "excluded_protected_records": 4,
+    "excluded_keys": [
+      "D06:1",
+      "D06:4",
+      "D06:7",
+      "D06:8"
+    ],
+    "excluded_reason": "Cuatro técnicas preservadas de Crimson Loong, sin reauditoría."
+  },
+  "records": [
+    {
+      "record_key": "D06:0",
+      "name": "Heightfield",
+      "starting_principles": [
+        "h diferenciable donde se calcula normal.",
+        "x,z y h usan misma unidad espacial."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "h=h(x,z)",
+          "justification": "Definir altura como función escalar sobre el plano horizontal."
+        },
+        {
+          "step": 2,
+          "equation": "P(x,z)=(x,h(x,z),z)",
+          "justification": "Elevar cada coordenada horizontal a la altura indicada por el campo."
+        },
+        {
+          "step": 3,
+          "equation": "P_x=(1,h_x,0); P_z=(0,h_z,1)",
+          "justification": "Derivar tangentes del parche."
+        },
+        {
+          "step": 4,
+          "equation": "N=normalize(P_z×P_x)",
+          "justification": "Obtener normal perpendicular a la superficie; el orden fija orientación."
+        }
+      ],
+      "assumptions": [
+        "h diferenciable donde se calcula normal.",
+        "x,z y h usan misma unidad espacial.",
+        "La rejilla de muestreo tiene paso positivo."
+      ],
+      "result": "El terreno se parametriza como gráfico de una función de altura y la malla se obtiene muestreando P.",
+      "limits": [
+        "Acantilados verticales no pueden representarse como una única función h(x,z); requieren malla general o parches."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D06:2",
+      "name": "Ridged multifractal",
+      "starting_principles": [
+        "λ>1; 0≤a<1 para amplitud decreciente; N finito.",
+        "El ruido base tiene dominio y rango declarados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n_i(p)=noise(λ^i p)",
+          "justification": "Evaluar ruido base en frecuencia creciente."
+        },
+        {
+          "step": 2,
+          "equation": "r_i(p)=1−|n_i(p)|",
+          "justification": "Invertir valor absoluto para formar crestas cerca de ceros/valores de referencia del ruido."
+        },
+        {
+          "step": 3,
+          "equation": "q_i=r_i²",
+          "justification": "Elevar al cuadrado para estrechar y enfatizar crestas."
+        },
+        {
+          "step": 4,
+          "equation": "h(p)=Σ_{i=0}^{N−1} a^i q_i(p)",
+          "justification": "Acumular octavas con amplitud decreciente."
+        },
+        {
+          "step": 5,
+          "equation": "normalize h",
+          "justification": "Remapear rango final al intervalo de altura requerido."
+        }
+      ],
+      "assumptions": [
+        "λ>1; 0≤a<1 para amplitud decreciente; N finito.",
+        "El ruido base tiene dominio y rango declarados.",
+        "La coordenada λ^i p es adimensional/normalizada."
+      ],
+      "result": "La forma ridged se construye transformando cada octava de ruido y sumándola con pesos geométricos.",
+      "limits": [
+        "El rango final depende de ruido, octavas y amplitudes; normalizar después de acumular."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D06:3",
+      "name": "Domain warping",
+      "starting_principles": [
+        "q(p) comparte dimensión espacial con p después de escalar amplitud.",
+        "La función base y ruido son evaluables en el dominio."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "q(p)=noise_vector(p)",
+          "justification": "Generar campo vectorial de deformación."
+        },
+        {
+          "step": 2,
+          "equation": "p'=p+q·q(p)",
+          "justification": "Desplazar coordenada de evaluación mediante amplitud q."
+        },
+        {
+          "step": 3,
+          "equation": "f'(p)=f(p')",
+          "justification": "Evaluar el campo base en la coordenada deformada."
+        },
+        {
+          "step": 4,
+          "equation": "J(p)=I+q·∇q(p)",
+          "justification": "Derivar el mapeo para entender su estiramiento local y detectar pliegues."
+        }
+      ],
+      "assumptions": [
+        "q(p) comparte dimensión espacial con p después de escalar amplitud.",
+        "La función base y ruido son evaluables en el dominio.",
+        "La deformación puede ser no inyectiva."
+      ],
+      "result": "El domain warping compone un campo base con una transformación espacial no lineal.",
+      "limits": [
+        "Si el Jacobiano pierde rango o cambia orientación, aparecen pliegues; no asumir que el mapeo es invertible."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D06:5",
+      "name": "Erosión hidráulica simplificada",
+      "starting_principles": [
+        "La formulación es un modelo discreto simplificado; constantes absorben unidades y deben tiparse.",
+        "El flujo entre celdas se conserva: lo que sale de una celda entra en otra o se deposita."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "s_i=max(0,h_i−h_j)",
+          "justification": "Estimar pendiente entre celdas vecinas."
+        },
+        {
+          "step": 2,
+          "equation": "q_i=k_q·water_i·s_i",
+          "justification": "Modelar flujo de agua proporcional a cantidad de agua y pendiente."
+        },
+        {
+          "step": 3,
+          "equation": "capacity_i=K_c·|q_i|·s_i",
+          "justification": "Definir capacidad de transporte según flujo y pendiente."
+        },
+        {
+          "step": 4,
+          "equation": "Δsed_i=capacity_i−sed_i",
+          "justification": "Calcular déficit/exceso de sedimento transportado."
+        },
+        {
+          "step": 5,
+          "equation": "h_i'=h_i−erosion_i+deposition_i",
+          "justification": "Actualizar altura por conservación local de material entre celdas."
+        }
+      ],
+      "assumptions": [
+        "La formulación es un modelo discreto simplificado; constantes absorben unidades y deben tiparse.",
+        "El flujo entre celdas se conserva: lo que sale de una celda entra en otra o se deposita.",
+        "El paso temporal y la escala de celda se declaran."
+      ],
+      "result": "La erosión hidráulica se aproxima como transporte de agua/sedimento impulsado por pendiente y capacidad de carga.",
+      "limits": [
+        "La forma exacta de capacity y las tasas dependen del modelo; no es una ley universal de erosión."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D06:6",
+      "name": "Erosión térmica",
+      "starting_principles": [
+        "talus se expresa como pendiente o ángulo según convención; no mezclar ambas formas.",
+        "k_t y Δt deben mantener estabilidad; la transferencia no puede exceder material disponible."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Δh=h_i−h_j",
+          "justification": "Calcular diferencia de altura entre celdas vecinas."
+        },
+        {
+          "step": 2,
+          "equation": "if Δh>talus·distance",
+          "justification": "Activar transferencia cuando la pendiente supera el ángulo/umbral de reposo."
+        },
+        {
+          "step": 3,
+          "equation": "transfer=k_t(Δh−talus·distance)",
+          "justification": "Calcular cantidad transferida proporcional al exceso sobre el umbral."
+        },
+        {
+          "step": 4,
+          "equation": "h_i'=h_i−transfer; h_j'=h_j+transfer",
+          "justification": "Restar y sumar la misma cantidad para conservar masa superficial discreta."
+        }
+      ],
+      "assumptions": [
+        "talus se expresa como pendiente o ángulo según convención; no mezclar ambas formas.",
+        "k_t y Δt deben mantener estabilidad; la transferencia no puede exceder material disponible.",
+        "Las celdas usan áreas iguales o se pondera por área."
+      ],
+      "result": "La erosión térmica redistribuye material desde pendientes demasiado pronunciadas hacia vecinos bajos.",
+      "limits": [
+        "La conservación simple supone áreas de celda iguales; con áreas distintas conservar volumen, no altura."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D06:9",
+      "name": "Cascada de detalle",
+      "starting_principles": [
+        "λ>1; 0≤a<1; N finito.",
+        "Las frecuencias y coordenadas se normalizan de forma coherente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f_i(p)=noise(λ^i p)",
+          "justification": "Evaluar ruido en frecuencias por octava."
+        },
+        {
+          "step": 2,
+          "equation": "a_i=a^i",
+          "justification": "Reducir amplitud con persistencia a."
+        },
+        {
+          "step": 3,
+          "equation": "D_total(p)=Σ_{i=0}^{N−1}a_i f_i(p)",
+          "justification": "Sumar detalle macro, medio y fino."
+        },
+        {
+          "step": 4,
+          "equation": "h(p)=h_base(p)+A·D_total(p)",
+          "justification": "Escalar la suma por amplitud física A y añadirla al terreno base."
+        }
+      ],
+      "assumptions": [
+        "λ>1; 0≤a<1; N finito.",
+        "Las frecuencias y coordenadas se normalizan de forma coherente.",
+        "A tiene unidad de altura."
+      ],
+      "result": "La cascada es una suma finita de señales de frecuencia creciente y amplitud decreciente.",
+      "limits": [
+        "Octavas excesivas pueden introducir detalle por debajo de la resolución de malla/píxel y aliasing."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D06:10",
+      "name": "Vegetación por bioma",
+      "starting_principles": [
+        "Las características se normalizan con rangos no degenerados.",
+        "Los pesos y umbrales se calibran por bioma; la semilla no altera la clasificación base."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "z=(altitude,slope,moisture,exposure)",
+          "justification": "Construir vector de características ambientales."
+        },
+        {
+          "step": 2,
+          "equation": "z'_k=(z_k−min_k)/(max_k−min_k)",
+          "justification": "Normalizar cada variable al rango común para comparación."
+        },
+        {
+          "step": 3,
+          "equation": "score_s=w_s·z'+b_s",
+          "justification": "Calcular puntuación por especie/bioma."
+        },
+        {
+          "step": 4,
+          "equation": "species=argmax_s score_s or threshold rules",
+          "justification": "Seleccionar clase dominante o conjunto de especies que supera umbral."
+        },
+        {
+          "step": 5,
+          "equation": "seed→sample(position,biome)",
+          "justification": "Usar semilla determinista para variación espacial dentro de la clase."
+        }
+      ],
+      "assumptions": [
+        "Las características se normalizan con rangos no degenerados.",
+        "Los pesos y umbrales se calibran por bioma; la semilla no altera la clasificación base.",
+        "Exposición, humedad y altitud tienen definiciones y unidades declaradas."
+      ],
+      "result": "La selección de bioma es un clasificador de características ambientales seguido de muestreo espacial reproducible.",
+      "limits": [
+        "No constituye un modelo ecológico validado; requiere datos y reglas calibradas para una región real."
+      ],
+      "sources": []
+    },
+    {
+      "record_key": "D06:11",
+      "name": "Modelo de dispersión microfacet para cabello",
+      "starting_principles": [
+        "La derivación usa el modelo de Huang, Hullin y Hanika (2022), fibra cilíndrica de radio normalizado 1, microsuperficie Smith y NDF Beckmann o GGX.",
+        "La BCSDF no se factoriza en lóbulo longitudinal por azimutal; la integral azimutal conserva la no separabilidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "L_o(ω_o)=∫L_i(ω_i)S(ω_i,ω_o)cosθ_i dω_i",
+          "justification": "Definir BCSDF S como el núcleo que transforma radiancia incidente en radiancia saliente sobre una fibra."
+        },
+        {
+          "step": 2,
+          "equation": "S=S_R+S_TT+S_TRT",
+          "justification": "Separar caminos dominantes: reflexión directa, transmisión a través de fibra y transmisión con reflexión interna."
+        },
+        {
+          "step": 3,
+          "equation": "da_m=dφ_m ds; da_h=D(ω_h,ω_m)dω_h da_m",
+          "justification": "Parametrizar la superficie cilíndrica por azimut y longitud; la NDF distribuye área de microfacetas."
+        },
+        {
+          "step": 4,
+          "equation": "dΦ_h=L_i dω_i |ω_i·ω_h| da_h; dΦ_o=R_1 dΦ_h",
+          "justification": "Calcular flujo incidente sobre microfacetas y multiplicarlo por reflectancia de Fresnel."
+        },
+        {
+          "step": 5,
+          "equation": "L_o=(∫dΦ_o)/(dω_o a_o^⊥); a_o^⊥=2cosθ_o ds",
+          "justification": "Convertir flujo saliente integrado en radiancia media dividiendo por ángulo sólido y área proyectada de fibra."
+        },
+        {
+          "step": 6,
+          "equation": "dω_h=dω_o/(4|ω_h·ω_i|)",
+          "justification": "Aplicar Jacobiano de mapeo half-angle para transformar medida de micronormales a direcciones salientes."
+        },
+        {
+          "step": 7,
+          "equation": "S_R=R_1/(8cosθ_o cosθ_i) ∫D_1G_1 dφ_m",
+          "justification": "Sustituir las relaciones anteriores y comparar con la ecuación de transporte para identificar la BCSDF del lóbulo R."
+        },
+        {
+          "step": 8,
+          "equation": "σ_a=ρ_eσ_{a,e}+ρ_pσ_{a,p}; A_t=exp(−σ_aℓ_t)",
+          "justification": "Combinar absorción de pigmentos por unidad de longitud y aplicar Beer–Lambert al trayecto dentro de fibra."
+        },
+        {
+          "step": 9,
+          "equation": "S_TT and S_TRT: multiply interface Fresnel/transmittance, NDFs, masking terms and A_t/A_tr; integrate over internal directions and microfacet azimuths",
+          "justification": "Repetir el balance diferencial de flujo para los caminos refractados TT y TRT, incorporando los Jacobianos de refracción y la absorción interna."
+        },
+        {
+          "step": 10,
+          "equation": "For elliptical fiber: x=sinγ, z=b cosγ; da_m=√(1−e²sin²γ_m)dγ_m ds",
+          "justification": "Reparametrizar la sección transversal elíptica; sustituir el elemento de área y área proyectada en las integrales de los tres lóbulos."
+        }
+      ],
+      "assumptions": [
+        "La derivación usa el modelo de Huang, Hullin y Hanika (2022), fibra cilíndrica de radio normalizado 1, microsuperficie Smith y NDF Beckmann o GGX.",
+        "La BCSDF no se factoriza en lóbulo longitudinal por azimutal; la integral azimutal conserva la no separabilidad.",
+        "R, TT y TRT son los caminos retenidos; los de orden superior se omiten por absorción repetida.",
+        "Para sección elíptica, b>0 y e=√(1−b²); la extensión reemplaza términos de área/proyección."
+      ],
+      "result": "La BCSDF se deriva del balance de flujo sobre microfacetas de una superficie cilíndrica curva: NDF → flujo diferencial → Fresnel/transmisión → área proyectada/Jacobianos → radiancia saliente. Las ecuaciones R, TT y TRT resultan de los caminos ópticos dominantes.",
+      "limits": [
+        "La ecuación R (Eq. 12) es explícita; TT y TRT requieren mantener todos los Jacobianos de refracción y términos de área de las Eqs. 13–25; no sustituirlos por un BRDF plano.",
+        "La solución analítica GGX del lóbulo R omite el término Smith G según el artículo; la evaluación general puede requerir integración numérica.",
+        "La implementación debe validar PDFs, normalización energética y geometría de intersección de ray-facing stripes."
+      ],
+      "sources": [
+        "SRC-HUANG-2022",
+        "https://doi.org/10.1111/cgf.14588"
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "8/8 claves no protegidas cubiertas.",
+      "Cada derivación incluye pasos y justificación matemática.",
+      "El modelo de cabello se contrasta con la derivación primaria de Huang, Hullin y Hanika (2022).",
+      "No se modifican las cuatro claves protegidas."
+    ],
+    "limitations": [
+      "La derivación establece los modelos; calibración de parámetros, estabilidad de simulación y validación visual pertenecen a puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
