@@ -95,7 +95,7 @@ def validate_dimensional_audit(payload, expected_ids):
         "integer constants":{}, "unit vector":{}, "unit vectors":{},
         "dimensionless unit vector":{}, "dimensionless, nonnegative":{},
         "dimensionless linear reflectance":{}, "dimensionless vectors":{},
-        "normalized UV":{}, "fraction of period":{}, "pixels":{}, "pixel":{},
+        "normalized UV":{}, "fraction of period":{}, "pixels":{"L":1}, "pixel":{"L":1},
         "RGB code values":{}, "8-bit code values 0..255":{},
         "1 (unit vectors)":{}, "sr^-1 under solid-angle convention":{},
         "dimensionless; radians for alpha":{},
