@@ -55,6 +55,10 @@
       "result": "Las primitivas se construyen evaluando P en una rejilla paramétrica y conectando muestras adyacentes.",
       "limits": [
         "La caja y otras superficies con aristas no son superficies C¹ globales; se construyen por caras/parches y se duplican normales en discontinuidades."
+      ],
+      "dimensional_verification": [
+        "r tiene L; senos/cosenos reciben ángulos adimensionales en radianes; P conserva L.",
+        "Los dominios angulares son adimensionales; el centro c y el radio r tienen L."
       ]
     },
     {
@@ -94,6 +98,10 @@
       "result": "La geometría renderizable queda determinada por atributos V y topología I; normales, UV y colores se añaden como atributos independientes.",
       "limits": [
         "El producto cruzado es cero para triángulos degenerados; el winding debe ser consistente para culling y normales."
+      ],
+      "dimensional_verification": [
+        "p_i tiene L; e_1×e_2 tiene L²; la normal normalizada es adimensional.",
+        "Los índices son enteros adimensionales dentro del intervalo [0,N)."
       ]
     },
     {
@@ -133,6 +141,10 @@
       "result": "La malla aproxima el parche; el error geométrico depende del paso de muestreo y de la curvatura local.",
       "limits": [
         "En singularidades paramétricas o costuras, la normal puede no estar definida o la malla necesita duplicación de vértices."
+      ],
+      "dimensional_verification": [
+        "Si u,v son adimensionales, P_u y P_v tienen L; su producto cruzado tiene L² y la normal normalizada es adimensional.",
+        "El elemento de área es ||P_u×P_v||du dv y tiene L²."
       ]
     },
     {
@@ -172,6 +184,10 @@
       "result": "Una curva 2D genera un parche 3D al barrerla por un ángulo completo.",
       "limits": [
         "En r(u)=0 el anillo colapsa a un punto; las costuras θ=0/2π requieren tratamiento de UV y normales."
+      ],
+      "dimensional_verification": [
+        "r(u), y(u) y P(u,θ) tienen L; θ es angular adimensional.",
+        "La periodicidad θ+2π no altera la unidad espacial."
       ]
     },
     {
@@ -211,6 +227,10 @@
       "result": "La extrusión es la suma de la curva con un desplazamiento lineal parametrizado.",
       "limits": [
         "Tapa inicial/final y paredes laterales se triangulan por separado; autointersecciones del perfil requieren validación."
+      ],
+      "dimensional_verification": [
+        "Con s∈[0,1] adimensional, d debe tener L para que s·d se sume a C(u), que tiene L.",
+        "Si s representa longitud física, d debe ser una dirección unitaria adimensional; la convención debe elegirse explícitamente."
       ]
     },
     {
@@ -251,6 +271,10 @@
       "result": "El sweep transporta una sección a lo largo de la curva central y genera una superficie tubular.",
       "limits": [
         "Un marco de Frenet puede girar bruscamente en regiones de curvatura casi nula; preferir transporte paralelo para estabilidad."
+      ],
+      "dimensional_verification": [
+        "C(s), r(s) y P(s,θ) tienen L; N y B son direcciones adimensionales; θ es adimensional angular.",
+        "Si s es longitud de arco, C'(s) y T son adimensionales; el marco local no cambia la unidad de la sección."
       ]
     },
     {
@@ -295,6 +319,10 @@
       "result": "El transporte paralelo propaga una base ortonormal con la mínima rotación entre segmentos, reduciendo el giro espurio de tubos.",
       "limits": [
         "La discretización y el paso de muestreo influyen en estabilidad; en cúspides la tangente no es única."
+      ],
+      "dimensional_verification": [
+        "T,N,B y el eje de rotación son adimensionales; el ángulo θ es adimensional angular.",
+        "La ortonormalización conserva vectores unitarios; posiciones del sweep siguen teniendo L."
       ]
     },
     {
@@ -334,6 +362,10 @@
       "result": "Cada iteración refina topología y actualiza posiciones mediante promedios locales; las iteraciones sucesivas aproximan la superficie límite.",
       "limits": [
         "La topología no manifold, caras degeneradas y reglas de borde inconsistentes pueden invalidar la convergencia esperada."
+      ],
+      "dimensional_verification": [
+        "F_f, E_e, P_v y P'_v son posiciones con L; todos los pesos de promedio son adimensionales.",
+        "n_v y los índices topológicos son conteos discretos; no se suman a coordenadas."
       ]
     },
     {
@@ -373,6 +405,10 @@
       "result": "La estructura fractal se genera por composición repetida de un conjunto pequeño de transformaciones.",
       "limits": [
         "Si alguna transformación no es contractiva, la convergencia clásica no queda garantizada; controlar ramificación y profundidad para limitar coste."
+      ],
+      "dimensional_verification": [
+        "A_j y la norma de escala son adimensionales; b_j y P_n tienen L.",
+        "La composición afín conserva L en las posiciones; las traslaciones se suman solo a posiciones."
       ]
     },
     {
@@ -418,6 +454,10 @@
       "result": "El algoritmo aproxima la isosuperficie por triángulos cuyos vértices se interpolan sobre aristas que cambian de signo.",
       "limits": [
         "Ambigüedades de conectividad en algunas configuraciones requieren variantes/asymptotic decider; resolución de grid limita detalle."
+      ],
+      "dimensional_verification": [
+        "f_A, f_B e iso comparten la unidad del campo escalar; t es adimensional.",
+        "p_A y p_B tienen L; p_iso conserva L porque interpola con t adimensional."
       ]
     },
     {
@@ -463,18 +503,23 @@
       "result": "El movimiento queda cuantizado en fotogramas y el jitter se reproduce exactamente al mantener índice, semilla, canal y función base.",
       "limits": [
         "La continuidad temporal se rompe deliberadamente entre muestras; amplitudes grandes ocultan lectura de pose."
+      ],
+      "dimensional_verification": [
+        "t tiene T y f_s tiene T⁻¹; t f_s es adimensional y t_q tiene T.",
+        "A y ε_k heredan la unidad del canal perturbado; no se mezclan desplazamientos L con ángulos rad."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "11 derivaciones completas para las 11 claves no protegidas.",
-      "Cada paso incluye ecuación y justificación.",
-      "Se declaran convenciones paramétricas, límites y singularidades.",
-      "Los cinco registros protegidos no se modifican ni se reauditan."
+      "11 derivaciones para las 11 técnicas no protegidas",
+      "Cada paso incluye ecuación y justificación matemática o geométrica",
+      "Todas las derivaciones incluyen verificación dimensional de variables y resultados",
+      "Se declaran convenciones paramétricas, límites y singularidades",
+      "Los cinco registros protegidos no se modifican ni se reauditan"
     ],
     "limitations": [
-      "Estas derivaciones establecen la base matemática; las variantes numéricas, algoritmos completos y pseudocódigo se desarrollan en los puntos 3 y 4."
+      "Las derivaciones establecen la base matemática; los algoritmos completos y pseudocódigo se desarrollan en puntos 3 y 4."
     ]
   },
   "integrity": {
