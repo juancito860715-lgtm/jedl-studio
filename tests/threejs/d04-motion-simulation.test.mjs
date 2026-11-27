@@ -67,8 +67,8 @@ test("sphere-plane collision normalizes plane normal and corrects penetration",(
  assert.equal(hit.colliding,true);assert.deepEqual(hit.normal,[0,1,0]);assert.deepEqual(hit.correctedCenter,[0,1,0]);
 });
 test("mass-spring chain advances interior mass and preserves fixed anchor",()=>{
- const s=simulateMassSpringChain({positions:[[0,0,0],[1.5,0,0],[3,0,0]],velocities:[[0,0,0],[0,0,0],[0,0,0]],masses:[1,1,1],stiffness:10,damping:0,dt:.01,steps:2,fixedIndices:[0,2]});
- assert.deepEqual(s.positions[0],[0,0,0]);assert.deepEqual(s.positions[2],[3,0,0]);assert.ok(s.positions[1][0]>1.5);
+ const s=simulateMassSpringChain({positions:[[0,0,0],[2,0,0],[3,0,0]],velocities:[[0,0,0],[0,0,0],[0,0,0]],masses:[1,1,1],stiffness:10,damping:0,dt:.01,steps:2,fixedIndices:[0,2]});
+ assert.deepEqual(s.positions[0],[0,0,0]);assert.deepEqual(s.positions[2],[3,0,0]);assert.ok(s.positions[1][0]<2);
 });
 test("deterministic animator gives order-independent random values",()=>{
  const animator=createDeterministicAnimator({seed:123,evaluate:(time,ctx)=>({time,r:ctx.random("impact",2)})});
