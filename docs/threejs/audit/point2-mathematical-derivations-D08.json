@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D08 Materiales, texturas y superficies",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -417,38 +417,37 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "ℓ=meanFreePath",
-          "justification": "Definir longitud media de transporte dentro del material."
+          "equation": "ℓ_mfp>0; d≥0",
+          "justification": "Definir la longitud media de transporte y la distancia recorrida dentro del medio."
         },
         {
           "step": 2,
-          "equation": "T(d)=exp(−d/ℓ)",
-          "justification": "Aplicar atenuación exponencial con distancia recorrida."
+          "equation": "wrap(d)=T(d)=exp(−d/ℓ_mfp)",
+          "justification": "Aplicar la ley exponencial de atenuación; la razón d/ℓ_mfp es óptica y adimensional."
         },
         {
           "step": 3,
-          "equation": "wrap=exp(−d/ℓ) or 1−exp(−d/ℓ)",
-          "justification": "Elegir convención de transmisión/iluminación envolvente según efecto visual."
+          "equation": "C_out=C_surface+T(d)·C_backlit",
+          "justification": "Usar el factor como transmisión aproximada de la contribución de iluminación posterior; ambas contribuciones deben estar en el mismo espacio lineal y unidad."
         },
         {
           "step": 4,
-          "equation": "C_out=C_surface+wrap·C_transmitted",
-          "justification": "Combinar contribución superficial y aproximación de luz transmitida."
+          "equation": "T(0)=1; lim_{d→∞}T(d)=0",
+          "justification": "Los límites se obtienen directamente de la exponencial y confirman el comportamiento de la aproximación."
         }
       ],
       "assumptions": [
-        "d y ℓ tienen unidad de longitud; ℓ>0.",
-        "El modelo es una aproximación visual de difusión; no es solución BSSRDF completa.",
-        "Color y radiancia se mezclan en el mismo espacio lineal."
+        "Se usa la expresión exacta declarada en el catálogo: wrap=exp(−distance/meanFreePath).",
+        "C_surface y C_backlit se calculan en el mismo espacio lineal; el factor es una aproximación artística."
       ],
-      "result": "La aproximación usa Beer–Lambert para modular luz transmitida por espesor o distancia interna.",
+      "result": "La aproximación de light wrap usa exactamente wrap=exp(−d/ℓ_mfp) para atenuar la contribución de iluminación posterior; no representa una solución completa de transporte subsuperficial.",
       "limits": [
         "No reproduce perfiles espaciales de difusión ni dependencia espectral completa."
       ],
       "sources": [],
       "dimensional_verification": [
-        "d y ℓ tienen L; d/ℓ es adimensional para Beer–Lambert.",
-        "wrap es adimensional; C_transmitted y C_surface deben compartir unidad/espacio lineal."
+        "d y ℓ_mfp tienen L; d/ℓ_mfp es adimensional y exp() está definido.",
+        "wrap es adimensional y pertenece a (0,1] para d≥0 y ℓ_mfp>0; C_out conserva unidad de color/radiancia."
       ]
     },
     {
@@ -692,43 +691,42 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "μ_k=mean(C in sector_k)",
-          "justification": "Calcular media de color en cada sector orientado."
+          "equation": "μ_k=(1/N_k)Σ_{p∈Ω_k}C(p)",
+          "justification": "Calcular la media de color en cada sector orientado."
         },
         {
           "step": 2,
-          "equation": "σ_k²=mean(||C−μ_k||²)",
-          "justification": "Medir variación interna de cada sector."
+          "equation": "σ²_k=(1/N_k)Σ_{p∈Ω_k}||C(p)−μ_k||²",
+          "justification": "La varianza cuantifica la dispersión de color dentro del sector."
         },
         {
           "step": 3,
-          "equation": "w_k=f(σ_k²), w_k≥0",
-          "justification": "Asignar mayor peso a sectores de menor varianza."
+          "equation": "r_k=σ²_k/σ²_0; w_k=f(r_k), w_k≥0",
+          "justification": "Normalizar por una varianza de referencia σ²_0>0 produce un argumento adimensional; f asigna mayor peso a regiones de menor varianza según una función declarada."
         },
         {
           "step": 4,
-          "equation": "C_out=Σ_k w_k μ_k / Σ_k w_k",
-          "justification": "Combinar medias con pesos normalizados."
+          "equation": "ŵ_k=w_k/Σ_jw_j; C_s=Σ_k ŵ_kμ_k",
+          "justification": "Normalizar pesos garantiza que la mezcla sea convexa y preserve la escala de color."
         },
         {
           "step": 5,
-          "equation": "repeat over scales s; C_final=Σ_s a_s C_s",
-          "justification": "Repetir con radios distintos y mezclar resultados por escala."
+          "equation": "C_final=Σ_s a_s C_s,  a_s≥0, Σ_sa_s=1",
+          "justification": "Mezclar resultados multiescala mediante pesos normalizados conserva la unidad y el rango convexo."
         }
       ],
       "assumptions": [
-        "Sectores orientados por θ del tensor de estructura.",
-        "Todas las muestras comparten espacio de color y escala.",
-        "Σ_k w_k>0; escalas y pesos declarados."
+        "Todas las muestras se procesan en el mismo espacio de color lineal y con la misma escala.",
+        "σ²_0>0 es un parámetro explícito de regularización/escala; f debe ser no negativa y decreciente si se desea favorecer baja varianza."
       ],
-      "result": "El filtro selecciona regiones de baja varianza alineadas con orientación local y combina resultados a varias escalas.",
+      "result": "El filtro calcula estadísticas por sector orientado, normaliza la varianza con una escala común, asigna pesos no negativos y mezcla medias por sector y escala.",
       "limits": [
         "El coste crece con número de sectores, muestras y escalas; variación temporal de θ puede causar flicker."
       ],
       "sources": [],
       "dimensional_verification": [
-        "μ_k y C_out conservan unidad de color; σ²_k tiene unidad de color².",
-        "w_k y a_s son adimensionales; el denominador Σw_k debe ser positivo."
+        "μ_k y C_out conservan unidad de color lineal; σ²_k y σ²_0 tienen color².",
+        "r_k, w_k, ŵ_k y a_s son adimensionales; las sumas normalizadas conservan la unidad de color."
       ]
     },
     {
@@ -741,43 +739,48 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "d_i(x)=distance(x,stroke_i)",
-          "justification": "Calcular distancia desde texel/superficie al eje de cada trazo."
+          "equation": "d_i(P)=distance_px(P,stroke_i); q_i=d_i/strokeWidth_i",
+          "justification": "Medir distancia en espacio raster y normalizar por el ancho del trazo para obtener el argumento adimensional del perfil."
         },
         {
           "step": 2,
-          "equation": "h(x)=Σ_i a_i φ_i(d_i(x))",
-          "justification": "Acumular perfil de altura por trazo, con amplitud a_i y perfil radial φ_i."
+          "equation": "a_i=heightAmp_i·H0; h(P)=Σ_i a_i φ_i(q_i)",
+          "justification": "Convertir amplitud normalizada en altura física y sumar perfiles de trazo adimensionales."
         },
         {
           "step": 3,
-          "equation": "∇h=(∂h/∂u,∂h/∂v)",
-          "justification": "Calcular gradiente de altura."
+          "equation": "∇_px h=∂h/∂(pixel)",
+          "justification": "El gradiente raster tiene unidad m/px porque h está en metros y la coordenada en píxeles."
         },
         {
           "step": 4,
-          "equation": "N'=normalize(N−s∇_S h)",
-          "justification": "Perturbar la normal mediante gradiente superficial adimensional, no mediante derivadas UV sin conversión métrica."
+          "equation": "∇_S h=J_{px→S}^{−T}∇_px h; para escala isotrópica, ∇_S h=ρ_px∇_px h",
+          "justification": "Convertir derivadas en píxeles al marco tangente físico mediante el Jacobiano inverso-transpuesto; ρ_px tiene px/m."
         },
         {
           "step": 5,
-          "equation": "roughness'=F(brush,pressure,paint)",
-          "justification": "Asociar microtextura y rugosidad al mismo trazo."
+          "equation": "N′=normalize(N−s∇_S h)",
+          "justification": "La pendiente física superficial es adimensional y puede perturbar una normal unitaria."
+        },
+        {
+          "step": 6,
+          "equation": "roughness′=F(brush,pressure,paint)",
+          "justification": "Asociar rugosidad a los atributos de trazo mediante una función adimensional acotada."
         }
       ],
       "assumptions": [
-        "a_i y h tienen unidad de longitud; d_i y stroke width se miden en el mismo espacio.",
-        "∇_S h es adimensional; s es adimensional; TBN ortonormal.",
-        "El perfil φ_i se define por tipo de pincelada."
+        "H0 es escala física de altura en metros; heightAmp_i es adimensional.",
+        "La conversión raster-superficie usa Jacobiano local; la aproximación ρ_px escalar solo vale para mapeo local isotrópico."
       ],
-      "result": "Los trazos generan un campo de altura que perturba normales y rugosidad para simular impasto.",
+      "result": "Los trazos generan un campo de altura física y un gradiente superficial convertido desde espacio raster; ese gradiente perturba normales sin desplazar la silueta.",
       "limits": [
         "Bump no cambia silueta ni paralaje; desplazamiento geométrico requiere malla o displacement mapping."
       ],
       "sources": [],
       "dimensional_verification": [
-        "d_i y strokeWidth tienen L; a_i y h tienen L; φ_i es adimensional.",
-        "El gradiente superficial ∇_S h es adimensional; N, T y B son unitarios y N' es adimensional."
+        "d_i y strokeWidth_i tienen px; q_i es adimensional; a_i y h tienen m.",
+        "∇_px h tiene m/px; J_{px→S}^{−T} o ρ_px convierte a gradiente superficial adimensional.",
+        "N, ∇_S h y N′ son adimensionales; roughness′ es adimensional."
       ]
     }
   ],
@@ -788,7 +791,8 @@
       "Triplanar/procedural noise convierten coordenadas físicas a argumentos adimensionales",
       "Bump/impasto usan gradiente superficial con dimensión coherente",
       "Tensor de estructura tipa ε con la misma unidad que sus autovalores",
-      "BRDF, distribución angular, señales de color y raster se mantienen separados"
+      "BRDF, distribución angular, señales de color y raster se mantienen separados",
+      "Subsurface wrap fija la única ecuación del catálogo; Kuwahara normaliza varianza con σ²_0; impasto convierte gradiente raster a marco físico mediante Jacobiano."
     ],
     "limitations": [
       "La derivación define modelos matemáticos y dimensionales; prototipos, filtros de GPU y validación perceptual corresponden a puntos posteriores."
