@@ -47,6 +47,10 @@
       "result": "La tela discreta deriva de masas conectadas por resortes y amortiguadores.",
       "limits": [
         "Rigidez alta exige pasos pequeños o solver implícito/constraints."
+      ],
+      "dimensional_verification": [
+        "m tiene kg; k N/m; c kg/s; ℓ,l L; n unitario; velocidades L/T.",
+        "Cada fuerza de resorte y amortiguador tiene N; m x'' también N."
       ]
     },
     {
@@ -85,6 +89,10 @@
       "result": "Las tres familias se derivan de distancias objetivo entre pares de nodos con roles topológicos distintos.",
       "limits": [
         "Una restricción de distancia entre nodos no sustituye el modelo continuo de flexión."
+      ],
+      "dimensional_verification": [
+        "C_struct, C_shear y C_bend tienen L; gradientes respecto a posiciones son adimensionales.",
+        "d_ij y distancias geométricas comparten L."
       ]
     },
     {
@@ -128,6 +136,10 @@
       "result": "PBD deriva de proyectar posiciones sobre la variedad C(x)=0 usando gradientes y pesos inversos de masa.",
       "limits": [
         "Es estable visualmente pero la rigidez efectiva depende de iteraciones y timestep."
+      ],
+      "dimensional_verification": [
+        "C tiene L; ∇C es adimensional; w_i=1/m_i tiene kg⁻¹; denominador kg⁻¹.",
+        "λ tiene kg·m; w_iλ∇C tiene L y puede sumarse a posición."
       ]
     },
     {
@@ -167,11 +179,16 @@
       "assumptions": [
         "Δt>0; α≥0; gradientes y pesos compatibles.",
         "Unidades de compliance dependen de tipo de restricción.",
-        "λ se conserva según formulación XPBD."
+        "λ se conserva según formulación XPBD.",
+        "La compliance α depende de la dimensión de C: para C de longitud α=s²/kg; para C angular adimensional α=s²/(kg·m²)."
       ],
       "result": "XPBD incorpora compliance al multiplicador de PBD para controlar rigidez con menor dependencia del paso temporal.",
       "limits": [
         "El resultado sigue dependiendo de discretización, iteraciones y elección de compliance."
+      ],
+      "dimensional_verification": [
+        "Para restricción de longitud C[L], λ tiene kg·m; α̃=α/Δt² tiene kg⁻¹ y α tiene s²/kg.",
+        "Para restricción angular C[1], ∇C tiene m⁻¹ y α̃ tiene kg⁻¹m⁻²; α tiene s²/(kg·m²)."
       ]
     },
     {
@@ -210,6 +227,10 @@
       "result": "La flexión se mide como cambio del ángulo entre normales de caras vecinas.",
       "limits": [
         "Ángulo diedro requiere manejo de ±π y topología de borde."
+      ],
+      "dimensional_verification": [
+        "Normales n_1,n_2 y eje e_hat son adimensionales; θ,θ0,C son ángulos adimensionales.",
+        "E_b tiene J, por lo que k_b tiene J para C angular adimensional; ∂E/∂x tiene N."
       ]
     },
     {
@@ -248,6 +269,10 @@
       "result": "La elasticidad lineal deriva de una relación constitutiva entre tensor de deformación y tensión.",
       "limits": [
         "No válida para grandes deformaciones ni materiales hiperelásticos."
+      ],
+      "dimensional_verification": [
+        "ε es adimensional; λ y μ tienen Pa; σ tiene Pa.",
+        "∇·σ y ρb tienen N/m³; ρü también N/m³."
       ]
     },
     {
@@ -286,6 +311,10 @@
       "result": "El tensor de deformación infinitesimal es la parte simétrica del gradiente de desplazamiento.",
       "limits": [
         "Para grandes deformaciones usar tensor Green–Lagrange u otro objetivo."
+      ],
+      "dimensional_verification": [
+        "u tiene L; ∇u y ε son adimensionales.",
+        "El tensor de deformación conserva dimensión 1."
       ]
     },
     {
@@ -330,6 +359,10 @@
       "result": "La ley constitutiva se deriva de una función de energía de deformación y su gradiente.",
       "limits": [
         "El modelo es una aproximación isotrópica; tejidos reales pueden ser anisótropos/viscoelásticos."
+      ],
+      "dimensional_verification": [
+        "F,J e I_1 son adimensionales; lnJ solo se evalúa para J>0.",
+        "μ y λ tienen Pa; W tiene J/m³=Pa; P tiene Pa; Div(P) tiene N/m³."
       ]
     },
     {
@@ -373,6 +406,10 @@
       "result": "FEM deriva de la forma débil de equilibrio y aproximación por funciones de forma.",
       "limits": [
         "Malla pobre o integración insuficiente puede generar locking o modos espurios."
+      ],
+      "dimensional_verification": [
+        "B tiene L⁻¹; D Pa; dV L³; K=∫BᵀDBdV tiene N/m.",
+        "K d tiene N; fuerzas volumétricas y tracciones integradas tienen N."
       ]
     },
     {
@@ -390,8 +427,8 @@
         },
         {
           "step": 2,
-          "equation": "κ_i≈2(t_{i−1}×t_i)/(1+t_{i−1}·t_i)",
-          "justification": "Aproximar curvatura discreta entre segmentos."
+          "equation": "κ_bin=2(t_{i−1}×t_i)/(1+t_{i−1}·t_i)",
+          "justification": "La expresión es el binormal de curvatura discreta, una medida angular adimensional; no es curvatura por unidad de longitud hasta dividir por longitud dual."
         },
         {
           "step": 3,
@@ -400,8 +437,8 @@
         },
         {
           "step": 4,
-          "equation": "E=Σ_i[a_i||κ_i−κ_i^0||²+b_i(τ_i−τ_i^0)²]",
-          "justification": "Acumular energías de flexión y torsión respecto a reposo."
+          "equation": "E=Σ_i[a_i||κ_bin−κ_bin^0||²+b_i(τ_angle−τ_angle^0)²]",
+          "justification": "Con curvatura binormal y giro discreto adimensionales, los coeficientes a_i,b_i son energías por segmento en joules."
         },
         {
           "step": 5,
@@ -411,11 +448,16 @@
       ],
       "assumptions": [
         "Segmentos no degenerados; marcos transportados coherentemente.",
-        "a_i,b_i positivos; curvatura/torsión discretas definidas."
+        "a_i,b_i positivos; curvatura/torsión discretas definidas.",
+        "En esta forma discreta κ_bin y τ_angle son adimensionales; si se convierten a curvatura/torsión por longitud, los coeficientes deben reescalarse por L²."
       ],
       "result": "Las barras/cuerdas discretas se modelan mediante energía de curvatura y torsión.",
       "limits": [
         "La discretización puede depender de longitud de segmento; normalizar pesos por longitud."
+      ],
+      "dimensional_verification": [
+        "Tangentes y κ_binormal/τ_angle discretos son adimensionales; a_i,b_i tienen J.",
+        "Si κ y τ se expresan por longitud (L⁻¹), los coeficientes deben tener J·L² para que la energía sea J."
       ]
     },
     {
@@ -449,11 +491,16 @@
       ],
       "assumptions": [
         "R∈SO(3); s longitud de arco; K matrices positivas.",
-        "v y ω se expresan en marco material."
+        "v y ω se expresan en marco material.",
+        "s es longitud de arco; ω tiene L⁻¹. K_v y K_ω se dimensionan para que el integrando sea energía por longitud y la integral resulte J."
       ],
       "result": "Cosserat deriva de describir una barra mediante línea central y marco orientado con deformación interna.",
       "limits": [
         "La integración espacial requiere preservar ortogonalidad de R."
+      ],
+      "dimensional_verification": [
+        "s tiene L; r tiene L; r' y v son adimensionales; R es adimensional.",
+        "R' y ω tienen L⁻¹; K_v y K_ω deben compensar unidades para que la integral de energía tenga J."
       ]
     },
     {
@@ -493,6 +540,10 @@
       "result": "La dinámica de hebras combina fuerzas externas, energía elástica y arrastre.",
       "limits": [
         "Un gran número de hebras exige LOD, agrupación o simulación reducida."
+      ],
+      "dimensional_verification": [
+        "m tiene kg; x L; x'' L/T²; fuerzas gravity/bend/twist/drag/collision tienen N.",
+        "c_drag tiene kg/s; c_drag(v−v_air) tiene N."
       ]
     },
     {
@@ -536,6 +587,10 @@
       "result": "El brillo anisotrópico de fibras se aproxima separando dispersión longitudinal y azimutal.",
       "limits": [
         "La aproximación separable puede perder acoplamiento entre ángulos; usar BCSDF no separable para mayor fidelidad."
+      ],
+      "dimensional_verification": [
+        "T,L,V y normales son unitarios; ángulos son radianes adimensionales.",
+        "f_r y el producto de lóbulos deben tener sr⁻¹; Fresnel F es adimensional; la integral produce radiancia."
       ]
     },
     {
@@ -579,6 +634,10 @@
       "result": "La catenaria minimiza energía potencial de un cable flexible de densidad lineal uniforme bajo gravedad.",
       "limits": [
         "No es parabólica salvo aproximación de flecha pequeña; cargas adicionales cambian forma."
+      ],
+      "dimensional_verification": [
+        "x,y,a,c tienen L; (x−x0)/a es adimensional; y conserva L.",
+        "ρ_lineal tiene kg/m; g L/T²; energía integral tiene J."
       ]
     },
     {
@@ -622,17 +681,24 @@
       "result": "La autocolisión deriva de una búsqueda broadphase seguida de distancia exacta/continua y restricción de separación.",
       "limits": [
         "La detección discreta puede perder colisiones rápidas; usar continuous collision detection cuando proceda."
+      ],
+      "dimensional_verification": [
+        "d y ε tienen L; bounds y puntos más cercanos comparten marco/unidad.",
+        "La normal es adimensional; el desplazamiento correctivo tiene L."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "15/15 técnicas cubiertas.",
-      "Cada derivación contiene pasos justificados, supuestos y límites.",
-      "Se separan modelos discretos, constitutivos continuos, hiperelasticidad y óptica de fibras."
+      "15/15 técnicas D22 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos, justificación, supuestos, límites y verificación dimensional",
+      "PBD/XPBD tipan multiplicadores y compliance según la dimensión de la restricción",
+      "Diedro y energía de flexión mantienen coherencia entre ángulo, energía y fuerza",
+      "Discrete elastic rods distingue binormal angular discreta de curvatura por unidad de longitud",
+      "Cosserat, elasticidad, FEM y Neo-Hookean conservan unidades de energía/tensión"
     ],
     "limitations": [
-      "Los modelos constitutivos son aproximaciones según sus hipótesis; parámetros de materiales y validación numérica se abordan en fases posteriores."
+      "Las constitutivas de tejido/cabello son modelos aproximados; anisotropía, viscoelasticidad y parámetros experimentales requieren extensiones y validación posterior."
     ]
   },
   "integrity": {
