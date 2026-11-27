@@ -57,10 +57,17 @@ class D01GitHubReferenceEvidenceTests(unittest.TestCase):
 
     def test_summary_distinguishes_implementation_from_tested_certification(self):
         summary = self.data["summary"]
-        self.assertEqual(summary["local_adaptations_implemented"], 2)
+        self.assertEqual(summary["local_adaptations_implemented"], 8)
         self.assertEqual(summary["local_adaptations_tested"], 0)
-        self.assertEqual(summary["pending_local_ci"], 2)
+        self.assertEqual(summary["pending_local_ci"], 8)
         self.assertEqual(summary["certified_as_locally_operational"], 0)
+
+    def test_all_eight_d01_records_have_local_test_targets(self):
+        for record in self.data["records"]:
+            with self.subTest(record=record["record_key"]):
+                self.assertEqual(record["local_adaptation_status"], "IMPLEMENTED_TESTS_PENDING")
+                self.assertEqual(record["certification_status"], "PENDING_LOCAL_CI")
+                self.assertEqual(len(record["implementation_files"]), 2)
 
 
 if __name__ == "__main__":
