@@ -44,7 +44,11 @@
       "limits": [
         "No modela especularidad, subsurface ni interreflexión."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "N,L son unitarios; N·L y albedo son adimensionales.",
+        "BRDF lambertiana ρ/π tiene sr⁻¹; multiplicada por irradiancia y medida angular produce radiancia."
+      ]
     },
     {
       "record_key": "D09:1",
@@ -84,7 +88,11 @@
       "limits": [
         "No conserva energía de forma estricta y depende de interpolación/normalización."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "R y V son unitarios; R·V y k_s son adimensionales.",
+        "I_s conserva la escala/unidad de la intensidad de iluminación."
+      ]
     },
     {
       "record_key": "D09:2",
@@ -124,7 +132,11 @@
       "limits": [
         "El exponente no se corresponde directamente con rugosidad física; requiere calibración."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "H,N son unitarios; N·H es adimensional.",
+        "El lóbulo especular conserva la escala de la iluminación; n es exponente adimensional."
+      ]
     },
     {
       "record_key": "D09:3",
@@ -174,7 +186,11 @@
       "limits": [
         "La fórmula es un modelo local de reflexión; no incluye por sí sola transmisión ni dispersión subsuperficial."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "D tiene sr⁻¹; F,G y cosenos son adimensionales; f_r tiene sr⁻¹.",
+        "La integral f_r L_i cosθ dω conserva la unidad de radiancia L_o."
+      ]
     },
     {
       "record_key": "D09:4",
@@ -214,7 +230,11 @@
       "limits": [
         "No es solución exacta para todas las longitudes de onda ni índices complejos."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "F0, cosθ y F son adimensionales.",
+        "El polinomio de Schlick no cambia unidades de reflectancia."
+      ]
     },
     {
       "record_key": "D09:5",
@@ -254,7 +274,11 @@
       "limits": [
         "Bias excesivo produce peter-panning; insuficiente produce shadow acne."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "u,v y depth buffer normalizado son adimensionales; si depth es lineal, z_l,z_s,bias comparten L.",
+        "La comparación de profundidades solo es válida en misma proyección/codificación."
+      ]
     },
     {
       "record_key": "D09:6",
@@ -294,7 +318,11 @@
       "limits": [
         "Aumentar radio suaviza pero puede borrar detalle y aumentar coste."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "V_i y w_i son adimensionales; Σw_i=1.",
+        "El promedio PCF conserva una visibilidad adimensional entre 0 y 1."
+      ]
     },
     {
       "record_key": "D09:7",
@@ -329,7 +357,11 @@
       "limits": [
         "No calcula visibilidad real ni interreflexión del entorno."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "N_y y t son adimensionales; C_sky,C_ground y L comparten unidad/espacio de señal.",
+        "AO es adimensional y no cambia unidad de la iluminación."
+      ]
     },
     {
       "record_key": "D09:8",
@@ -346,30 +378,36 @@
         },
         {
           "step": 2,
-          "equation": "dL= T(s)σ_s p(ω_i,ω_o)L_i ds",
-          "justification": "La luz dispersada localmente se pondera por transmitancia, coeficiente de dispersión y fase."
+          "equation": "dL=T(s)σ_s[∫_{4π}p(ω_i,ω_o)L_i(ω_i) dω_i]ds",
+          "justification": "Integrar primero la radiancia incidente ponderada por la fase angular; luego multiplicar por coeficiente de dispersión y longitud diferencial para obtener incremento de radiancia."
         },
         {
           "step": 3,
-          "equation": "L_o=L_bg T(D)+∫_0^D T(s)σ_s p L_i ds",
-          "justification": "Integrar contribuciones a lo largo del rayo y atenuar el fondo."
+          "equation": "L_o=L_bg T(D)+∫₀ᴰT(s)σ_s[∫_{4π}p(ω_i,ω_o)L_i(ω_i)dω_i]ds",
+          "justification": "Acumular dispersión a lo largo del rayo y atenuar la radiancia de fondo por transmitancia."
         },
         {
           "step": 4,
-          "equation": "discrete: Σ_i T_i σ_s p_i L_i Δs",
-          "justification": "Aproximar la integral por suma de pasos de raymarch."
+          "equation": "L_o≈L_bg T(D)+Σ_i T_i σ_s,i [∫p_i L_i dω_i] Δs",
+          "justification": "Aproximar la integral espacial mediante raymarch, manteniendo la integral angular o su aproximación de fuente direccional."
         }
       ],
       "assumptions": [
         "σ_t≥σ_s≥0; ds>0; fase normalizada.",
         "Coeficientes y distancias usan unidades recíprocas/compatibles.",
-        "L_i y L_o son radiancias."
+        "L_i y L_o son radiancias.",
+        "La función de fase p se normaliza respecto a dω_i; si la fuente es direccional, su delta angular debe integrarse en la medida sólida."
       ],
       "result": "La luz volumétrica se deriva de Beer–Lambert más integración de dispersión en el trayecto visual.",
       "limits": [
-        "El raymarch discreto introduce error según paso; iluminación variable requiere muestreo adecuado."
+        "El raymarch discreto introduce error según paso; iluminación variable requiere muestreo adecuado.",
+        "No omitir la integración angular o la convención de delta direccional; de lo contrario el término de dispersión queda dimensionalmente incompleto."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "σ_t,σ_s tienen L⁻¹; ds tiene L; ∫σ_t ds es adimensional.",
+        "La integral angular ∫p L_i dω_i conserva radiancia porque p tiene sr⁻¹ y dω_i sr; σ_s ds es adimensional."
+      ]
     },
     {
       "record_key": "D09:9",
@@ -409,7 +447,11 @@
       "limits": [
         "ACES-like no equivale al transform ACES oficial salvo que se use su RRT/ODT y parámetros exactos."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "EV/exposure son adimensionales; exposure·C_HDR conserva unidad de C_HDR.",
+        "Tone mapping produce señal display-linear normalizada adimensional; whitePoint comparte unidad/escala con x."
+      ]
     },
     {
       "record_key": "D09:10",
@@ -449,7 +491,11 @@
       "limits": [
         "El resultado puede exceder rango de pantalla; tone mapping se aplica después."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "EV es adimensional (stops); 2^EV es un multiplicador adimensional.",
+        "C' conserva unidad/escala de C antes de tone mapping."
+      ]
     },
     {
       "record_key": "D09:11",
@@ -489,7 +535,11 @@
       "limits": [
         "Kelvin correlacionados no determinan por sí solos espectro completo de fuentes reales; RGB artístico no es equivalente a Planck."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "λ y h son m; T es K; el argumento hc/(λk_BT) es adimensional.",
+        "B_λ es radiancia espectral por longitud de onda; integrar en dλ produce radiancia; XYZ/RGB heredan o normalizan esa escala."
+      ]
     },
     {
       "record_key": "D09:12",
@@ -534,17 +584,23 @@
       "limits": [
         "No sustituye simulación hidrológica ni transporte de sedimentos; es una textura geomorfológica procedural."
       ],
-      "sources": []
+      "sources": [],
+      "dimensional_verification": [
+        "∇h es adimensional si h y p tienen L; flow y sus coordenadas locales son adimensionales.",
+        "λ_parallel, λ_perp tienen L⁻¹; sus productos con coordenadas L son adimensionales; A tiene L y w es adimensional."
+      ]
     }
   ],
   "validation": {
     "checks": [
-      "13/13 técnicas cubiertas, incluidas investigación R31.",
-      "Cada derivación contiene pasos matemáticos justificados, supuestos y límites.",
-      "Se distinguen BRDF, visibilidad, transporte volumétrico, señal HDR y conversión colorimétrica."
+      "13/13 técnicas D09 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Volumetric light usa integral angular de fase para conservar radiancia y unidades",
+      "BRDF, reflectancia, radiancia, irradiancia, profundidad y señal display se mantienen diferenciadas",
+      "Planck spectral radiance integra en longitud de onda para obtener radiancia"
     ],
     "limitations": [
-      "Los modelos simplificados deben conservar sus supuestos; la implementación, calibración y pruebas numéricas se completan en puntos posteriores."
+      "Las expresiones son modelos de iluminación y aproximaciones declaradas; la implementación GPU, calibración espectral y pruebas visuales corresponden a puntos posteriores."
     ]
   },
   "integrity": {
