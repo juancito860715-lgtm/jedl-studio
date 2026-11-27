@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D04 Animación, movimiento y simulación",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -384,27 +384,27 @@
         {
           "step": 1,
           "equation": "S_i=−Σ_j (p_j−p_i)/||p_j−p_i||²",
-          "justification": "Separación: alejarse de vecinos cercanos."
+          "justification": "El término de separación pondera más a vecinos cercanos y su dimensión es L⁻¹."
         },
         {
           "step": 2,
           "equation": "A_i=mean(v_j)−v_i",
-          "justification": "Alineación: ajustar velocidad a la media de vecinos."
+          "justification": "La alineación es una diferencia de velocidades y tiene dimensión L/T."
         },
         {
           "step": 3,
           "equation": "C_i=mean(p_j)−p_i",
-          "justification": "Cohesión: dirigirse al centroide local."
+          "justification": "La cohesión apunta desde el agente hacia el centroide local y tiene dimensión L."
         },
         {
           "step": 4,
-          "equation": "a_i=w_sS_i+w_aA_i+w_cC_i",
-          "justification": "Combinar términos con ganancias dimensionales que convierten cada término a aceleración."
+          "equation": "v_des=w_sS_i+w_aA_i+w_cC_i",
+          "justification": "Para que la salida sea velocidad L/T, asignar w_s=L²/T, w_a=1 y w_c=T⁻¹; cada término queda en L/T."
         },
         {
           "step": 5,
-          "equation": "v_{n+1}=clamp(v_n+a_iΔt); p_{n+1}=p_n+v_{n+1}Δt",
-          "justification": "Integrar aceleración y limitar velocidad."
+          "equation": "v_{n+1}=clamp(v_des,v_max); p_{n+1}=p_n+v_{n+1}Δt",
+          "justification": "Limitar velocidad deseada y convertirla en desplazamiento mediante un paso temporal."
         }
       ],
       "assumptions": [
@@ -412,13 +412,13 @@
         "Para salida aceleración: w_s L²/T², w_a T⁻¹, w_c T⁻².",
         "Pares coincidentes requieren tratamiento para evitar división por cero."
       ],
-      "result": "La conducta emergente resulta de tres reglas locales y una integración temporal.",
+      "result": "La conducta emergente resulta de tres reglas locales ponderadas con ganancias dimensionales que producen una velocidad deseada; la posición se actualiza con esa velocidad y Δt.",
       "limits": [
         "Los pesos no son adimensionales en esta forma abreviada; usar unidades de D27 para que la suma sea homogénea."
       ],
       "dimensional_verification": [
         "S_i tiene L⁻¹; A_i tiene L/T; C_i tiene L.",
-        "w_s debe tener L²/T², w_a T⁻¹ y w_c T⁻² para que cada término sea aceleración L/T²."
+        "w_s debe tener L²/T, w_a es adimensional y w_c T⁻¹ para que cada término de v_des tenga L/T; v_desΔt tiene L."
       ]
     },
     {
@@ -484,8 +484,8 @@
         },
         {
           "step": 3,
-          "equation": "p_{n+1}=p_n+μΔt+Δp",
-          "justification": "Sumar deriva determinista y difusión aleatoria."
+          "equation": "p_{n+1}=p_n+Δp",
+          "justification": "Sumar el incremento aleatorio al estado de posición; la fórmula de catálogo no incluye deriva determinista."
         },
         {
           "step": 4,
@@ -498,7 +498,7 @@
         "D tiene L²/T para posición espacial.",
         "ξ independiente por paso/canal según modelo."
       ],
-      "result": "La difusión se obtiene de incrementos gaussianos cuya varianza es proporcional al paso temporal.",
+      "result": "La difusión browniana sin deriva se obtiene de incrementos gaussianos independientes cuya varianza es proporcional al paso temporal.",
       "limits": [
         "El movimiento browniano no es diferenciable; no tratar su velocidad instantánea como finita."
       ],
@@ -869,7 +869,9 @@
       "Todas las derivaciones tienen verificación dimensional específica",
       "Boids usa ganancias con unidades explícitas para homogeneizar separación, alineación y cohesión",
       "XPBD tipa compliance, multiplicador y corrección para restricción de longitud",
-      "Cuantización temporal distingue frecuencia de pose y frecuencia de presentación"
+      "Cuantización temporal distingue frecuencia de pose y frecuencia de presentación",
+      "Boids se alinea con la ecuación de catálogo v′ y produce velocidad deseada con ganancias L²/T, 1 y T⁻¹",
+      "Movimiento browniano mantiene la variante sin deriva declarada en el manifiesto"
     ],
     "limitations": [
       "La derivación matemática no sustituye análisis de estabilidad, pseudocódigo portable ni pruebas numéricas, que pertenecen a los puntos posteriores."
