@@ -31,9 +31,46 @@ def load_all():
     return manifest,specs,preservation,dimensions,point4,research
 
 def spec_gaps(spec):
-    # Import the existing fail-closed validator so both audits use one rule set.
-    from tests.threejs.implementation_readiness_gate import specification_gaps
-    return specification_gaps(spec)
+    required=("formulation_type","variables","equations","derivation","assumptions",
+      "valid_domain","boundary_conditions","inputs","outputs","algorithm_steps",
+      "pseudocode","complexity","implementation_mapping","source_claims","independent_tests")
+    gaps=[]
+    for key in required:
+        value=spec.get(key)
+        if value is None or value=="" or value==[]: gaps.append(key)
+    variables=spec.get("variables") or []
+    if not variables: gaps.append("variables.symbol_table")
+    else:
+        for i,v in enumerate(variables):
+            for k in ("symbol","meaning","dimension","unit","domain"):
+                if not v.get(k): gaps.append(f"variables[{i}].{k}")
+    deriv=spec.get("derivation") or {}
+    if deriv.get("status") not in ("complete","not_applicable") or not deriv.get("steps"):
+        gaps.append("derivation.complete_steps")
+    equations=spec.get("equations") or []
+    if not equations: gaps.append("equations.normalized")
+    for i,e in enumerate(equations):
+        if e.get("dimensional_check")!="pass": gaps.append(f"equations[{i}].dimensional_check")
+        if e.get("status") not in ("source_verified","derived_and_checked","approximation","authored_convention"):
+            gaps.append(f"equations[{i}].evidence_status")
+    tests=spec.get("independent_tests") or {}
+    for lang in ("python","javascript","edge_cases"):
+        if not tests.get(lang): gaps.append(f"independent_tests.{lang}")
+    for i,s in enumerate(spec.get("source_claims") or []):
+        if not isinstance(s,dict):
+            gaps.append(f"source_claims[{i}].must_be_object"); continue
+        for k in ("url","supported_claim","formula_locator","formula_level_status"):
+            if not s.get(k): gaps.append(f"source_claims[{i}].{k}")
+        if s.get("formula_level_status") not in ("verified","authored_convention"):
+            gaps.append(f"source_claims[{i}].formula_level_status")
+    impl=spec.get("implementation_mapping") or {}
+    for k in ("threejs_api","cpu_reference","gpu_strategy"):
+        if not impl.get(k): gaps.append(f"implementation_mapping.{k}")
+    if len(spec.get("algorithm_steps") or [])<2: gaps.append("algorithm_steps.complete_sequence")
+    if len((spec.get("pseudocode") or "").strip())<40: gaps.append("pseudocode.executable_detail")
+    complexity=spec.get("complexity") or {}
+    if not complexity.get("time") or not complexity.get("space"): gaps.append("complexity.time_and_space")
+    return sorted(set(gaps))
 
 def make_records(domain_id=None):
     manifest,specs,preservation,dimensions,point4,research=load_all()
