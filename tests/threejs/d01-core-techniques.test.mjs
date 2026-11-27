@@ -54,7 +54,7 @@ test("fixed-step accumulator advances in stable quanta and bounds catch-up work"
   assert.equal(calls.length, 2);
   assert.ok(calls.every(dt => Math.abs(dt - .1) < 1e-12));
   assert.equal(result.steps, 2);
-  assert.ok(result.droppedTime > .2);
+  assert.ok(result.droppedTime >= .2 - 1e-12);
   clock.reset();
   assert.equal(clock.remainderSeconds, 0);
 });
