@@ -52,7 +52,7 @@ test("D35:1 proportional tracker rejects unstable explicit-Euler steps", () => {
 test("D35:2 critically damped spring matches the closed-form solution", () => {
   const result = criticalDampedSpringStep(0, 0, 1, 2, 0.5);
   assert.ok(Math.abs(result.position - (1 - 2 / Math.E)) < 1e-12);
-  assert.ok(Math.abs(result.velocity - (1 / Math.E)) < 1e-12);
+  assert.ok(Math.abs(result.velocity - (2 / Math.E)) < 1e-12);
 });
 
 test("D35:2 exact spring step has the semigroup property for a fixed target", () => {
