@@ -447,7 +447,7 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
+        "formulation_type": "numerical_solver",
         "symbol_table": [],
         "dimensional_analysis": {
           "status": "PARTIAL_OR_NOT_AUDITED",
@@ -456,15 +456,33 @@
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "PARTIAL",
+          "steps": [
+            "Partir de la restricción escalar C(x)=0 y de la discretización implícita regularizada del artículo, Ecs. (8)-(9).",
+            "Aplicar la aproximación cuasi-Newton K≈M y asumir g(x_i,lambda_i)=0, explícitamente declaradas en §4, para obtener el sistema reducido (16).",
+            "Resolver el incremento del multiplicador mediante el paso Gauss-Seidel por restricción, Ec. (18): Δλ_j=−(C_j(x_i)+α̃_j λ_ij)/(∇C_j M⁻¹ ∇C_jᵀ+α̃_j).",
+            "Obtener la corrección posicional con Ec. (17): Δx=M⁻¹∇CᵀΔλ; acumular λ←λ+Δλ y x←x+Δx.",
+            "La escala de compliance es α̃=α/Δt² (definición en §4, anterior a Ec. (8)); no confundir la variante amortiguada de Ec. (26) con el núcleo elástico de Ec. (18)."
+          ]
         },
         "assumptions": [
-          "w_i son masas inversas; α es compliance según unidades de C; gradients y λ deben compartir formulación.",
-          "Definir subpasos, iteraciones, dt fijo y tratamiento de constraints degeneradas."
+          "M es diagonal de masas positivas; M⁻¹ contiene masas inversas.",
+          "C_j es diferenciable en la configuración evaluada y el gradiente se calcula con la misma convención de signo que la corrección Δx.",
+          "Se usa el solver Gauss-Seidel y la aproximación K≈M de §4; no es el Newton exacto del sistema implícito.",
+          "α_j≥0 y Δt>0; λ_ij es el multiplicador total acumulado de esa restricción durante el subpaso.",
+          "La dimensión de α depende de la dimensión elegida para C; no existe una unidad única para todas las clases de restricciones."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
+        "valid_domain": [
+          "Restricciones escalares diferenciables con gradiente finito.",
+          "Matriz de masa invertible sobre los grados de libertad móviles.",
+          "Subpaso temporal Δt estrictamente positivo y compliance no negativa."
+        ],
+        "boundary_conditions": [
+          "α=0 recupera el proyector PBD rígido de la Ec. (18).",
+          "Si todos los grados de libertad afectados son fijos o ∇C M⁻¹ ∇Cᵀ+α̃=0, el paso no está definido: reportar restricción singular y no dividir.",
+          "Reiniciar λ_j=0 al inicio de cada nuevo paso temporal, como en la línea 4 del Algoritmo 1; conservarlo entre iteraciones del mismo paso.",
+          "Si ||∇C|| es nulo, la restricción no tiene dirección de corrección local; clasificar como degenerada."
+        ],
         "inputs": [],
         "outputs": [],
         "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
@@ -475,14 +493,14 @@
         },
         "threejs_binding": {
           "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "details": "Implementación CPU de referencia sobre arrays/vector math; Three.js no aporta un solver XPBD nativo. La integración de escena debe actualizar posiciones de nodos/BufferAttributes después del subpaso. No confundir con API Matrix/Quaternion."
         },
         "source_claims": [
           {
             "url": "https://mmacklin.com/xpbd.pdf",
             "type": "PRIMARY_PAPER",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "formula_level_status": "PARTIAL",
+            "exact_equation_locator": "§4, definición α̃=α/Δt² y Ecs. (16)-(18); Algoritmo 1 (líneas 1-16 del algoritmo). La variante con amortiguamiento es §5, Ecs. (19)-(26), y no debe mezclarse con la Ec. (18) elástica."
           }
         ],
         "independent_tests": {
@@ -502,7 +520,10 @@
         "source_claim_mapped_to_exact_equation_or_section",
         "independent_python_reference_tests",
         "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Three.js_API_or_custom_shader_binding",
+        "complete_general_constraint_test_matrix",
+        "source_equation_and_algorithm_locator_review",
+        "dimensionally_typed_constraint_families"
       ]
     },
     {
@@ -657,14 +678,29 @@
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "PARTIAL",
+          "steps": [
+            "Modelar la fibra como cilindro macro, cutículas inclinadas como mesosuperficie y microfacetas como microsuperficie Smith.",
+            "Construir la BCSDF S(ω_i,ω_o) para fibra y derivar por separado los lóbulos R, TT y TRT.",
+            "Para R, integrar la distribución de micronormales sobre el azimut y aplicar Fresnel y shadowing-masking; la expresión final está en Ec. (12).",
+            "Para TT/TRT, añadir refracción en interfaces y atenuación por pigmentos; las expresiones finales están en Ecs. (22)-(25).",
+            "La aproximación GGX tiene integración analítica específica en Appendix A, Ecs. (41)-(44); no basta con insertar el NDF GGX de una superficie plana."
+          ]
         },
         "assumptions": [
-          "La expresión actual no define una función normalizada ni un modelo de dispersión completo."
+          "El modelo es BCSDF de fibra, no BRDF de superficie plana.",
+          "La derivación principal asume fibra cilíndrica de radio normalizado 1; sección elíptica se trata en §3.3.",
+          "La versión resumida del manifiesto no contiene las ecuaciones completas de imagen ni la geometría de cada interfaz."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
+        "valid_domain": [
+          "Direcciones incidentes/salientes válidas y visibles desde las macronormales/mesonormales correspondientes.",
+          "Parámetros físicos de refracción, rugosidad, absorción y escala deben estar definidos."
+        ],
+        "boundary_conditions": [
+          "No evaluar lóbulos cuando las direcciones no son visibles desde la normal correspondiente.",
+          "Rugosidad y parámetros GGX deben respetar el dominio definido por el artículo; los límites no deben inferirse del NDF plano.",
+          "La atenuación pigmentaria requiere longitud de trayecto interna no negativa y coeficiente de absorción no negativo."
+        ],
         "inputs": [],
         "outputs": [],
         "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
@@ -681,8 +717,8 @@
           {
             "url": "https://onlinelibrary.wiley.com/doi/full/10.1111/cgf.14588",
             "type": "PRIMARY_OPEN_ACCESS_PAPER",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "formula_level_status": "PARTIAL",
+            "exact_equation_locator": "§3.1, BCSDF microfacet para fibra y lóbulo R, Ecs. (2), (4)-(12); lóbulos TT/TRT, Ecs. (13)-(25); §3.2 inclinación de cutícula; Appendix A, integración analítica GGX, Ecs. (41)-(44). La ecuación completa está representada como imagen matemática en el HTML; no se debe sustituir por una BRDF Cook-Torrance plana."
           }
         ],
         "independent_tests": {
@@ -850,7 +886,7 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
+        "formulation_type": "rendering_approximation",
         "symbol_table": [],
         "dimensional_analysis": {
           "status": "PARTIAL_OR_NOT_AUDITED",
@@ -859,14 +895,34 @@
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "PARTIAL",
+          "steps": [
+            "El tensor de estructura suavizado define orientación φ y anisotropía A a partir de sus autovalores (Ecs. de §3.1).",
+            "La matriz S(A,α) y la rotación Rφ transforman el soporte circular en una elipse alineada con la estructura local (§3.2, definición de Ω).",
+            "Dividir el disco transformado en N sectores χ_i y suavizar sus máscaras: K_i=(χ_i*G_{σs})·G_{σr} (Ec. (1)); llevarlas a la elipse con w_i=K_i∘S R_{−φ} (Ec. (2)).",
+            "Calcular media ponderada m_i=(1/k)∫f(x)w_i(x−x₀)dx y varianza por canal s_i²=(1/k)∫f²(x)w_i(x−x₀)dx−m_i² (Ecs. (3)-(4)), con k=∫w_i.",
+            "Calcular α_i=1/(1+||s_i||^q) y salida Σ_i α_i m_i / Σ_i α_i; el artículo usa q=8 en sus ejemplos.",
+            "La aproximación discreta usa sumas y lookup bilineal de las máscaras; la normalización y el dominio de color deben coincidir con la definición de los pesos."
+          ]
         },
         "assumptions": [
-          "La ficha es una familia de filtro, no una especificación reproducible completa."
+          "La entrada es una imagen RGB f:R²→R³; la publicación realiza sus cálculos en RGB.",
+          "Las máscaras w_i son no negativas e integrables y k>0; el soporte se recorta al dominio de imagen según una política de borde explícita.",
+          "La norma ||s_i|| y la escala de valores de color deben ser coherentes con la publicación; el peso no es 1/(1+varianza) ni 1/(1+varianza escalar) salvo que se defina explícitamente una variante.",
+          "La variante multiescala no queda determinada únicamente por las ecuaciones del artículo Pacific Graphics 2009; requiere identificar la publicación multiescala exacta antes de atribuirle sus parámetros."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
+        "valid_domain": [
+          "N≥1 sectores; σ_s>0, σ_r>0; α>0 en la matriz de anisotropía; k>0.",
+          "A∈[0,1] y q>0; en el artículo de 2009 se usa q=8.",
+          "Valores de imagen y norma de desviación en la escala declarada por la implementación."
+        ],
+        "boundary_conditions": [
+          "Si A=0, S=I y el kernel vuelve a ser isotrópico.",
+          "Si todos los sectores tienen desviación nula, α_i=1 y la salida es la media aritmética de los m_i.",
+          "Si k=0 para un sector, descartar ese sector o declarar soporte inválido; no dividir por cero.",
+          "En los bordes de imagen, especificar clamp/mirror/constant/valid-only; esta elección no está fijada por las ecuaciones continuas del paper.",
+          "Si los pesos suman cero por underflow/overflow, declarar fallo numérico y no producir NaN."
+        ],
         "inputs": [],
         "outputs": [],
         "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
@@ -877,14 +933,14 @@
         },
         "threejs_binding": {
           "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "details": "CPU reference: convolución/sumas sobre imagen y máscaras. Three.js sólo aporta la textura y el pipeline de shader; el shader debe implementar el mismo dominio de color, kernels, borde y normalización. La publicación usa GLSL/OpenGL y lookup bilineal, no define una API Three.js."
         },
         "source_claims": [
           {
             "url": "https://www.kyprianidis.com/p/pg2009/jkyprian-pg2009.pdf",
             "type": "PRIMARY_PAPER_PDF",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "formula_level_status": "PARTIAL",
+            "exact_equation_locator": "§3.1: tensor de estructura y anisotropía (Ecs. de autovalores, líneas de texto 111-124); §3.2: sectores y kernels (Ecs. (1)-(2)), medias/varianzas (Ecs. (3)-(4)) y pesos/salida (líneas inmediatamente posteriores a Ec. (4)); implementación discreta §4."
           }
         ],
         "independent_tests": {
@@ -904,7 +960,11 @@
         "source_claim_mapped_to_exact_equation_or_section",
         "independent_python_reference_tests",
         "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Three.js_API_or_custom_shader_binding",
+        "multiscale_variant_primary_source_not_yet_pinned",
+        "rgb_standard_deviation_norm_and_integer_scale_contract",
+        "image_border_policy",
+        "independent_full_filter_reference_images_and_numeric_fixtures"
       ]
     },
     {
@@ -1852,14 +1912,30 @@
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "PARTIAL",
+          "steps": [
+            "Definir vecindad local N_i mediante radio/percepción y filtros de oclusión si se especifican.",
+            "Separación: acumular desplazamientos desde vecinos; alineación: comparar velocidad propia con velocidad media local; cohesión: orientar hacia centroide local.",
+            "Normalizar/limitar cada término según una regla declarada antes de combinarlos.",
+            "La combinación ponderada de los tres términos es una adaptación de implementación; para llamarla aceleración, cada término y cada peso debe producir unidades L/T².",
+            "Integrar velocidad y posición con un integrador elegido y declarado; el paso explícito p_{n+1}=p_n+v_n Δt sólo es consistente con velocidad evaluada al inicio del paso."
+          ]
         },
         "assumptions": [
-          "Definir radios, exclusión de sí mismo, pesos, límite de fuerza y velocidad; las fórmulas son una variante de steering, no única formulación de Reynolds."
+          "El artículo original describe un modelo conductual distribuido, no una única ecuación universal de pesos.",
+          "Separación, alineación y cohesión requieren radios de percepción, normalización y límites de aceleración/velocidad explícitos.",
+          "La implementación del manifiesto debe declarar si S,A,C son desplazamientos, velocidades deseadas o aceleraciones; no se pueden sumar cantidades dimensionalmente distintas."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
+        "valid_domain": [
+          "Δt>0; las posiciones y velocidades de todos los agentes usan las mismas unidades y sistema de coordenadas.",
+          "El número de vecinos puede ser cero; la regla debe devolver steering nulo o comportamiento de navegación alternativo."
+        ],
+        "boundary_conditions": [
+          "N_i vacío: no calcular centroides ni promedios; devolver contribución cero para alineación/cohesión y separación.",
+          "Vecinos coincidentes: separación necesita regularización/umbral para evitar dirección indefinida.",
+          "Velocidad media nula: no normalizarla; definir el resultado como vector cero.",
+          "Aplicar límites explícitos a aceleración y velocidad después de combinar fuerzas."
+        ],
         "inputs": [],
         "outputs": [],
         "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
@@ -1876,8 +1952,8 @@
           {
             "url": "https://doi.org/10.1145/37401.37406",
             "type": "PRIMARY_SIGGRAPH_PAPER",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "formula_level_status": "PARTIAL",
+            "exact_equation_locator": "Reynolds, SIGGRAPH 1987, pp. 25-34: modelo distribuido basado en percepción local y reglas de navegación. La suma vectorial a_i=w_s S_i+w_a(A_i−v_i)+w_c(C_i−p_i) del manifiesto debe etiquetarse como parametrización/adaptación del proyecto, no como transcripción de una ecuación del artículo."
           }
         ],
         "independent_tests": {
