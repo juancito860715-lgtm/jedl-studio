@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D04 Animación, movimiento y simulación",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -92,20 +92,20 @@
         }
       ],
       "constraints": [
-        "Tiempos estrictamente crecientes; canal tipado.",
-        "Rotaciones requieren interpolación angular/cuaternión adecuada."
+        "t_i y t_(i+1) deben estar estrictamente ordenados; Δt=t_(i+1)−t_i>0.",
+        "u=(t−t_i)/Δt debe limitarse a [0,1] o declarar extrapolación; ambos valores del canal deben tener el mismo tipo y espacio."
       ],
       "valid_domain": [
-        "u∈[0,1], o política de extrapolación explícita."
+        "Tiempo finito y segmento con Δt>0; claves sin duplicados salvo política explícita de step/discontinuidad.",
+        "La interpolación debe ser compatible con el tipo: escalar/vector, quaternion con slerp, color en espacio declarado."
       ],
       "boundary_conditions": [
-        "u=0 devuelve x_i; u=1 devuelve x_{i+1}.",
-        "Fuera de intervalo: clamp, extrapolación o loop declarado."
+        "En u=0 y u=1 reproducir exactamente x_i y x_(i+1).",
+        "En extremos de secuencia aplicar clamp, loop o extrapolación declarada; no dejarlo implícito."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "t, t_i, Δt tienen dimensión T; u es adimensional.",
+        "La interpolación opera sobre valores del mismo tipo dimensional; no interpolar directamente ángulos/quaterniones como escalares sin método específico."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -160,18 +160,19 @@
         }
       ],
       "constraints": [
-        "u es adimensional; la curva cúbica tiene derivada nula en extremos."
+        "u debe ser adimensional y acotado a [0,1] para el easing cúbico estándar.",
+        "e(u)=3u²−2u³ es adimensional; aplicar el resultado como peso entre dos valores del mismo tipo."
       ],
       "valid_domain": [
-        "u∈[0,1]; extensión debe declararse."
+        "u∈[0,1]; e(u)∈[0,1]; t1>t0."
       ],
       "boundary_conditions": [
-        "e(0)=0,e(1)=1; e′(0)=e′(1)=0."
+        "e(0)=0, e(1)=1 y e'(0)=e'(1)=0.",
+        "Fuera del intervalo aplicar clamp o extensión expresamente definida."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "u y e(u) son adimensionales; los tiempos tienen dimensión T.",
+        "x(t)=x0+(x1−x0)e(u) conserva la dimensión del canal x."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -241,19 +242,19 @@
         }
       ],
       "constraints": [
-        "ωt+φ adimensional; A y x0 tienen dimensión de longitud."
+        "A y x0 tienen la misma dimensión que x; ω debe tener dimensión T^-1 y φ es adimensional (radianes).",
+        "La fase ωt+φ debe ser adimensional; ω≥0."
       ],
       "valid_domain": [
-        "t finito; parámetros constantes o funciones declaradas."
+        "x0,A,t,ω,φ finitos; ω≥0; unidades de tiempo consistentes."
       ],
       "boundary_conditions": [
-        "x(0)=x0+A sinφ.",
-        "A=0 produce posición constante x0."
+        "A=0 produce posición constante x0.",
+        "En ω=0 el valor es x0+A sinφ; no dividir por ω."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "ωt y φ son adimensionales; sin() recibe argumento adimensional.",
+        "x0 y A tienen la misma dimensión de longitud (o la dimensión del canal), por lo que x(t) conserva esa dimensión."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -338,20 +339,19 @@
         }
       ],
       "constraints": [
-        "g/ℓ tiene T⁻² y sqrt(g/ℓ) tiene T⁻¹.",
-        "El coseno es aproximación de ángulo pequeño, no solución exacta para amplitud grande."
+        "La ecuación exacta θ''+(g/ℓ)sinθ=0 exige g/ℓ con dimensión T^-2; θ es adimensional.",
+        "La aproximación θ≈A cos(√(g/ℓ)t+φ) solo es válida para oscilaciones pequeñas; no sustituye la ecuación no lineal para amplitudes grandes."
       ],
       "valid_domain": [
-        "Péndulo ideal, longitud constante, sin amortiguamiento en modelo indicado."
+        "g>0, ℓ>0, θ y velocidades angulares finitas; A pequeño en radianes para la aproximación lineal."
       ],
       "boundary_conditions": [
-        "Especificar θ(0),θ′(0) o A,φ coherentes.",
-        "En equilibrio θ=0, aceleración angular gravitatoria nula."
+        "Definir θ(0) y θ'(0) para problema dinámico; la fórmula armónica usa A y φ equivalentes.",
+        "En ℓ→0 no evaluar frecuencia; longitud física debe ser estrictamente positiva."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "g/ℓ tiene dimensión T^-2; √(g/ℓ) tiene T^-1; multiplicar por t da dimensión 1.",
+        "θ, A y φ son adimensionales; radianes se usan como unidad angular coherente."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -375,9 +375,9 @@
           "domain": "finitos"
         },
         {
-          "symbol": "v,a",
-          "meaning": "velocidad y aceleración",
-          "unit": "m/s; m/s²",
+          "symbol": "v",
+          "meaning": "velocidad",
+          "unit": "m/s",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -387,26 +387,33 @@
             "N": 0,
             "J": 0
           },
-          "domain": "finitas"
+          "domain": "finita"
         },
         {
-          "symbol": "m,c,k",
-          "meaning": "masa, amortiguamiento, rigidez",
-          "unit": "kg; kg/s; kg/s²",
+          "symbol": "a",
+          "meaning": "aceleración",
+          "unit": "m/s²",
           "dimension": {
-            "L": 0,
-            "M": 1,
-            "T": 0,
+            "L": 1,
+            "M": 0,
+            "T": -2,
             "I": 0,
             "Theta": 0,
             "N": 0,
             "J": 0
           },
-          "domain": "m>0,c,k≥0"
+          "domain": "finita"
+        },
+        {
+          "symbol": "m,c,k",
+          "meaning": "masa, amortiguamiento, rigidez",
+          "unit": "kg; kg/s; kg/s²",
+          "dimension": "m: M; c: M·T^-1; k: M·T^-2",
+          "domain": "m>0; c,k≥0"
         },
         {
           "symbol": "F",
-          "meaning": "fuerza",
+          "meaning": "fuerza externa",
           "unit": "N",
           "dimension": {
             "L": 1,
@@ -421,18 +428,20 @@
         }
       ],
       "constraints": [
-        "m x¨, c x˙, k(x−x0), F tienen dimensión de fuerza."
+        "m x'' + c x' + k(x−x0)=F(t): cada término tiene dimensión de fuerza M·L·T^-2.",
+        "m>0; c,k≥0 para amortiguamiento y rigidez pasivos; F y condiciones iniciales deben ser finitos."
       ],
       "valid_domain": [
-        "m>0;c,k≥0; F definida e integrable."
+        "Sistema de segundo orden con parámetros constantes por tramo o con variación temporal declarada.",
+        "x y x0 en longitud; c en kg/s; k en kg/s²; t en segundos."
       ],
       "boundary_conditions": [
-        "Dar x(0),v(0); si k=0 no hay restitución elástica."
+        "Especificar x(0), v(0); sin condiciones iniciales no hay solución única.",
+        "Para k=0 o c=0 permitir los casos límite; evitar división por esos parámetros en fórmulas especializadas."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "m·a, c·v y k·(x−x0) tienen unidad N; F también N.",
+        "c/m tiene T^-1 y k/m tiene T^-2, como requiere la ecuación normalizada."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -487,19 +496,19 @@
         }
       ],
       "constraints": [
-        "aΔt² tiene dimensión de longitud; aceleración evaluada en paso coherente."
+        "Verlet x_(n+1)=2x_n−x_(n−1)+a_nΔt² requiere aceleración evaluada en el estado n y paso fijo o controlado explícitamente.",
+        "Δt>0; condiciones iniciales x_0 y x_1 o x_0 y velocidad inicial más esquema de arranque."
       ],
       "valid_domain": [
-        "Aceleración evaluable; paso dentro de régimen estable."
+        "Posiciones finitas; a_n finita; Δt positivo; sistema suficientemente resuelto temporalmente."
       ],
       "boundary_conditions": [
-        "Inicialización requiere x0 y x1 o velocidad inicial.",
-        "No aceptar Δt≤0."
+        "Primer paso requiere inicialización coherente; no inventar x_(−1).",
+        "Ante aceleraciones discontinuas o colisiones, segmentar el paso o aplicar tratamiento de evento."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "a_nΔt² tiene dimensión L y puede sumarse a posiciones.",
+        "Los coeficientes 2 y 1 son adimensionales; x_(n+1) conserva L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -554,18 +563,20 @@
         }
       ],
       "constraints": [
-        "v+aΔt conserva L/T; x+v_nextΔt conserva L."
+        "Actualizar primero v_(n+1)=v_n+a_nΔt y después x_(n+1)=x_n+v_(n+1)Δt.",
+        "Δt>0; evaluar a_n con el estado y fuerzas definidos para el paso n."
       ],
       "valid_domain": [
-        "Aceleración definida y paso estable."
+        "x,v,a finitos y unidades coherentes; paso temporal positivo.",
+        "Para sistemas rígidos o fuerzas fuertes, elegir Δt mediante análisis de estabilidad/substepping."
       ],
       "boundary_conditions": [
-        "Inicializar x0,v0; Δt=0 prohibido."
+        "Δt=0 no avanza estado y debe rechazarse o tratarse como no-op explícito.",
+        "Si la fuerza cambia bruscamente, resolver el evento en el instante correspondiente o subdividir el paso."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "aΔt tiene L·T^-1 y se suma a v; v_(n+1)Δt tiene L y se suma a x.",
+        "No confundir Euler semiimplícito con Euler explícito: x usa v actualizada."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -575,52 +586,28 @@
       "variables": [
         {
           "symbol": "y",
-          "meaning": "estado",
-          "unit": "tipo por componente",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "finito"
+          "meaning": "vector de estado",
+          "unit": "tipo dimensional por componente",
+          "dimension": "dim(y_j) definida por componente",
+          "domain": "componentes finitas"
         },
         {
           "symbol": "f(t,y)",
-          "meaning": "derivada",
-          "unit": "estado/s",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 1,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "evaluación en subpasos"
+          "meaning": "derivada temporal del estado",
+          "unit": "dim(y)/s",
+          "dimension": "dim(y_j)·T^-1 por componente",
+          "domain": "función evaluable en subpasos"
         },
         {
           "symbol": "k1…k4",
-          "meaning": "pendientes",
-          "unit": "estado/s",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 1,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
+          "meaning": "pendientes de Butcher",
+          "unit": "dim(y)/s",
+          "dimension": "dim(y_j)·T^-1 por componente",
           "domain": "finitas"
         },
         {
           "symbol": "Δt",
-          "meaning": "paso",
+          "meaning": "paso temporal",
           "unit": "s",
           "dimension": {
             "L": 0,
@@ -631,22 +618,24 @@
             "N": 0,
             "J": 0
           },
-          "domain": "positivo"
+          "domain": "Δt>0"
         }
       ],
       "constraints": [
-        "Δt·k tiene dimensión de estado; sistema y′=f(t,y) bien definido."
+        "Cada k_i es una derivada de estado y tiene dimensión dim(y)/T; Δt·k_i tiene la dimensión de y.",
+        "La función f debe ser suficientemente regular en el intervalo y las evaluaciones intermedias deben permanecer en su dominio."
       ],
       "valid_domain": [
-        "f evaluable en t,t+Δt/2,t+Δt."
+        "Sistema expresado como y'=f(t,y), estado y con unidades declaradas por componente.",
+        "Paso finito positivo; estados y derivadas finitos."
       ],
       "boundary_conditions": [
-        "Definir y(t0); ajustar último paso al intervalo temporal."
+        "Si Δt→0, el incremento tiende a cero y y_next→y.",
+        "Ante discontinuidades o eventos, dividir el intervalo en el instante del evento; RK4 clásico no debe cruzarlos sin tratamiento."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "k_i tienen dimensión estado/T; Δt k_i tiene dimensión estado.",
+        "La suma ponderada de pendientes solo es válida si las componentes de k_i comparten unidades."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -731,20 +720,21 @@
         }
       ],
       "constraints": [
-        "Separación, alineación y cohesión deben convertirse a magnitudes compatibles antes de actualizar velocidad/aceleración.",
-        "Excluir agente propio y limitar velocidad/steering."
+        "Separación, alineación y cohesión deben convertirse a magnitudes compatibles antes de sumarse; si se combinan como aceleraciones, cada término debe tener dimensión L·T^-2.",
+        "Los pesos w_s,w_a,w_c son adimensionales solo si los vectores base ya están normalizados/escalados a una unidad común; de lo contrario cada ganancia requiere dimensión compensatoria.",
+        "Definir radio de vecindad, velocidad máxima y aceleración máxima para limitar resultados."
       ],
       "valid_domain": [
-        "Población finita y estados finitos; radio positivo."
+        "Posiciones L, velocidades L/T, radio L>0; vecinos seleccionados por distancia finita.",
+        "Agentes y parámetros finitos; pesos definidos y límites cinemáticos no negativos."
       ],
       "boundary_conditions": [
-        "Vecindario vacío: contribución cero sin dividir por cero.",
-        "Coincidencia espacial: dirección de separación de respaldo determinista."
+        "Sin vecinos, alineación/cohesión deben producir cero o conservar velocidad previa según política declarada.",
+        "Si dos agentes coinciden, la separación usa dirección de respaldo determinista para evitar división por cero."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "p_i y r_n tienen L; v_i tiene L/T; steering como aceleración tiene L/T².",
+        "La suma ponderada exige términos de igual dimensión; los pesos no corrigen por sí solos una incompatibilidad dimensional."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -814,18 +804,19 @@
         }
       ],
       "constraints": [
-        "p0,vt y 0.5at² tienen dimensión L; aceleración constante."
+        "La ecuación p(t)=p0+vt+½at² supone v y a constantes durante el tramo.",
+        "Cada partícula debe tener tiempo de nacimiento/muerte o intervalo de validez para evitar extrapolación ilimitada."
       ],
       "valid_domain": [
-        "Tiempo finito; v y a definidas."
+        "t≥0 relativo al nacimiento; p0 L, v L/T, a L/T²; todos finitos."
       ],
       "boundary_conditions": [
-        "p(0)=p0; al cambiar aceleración conservar posición y velocidad."
+        "En t=0, p(0)=p0.",
+        "Al finalizar la vida, ocultar/reciclar según política explícita; no evaluar tiempos negativos salvo retroceso definido."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "vt y at² tienen dimensión L y se suman a p0.",
+        "El factor 1/2 es adimensional; p(t) conserva L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -895,18 +886,20 @@
         }
       ],
       "constraints": [
-        "sqrt(DΔt) tiene longitud; semilla y distribución deben ser reproducibles si se exige determinismo."
+        "Para movimiento browniano, cada componente de Δp=√(2DΔt)ξ requiere D≥0, Δt≥0 y ξ normal estándar independiente por dimensión/paso.",
+        "Usar semilla y secuencia reproducibles si se necesita determinismo de render; el incremento tiene media cero y varianza 2DΔt por componente."
       ],
       "valid_domain": [
-        "D≥0; Δt≥0; ξ gaussiana estándar."
+        "D con dimensión L²/T; Δt≥0; ξ adimensional con distribución N(0,1).",
+        "D=0 o Δt=0 produce incremento nulo."
       ],
       "boundary_conditions": [
-        "D=0 o Δt=0 implica Δp=0; varianza por componente 2DΔt."
+        "En Δt=0, Δp=0.",
+        "No reutilizar una misma muestra correlacionada entre pasos salvo que se quiera ruido correlacionado explícitamente."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "DΔt tiene L²; su raíz tiene L; ξ es adimensional y Δp tiene L.",
+        "La suma p+Δp conserva dimensión L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -976,18 +969,19 @@
         }
       ],
       "constraints": [
-        "Comparar solo longitudes del mismo marco; tangencia estricta no es solapamiento."
+        "La condición de contacto es d≤r1+r2; el solapamiento δ=max(0,r1+r2−d) tiene dimensión L.",
+        "La detección geométrica no define por sí sola respuesta física, restitución ni fricción."
       ],
       "valid_domain": [
-        "Radios no negativos."
+        "Centros finitos; radios r1,r2≥0; d=‖c1−c2‖≥0."
       ],
       "boundary_conditions": [
-        "d=r1+r2: tangencia; d=0: normal indeterminada, usar eje estable."
+        "d=r1+r2 es contacto tangencial con δ=0.",
+        "Si d=0, la normal de contacto es indefinida; usar eje relativo previo o fallback determinista."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "d, r1, r2 y δ tienen dimensión L; la comparación d<r1+r2 es homogénea.",
+        "La normal derivada de c1−c2 es adimensional."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1072,18 +1066,19 @@
         }
       ],
       "constraints": [
-        "n debe ser unitario; si no, dividir por |n|. Signo depende de orientación."
+        "Para d=n·p+c, n debe ser unitario y c tener dimensión L; si n no está normalizado, d no es distancia física.",
+        "Contacto esfera-plano: d≤r; definir el lado positivo y orientación del plano."
       ],
       "valid_domain": [
-        "n≠0; punto y plano en mismo marco."
+        "‖n‖=1; p finito; c L; radio r≥0."
       ],
       "boundary_conditions": [
-        "d=r: tangencia en lado definido; d=0 centro sobre plano."
+        "d=r representa tangencia; d<r representa penetración bajo la convención elegida.",
+        "Si la normal es nula, rechazar plano inválido; no normalizar dividiendo por cero."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "n·p tiene L porque n es adimensional y p tiene L; c y d también L.",
+        "r y d son comparables; el test de contacto es dimensionalmente consistente."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1168,18 +1163,20 @@
         }
       ],
       "constraints": [
-        "Todos los términos de fuerza tienen M·L/T²; definir topología de vecinos."
+        "m_i x_i'' = k(x_(i+1)−2x_i+x_(i−1))−c v_i requiere k en kg/s² y c en kg/s para amortiguamiento proporcional a velocidad.",
+        "Para cadena no uniforme, las fuerzas deben derivarse de resortes entre vecinos y usar sus longitudes de reposo; la forma discreta mostrada es una aproximación de diferencias."
       ],
       "valid_domain": [
-        "Cadena finita; masas positivas; parámetros no negativos."
+        "m_i>0; k,c≥0; posiciones y velocidades finitas; topología de vecinos definida.",
+        "Declarar condiciones de extremos (fijo, libre o conectado a resorte)."
       ],
       "boundary_conditions": [
-        "Definir extremos fijos/libres/resorte; inicializar todas las posiciones y velocidades."
+        "En extremos, definir fuerzas de frontera; no acceder a vecinos inexistentes.",
+        "Con k=0 desaparece acoplamiento elástico; con c=0 desaparece amortiguamiento."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "k·(x_(i+1)−2x_i+x_(i−1)) y c·v_i tienen N; m_i·x_i'' también N.",
+        "Los coeficientes numéricos son adimensionales; las posiciones tienen L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1249,18 +1246,19 @@
         }
       ],
       "constraints": [
-        "F no depende del orden de render ni estado mutable oculto."
+        "state(t)=F(t,seed,events) solo es determinista si F es pura respecto del tiempo absoluto, semilla, eventos y configuración versionada.",
+        "La generación aleatoria debe usar PRNG con semilla fija; no depender de reloj real, orden de frames ni estado global mutable."
       ],
       "valid_domain": [
-        "Eventos válidos dentro de intervalo temporal."
+        "t finito; seed entero; eventos ordenados con desempate estable; parámetros serializables."
       ],
       "boundary_conditions": [
-        "Definir estado base en t inicial; eventos simultáneos con orden estable."
+        "Evaluar dos veces el mismo (t,seed,events,config) debe producir el mismo estado.",
+        "El orden de evaluación de frames no debe alterar el resultado; definir comportamiento antes del primer evento y después del último."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "El tiempo de eventos tiene dimensión T; seed e índices son adimensionales/discretos.",
+        "Cada canal de state conserva sus propias unidades; no asignar una dimensión única al estado heterogéneo."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1330,18 +1328,20 @@
         }
       ],
       "constraints": [
-        "Tiempos ordenados y duplicados resueltos; rotaciones con interpolador adecuado."
+        "eventTable debe ordenarse por tiempo; tiempos duplicados requieren regla de prioridad/desempate.",
+        "La interpolación entre payloads solo se aplica a campos interpolables; eventos discretos usan step/hold y no interpolación lineal."
       ],
       "valid_domain": [
-        "Consulta dentro de tabla o política de extrapolación declarada."
+        "Tabla finita y ordenada; t_i en segundos; payloads con tipos y unidades declarados.",
+        "u=(t−t_i)/(t_(i+1)−t_i) solo si el intervalo es positivo."
       ],
       "boundary_conditions": [
-        "Tiempo exacto devuelve muestra; tabla vacía requiere fallback; una muestra constante."
+        "Antes del primer evento y después del último aplicar estado base/hold/clamp explícito.",
+        "En tiempo exacto de evento, resolver prioridad determinista y preservar discontinuidades intencionales."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "t_i y Δt tienen T; u es adimensional.",
+        "Cada campo interpolado mantiene su dimensión; no interpolar entre tipos incompatibles."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1351,22 +1351,22 @@
       "variables": [
         {
           "symbol": "f_pose,f_render",
-          "meaning": "frecuencias",
-          "unit": "Hz",
+          "meaning": "frecuencias de muestreo",
+          "unit": "Hz = s^-1",
           "dimension": {
             "L": 0,
             "M": 0,
-            "T": 1,
+            "T": -1,
             "I": 0,
             "Theta": 0,
             "N": 0,
             "J": 0
           },
-          "domain": "pose 8–24; render 24–120"
+          "domain": "positivas"
         },
         {
           "symbol": "Δt_pose,Δt_render",
-          "meaning": "periodos",
+          "meaning": "periodos de muestreo",
           "unit": "s",
           "dimension": {
             "L": 0,
@@ -1377,12 +1377,12 @@
             "N": 0,
             "J": 0
           },
-          "domain": "1/f"
+          "domain": "Δt=1/f"
         },
         {
           "symbol": "mask",
-          "meaning": "máscara de canal",
-          "unit": "discreto",
+          "meaning": "máscara discreta de canales",
+          "unit": "entero/booleano",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1392,11 +1392,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "por articulación/material"
+          "domain": "canales definidos"
         },
         {
-          "symbol": "t",
-          "meaning": "tiempo",
+          "symbol": "t,t_q",
+          "meaning": "tiempo absoluto y cuantizado",
           "unit": "s",
           "dimension": {
             "L": 0,
@@ -1407,22 +1407,24 @@
             "N": 0,
             "J": 0
           },
-          "domain": "≥0"
+          "domain": "finitos"
         }
       ],
       "constraints": [
-        "Frecuencias positivas; pose y render son tasas distintas; declarar hold/interpolación."
+        "t_q=floor(t·f_pose)/f_pose exige f_pose>0 y t·f_pose adimensional.",
+        "La pose se evalúa en t_q; cámara/FX pueden usar tiempo continuo solo si se declara la máscara de canales."
       ],
       "valid_domain": [
-        "Frecuencias dentro de rangos configurados y máscara definida."
+        "f_pose>0 y f_render>0; tiempos finitos; índices discretos representables.",
+        "Pose FPS debe ser menor o igual que el límite de muestreo de la secuencia deseada, sin asumir equivalencia con FPS de render."
       ],
       "boundary_conditions": [
-        "Pose inicial definida; índice de muestra nunca fuera de rango."
+        "Para t<0, definir clamp a cero o cuantización con floor matemático (no truncamiento hacia cero).",
+        "En t exactamente múltiplo de 1/f_pose, t_q=t."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "f_pose y f_render tienen T^-1; sus recíprocos tienen T.",
+        "t·f_pose es adimensional; t_q conserva T."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1507,18 +1509,21 @@
         }
       ],
       "constraints": [
-        "La unidad de compliance depende de C; α̃=α/Δt². No hay unidad universal sin especificar constraint."
+        "En XPBD, α̃=α/Δt² debe tener las mismas unidades que Σ w_i|∇C|²; α y λ dependen de las unidades de la restricción C y de la masa inversa.",
+        "Para restricción de longitud C [L], gradiente ∇C es adimensional, w_i=1/m_i [M^-1], por lo que α̃ [M^-1], λ [M·L] y α [M^-1·T²].",
+        "Δt>0; reiniciar/acumular λ según el esquema temporal definido; no mezclar unidades de constraints distintas sin escalar."
       ],
       "valid_domain": [
-        "Δt>0; compliance≥0; gradientes definidos."
+        "C(x) diferenciable al menos localmente; masas positivas (o inversas no negativas), compliance α≥0 y paso fijo positivo.",
+        "Iteraciones enteras positivas; gradientes y denominador finitos."
       ],
       "boundary_conditions": [
-        "Compliance cero es rígida ideal; definir reinicio/traslado de λ por paso."
+        "α=0 recupera constraint rígida en el límite del solver; compliance alta permite mayor desviación.",
+        "Si el denominador es cero o casi cero, no dividir: marcar constraint degenerada o aplicar regularización declarada."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "α̃=α/Δt²; su dimensión debe igualar la del denominador de Δλ.",
+        "Para C de longitud: ∇C adimensional, w_i [M^-1], α̃ [M^-1], λ [M·L]; numerador C+α̃λ tiene L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1603,19 +1608,21 @@
         }
       ],
       "constraints": [
-        "h y r_n misma unidad; inspeccionar todas las celdas necesarias para cubrir r_n.",
-        "Resolver celdas negativas, bounds y colisiones hash."
+        "cell=floor((p−origin)/h) requiere p y origin en L y h>0 en L; cada componente de cell es entero adimensional.",
+        "El hash puede colisionar: almacenar/verificar coordenada de celda original antes de aceptar vecinos.",
+        "Para consultar todos los vecinos dentro de r_n, recorrer suficientes celdas; con celda h, radio de búsqueda determina el rango de offsets."
       ],
       "valid_domain": [
-        "Bounds finitos, h>0 y agentes finitos."
+        "h>0; posiciones y origin finitos; dimensiones de rejilla enteras positivas si se usa rejilla acotada.",
+        "Índices enteros deben evitar overflow; política de coordenadas negativas definida mediante floor."
       ],
       "boundary_conditions": [
-        "Celda vacía devuelve lista vacía; límites con wrap/clamp/hash disperso declarado."
+        "En límites de rejilla, clamp, wrap o expansión deben estar especificados.",
+        "Celda vacía devuelve lista vacía; colisión hash no equivale a vecindad geométrica."
       ],
       "dimensional_checks": [
-        "Las sumas/restas combinan dimensiones iguales.",
-        "Las derivadas temporales reducen potencia de T y los pasos temporales convierten derivadas en incrementos.",
-        "Frecuencias tienen dimensión T⁻¹; parámetros normalizados y pesos son adimensionales."
+        "(p−origin)/h es adimensional; floor produce índice entero adimensional.",
+        "r_n y h tienen L; el radio de búsqueda se convierte en número entero de celdas mediante ceil(r_n/h)."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -1623,8 +1630,12 @@
   "validation": {
     "structural_checks": [
       "19/20 técnicas no protegidas incluidas",
-      "Cada registro tiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
-      "1 registro protegido excluido"
+      "19 registros con variables, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "1 registro protegido excluido según mapa Crimson Loong",
+      "Corregida dimensión de frecuencia en cuantización temporal y de aceleración en resorte amortiguado"
+    ],
+    "limitations": [
+      "Validación estructural y revisión dimensional razonada; las derivaciones formales, algoritmos y pruebas numéricas independientes pertenecen a puntos posteriores."
     ]
   },
   "integrity": {
