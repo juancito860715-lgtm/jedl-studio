@@ -19,14 +19,14 @@ function lerpValue(a,b,u){
 }
 function finiteNumber(v,n){if(!Number.isFinite(v))throw new RangeError(n+" must be finite");}
 
-export function interpolateKeyframes(keys,time,{mode="linear",quaternion=false,clamp=true}={}){
+export function interpolateKeyframes(keys,time,{mode="linear",quaternion=false}={}){
   finiteNumber(time,"time");
   if(!Array.isArray(keys)||keys.length===0)throw new RangeError("keyframes required");
   for(let i=0;i<keys.length;i++){
     if(!Number.isFinite(keys[i].time)||(i>0&&keys[i].time<=keys[i-1].time))throw new RangeError("keyframe times must be strictly increasing");
   }
-  if(time<=keys[0].time)return clamp?structuredClone(keys[0].value):keys[0].value;
-  if(time>=keys.at(-1).time)return clamp?structuredClone(keys.at(-1).value):keys.at(-1).value;
+  if(time<=keys[0].time)return structuredClone(keys[0].value);
+  if(time>=keys.at(-1).time)return structuredClone(keys.at(-1).value);
   let lo=0,hi=keys.length-1;
   while(hi-lo>1){const mid=(lo+hi)>>1;if(keys[mid].time<=time)lo=mid;else hi=mid;}
   const a=keys[lo],b=keys[hi],u=(time-a.time)/(b.time-a.time);
@@ -114,7 +114,7 @@ export function computeBoidsAcceleration({position,velocity,neighbors=[],separat
   const p=vec(position,"position"),v=vec(velocity,"velocity");
   sameLength(p,v,"boid");
   for(const [n,x] of Object.entries({separationWeight,alignmentWeight,cohesionWeight,separationRadius,alignmentRadius,cohesionRadius}))finiteNumber(x,n);
-  if(separationRadius<0||alignmentRadius<0||cohesionRadius<0)throw new RangeError("neighbor radii must be nonnegative");
+  if(separationRadius<0||alignmentRadius<0||cohesionRadius<0||separationWeight<0||alignmentWeight<0||cohesionWeight<0)throw new RangeError("neighbor radii and weights must be nonnegative");
   const sep=p.map(()=>0),align=p.map(()=>0),cohesion=p.map(()=>0);
   let ns=0,na=0,nc=0;
   for(const item of neighbors){
@@ -176,6 +176,7 @@ export function simulateMassSpringChain({positions,velocities,masses,stiffness=3
   for(let i=0;i<x.length;i++){sameLength(x[i],v[i],"chain");if(!(Number.isFinite(masses[i])&&masses[i]>0))throw new RangeError("masses must be positive");}
   if(!(Number.isFinite(stiffness)&&stiffness>=0&&Number.isFinite(damping)&&damping>=0&&Number.isFinite(dt)&&dt>0)||
     !Number.isInteger(steps)||steps<1)throw new RangeError("invalid chain parameters");
+  if(!Array.isArray(fixedIndices)||fixedIndices.some(i=>!Number.isInteger(i)||i<0||i>=x.length))throw new RangeError("fixedIndices must be valid chain indices");
   const fixed=new Set(fixedIndices),anchors=new Map([...fixed].map(i=>[i,x[i].slice()]));
   for(let step=0;step<steps;step++){
     const nextX=x.map(q=>q.slice()),nextV=v.map(q=>q.slice());
