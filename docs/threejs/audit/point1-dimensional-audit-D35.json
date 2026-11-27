@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D35 Matemáticas de sistemas, control y optimización",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -276,10 +276,25 @@
           "unit": "unidades de estado/medición",
           "dimension": "por componente",
           "domain": "covarianzas válidas"
+        },
+        {
+          "symbol": "P,Q,R",
+          "meaning": "Covarianzas de estado, proceso y medición",
+          "unit": "producto de unidades por pares",
+          "dimension": "P_ij=[x_i·x_j]; Q_ij=[w_i·w_j]; R_ij=[z_i·z_j]",
+          "domain": "simétricas y semidefinidas positivas"
+        },
+        {
+          "symbol": "K",
+          "meaning": "Ganancia de Kalman",
+          "unit": "unidad de estado/unidad de medición",
+          "dimension": "K_ij=[x_i/z_j]",
+          "domain": "finita"
         }
       ],
       "constraints": [
         "A y H deben mapear unidades de cada componente; ruido y covarianzas compatibles.",
+        "P_ij, Q_ij y R_ij conservan productos de unidades de sus variables por pares; K convierte innovación de medición en corrección de estado.",
         "Δt se incorpora en transición/proceso si el modelo es continuo discretizado."
       ],
       "valid_domain": [
@@ -290,7 +305,7 @@
       ],
       "dimensional_checks": [
         "Cada suma de estado/medición es homogénea por componente.",
-        "Covarianza P_ij tiene unidad x_i·x_j."
+        "Covarianza P_ij tiene unidad x_i·x_j; K(z−Hx) tiene unidad de estado y puede sumarse a x̂."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -699,9 +714,17 @@
         {
           "symbol": "a",
           "meaning": "escala",
-          "unit": "1 o s",
-          "dimension": "según convención",
-          "domain": "a>0"
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "a>0; escala temporal en segundos para transformada continua"
         },
         {
           "symbol": "b",
@@ -721,14 +744,15 @@
         {
           "symbol": "W",
           "meaning": "coeficiente",
-          "unit": "unidad derivada de f y medida dt",
-          "dimension": "según normalización",
-          "domain": "finito"
+          "unit": "unidad de f·√s bajo normalización L² continua",
+          "dimension": "dim(f)·T^(1/2)",
+          "domain": "finito; ψ madre normalizada L² y admisible"
         }
       ],
       "constraints": [
-        "La unidad de W depende de normalización 1/√|a| y de si a es adimensional o temporal.",
-        "ψ debe tener normalización compatible."
+        "Con escala temporal a en segundos, (t−b)/a es adimensional.",
+        "La normalización 1/√|a| aporta s⁻¹/² y dt aporta s; W tiene unidad dim(f)·√s bajo convención L² continua.",
+        "Una DWT discreta o wavelet con otra normalización puede cambiar escala numérica; declarar esa convención aparte."
       ],
       "valid_domain": [
         "a>0; señal integrable; wavelet admisible."
@@ -737,8 +761,8 @@
         "Señal cero produce W=0; a=0 se rechaza."
       ],
       "dimensional_checks": [
-        "(t−b)/a debe ser adimensional.",
-        "W conserva unidad derivada de f y dt según normalización."
+        "(t−b)/a es adimensional; integral f·dt tiene unidad dim(f)·s.",
+        "Dividir por √s deja dim(f)·√s."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -964,11 +988,11 @@
   "validation": {
     "structural_checks": [
       "15/15 técnicas incluidas; ninguna protegida",
-      "Variables, unidades, restricciones, dominios, límites y verificaciones específicas por técnica",
-      "Separados estados, salidas, errores, parámetros, frecuencias y unidades de señal"
+      "Cada registro contiene variables, unidades, restricciones, dominio, límites y comprobaciones dimensionales",
+      "Kalman incorpora covarianzas y ganancia tipadas por componente; wavelet fija convención continua L²"
     ],
     "limitations": [
-      "Auditoría dimensional; no certifica convergencia, estabilidad de control ni calidad de ajuste numérico."
+      "La auditoría dimensional no certifica convergencia, estabilidad de control, condición numérica ni calidad de estimación."
     ]
   },
   "integrity": {
