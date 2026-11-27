@@ -9,8 +9,8 @@
     "techniques": 30,
     "reference_tests": 30,
     "threejs_integration_smoke_tests": 1,
-    "implementation_backed_techniques": 2,
-    "production_implementation_tests": 5
+    "implementation_backed_techniques": 3,
+    "production_implementation_tests": 10
   },
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "execution": {
@@ -132,10 +132,35 @@
       "name": "FFT",
       "test_file": "tests/threejs/d35-d36-point4.test.mjs",
       "test_name": "D35:10 FFT — DFT impulse and inverse round trip",
-      "status": "REFERENCE_TEST_PASSED",
-      "validation_level": "DETERMINISTIC_CPU_REFERENCE_ORACLE",
-      "coverage_limit": "Naive DFT reference; optimized FFT complexity and Parseval suite remain to test.",
-      "certification_status": "NOT_CERTIFIED"
+      "status": "PRODUCTION_IMPLEMENTATION_TEST_PASSED",
+      "validation_level": "SOURCE_BACKED_JAVASCRIPT_IMPLEMENTATION",
+      "coverage_limit": "Local tests verify complex radix-2 FFT against direct DFT, inverse reconstruction, Parseval energy, invalid sizes and input immutability. Only power-of-two lengths are supported; arbitrary-length transforms, windowed spectral estimation and browser/GPU integration remain outside this implementation.",
+      "certification_status": "NOT_CERTIFIED",
+      "implementation_file": "src/threejs/numerics/fft.js",
+      "implementation_test_file": "tests/threejs/d35-real-fft.test.mjs",
+      "external_reference": {
+        "repository": "abho7/fluid-sim",
+        "commit": "aabf3d1cee198ab3fce86909ad7c362a521b817c",
+        "implementation_paths": [
+          "src/core/fft.js"
+        ],
+        "test_paths": [
+          "test/core.test.js"
+        ],
+        "license": "MIT",
+        "ci_run": "https://github.com/abho7/fluid-sim/actions/runs/39702547020",
+        "ci_conclusion": "success",
+        "external_test_result": "76 passed; 0 failed",
+        "inspected_claim": "Radix-2 FFT tested against a definition-level naive DFT, inverse round-trip and Parseval energy."
+      },
+      "local_execution": {
+        "workflow_run_id": 46010492476,
+        "workflow_run_number": 580,
+        "commit_sha": "b11833997738bd05ed8f42a326b46cd67035fb25",
+        "conclusion": "success",
+        "node": "22",
+        "threejs": "0.180.0"
+      }
     },
     {
       "record_key": "D35:11",
@@ -379,8 +404,8 @@
     "Las coberturas parciales indicadas por técnica deben ampliarse antes de certificación.",
     "La certificación independiente de las derivaciones y la trazabilidad desde el algoritmo hasta la implementación siguen pendientes.",
     "La contingencia de buscar e integrar una implementación empírica externa se activará solo ante un fallo reproducible; en esta ejecución no hubo fallo de pruebas.",
-    "D36:1 Euler y D36:2 RK4 ahora tienen implementación JavaScript propia y pruebas de convergencia ejecutadas en CI; el resto de las 28 técnicas D35/D36 siguen sin implementación de producción probada por esta suite.",
-    "Las dos implementaciones nuevas aún no se han probado en navegador real/WebGL ni han recibido revisión matemática independiente; por tanto permanecen NOT_CERTIFIED."
+    "Las dos implementaciones nuevas aún no se han probado en navegador real/WebGL ni han recibido revisión matemática independiente; por tanto permanecen NOT_CERTIFIED.",
+    "D35:10 FFT ya tiene implementación JavaScript propia y pruebas de DFT directo, round-trip inverso y Parseval ejecutadas en CI; la implementación actual es radix-2 y solo admite longitudes potencia de dos."
   ],
-  "result": "30/30 pruebas de referencia previas más 5 pruebas source-backed de implementación para D36:1/D36:2 aprobadas; certificación final pendiente."
+  "result": "30/30 pruebas de referencia iniciales más 10 pruebas de implementación source-backed para D35:10, D36:1 y D36:2 aprobadas; certificación final pendiente."
 }
