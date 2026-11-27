@@ -774,5 +774,29 @@ class TestDepthNormalContour(unittest.TestCase):
         with self.assertRaises(ValueError): depth_normal_edge_score(1,2,(0,0,0),(1,0,0),0.1,1)
         with self.assertRaises(ValueError): edge_coverage(1,1,1)
 
+
+def halftone_coverage(luminance, mask, aa_width):
+    """Antialiased threshold coverage; luminance/mask/width are normalized scalars."""
+    if not all(math.isfinite(v) for v in (luminance, mask, aa_width)) or aa_width < 0:
+        raise ValueError("finite values and nonnegative aa_width required")
+    delta = luminance-mask
+    if aa_width == 0:
+        return 1.0 if delta >= 0 else 0.0
+    x = min(1.0, max(0.0, (delta+aa_width)/(2.0*aa_width)))
+    return x*x*(3.0-2.0*x)
+
+
+class TestHalftoneCoverage(unittest.TestCase):
+    def test_binary_threshold_and_antialias_midpoint(self):
+        self.assertEqual(halftone_coverage(.6,.5,0),1.0)
+        self.assertEqual(halftone_coverage(.4,.5,0),0.0)
+        self.assertAlmostEqual(halftone_coverage(.5,.5,.1),.5)
+        self.assertAlmostEqual(halftone_coverage(.6,.5,.1),1.0)
+        self.assertAlmostEqual(halftone_coverage(.4,.5,.1),0.0)
+
+    def test_rejects_invalid_antialias_width(self):
+        with self.assertRaises(ValueError): halftone_coverage(.5,.5,-.01)
+        with self.assertRaises(ValueError): halftone_coverage(float("nan"),.5,.1)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
