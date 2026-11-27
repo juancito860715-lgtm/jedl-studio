@@ -1277,7 +1277,6 @@
       ],
       "constraints": [
         "L(p')=L(p) requiere misma definición de Laplaciano y escala en ambos lados.",
-        "L_op combinatorio es adimensional; Laplaciano cotan puede tener escala L⁻² según normalización. No mezclar sin declarar.",
         "Para cerrar la ficha se fija L_op como Laplaciano combinatorio no ponderado: L_op es adimensional y L_op(p) tiene unidad m. La variante cotangente/normalizada es otra técnica parametrizada y no se sustituye silenciosamente."
       ],
       "valid_domain": [
@@ -1290,9 +1289,8 @@
         "La traslación global pertenece al núcleo del Laplaciano; fijar suficientes vértices/condiciones para eliminar modos rígidos."
       ],
       "dimensional_checks": [
-        "Si L_op es combinatorio, salida tiene L; si cotan, residual puede tener L⁻¹ o L⁻² según operador.",
-        "La dimensión exacta del residual depende de normalización de L_op.",
-        "Con L_op adimensional, L_op(p') y L_op(p) tienen L; residual y ε se miden en m."
+        "L_op=D−A es adimensional; L_op(p) conserva unidad m.",
+        "L_op(p')−L_op(p) y ε se miden en m; la tolerancia es dimensionalmente compatible."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -1301,11 +1299,11 @@
     "structural_checks": [
       "16/16 técnicas incluidas",
       "Cada técnica contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
-      "D28:15 queda condicional hasta fijar la normalización del operador Laplaciano",
-      "D28:15 cerrada al fijar explícitamente la variante de Laplaciano combinatorio no ponderado y la unidad de su residual."
+      "D28:15 cerrada al fijar explícitamente la variante de Laplaciano combinatorio no ponderado y la unidad de su residual.",
+      "D28:15 cerrada: Laplaciano combinatorio no ponderado L_op=D−A, adimensional; residual y tolerancia en metros."
     ],
     "limitations": [
-      "El operador Laplaciano puede ser combinatorio o cotangente con unidades distintas; la ficha no fija la normalización."
+      "La variante cotangente/normalizada queda fuera de esta ficha; si se elige otra normalización, debe auditarse como variante distinta con sus unidades propias."
     ]
   },
   "integrity": {
