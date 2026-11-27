@@ -1738,9 +1738,10 @@
       "variables": [
         {
           "symbol": "p",
-          "meaning": "posición en espacio de patrón",
+          "meaning": "screen, UV or object-space sample position",
+          "unit": "px, UV or m (one consistent space)",
           "dimension": {
-            "L": 1,
+            "L": 0,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -1748,12 +1749,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m or chosen UV/world unit",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite 2D or 3D coordinate vector"
         },
         {
           "symbol": "d",
-          "meaning": "dirección de hachurado unitaria",
+          "meaning": "unit hatch direction",
+          "unit": "1",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1763,57 +1764,12 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite nonzero vector normalized before projection"
         },
         {
           "symbol": "s",
-          "meaning": "separación de líneas",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "same unit as p",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "w",
-          "meaning": "ancho de línea",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "same unit as p",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "aa",
-          "meaning": "ancho antialias",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "same unit as p",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "phase",
-          "meaning": "fase periódica",
+          "meaning": "distance between adjacent hatch periods",
+          "unit": "same coordinate unit as p",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1823,15 +1779,76 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless",
-          "domain": "finite values in stated coordinate space"
+          "domain": "finite and >0"
+        },
+        {
+          "symbol": "phi",
+          "meaning": "wrapped periodic phase",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "fract(dot(p,d)/s), in [0,1)"
+        },
+        {
+          "symbol": "w",
+          "meaning": "stripe half-width",
+          "unit": "fraction of period",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<=w<=0.5"
+        },
+        {
+          "symbol": "aa",
+          "meaning": "antialias transition width",
+          "unit": "fraction of period",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "aa>=0 and w+aa<=0.5"
+        },
+        {
+          "symbol": "a",
+          "meaning": "hatch coverage",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "clamped to [0,1]"
         }
       ],
       "dimensional_findings": [
-        "p, s, w y aa deben usar el mismo espacio y unidad; fract(dot(p,d)/s) es adimensional."
+        "dot(p,d) has the same unit as p because d is unit; dividing by s yields dimensionless phase.",
+        "w and aa are fractions of one period and dimensionless; the smoothstep argument is dimensionless.",
+        "For world-space hatching, p and s use the same scene-length unit; for screen/UV hatching, both use that coordinate space."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
-      "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
+      "scope": "Dimensional audit of a project-authored periodic hatch phase and coverage; not a renderer or varying-field certification."
     },
     {
       "record_key": "D21:21",
