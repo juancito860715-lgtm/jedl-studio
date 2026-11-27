@@ -167,9 +167,8 @@ export class PIDController {
 export function proportionalTrack(position, target, kp, dt, { maxSpeed = Infinity, tolerance = 0 } = {}) {
   finiteNumber(kp, "kp");
   finiteNumber(dt, "dt");
-  finiteNumber(maxSpeed, "maxSpeed");
   finiteNumber(tolerance, "tolerance");
-  if (kp <= 0 || dt <= 0 || tolerance < 0 || maxSpeed <= 0) {
+  if (kp <= 0 || dt <= 0 || tolerance < 0 || Number.isNaN(maxSpeed) || maxSpeed <= 0) {
     throw new RangeError("kp and dt must be positive; maxSpeed positive; tolerance non-negative");
   }
   if (kp * dt >= 2) throw new RangeError("kp*dt must be below 2 for explicit-Euler stability");
