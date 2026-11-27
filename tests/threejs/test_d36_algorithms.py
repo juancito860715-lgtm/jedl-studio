@@ -44,7 +44,7 @@ class TestD36Algorithms(unittest.TestCase):
                 for index, step in enumerate(record["algorithm_steps"], start=1)
             )
             expected.append("FIN")
-            self.assertEqual(record["pseudocode"], "\\n".join(expected))
+            self.assertEqual(record["pseudocode"], "\n".join(expected))
 
     def test_no_record_is_mislabeled_as_implementation_certified(self):
         for record in self.audit["records"]:
