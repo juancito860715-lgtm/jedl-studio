@@ -1,757 +1,1261 @@
 {
-  "title": "Algoritmos completos y pseudocódigo ejecutable — D35 Matemáticas de sistemas, control y optimización",
-  "version": "1.0.0",
+  "title": "Algoritmos y pseudocódigo fuente — D35",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
-  "derivation_blob_sha": "273f4578ffb56ddea12f8ab9e0e652a2e3162270",
   "scope": {
     "domain_id": "D35",
     "record_count": 15,
-    "excluded_protected_records": 0
+    "source": "Manifest v3.5 domain D35, techniques array in source order"
   },
   "records": [
     {
       "record_key": "D35:0",
       "name": "PID controller",
-      "inputs": [
-        "r_n, y_n: referencia y salida con unidades declaradas",
-        "Δt>0, Kp, Ki, Kd tipados por unidad de error y salida",
-        "I_(n−1), e_(n−1), límites u_min/u_max"
+      "use": "seguimiento de cámara, estabilización y control",
+      "source_equations": [
+        "u_k=Kp e_k + Ki I_k + Kd (e_k-e_{k-1})/Δt; I_k=I_{k-1}+Δt e_k"
       ],
-      "outputs": [
-        "u_n saturada",
-        "estado integral actualizado",
-        "error e_n"
+      "mathematical_derivation": "Partir de u=Kp e+Ki∫e dt+Kd de/dt. Aproximar la integral por rectángulos izquierdos I_k=I_{k-1}+Δt e_k y la derivada por diferencia hacia atrás (e_k-e_{k-1})/Δt. Sustituir ambas aproximaciones produce la ley discreta. Para evitar windup, limitar u y congelar o retrocalcular el integrador cuando la saturación y el error empujan en la misma dirección.",
+      "variables_units": {
+        "explicit": "e [unidad de error E]; u [unidad de control U]; Δt [s]; I [E·s]; Kp [U/E]; Ki [U/(E·s)]; Kd [U·s/E].",
+        "all_symbols": "k índice entero; e_k consigna menos medida; u_k salida saturada; I_k integral acumulada; e_{k-1} error previo; u_min/u_max [U]."
+      },
+      "dimensional_analysis": {
+        "equation": "u_k=Kp e_k + Ki I_k + Kd (e_k-e_{k-1})/Δt; I_k=I_{k-1}+Δt e_k",
+        "term_dimensions": {
+          "Kp e": "U",
+          "Ki I": "(U/(E·s))(E·s)=U",
+          "Kd Δe/Δt": "(U·s/E)(E/s)=U"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Δt>0; derivada discreta hacia atrás; saturación y anti-windup configurados."
       ],
-      "preconditions": [
-        "r e y tienen la misma unidad X; u y límites tienen unidad U.",
-        "Kp=U/X, Ki=U/(X·T), Kd=U·T/X; Δt>0.",
-        "El límite inferior no supera el superior; estado previo finito."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "Δt>0; u_min≤u_max; limitar integral a [Imin,Imax] o aplicar back-calculation.",
+        "initial_conditions": "e_prev e I inicializados; primer derivativo se fuerza a cero.",
+        "boundary_conditions": "No requiere BC espacial."
+      },
       "algorithm_steps": [
-        "Validar unidades compatibles, Δt positivo, parámetros y límites finitos.",
-        "Calcular e_n=r_n−y_n.",
-        "Calcular término proporcional P=Kp·e_n.",
-        "Calcular integral candidato I*=I_(n−1)+e_n·Δt y término integral Ki·I*.",
-        "Calcular derivada D=(e_n−e_(n−1))/Δt y término derivativo Kd·D.",
-        "Calcular u_raw=P+Ki·I*+Kd·D; saturar u_n al intervalo [u_min,u_max].",
-        "Aplicar anti-windup condicional: si saturación y el error integral empuja más hacia saturación, conservar I_(n−1); en otro caso aceptar I*.",
-        "Comprobar finitud y publicar u_n, I_n y e_n; conservar e_n como estado previo."
+        "Calcular e_k=target-measurement.",
+        "Actualizar integral candidata I*=I+Δt e_k.",
+        "Calcular derivada filtrada o diferencia hacia atrás.",
+        "Calcular u_raw y saturar a [u_min,u_max].",
+        "Si saturó, aplicar anti-windup; guardar e_k y devolver u."
       ],
-      "pseudocode": "function pidStep(r, y, dt, gains, state, limits):\n  require finite(r,y,dt) and dt > 0\n  require compatibleUnits(r,y) and typedGains(gains)\n  require limits.min <= limits.max\n  e = r - y\n  iCandidate = state.integral + e * dt\n  p = gains.Kp * e\n  d = (e - state.previousError) / dt\n  uCandidate = p + gains.Ki * iCandidate + gains.Kd * d\n  u = clamp(uCandidate, limits.min, limits.max)\n  drivesFurtherIntoSaturation = (u != uCandidate) and sign(e) == sign(uCandidate - u)\n  integral = state.integral if drivesFurtherIntoSaturation else iCandidate\n  require finite(u, integral, e)\n  return {u, state:{integral, previousError:e}}",
-      "invariants": [
-        "P, I y D expresan U; la suma también expresa U.",
-        "El estado integral solo cambia bajo regla anti-windup declarada.",
-        "Para entradas y estado idénticos, la salida es determinista."
+      "pseudocode": "INPUT target, measurement, dt, state, gains, limits\nASSERT dt>0 AND limits.min<=limits.max\ne = target - measurement\nI_candidate = state.I + dt*e\nd = (e - state.ePrev)/dt  // first sample: 0\nu_raw = Kp*e + Ki*I_candidate + Kd*d\nu = clamp(u_raw, limits.min, limits.max)\nIF u==u_raw OR (u==limits.max AND e<0) OR (u==limits.min AND e>0): I=I_candidate\nELSE: I=state.I  // conditional integration anti-windup\nRETURN u, {I, ePrev:e}",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "zero_error",
+            "target=measurement; state arbitrary",
+            "u=Ki*I (derivative zero)",
+            1e-12
+          ],
+          [
+            "unit_step",
+            "e=1, dt=0.1, Kp=2, Ki=0, Kd=0",
+            "u=2",
+            1e-12
+          ],
+          [
+            "saturation",
+            "u_raw=20, limits=[-1,1]",
+            "u=1 and integral does not wind up",
+            1e-12
+          ]
+        ],
+        "metrics": [
+          "control error",
+          "saturation status",
+          "integrator state"
+        ],
+        "acceptance": "Exact arithmetic within floating-point tolerance; bounded output and anti-windup invariant."
+      },
+      "computational_cost": {
+        "time_complexity": "O(1) por muestra",
+        "memory_complexity": "O(1) estado por controlador",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "La diferencia hacia atrás amplifica ruido de medición; filtrar derivada si la señal es ruidosa.",
+        "Los gains dependen de escala temporal y unidades."
       ],
-      "edge_cases": [
-        "Δt≤0: rechazar sin actualizar estado.",
-        "Error o estado no finito: rechazar.",
-        "Límites invertidos: rechazar.",
-        "Ki=0: el estado integral puede omitirse sin cambiar P y D."
-      ],
-      "complexity": "O(1) tiempo y O(1) estado.",
-      "failure_conditions": [
-        "Unidades incompatibles",
-        "Δt no positivo",
-        "Ganancias o estados no finitos",
-        "Límites de saturación inválidos"
-      ],
-      "derived_from": [
-        "e=r−y",
-        "uP=Kp e; uI=Ki∫e dt; uD=Kd de/dt",
-        "I_n=I_(n−1)+e_nΔt; D_n=(e_n−e_(n−1))/Δt",
-        "u=uP+uI+uD"
-      ]
+      "convergence_stability": "Para planta estable y gains apropiados; el PID por sí solo no garantiza estabilidad. Usar análisis de la planta o sintonía validada.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:1",
       "name": "Proportional tracking",
-      "inputs": [
-        "x actual y target con misma unidad de longitud",
-        "Kp>0 con unidad T⁻¹",
-        "Δt>0"
+      "use": "seguir objetivo",
+      "source_equations": [
+        "v_cmd=Kp(x_target-x); x_{k+1}=x_k+Δt v_cmd"
       ],
-      "outputs": [
-        "x_next",
-        "error e"
+      "mathematical_derivation": "La ley proporcional define el error e=x_target-x y una velocidad comandada v=Kp e. Para un objetivo constante y sin saturación, e_dot=-Kp e; resolver la EDO da e(t)=e(0)exp(-Kp t), por lo que converge si Kp>0. Con Euler explícito, e_{k+1}=(1-KpΔt)e_k; la estabilidad discreta exige |1-KpΔt|<1.",
+      "variables_units": {
+        "explicit": "x,target [m]; e [m]; v [m/s]; Kp [1/s]; Δt [s].",
+        "all_symbols": "Kp>0; v_max [m/s] si hay limitación; posición actualizada en el mismo marco. "
+      },
+      "dimensional_analysis": {
+        "equation": "v_cmd=Kp(x_target-x); x_{k+1}=x_k+Δt v_cmd",
+        "term_dimensions": {
+          "Kp(target-x)": "(1/s)m=m/s",
+          "Δt v": "s·m/s=m"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Objetivo fijo durante el paso; cinemática de primer orden."
       ],
-      "preconditions": [
-        "Target constante durante el paso.",
-        "Kp>0; Δt>0; x y target finitos y dimensionalmente compatibles."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "Kp>0; Δt>0; para Euler sin oscilación 0<KpΔt≤1; estabilidad 0<KpΔt<2.",
+        "initial_conditions": "x_0 conocido.",
+        "boundary_conditions": "Limitar posición a la región permitida; proyectar en límites geométricos si corresponde."
+      },
       "algorithm_steps": [
-        "Validar target, x, Kp y Δt.",
-        "Calcular e=target−x.",
-        "Calcular v=Kp·e.",
-        "Integrar el modelo continuo con Euler explícito: x_next=x+Δt·v.",
-        "Comprobar finitud y devolver x_next."
+        "Calcular error vectorial.",
+        "Calcular velocidad Kp·error.",
+        "Limitar módulo de velocidad si existe vmax.",
+        "Integrar posición con Δt.",
+        "Comprobar distancia y detener si está dentro de tolerancia."
       ],
-      "pseudocode": "function proportionalTrack(x, target, Kp, dt):\n  require finite(x,target,Kp,dt) and Kp > 0 and dt > 0\n  e = target - x\n  velocity = Kp * e\n  next = x + dt * velocity\n  require finite(next)\n  return {position:next, error:e}",
-      "invariants": [
-        "v tiene unidad X/T; Δt·v tiene X.",
-        "Con target fijo, el error continuo decae exponencialmente para Kp>0.",
-        "El paso discreto es estable sin alternancia si 0<Kp·Δt≤1; para 1<Kp·Δt<2 alterna; Kp·Δt≥2 no es estable."
+      "pseudocode": "INPUT x, target, Kp, dt, vmax, epsilon\nASSERT Kp>0 AND dt>0\ne=target-x\nv=Kp*e\nIF vmax exists AND norm(v)>vmax: v=vmax*normalize(v)\nxNext=x+dt*v\nIF norm(target-xNext)<=epsilon: xNext=target\nRETURN xNext, v",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "equilibrium",
+            "x=target",
+            "v=0 and xNext=x",
+            1e-12
+          ],
+          [
+            "scalar_decay",
+            "x=0,target=1,Kp=2,dt=0.1",
+            "xNext=0.2",
+            1e-12
+          ],
+          [
+            "unstable_step",
+            "Kp*dt>=2",
+            "reject configuration or flag unstable",
+            0
+          ]
+        ],
+        "metrics": [
+          "error norm",
+          "tracking error per step"
+        ],
+        "acceptance": "For constant target, Euler error multiplier is 1-KpΔt; require magnitude below one."
+      },
+      "computational_cost": {
+        "time_complexity": "O(d) por paso",
+        "memory_complexity": "O(d), d=dimensión espacial",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "No modela inercia ni aceleración; si se necesita dinámica física usar un controlador de segundo orden."
       ],
-      "edge_cases": [
-        "Kp=0 viola precondición; si se desea congelar, usar explícitamente un modo distinto.",
-        "Δt≤0: rechazar.",
-        "Target móvil dentro del paso: esta fórmula cerrada deja de aplicar."
-      ],
-      "complexity": "O(1) tiempo y memoria.",
-      "failure_conditions": [
-        "Kp≤0",
-        "Δt≤0",
-        "Datos no finitos",
-        "Unidades incompatibles"
-      ],
-      "derived_from": [
-        "dx/dt=Kp(target−x)",
-        "x(t)=target+(x0−target)e^(−Kp t)"
-      ]
+      "convergence_stability": "Estabilidad discreta exacta para el modelo escalar/vectorial desacoplado; límite conservador de paso según Kp.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:2",
       "name": "Critically damped spring",
-      "inputs": [
-        "x, target, velocity",
-        "ω>0 en s⁻¹",
-        "Δt>0"
+      "use": "cámara suave sin rebote excesivo",
+      "source_equations": [
+        "x¨+2ωx˙+ω²(x-target)=0; a=ω²(target-x)-2ωv"
       ],
-      "outputs": [
-        "posición y velocidad del siguiente paso"
+      "mathematical_derivation": "El sistema masa-resorte-amortiguador m x¨+c x˙+k(x-target)=0 tiene frecuencia natural ω_n=√(k/m) y razón de amortiguamiento ζ=c/(2√(km)). Para ζ=1 se obtiene c=2mω_n y, dividiendo por m, x¨+2ω_n x˙+ω_n²(x-target)=0. Definiendo v=x˙ se obtiene la aceleración usada en la integración.",
+      "variables_units": {
+        "explicit": "x,target [m]; v [m/s]; a [m/s²]; ω [rad/s]; m [kg]; k [N/m]; c [N·s/m].",
+        "all_symbols": "ω=√(k/m); ζ=1 para amortiguamiento crítico; Δt [s]."
+      },
+      "dimensional_analysis": {
+        "equation": "x¨+2ωx˙+ω²(x-target)=0; a=ω²(target-x)-2ωv",
+        "term_dimensions": {
+          "x¨": "m/s²",
+          "2ωx˙": "(1/s)(m/s)=m/s²",
+          "ω²(x-target)": "(1/s²)m=m/s²"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Parámetros constantes durante cada paso; resorte lineal; target conocido."
       ],
-      "preconditions": [
-        "Target constante por paso; sistema lineal de segundo orden.",
-        "Estado inicial finito y unidades homogéneas."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "ω≥0; Δt>0; inicializar x y v. Para integración explícita restringir Δt respecto de ω; preferir solución analítica exacta o integrador estable.",
+        "initial_conditions": "x(0),v(0) definidos.",
+        "boundary_conditions": "Si hay límites físicos, proyectar x y tratar el impacto como evento separado."
+      },
       "algorithm_steps": [
-        "Validar ω>0, Δt>0 y estado finito.",
-        "Definir error q=x−target.",
-        "Evaluar solución exacta para intervalo constante: q_next=(q+(v+ωq)Δt)e^(−ωΔt).",
-        "Evaluar velocidad exacta: v_next=(v−ω(v+ωq)Δt)e^(−ωΔt).",
-        "Reconstruir x_next=target+q_next.",
-        "Comprobar finitud y devolver estado."
+        "Calcular error target-x.",
+        "Evaluar aceleración ω²e-2ωv.",
+        "Integrar estado (x,v) con método elegido.",
+        "Para estabilidad robusta usar actualización analítica amortiguada o paso semi-implícito.",
+        "Evaluar error y velocidad para criterio de reposo."
       ],
-      "pseudocode": "function criticalSpringStep(x, v, target, omega, dt):\n  require finite(x,v,target,omega,dt) and omega > 0 and dt > 0\n  q = x - target\n  c = v + omega*q\n  decay = exp(-omega*dt)\n  qNext = (q + c*dt) * decay\n  vNext = (v - omega*c*dt) * decay\n  xNext = target + qNext\n  require finite(xNext,vNext)\n  return {x:xNext, velocity:vNext}",
-      "invariants": [
-        "ωΔt es adimensional.",
-        "q_next tiene unidad de posición y v_next posición/tiempo.",
-        "Para target constante, el error tiende a cero sin oscilación en el modelo ideal."
+      "pseudocode": "INPUT x, v, target, omega, dt\nASSERT omega>=0 AND dt>0\na=omega*omega*(target-x)-2*omega*v\nvNext=v+dt*a  // semi-implicit Euler\nxNext=x+dt*vNext\nRETURN xNext,vNext",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "rest_at_target",
+            "x=target,v=0",
+            "a=0 and state unchanged",
+            1e-12
+          ],
+          [
+            "displaced_rest",
+            "x=0,target=1,v=0,ω=2,dt=0.01",
+            "a=4; vNext=0.04; xNext=0.0004",
+            1e-12
+          ],
+          [
+            "zero_frequency",
+            "ω=0",
+            "a=0; constant velocity",
+            1e-12
+          ]
+        ],
+        "metrics": [
+          "position error",
+          "velocity",
+          "mechanical energy"
+        ],
+        "acceptance": "Check monotonic decay of energy for unforced critically damped case; halve Δt to assess convergence."
+      },
+      "computational_cost": {
+        "time_complexity": "O(d) por paso",
+        "memory_complexity": "O(d) para posición y velocidad",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "Semi-implicit Euler es una aproximación; para amortiguamiento crítico exacto implementar propagador cerrado.",
+        "El resorte lineal no modela límites ni colisiones."
       ],
-      "edge_cases": [
-        "ω≤0 o Δt≤0: rechazar.",
-        "Exponente fuera del rango representable: informar underflow/overflow según entorno.",
-        "Target variable requiere actualizar el objetivo por tramo; no usar solución exacta de target constante a través de discontinuidad."
-      ],
-      "complexity": "O(1) tiempo y memoria.",
-      "failure_conditions": [
-        "Parámetros no finitos",
-        "ω o Δt no positivos",
-        "Overflow numérico"
-      ],
-      "derived_from": [
-        "x''+2ωx'+ω²(x−target)=0",
-        "x(t)=target+(A+Bt)e^(−ωt)"
-      ]
+      "convergence_stability": "La estabilidad del paso semi-implícito depende de ωΔt; para ωΔt grande usar propagación exacta o método implícito.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:3",
       "name": "Kalman state model",
-      "inputs": [
-        "A,H,Q,R y estado x_hat,P",
-        "medición z y covarianza de ruido",
-        "matrices con dimensiones por componente"
+      "use": "estimación de estado",
+      "source_equations": [
+        "x⁻=A x+ B u; P⁻=A P Aᵀ+Q; K=P⁻Hᵀ(HP⁻Hᵀ+R)⁻¹; x=x⁻+K(z-Hx⁻); P=(I-KH)P⁻"
       ],
-      "outputs": [
-        "x_hat posterior y P posterior"
+      "mathematical_derivation": "El modelo lineal gaussiano supone x_k=A x_{k-1}+Bu+w y z=Hx+v, con ruidos independientes de covarianza Q y R. La predicción propaga media y covarianza. La innovación r=z-Hx⁻ tiene covarianza S=HP⁻Hᵀ+R. La ganancia K minimiza la traza de la covarianza posterior y produce la corrección. Usar la forma de Joseph P=(I-KH)P⁻(I-KH)ᵀ+KRKᵀ para preservar simetría/positividad numérica.",
+      "variables_units": {
+        "explicit": "x [estado]; u [control]; z [medición]; A,B,H [matrices de transición]; P,Q [covarianza estado]; R [covarianza medición]; Δt [s].",
+        "all_symbols": "Dimensiones: x∈Rⁿ, z∈Rᵐ, u∈Rᵖ; Q n×n; R m×m; S m×m."
+      },
+      "dimensional_analysis": {
+        "equation": "x⁻=A x+ B u; P⁻=A P Aᵀ+Q; K=P⁻Hᵀ(HP⁻Hᵀ+R)⁻¹; x=x⁻+K(z-Hx⁻); P=(I-KH)P⁻",
+        "term_dimensions": {
+          "Ax, Bu": "[x]",
+          "A P Aᵀ y Q": "[x_i x_j]",
+          "HPHᵀ y R": "[z_i z_j]",
+          "K(z-Hx)": "[x]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Ruido blanco gaussiano, media cero, covarianzas conocidas; matrices compatibles."
       ],
-      "preconditions": [
-        "Matrices de tamaños compatibles; Q y R semidefinidas positivas; innovación invertible.",
-        "Modelo lineal y covarianzas finitas; componentes con unidades coherentes."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "Q y R simétricas semidefinidas positivas; R definida positiva para innovación invertible; no invertir explícitamente: resolver S yᵀ=...",
+        "initial_conditions": "x0 y P0 simétrica PSD.",
+        "boundary_conditions": "No hay BC espaciales; validar mediciones y rechazar outliers según innovación normalizada."
+      },
       "algorithm_steps": [
-        "Validar dimensiones matriciales, unidades por componente y simetría/semidefinición de Q y R.",
-        "Predecir x_minus=A·x_hat y P_minus=A·P·Aᵀ+Q.",
-        "Calcular innovación y=z−H·x_minus y S=H·P_minus·Hᵀ+R.",
-        "Resolver S·X=(P_minus·Hᵀ)ᵀ y transponer X para obtener K; evitar invertir S explícitamente.",
-        "Actualizar x_hat_new=x_minus+K·y.",
-        "Actualizar covarianza con forma Joseph: P_new=(I−KH)P_minus(I−KH)ᵀ+KRKᵀ.",
-        "Simetrizar por redondeo P_new←(P_new+P_newᵀ)/2 y validar finitud/semidefinición dentro de tolerancia declarada."
+        "Predecir x⁻ y P⁻.",
+        "Formar innovación r y S.",
+        "Resolver SᵀYᵀ=(P⁻Hᵀ)ᵀ y obtener K.",
+        "Corregir estado.",
+        "Actualizar P con forma Joseph y simetrizar por redondeo.",
+        "Comprobar PSD y NIS."
       ],
-      "pseudocode": "function kalmanStep(A,H,Q,R,x,P,z):\n  validateShapesAndUnits(A,H,Q,R,x,P,z)\n  require isSymmetricPSD(Q) and isSymmetricPSD(R)\n  xPred = A*x\n  PPred = A*P*transpose(A) + Q\n  innovation = z - H*xPred\n  S = H*PPred*transpose(H) + R\n  require solveIsWellConditioned(S)\n  K = transpose(solve(S, transpose(PPred*transpose(H))))\n  xNew = xPred + K*innovation\n  C = identity(size(K,0)) - K*H\n  PNew = C*PPred*transpose(C) + K*R*transpose(K)\n  PNew = (PNew + transpose(PNew))/2\n  require finite(xNew,PNew) and isPSDWithinDeclaredTolerance(PNew)\n  return {state:xNew,covariance:PNew}",
-      "invariants": [
-        "A_ij lleva unidad estado_i/estado_j; H_ij observación_i/estado_j.",
-        "P,Q,R son covarianzas por pares de componentes; K mapea observación a estado.",
-        "La forma Joseph conserva simetría/positividad mejor que la actualización simplificada bajo redondeo."
+      "pseudocode": "INPUT x,P,A,B,u,Q,H,z,R\nxPred=A*x+B*u\nPPred=A*P*Aᵀ+Q\nr=z-H*xPred\nS=H*PPred*Hᵀ+R\nK=solve(Sᵀ,(PPred*Hᵀ)ᵀ)ᵀ\nxPost=xPred+K*r\nM=I-K*H\nPPost=M*PPred*Mᵀ+K*R*Kᵀ\nPPost=0.5*(PPost+PPostᵀ)\nASSERT symmetric(PPost) AND PSD(PPost,tol)\nRETURN xPost,PPost,r,S",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "no_measurement_effect",
+            "H=0",
+            "xPost=xPred; PPost=PPred",
+            1e-10
+          ],
+          [
+            "perfect_measurement_limit",
+            "R→0 with observable scalar state",
+            "posterior approaches z",
+            0.000001
+          ],
+          [
+            "innovation_outlier",
+            "rᵀS⁻¹r above configured chi-square gate",
+            "reject measurement; retain prediction",
+            1e-10
+          ]
+        ],
+        "metrics": [
+          "state error",
+          "covariance symmetry",
+          "minimum covariance eigenvalue",
+          "normalized innovation squared"
+        ],
+        "acceptance": "Use Cholesky/LDLT solves; covariance symmetric PSD within tolerance."
+      },
+      "computational_cost": {
+        "time_complexity": "O(n³+m³) dense; exploit sparsity for large n",
+        "memory_complexity": "O(n²+m²+nm)",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "Linear Gaussian assumption; nonlinear systems require EKF/UKF/particle filter.",
+        "Poorly conditioned S needs robust factorization and model review."
       ],
-      "edge_cases": [
-        "S singular o mal condicionada: fallo explícito; no usar inversa pseudoarbitraria.",
-        "Q o R no PSD: rechazar.",
-        "Medición ausente: devolver predicción documentada sin corrección.",
-        "Dimensiones incompatibles: rechazar."
-      ],
-      "complexity": "Dominada por factorización/solución lineal; O(n³) para matrices densas de dimensión n.",
-      "failure_conditions": [
-        "Matrices incompatibles",
-        "S singular/mal condicionada",
-        "Q o R no PSD",
-        "Resultados no finitos"
-      ],
-      "derived_from": [
-        "x−=Ax_hat; P−=APAᵀ+Q",
-        "K=P−Hᵀ(HP−Hᵀ+R)⁻¹",
-        "x_hat=x−+K(z−Hx−)",
-        "P update"
-      ]
+      "convergence_stability": "Filter consistency depends on correct Q/R and observability; PSD check is mandatory.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:4",
       "name": "Gradient descent",
-      "inputs": [
-        "objetivo E diferenciable",
-        "vector θ y gradiente",
-        "tasas η_j tipadas por parámetro"
+      "use": "ajuste numérico y fitting",
+      "source_equations": [
+        "θ_{k+1}=θ_k-η∇J(θ_k)"
       ],
-      "outputs": [
-        "θ actualizado y valor del objetivo"
+      "mathematical_derivation": "Para J diferenciable, expand J(θ-ηg)=J(θ)-η||g||²+(η²/2)gᵀ∇²J(ξ)g. Si el Hessiano tiene norma acotada por L, J(θ-ηg)≤J(θ)-η(1-Lη/2)||g||². Por tanto 0<η<2/L garantiza descenso para gradiente exacto bajo gradiente L-Lipschitz; η≤1/L da una cota sencilla.",
+      "variables_units": {
+        "explicit": "θ_i [unidad del parámetro]; J [unidad objetivo]; ∂J/∂θ_i [J/θ_i]; η [θ_i²/J] en caso escalar isotrópico.",
+        "all_symbols": "g=∇J; L constante Lipschitz del gradiente; tolerancias en norma de gradiente y cambio relativo."
+      },
+      "dimensional_analysis": {
+        "equation": "θ_{k+1}=θ_k-η∇J(θ_k)",
+        "term_dimensions": {
+          "η∇J": "[θ]",
+          "θ-η∇J": "[θ]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "J diferenciable y gradiente exacto; para garantía global, gradiente L-Lipschitz."
       ],
-      "preconditions": [
-        "Cada η_j tiene unidad θ_j²/E; o θ y E están normalizados.",
-        "Objetivo y gradiente finitos; criterio de parada declarado."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "η>0; parámetros dentro de dominio; aplicar proyección si existen restricciones.",
+        "initial_conditions": "θ0 finito.",
+        "boundary_conditions": "Conjunto factible cerrado y proyección definida si hay restricciones."
+      },
       "algorithm_steps": [
-        "Validar dimensión de θ, gradiente y tasas por componente.",
-        "Evaluar E(θ) y ∇E(θ).",
-        "Para cada j calcular θ_next,j=θ_j−η_j·∂E/∂θ_j.",
-        "Evaluar E(θ_next); comprobar finitud.",
-        "Terminar si se alcanza criterio de gradiente, cambio de objetivo, límite de iteraciones o fallo de descenso según tolerancias recibidas."
+        "Evaluar J y gradiente en θ.",
+        "Comprobar norma del gradiente.",
+        "Elegir η fijo con cota conocida o búsqueda backtracking.",
+        "Actualizar θ y proyectar si procede.",
+        "Aceptar paso si J disminuye; detener por tolerancia o máximo."
       ],
-      "pseudocode": "function gradientDescent(objective, gradient, theta, eta, stop):\n  require compatibleLengths(theta,eta)\n  for iteration in 0..stop.maxIterations-1:\n    value = objective(theta)\n    g = gradient(theta)\n    require finite(value,g)\n    next = theta - componentwise(eta * g)\n    nextValue = objective(next)\n    require finite(next,nextValue)\n    if stopSatisfied(theta,next,value,nextValue,g,stop):\n      return {theta:next,value:nextValue,iterations:iteration+1}\n    theta = next\n  return {theta,value:objective(theta),status:'MAX_ITERATIONS'}",
-      "invariants": [
-        "η_j·∂E/∂θ_j tiene unidad θ_j.",
-        "La expansión de primer orden predice descenso para tasas suficientemente pequeñas, no garantiza descenso global.",
-        "No mezclar parámetros de unidades distintas con una única tasa escalar no tipada."
+      "pseudocode": "INPUT objective J, gradient g, theta, eta, maxIter, tol\nFOR k=0..maxIter-1:\n    value=J(theta); grad=g(theta)\n    IF norm(grad)<=tol: RETURN theta,converged\n    step=eta\n    WHILE J(project(theta-step*grad)) > value - 1e-4*step*norm(grad)^2:\n        step=step/2\n        IF step<minStep: FAIL line_search\n    theta=project(theta-step*grad)\nRETURN theta,max_iterations",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "quadratic",
+            "J=0.5*θ², θ0=2, η=0.5",
+            "θ1=1.0 and J decreases",
+            1e-12
+          ],
+          [
+            "minimum",
+            "θ at stationary point",
+            "gradient norm <= tol",
+            1e-10
+          ],
+          [
+            "invalid_step",
+            "η<=0",
+            "reject input",
+            0
+          ]
+        ],
+        "metrics": [
+          "objective",
+          "gradient norm",
+          "step length"
+        ],
+        "acceptance": "For convex L-smooth objective and 0<η<2/L, monotonic decrease; nonconvex only stationarity is generally expected."
+      },
+      "computational_cost": {
+        "time_complexity": "O(cost(J)+cost(gradient)) por iteración",
+        "memory_complexity": "O(number of parameters)",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "No garantiza mínimo global en objetivos no convexos.",
+        "η único puede ser ineficiente en parámetros con escalas distintas."
       ],
-      "edge_cases": [
-        "Gradiente cero: convergencia estacionaria.",
-        "Objetivo no finito o gradiente no finito: abortar.",
-        "Máximo de iteraciones alcanzado: devolver estado no certificado como convergido.",
-        "Tasas no positivas: rechazar si el método declarado requiere η_j>0."
-      ],
-      "complexity": "O(C_E+C_∇E) por iteración más operaciones vectoriales O(n).",
-      "failure_conditions": [
-        "Tamaños incompatibles",
-        "Tasas dimensionalmente incorrectas",
-        "Evaluación no finita",
-        "Criterios de parada inválidos"
-      ],
-      "derived_from": [
-        "E(θ+Δ)≈E(θ)+∇EᵀΔ",
-        "Δθ_j=−η_j∂E/∂θ_j",
-        "θ_(n+1)=θ_n−η∇E(θ_n)"
-      ]
+      "convergence_stability": "Condición de descenso ligada a L; usar line search y criterio de parada reproducible.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:5",
       "name": "Levenberg–Marquardt",
-      "inputs": [
-        "residual r(θ) y Jacobiano J",
-        "escalas no nulas s_j y r_scale,i",
-        "λ≥0 adimensional y criterios de aceptación"
+      "use": "ajuste no lineal de parámetros",
+      "source_equations": [
+        "(JᵀJ+λ diag(JᵀJ))δ=-Jᵀr; θ_{k+1}=θ_k+δ"
       ],
-      "outputs": [
-        "θ actualizado o estado de rechazo del paso"
+      "mathematical_derivation": "Para residual r(θ), minimizar Φ=½rᵀr. Linealizar r(θ+δ)≈r+Jδ y minimizar ½||r+Jδ||²+(λ/2)||Dδ||². Anular gradiente respecto de δ da (JᵀJ+λDᵀD)δ=-Jᵀr. D suele ser diagonal con escalas de columnas de J; λ regula transición entre Gauss–Newton y descenso amortiguado.",
+      "variables_units": {
+        "explicit": "r∈Rᵐ [unidad residual]; θ∈Rⁿ [unidad parámetro]; J_ij=∂r_i/∂θ_j [r_i/θ_j]; λ adimensional si DᵀD tiene unidades de JᵀJ.",
+        "all_symbols": "δ_j [θ_j]; Φ [r²]; D escala columnas; aceptar/rechazar según reducción real/predicha."
+      },
+      "dimensional_analysis": {
+        "equation": "(JᵀJ+λ diag(JᵀJ))δ=-Jᵀr; θ_{k+1}=θ_k+δ",
+        "term_dimensions": {
+          "Jδ": "[r]",
+          "Jᵀr": "[r_i²/θ_j]",
+          "JᵀJδ": "[r_i²/θ_j]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Residual diferenciable; m≥n para problema sobredeterminado habitual; damping positivo."
       ],
-      "preconditions": [
-        "Escalas s_j y r_scale,i positivas y con unidades respectivas.",
-        "Problema normalizado; J_tilde adimensional; sistema lineal resoluble."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "λ>0; matriz normal amortiguada definida positiva si D y J tienen rango apropiado; resolver sistema, no invertir.",
+        "initial_conditions": "θ inicial.",
+        "boundary_conditions": "Respetar límites mediante parametrización o trust region proyectada."
+      },
       "algorithm_steps": [
-        "Validar residual, Jacobiano y escalas por componente.",
-        "Normalizar θ_tilde,j=(θ_j−θ_ref,j)/s_j y residual r_tilde,i=r_i/r_scale,i.",
-        "Construir J_tilde como derivada de r_tilde respecto a θ_tilde.",
-        "Resolver (J_tildeᵀJ_tilde+λI)Δθ_tilde=−J_tildeᵀr_tilde por solver estable.",
-        "Formar candidato θ_candidate=θ+s⊙Δθ_tilde.",
-        "Evaluar residual candidato y comparar coste real con predicción; aceptar o rechazar según regla declarada.",
-        "Actualizar λ según regla de aceptación configurada; detener por tolerancia, gradiente, paso o máximo de iteraciones."
+        "Calcular residual r y jacobiano J.",
+        "Formar g=Jᵀr y aproximación H=JᵀJ.",
+        "Construir D diagonal con escala segura.",
+        "Resolver (H+λDᵀD)δ=-g.",
+        "Evaluar candidato y razón de reducción ρ.",
+        "Aceptar si ρ>0; reducir λ; si no, rechazar y aumentar λ."
       ],
-      "pseudocode": "function levenbergMarquardt(r, J, theta, scales, lambda, policy):\n  require lambda >= 0 and positive(scales.parameter,scales.residual)\n  rt = normalizeResidual(r(theta), scales.residual)\n  Jt = normalizedJacobian(J(theta), scales.parameter, scales.residual)\n  M = transpose(Jt)*Jt + lambda*identity()\n  rhs = -transpose(Jt)*rt\n  deltaT = solveSPDOrReport(M,rhs)\n  candidate = theta + scales.parameter * deltaT\n  actual = cost(r(candidate))\n  predicted = predictedReduction(rt,Jt,deltaT,lambda)\n  decision = policy.accept(actual,predicted)\n  return policy.update(theta,candidate,lambda,decision,actual,predicted)",
-      "invariants": [
-        "λ y J_tilde son adimensionales en la formulación normalizada.",
-        "s_j·Δθ_tilde,j recupera unidad de θ_j.",
-        "No sumar JᵀJ de parámetros heterogéneos a λI sin normalización."
+      "pseudocode": "INPUT theta, residual r, jacobian J, lambda\nrepeat:\n    r0=r(theta); J0=J(theta)\n    H=J0ᵀ*J0; g=J0ᵀ*r0\n    D=diag(max(diag(H),scaleFloor))\n    delta=solve(H+lambda*D,-g)\n    rho=(cost(theta)-cost(theta+delta))/predicted_reduction(delta)\n    IF rho>0: theta=theta+delta; lambda=lambda*max(1/3,1-(2*rho-1)^3)\n    ELSE: lambda=lambda*nu; nu=2*nu\nUNTIL norm(g)<=tol OR norm(delta)<=stepTol OR maxIter\nRETURN theta, status",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "linear_residual",
+            "r(θ)=Aθ-b full-rank",
+            "one GN-like accepted step reduces residual",
+            1e-8
+          ],
+          [
+            "zero_gradient",
+            "Jᵀr=0",
+            "δ≈0",
+            1e-10
+          ],
+          [
+            "rank_deficient",
+            "singular J, λ>0 and D positive",
+            "finite damped step or explicit solver failure",
+            1e-8
+          ]
+        ],
+        "metrics": [
+          "||r||²",
+          "||Jᵀr||",
+          "step norm",
+          "ρ",
+          "λ"
+        ],
+        "acceptance": "Accept only positive actual/predicted reduction; damping prevents singular normal equations when scaled correctly."
+      },
+      "computational_cost": {
+        "time_complexity": "O(mn²+n³) dense",
+        "memory_complexity": "O(mn+n²)",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "Normal equations square condition number; QR/SVD preferable for ill-conditioned problems.",
+        "Damping does not fix a badly parameterized model."
       ],
-      "edge_cases": [
-        "Escala cero o no finita: rechazar.",
-        "Matriz normal singular/mal condicionada: reportar fallo del solver.",
-        "λ<0: rechazar.",
-        "No mejora: rechazar candidato y ajustar λ según política suministrada."
-      ],
-      "complexity": "O(mn²+n³) por iteración densa para m residuos y n parámetros.",
-      "failure_conditions": [
-        "Escalas inválidas",
-        "Sistema lineal no resoluble",
-        "Residual/Jacobiano no finitos",
-        "Política de aceptación no definida"
-      ],
-      "derived_from": [
-        "θ_tilde=(θ−θ_ref)/s; r_tilde=r/r_scale",
-        "min ||r_tilde+J_tildeΔθ_tilde||²+λ||Δθ_tilde||²",
-        "(J_tildeᵀJ_tilde+λI)Δθ_tilde=−J_tildeᵀr_tilde",
-        "θ_next=θ+s⊙Δθ_tilde"
-      ]
+      "convergence_stability": "Trust-region ratio controls acceptance; use Cholesky only when SPD and QR/SVD fallback otherwise.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:6",
       "name": "Newton method",
-      "inputs": [
-        "f y f' evaluables",
-        "x inicial",
-        "tolerancias y máximo de iteraciones"
+      "use": "resolver ecuaciones no lineales",
+      "source_equations": [
+        "x_{k+1}=x_k-f(x_k)/f′(x_k)"
       ],
-      "outputs": [
-        "raíz aproximada y estado de convergencia"
+      "mathematical_derivation": "Aplicar Taylor de primer orden alrededor de x_k: f(x_k+δ)≈f(x_k)+f′(x_k)δ. Imponer f≈0 produce δ=-f/f′ y la iteración de Newton. Si la raíz es simple y x0 está suficientemente cerca, la convergencia es localmente cuadrática; cerca de f′=0 el paso puede divergir y requiere salvaguarda.",
+      "variables_units": {
+        "explicit": "x [X]; f(x) [F]; f′ [F/X]; δ=-f/f′ [X].",
+        "all_symbols": "tol_f [F]; tol_x [X]; maxIter entero; derivada evaluada en x_k."
+      },
+      "dimensional_analysis": {
+        "equation": "x_{k+1}=x_k-f(x_k)/f′(x_k)",
+        "term_dimensions": {
+          "f/f′": "F/(F/X)=X",
+          "x+δ": "X"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "f dos veces diferenciable cerca de raíz simple; f′ no nula en iteraciones aceptadas."
       ],
-      "preconditions": [
-        "f diferenciable y f'(x) no nula en iteraciones; unidades f/f' compatibles con x.",
-        "Tolerancias positivas y finitas."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "Rechazar |f′|≤derivativeFloor; acotar paso o usar bracket/híbrido.",
+        "initial_conditions": "x0 finito.",
+        "boundary_conditions": "Intervalo permitido [xmin,xmax] opcional; no salir del intervalo si hay bracket."
+      },
       "algorithm_steps": [
-        "Validar x inicial y criterios de parada.",
-        "Evaluar f(x), f'(x); rechazar valores no finitos.",
-        "Si |f(x)| cumple tolerancia, devolver convergencia.",
-        "Si f'(x)=0 o está bajo umbral declarado, devolver fallo de derivada.",
-        "Calcular Δ=−f(x)/f'(x), x_next=x+Δ.",
-        "Evaluar x_next; si no finito, fallar; en otro caso iterar.",
-        "Al agotar iteraciones devolver último x con estado MAX_ITERATIONS."
+        "Evaluar f y f′.",
+        "Si |f|≤tol_f, converger.",
+        "Calcular paso Newton.",
+        "Aplicar limitación/búsqueda lineal si el paso sale del dominio o no reduce |f|.",
+        "Actualizar x y comprobar paso y residuo."
       ],
-      "pseudocode": "function newton(f, df, x, stop):\n  require stop.maxIterations > 0 and stop.tolerance > 0\n  for i in 0..stop.maxIterations-1:\n    fx = f(x); dfx = df(x)\n    require finite(fx,dfx)\n    if abs(fx) <= stop.tolerance: return {root:x,status:'CONVERGED'}\n    if abs(dfx) <= stop.derivativeFloor: return {root:x,status:'ZERO_DERIVATIVE'}\n    delta = -fx/dfx\n    next = x + delta\n    require finite(next)\n    if abs(delta) <= stop.stepTolerance: return {root:next,status:'STEP_SMALL'}\n    x = next\n  return {root:x,status:'MAX_ITERATIONS'}",
-      "invariants": [
-        "f/f' tiene unidad x.",
-        "Cada iteración preserva unidad de x.",
-        "Convergencia cuadrática solo cerca de raíz simple y bajo hipótesis regulares."
+      "pseudocode": "INPUT f, df, x, tolF, tolX, maxIter\nFOR k=1..maxIter:\n    fx=f(x); dfx=df(x)\n    IF abs(fx)<=tolF: RETURN x,converged\n    IF abs(dfx)<=derivativeFloor: FAIL derivative_zero\n    step=-fx/dfx\n    alpha=1\n    WHILE x+alpha*step outside_domain OR abs(f(x+alpha*step))>=abs(fx): alpha=alpha/2\n    xNew=x+alpha*step\n    IF abs(xNew-x)<=tolX AND abs(f(xNew))<=tolF: RETURN xNew,converged\n    x=xNew\nRETURN x,max_iterations",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "sqrt2",
+            "f=x²-2,x0=1.5",
+            "x≈1.41421356237",
+            1e-10
+          ],
+          [
+            "exact_root",
+            "f=x-3,x0=3",
+            "x=3 in zero iterations",
+            1e-12
+          ],
+          [
+            "zero_derivative",
+            "f=x²+1,x0=0",
+            "explicit derivative_zero failure",
+            0
+          ]
+        ],
+        "metrics": [
+          "|f(x)|",
+          "|Δx|",
+          "iteration count"
+        ],
+        "acceptance": "Simple root: quadratic local convergence; safeguarded step must reduce residual."
+      },
+      "computational_cost": {
+        "time_complexity": "O(iteraciones·cost(f, f′))",
+        "memory_complexity": "O(1) para escalar",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "No garantiza convergencia desde cualquier x0.",
+        "Raíces múltiples reducen orden de convergencia."
       ],
-      "edge_cases": [
-        "f'=0 o bajo umbral: no dividir.",
-        "Raíz múltiple puede degradar convergencia.",
-        "Semilla fuera de región de convergencia: no garantizar convergencia.",
-        "Máximo de iteraciones: informar no convergencia."
-      ],
-      "complexity": "O(C_f+C_df) por iteración.",
-      "failure_conditions": [
-        "Derivada nula/casi nula",
-        "Evaluaciones no finitas",
-        "Criterios de parada inválidos"
-      ],
-      "derived_from": [
-        "f(x+Δ)≈f(x)+f'(x)Δ",
-        "Δ=−f(x)/f'(x)",
-        "x_next=x−f(x)/f'(x)"
-      ]
+      "convergence_stability": "Requiere raíz simple y punto inicial en región de atracción; usar híbrido con bisección para robustez.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:7",
       "name": "Bisection",
-      "inputs": [
-        "f continua en [a,b]",
-        "a,b con f(a)f(b)≤0",
-        "tolerancia de intervalo y máximo de iteraciones"
+      "use": "raíces robustas en intervalos",
+      "source_equations": [
+        "m_k=(a_k+b_k)/2; elegir [a_k,m_k] si f(a_k)f(m_k)≤0, en otro caso [m_k,b_k]"
       ],
-      "outputs": [
-        "intervalo acotado y punto medio"
+      "mathematical_derivation": "Para f continua en [a,b] y f(a)f(b)<0, el teorema del valor intermedio garantiza al menos una raíz. El punto medio divide el intervalo por dos; tras n iteraciones la longitud es (b-a)/2ⁿ y el error del punto medio respecto de alguna raíz encerrada es ≤(b-a)/2ⁿ⁺¹.",
+      "variables_units": {
+        "explicit": "a,b,m,x* [X]; f [F]; n entero; ε_x [X].",
+        "all_symbols": "f continua; bracket con cambio de signo; si f(a)=0 o f(b)=0 devolver extremo."
+      },
+      "dimensional_analysis": {
+        "equation": "m_k=(a_k+b_k)/2; elegir [a_k,m_k] si f(a_k)f(m_k)≤0, en otro caso [m_k,b_k]",
+        "term_dimensions": {
+          "(a+b)/2": "[X]",
+          "f(a)f(m)": "[F²], solo se usa el signo"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Continuidad de f en el intervalo."
       ],
-      "preconditions": [
-        "a<b; f(a),f(b) finitos; continuidad declarada en intervalo.",
-        "Las unidades de a,b,m coinciden."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "a<b; signos opuestos o extremo raíz; tolerancia positiva.",
+        "initial_conditions": "No requiere estado previo.",
+        "boundary_conditions": "Mantener raíz encerrada; no extrapolar fuera del bracket."
+      },
       "algorithm_steps": [
-        "Evaluar f(a), f(b) y validar cambio de signo o raíz exacta en extremo.",
-        "Si f(a)=0 o f(b)=0 devolver ese extremo.",
-        "Mientras ancho exceda tolerancia y no se alcance límite, calcular m=(a+b)/2.",
-        "Evaluar f(m); si es cero devolver m.",
-        "Conservar [a,m] cuando f(a) y f(m) tienen signos opuestos; en caso contrario conservar [m,b].",
-        "Devolver punto medio final, intervalo y estado."
+        "Validar a<b y cambio de signo.",
+        "Comprobar extremos.",
+        "Calcular m=(a+b)/2.",
+        "Si |f(m)|≤tol_f o ancho≤tol_x, devolver m.",
+        "Conservar subintervalo cuyo producto de extremos sea negativo.",
+        "Repetir hasta maxIter."
       ],
-      "pseudocode": "function bisection(f,a,b,tol,maxIterations):\n  require finite(a,b,tol) and a < b and tol > 0\n  fa=f(a); fb=f(b)\n  require finite(fa,fb) and fa*fb <= 0\n  if fa == 0: return {root:a,status:'ENDPOINT'}\n  if fb == 0: return {root:b,status:'ENDPOINT'}\n  for i in 0..maxIterations-1:\n    if (b-a)/2 <= tol: return {root:(a+b)/2,interval:[a,b],status:'CONVERGED'}\n    m=(a+b)/2; fm=f(m)\n    require finite(fm)\n    if fm == 0: return {root:m,status:'EXACT'}\n    if sign(fa) != sign(fm): b=m; fb=fm\n    else: a=m; fa=fm\n  return {root:(a+b)/2,interval:[a,b],status:'MAX_ITERATIONS'}",
-      "invariants": [
-        "La raíz permanece encerrada en el intervalo bajo continuidad y cambio de signo.",
-        "El ancho se reduce por factor 2 por iteración.",
-        "El producto de signos es adimensional; f(a), f(b) deben compartir unidad."
+      "pseudocode": "INPUT f,a,b,tolX,tolF,maxIter\nASSERT a<b\nfa=f(a); fb=f(b)\nIF fa==0 RETURN a; IF fb==0 RETURN b\nASSERT sign(fa)!=sign(fb)\nFOR k=1..maxIter:\n    m=a+(b-a)/2; fm=f(m)\n    IF abs(fm)<=tolF OR (b-a)/2<=tolX: RETURN m,converged\n    IF sign(fa)!=sign(fm): b=m; fb=fm\n    ELSE: a=m; fa=fm\nRETURN (a+b)/2,max_iterations",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "sqrt2",
+            "f=x²-2,[1,2]",
+            "root in bracket; error bounded by half-width",
+            1e-8
+          ],
+          [
+            "endpoint_root",
+            "f=x-1,[1,3]",
+            "return a=1 immediately",
+            0
+          ],
+          [
+            "no_bracket",
+            "f=x²+1,[-1,1]",
+            "reject invalid bracket",
+            0
+          ]
+        ],
+        "metrics": [
+          "bracket width",
+          "|f(mid)|",
+          "iterations"
+        ],
+        "acceptance": "Guaranteed linear interval contraction by factor 1/2 per iteration."
+      },
+      "computational_cost": {
+        "time_complexity": "O(n·cost(f))",
+        "memory_complexity": "O(1)",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "Convergencia lineal, más lenta que Newton.",
+        "Solo detecta raíces con cambio de signo; no detecta raíces pares sin cambio de signo."
       ],
-      "edge_cases": [
-        "Raíz en extremo: devolverla sin iterar.",
-        "Sin cambio de signo y sin extremo cero: rechazar.",
-        "f(m) no finito: fallar.",
-        "Tolerancia no positiva o a≥b: rechazar."
-      ],
-      "complexity": "O(N_f·iterations) tiempo y O(1) memoria.",
-      "failure_conditions": [
-        "No hay bracket válido",
-        "f no continua según hipótesis",
-        "Evaluación no finita",
-        "Máximo de iteraciones"
-      ],
-      "derived_from": [
-        "f(a)f(b)<0",
-        "m=(a+b)/2",
-        "retener subintervalo con cambio de signo",
-        "width_n=(b−a)/2^n"
-      ]
+      "convergence_stability": "Convergencia garantizada si continuidad y bracket válido.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:8",
       "name": "Cubic interpolation",
-      "inputs": [
-        "t0,t1,p0,p1,v0,v1",
-        "modo temporal: normalizado o segundos"
+      "use": "curvas de parámetros y animación",
+      "source_equations": [
+        "p(t)=a+bt+ct²+dt³; solve M[a,b,c,d]ᵀ=[p0,p1,v0,v1]ᵀ"
       ],
-      "outputs": [
-        "coeficientes a,b,c,d y evaluador p(t)"
+      "mathematical_derivation": "Para un segmento normalizado s∈[0,1], imponer p(0)=p0, p(1)=p1, p′(0)=m0, p′(1)=m1. De las condiciones a=p0, b=m0, c=3(p1-p0)-2m0-m1 y d=2(p0-p1)+m0+m1. Si las tangentes se dan por segundo, convertirlas a derivadas respecto de s multiplicando por duración T.",
+      "variables_units": {
+        "explicit": "s adimensional; p,p0,p1 [unidad posición]; m0,m1 [posición por unidad s]; si tangentes por tiempo, [posición/s] y m_s=T·m_t.",
+        "all_symbols": "T [s]; s=clamp((t-t0)/T,0,1)."
+      },
+      "dimensional_analysis": {
+        "equation": "p(t)=a+bt+ct²+dt³; solve M[a,b,c,d]ᵀ=[p0,p1,v0,v1]ᵀ",
+        "term_dimensions": {
+          "a,b,c,d": "[posición]",
+          "p′(s)": "[posición]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Interpolación de un segmento con extremos y tangentes prescritos."
       ],
-      "preconditions": [
-        "t0≠t1; valores y pendientes finitos.",
-        "Elegir una sola convención dimensional para t antes de resolver."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "T>0; s∈[0,1]; declarar tangentes como derivadas normalizadas o temporales, nunca mezclarlas.",
+        "initial_conditions": "p0,p1,m0,m1 dados.",
+        "boundary_conditions": "Clampear extremos o permitir extrapolación explícita."
+      },
       "algorithm_steps": [
-        "Validar t0≠t1 y unidades de p0,p1,v0,v1.",
-        "Construir sistema lineal de cuatro ecuaciones p(t0)=p0, p(t1)=p1, p'(t0)=v0, p'(t1)=v1.",
-        "Resolver sistema 4×4 con solver estable; no fijar coeficientes por heurística.",
-        "Verificar residuos de las cuatro condiciones dentro de tolerancia numérica recibida.",
-        "Evaluar p(t)=a+bt+ct²+dt³ y p'(t) según coeficientes.",
-        "Devolver coeficientes, convención temporal y verificación."
+        "Normalizar tiempo a s.",
+        "Convertir tangentes temporales a tangentes respecto de s.",
+        "Calcular coeficientes a,b,c,d.",
+        "Evaluar polinomio y, si se necesita, derivadas.",
+        "Devolver p(s), velocidad temporal p′(s)/T."
       ],
-      "pseudocode": "function cubicHermiteCoefficients(t0,t1,p0,p1,v0,v1,solver,tolerance):\n  require finite(t0,t1,p0,p1,v0,v1) and t0 != t1\n  M = [[1,t0,t0^2,t0^3],[1,t1,t1^2,t1^3],[0,1,2*t0,3*t0^2],[0,1,2*t1,3*t1^2]]\n  rhs = [p0,p1,v0,v1]\n  coeff = solver.solve(M,rhs)\n  require finite(coeff)\n  require norm(M*coeff-rhs) <= tolerance\n  return {a:coeff[0],b:coeff[1],c:coeff[2],d:coeff[3]}",
-      "invariants": [
-        "Si t está en segundos, coeficiente de t^k tiene unidad p·s⁻ᵏ.",
-        "Si t está normalizado, t es adimensional y los coeficientes tienen unidad p.",
-        "Las cuatro condiciones de frontera se satisfacen dentro de tolerancia."
+      "pseudocode": "INPUT p0,p1,tangent0,tangent1,t,t0,t1\nASSERT t1>t0\nT=t1-t0; s=clamp((t-t0)/T,0,1)\nm0=T*tangent0; m1=T*tangent1\na=p0; b=m0\nc=3*(p1-p0)-2*m0-m1\nd=2*(p0-p1)+m0+m1\np=a+b*s+c*s*s+d*s*s*s\ndpds=b+2*c*s+3*d*s*s\nRETURN p, dpds/T",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "endpoints",
+            "s=0 and s=1",
+            "p(0)=p0; p(1)=p1",
+            1e-12
+          ],
+          [
+            "tangent",
+            "derivatives prescribed",
+            "p′(0)=m0; p′(1)=m1",
+            1e-12
+          ],
+          [
+            "zero_duration",
+            "T=0",
+            "reject",
+            0
+          ]
+        ],
+        "metrics": [
+          "endpoint position error",
+          "endpoint tangent error",
+          "continuity across segments"
+        ],
+        "acceptance": "Exact endpoint and tangent constraints up to floating-point roundoff."
+      },
+      "computational_cost": {
+        "time_complexity": "O(1) por muestra",
+        "memory_complexity": "O(1) coeficientes por componente",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "Tangentes incompatibles pueden producir overshoot.",
+        "No es monotone-preserving sin limitador de tangentes."
       ],
-      "edge_cases": [
-        "t0=t1: sistema degenerado; rechazar.",
-        "Sistema mal condicionado: reportar y no inventar solución.",
-        "Tangentes excesivas pueden producir overshoot; no se afirma monotonicidad."
-      ],
-      "complexity": "O(1) para sistema 4×4.",
-      "failure_conditions": [
-        "Extremos coincidentes",
-        "Datos no finitos",
-        "Solver singular/mal condicionado",
-        "Residuos superan tolerancia"
-      ],
-      "derived_from": [
-        "p(t)=a+bt+ct²+dt³",
-        "p(t0)=p0; p(t1)=p1",
-        "p'(t0)=v0; p'(t1)=v1"
-      ]
+      "convergence_stability": "No solver iterativo; continuidad C1 entre segmentos si tangentes compartidas.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:9",
       "name": "Fourier series",
-      "inputs": [
-        "muestras periódicas o función integrable en periodo T",
-        "número de armónicos N",
-        "frecuencia angular ω=2π/T"
+      "use": "señales periódicas, olas y patrones",
+      "source_equations": [
+        "f(t)=a0/2+Σ_{n=1}^N[a_n cos(nω0t)+b_n sin(nω0t)]"
       ],
-      "outputs": [
-        "a0, an, bn y reconstrucción truncada"
+      "mathematical_derivation": "Para señal periódica de periodo T y ω0=2π/T, proyectar f sobre la base ortogonal {1,cos(nω0t),sin(nω0t)} en [0,T]. Los coeficientes son a0=(2/T)∫f dt, a_n=(2/T)∫f cos(nω0t)dt y b_n=(2/T)∫f sin(nω0t)dt. La truncación a N armónicos aproxima la señal y puede oscilar cerca de discontinuidades (fenómeno de Gibbs).",
+      "variables_units": {
+        "explicit": "t,T [s]; ω0 [rad/s]; f,a_n,b_n [unidad señal]; n,N enteros adimensionales.",
+        "all_symbols": "a0 se presenta como promedio multiplicado por 2; reconstrucción usa a0/2."
+      },
+      "dimensional_analysis": {
+        "equation": "f(t)=a0/2+Σ_{n=1}^N[a_n cos(nω0t)+b_n sin(nω0t)]",
+        "term_dimensions": {
+          "nω0t": "adimensional",
+          "cada sumando": "[unidad señal]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Señal periódica e integrable; periodo conocido; N finito."
       ],
-      "preconditions": [
-        "T>0; señal integrable y periodo definido.",
-        "La convención de a0 (media o término constante) debe seguir la ecuación usada."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "T>0; N≥0; muestras uniformes para estimación FFT; evitar confundir Hz con rad/s.",
+        "initial_conditions": "Coeficientes o muestras completas para estimarlos.",
+        "boundary_conditions": "Periodo [0,T]; convención de continuidad periódica."
+      },
       "algorithm_steps": [
-        "Validar periodo, señal y número de armónicos.",
-        "Calcular ω=2π/T.",
-        "Para cada n proyectar señal sobre cos(nωt) y sin(nωt) usando integrales o cuadratura declarada.",
-        "Mantener coeficientes con unidad de la señal.",
-        "Reconstruir suma truncada con los coeficientes obtenidos.",
-        "Registrar ventana, cuadratura y número de armónicos."
+        "Calcular ω0=2π/T.",
+        "Para cada muestra calcular fase nω0t.",
+        "Acumular cosenos y senos ponderados.",
+        "Normalizar coeficientes por periodo o por número de muestras.",
+        "Reconstruir con suma truncada."
       ],
-      "pseudocode": "function fourierSeries(signal, period, harmonics, integrate):\n  require finite(period) and period > 0 and harmonics >= 0\n  omega = 2*pi/period\n  a0 = (1/period) * integrate(signal,0,period)\n  for n in 1..harmonics:\n    an = (2/period) * integrate(t => signal(t)*cos(n*omega*t),0,period)\n    bn = (2/period) * integrate(t => signal(t)*sin(n*omega*t),0,period)\n  return {a0,an,bn,omega}",
-      "invariants": [
-        "ωt es adimensional; an,bn,a0 tienen unidad de señal.",
-        "La base seno/coseno es ortogonal en periodo bajo hipótesis establecidas.",
-        "La suma truncada no implica igualdad exacta para señal arbitraria."
+      "pseudocode": "INPUT t, a0, coeffA[1..N], coeffB[1..N], omega0\nvalue=a0/2\nFOR n=1..N:\n    phase=n*omega0*t\n    value += coeffA[n]*cos(phase)+coeffB[n]*sin(phase)\nRETURN value",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "constant",
+            "a0=4, all other coefficients=0",
+            "f(t)=2 for all t",
+            1e-12
+          ],
+          [
+            "single_sine",
+            "b1=1, ω0=2π",
+            "f(0)=0; f(1/4)=1",
+            1e-12
+          ],
+          [
+            "periodicity",
+            "arbitrary coefficients",
+            "f(t)=f(t+T)",
+            1e-10
+          ]
+        ],
+        "metrics": [
+          "reconstruction error",
+          "harmonic energy",
+          "periodicity error"
+        ],
+        "acceptance": "Parseval consistency for complete orthogonal sampling; truncation error reported separately."
+      },
+      "computational_cost": {
+        "time_complexity": "O(N) por evaluación; O(NM) para M muestras",
+        "memory_complexity": "O(N)",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "Discontinuidades producen ringing; aliasing si se muestrea por debajo de Nyquist.",
+        "La fase debe usar radianes."
       ],
-      "edge_cases": [
-        "T≤0: rechazar.",
-        "Discontinuidades: convergencia puntual y fenómeno de Gibbs.",
-        "Muestreo insuficiente o no uniforme: esta proyección continua requiere cuadratura apropiada."
-      ],
-      "complexity": "O(N·C_integral); para M muestras uniformes O(NM).",
-      "failure_conditions": [
-        "Periodo inválido",
-        "Señal no integrable/no finita",
-        "Cuadratura no definida"
-      ],
-      "derived_from": [
-        "f(t)=a0+Σ(an cos nωt+bn sin nωt)",
-        "an=(2/T)∫f cos",
-        "bn=(2/T)∫f sin",
-        "ω=2π/T"
-      ]
+      "convergence_stability": "No iteración; precisión depende de truncación, muestreo y regularidad de la señal.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:10",
       "name": "FFT",
-      "inputs": [
-        "N muestras x_n",
-        "N potencia de dos para radix-2",
-        "convención de signo y normalización"
+      "use": "análisis espectral y audio-reactividad",
+      "source_equations": [
+        "X_k=Σ_{n=0}^{N-1}x_n exp(-i2πkn/N); x_n=(1/N)Σ_{k=0}^{N-1}X_k exp(i2πkn/N)"
       ],
-      "outputs": [
-        "espectro complejo X_k"
+      "mathematical_derivation": "La DFT resulta de proyectar N muestras sobre raíces de unidad complejas. La FFT Cooley–Tukey factoriza N=r·m y separa índices pares/impares (radix-2: N=2M), reduciendo la evaluación directa O(N²) a O(N log₂N). La convención aquí es transformada directa sin normalizar e inversa con factor 1/N.",
+      "variables_units": {
+        "explicit": "x_n [unidad señal]; X_k [unidad señal·muestra]; N,n,k adimensionales; Δt [s]; f_k=k/(NΔt) [Hz].",
+        "all_symbols": "Para radix-2, N potencia de 2; otra longitud requiere otro radix o padding que cambia resolución."
+      },
+      "dimensional_analysis": {
+        "equation": "X_k=Σ_{n=0}^{N-1}x_n exp(-i2πkn/N); x_n=(1/N)Σ_{k=0}^{N-1}X_k exp(i2πkn/N)",
+        "term_dimensions": {
+          "exponente": "adimensional",
+          "X_k": "[x]·muestras",
+          "IFFT(X)": "[x]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Muestras uniformes; señal discreta; convención de normalización declarada."
       ],
-      "preconditions": [
-        "N≥1; radix-2 exige N potencia de dos.",
-        "Muestras finitas y equiespaciadas para interpretación espectral estándar."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "N≥1; entradas finitas; radix-2 requiere N=2^m.",
+        "initial_conditions": "No requiere estado inicial.",
+        "boundary_conditions": "La señal se interpreta como un bloque periódico; ventana si hay fuga espectral."
+      },
       "algorithm_steps": [
-        "Validar N y convención DFT.",
-        "Si N=1 devolver la única muestra.",
-        "Separar muestras pares e impares.",
-        "Calcular recursivamente E y O para ambas subsecuencias.",
-        "Combinar X_k=E_k+W_N^k O_k y X_(k+N/2)=E_k−W_N^k O_k.",
-        "Aplicar normalización solo según convención declarada y verificar finitud."
+        "Validar N y longitud.",
+        "Aplicar permutación bit-reversal.",
+        "Ejecutar mariposas por etapas con twiddle W_N^j.",
+        "Devolver espectro complejo.",
+        "Para IFFT conjugar, aplicar FFT, conjugar y dividir por N."
       ],
-      "pseudocode": "function fftRadix2(x):\n  N = length(x)\n  require N >= 1 and isPowerOfTwo(N) and finite(x)\n  if N == 1: return copy(x)\n  even = fftRadix2(x[0:N:2])\n  odd = fftRadix2(x[1:N:2])\n  X = zerosComplex(N)\n  for k in 0..N/2-1:\n    W = exp(-i*2*pi*k/N)\n    X[k] = even[k] + W*odd[k]\n    X[k+N/2] = even[k] - W*odd[k]\n  return X",
-      "invariants": [
-        "X_k tiene la misma unidad de amplitud que x_n para DFT sin factor Δt.",
-        "Los índices y N son conteos adimensionales.",
-        "El algoritmo conserva la definición DFT dada la convención de signo."
+      "pseudocode": "INPUT x[N], inverse=false\nASSERT N is power_of_two\na=bitReverseCopy(x)\nFOR size=2; size<=N; size*=2:\n    half=size/2; W=exp((inverse?+1:-1)*i*2π/size)\n    FOR base=0; base<N; base+=size:\n        w=1\n        FOR j=0..half-1:\n            u=a[base+j]; v=w*a[base+j+half]\n            a[base+j]=u+v; a[base+j+half]=u-v\n            w=w*W\nIF inverse: a=a/N\nRETURN a",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "impulse",
+            "x=[1,0,0,0]",
+            "X=[1,1,1,1]",
+            1e-12
+          ],
+          [
+            "constant",
+            "x=[1,1,1,1]",
+            "X0=4 and other bins=0",
+            1e-12
+          ],
+          [
+            "roundtrip",
+            "deterministic complex vector length 8",
+            "IFFT(FFT(x))=x",
+            1e-10
+          ]
+        ],
+        "metrics": [
+          "round-trip max error",
+          "Parseval energy error",
+          "Hermitian symmetry for real input"
+        ],
+        "acceptance": "Round-trip and Parseval within floating-point tolerance; correct normalization."
+      },
+      "computational_cost": {
+        "time_complexity": "O(N log₂N)",
+        "memory_complexity": "O(N) adicional",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "El padding con ceros no añade información y cambia el muestreo frecuencial.",
+        "Ventana y leakage deben tratarse antes de interpretar amplitudes."
       ],
-      "edge_cases": [
-        "N no potencia de dos: rechazar esta variante radix-2 o usar algoritmo distinto documentado.",
-        "N=1: identidad.",
-        "Entrada no finita: rechazar.",
-        "La interpretación de frecuencia requiere frecuencia de muestreo conocida."
-      ],
-      "complexity": "O(N log₂N) tiempo y O(N) memoria.",
-      "failure_conditions": [
-        "N inválido",
-        "N no potencia de dos",
-        "Muestras no finitas"
-      ],
-      "derived_from": [
-        "X_k=Σx_n e^(−i2πkn/N)",
-        "split even/odd",
-        "X_k=E_k+W_N^kO_k; X_(k+N/2)=E_k−W_N^kO_k"
-      ]
+      "convergence_stability": "Algoritmo estable en aritmética flotante para tamaños moderados; redondeo crece con etapas log₂N.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:11",
       "name": "Wavelet transform",
-      "inputs": [
-        "señal f(t)",
-        "wavelet ψ de energía finita y admisible",
-        "escalas a≠0 y traslaciones b"
+      "use": "señales multiescala y detalle transitorio",
+      "source_equations": [
+        "Wψ(a,b)=1/√|a| ∫ f(t) ψ*((t-b)/a) dt"
       ],
-      "outputs": [
-        "coeficientes W(a,b)"
+      "mathematical_derivation": "La CWT mide correlación de f con una wavelet trasladada y escalada. Sustituir τ=(t-b)/a muestra el factor de normalización |a|^{-1/2}, que mantiene constante la energía L² de la wavelet bajo escala. Para discretización, aproximar la integral por suma ponderada con Δt y declarar la normalización usada.",
+      "variables_units": {
+        "explicit": "t,b,a [s] para señal temporal; f [U]; ψ adimensional si L² normalizada; W [U·√s] bajo esta convención.",
+        "all_symbols": "a≠0; normalmente a>0; b traslación; ψ debe tener energía finita y media cero."
+      },
+      "dimensional_analysis": {
+        "equation": "Wψ(a,b)=1/√|a| ∫ f(t) ψ*((t-b)/a) dt",
+        "term_dimensions": {
+          "(t-b)/a": "adimensional",
+          "W": "[U]·√s bajo integral temporal y normalización 1/√a"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Wavelet admisible; muestreo suficiente; escala y unidades temporales fijadas."
       ],
-      "preconditions": [
-        "Convención L²: ψ_a,b(t)=1/√|a| ψ((t−b)/a).",
-        "a y b tienen unidad temporal cuando t se mide en segundos; la integral y normalización usan la misma convención."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "a>0; Δt>0; soporte finito de integración; manejar borde con padding/periodización declarado.",
+        "initial_conditions": "No requiere estado inicial.",
+        "boundary_conditions": "El cono de influencia delimita resultados afectados por bordes."
+      },
       "algorithm_steps": [
-        "Validar wavelet, soporte/integrabilidad, a≠0 y escalas/traslaciones.",
-        "Para cada par (a,b) formar ψ_a,b(t) con normalización 1/√|a|.",
-        "Calcular W(a,b)=∫f(t)ψ*_a,b(t)dt mediante cuadratura declarada.",
-        "Comprobar convergencia y finitud de la integral.",
-        "Registrar convención de escala, conjugación compleja y cuadratura."
+        "Elegir wavelet ψ y escalas a.",
+        "Para cada (a,b), recorrer muestras del soporte.",
+        "Evaluar ψ*((t_n-b)/a) y acumular f_n·ψ*·Δt.",
+        "Multiplicar por 1/√a.",
+        "Marcar coeficientes dentro de zona de borde/cone of influence."
       ],
-      "pseudocode": "function continuousWaveletTransform(signal, psi, scales, shifts, integrate):\n  require all(scales != 0) and finite(scales,shifts)\n  for a in scales:\n    for b in shifts:\n      coefficient = integrate(t => signal(t)*conjugate(psi((t-b)/a))/sqrt(abs(a)), domain)\n      require finite(coefficient)\n      W[a,b] = coefficient\n  return W",
-      "invariants": [
-        "Con normalización L² y a temporal, ψ_a,b tiene unidad T⁻¹/².",
-        "W tiene unidad señal·T¹/².",
-        "La convención de escala y medida no se cambia entre coeficientes."
+      "pseudocode": "INPUT samples f[n], dt, scales[], shifts[], wavelet psi\nFOR a in scales: ASSERT a>0\n  FOR b in shifts:\n    sum=0\n    FOR n in support(a,b): sum += f[n]*conj(psi((n*dt-b)/a))*dt\n    W[a,b]=sum/sqrt(a)\nRETURN W, edgeMask",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "zero_signal",
+            "f[n]=0",
+            "all coefficients zero",
+            1e-12
+          ],
+          [
+            "constant_signal",
+            "constant f and admissible zero-mean wavelet, interior shifts",
+            "coefficients approximately zero",
+            0.000001
+          ],
+          [
+            "scale_energy",
+            "scaled wavelet",
+            "L2 norm of normalized wavelet invariant",
+            1e-8
+          ]
+        ],
+        "metrics": [
+          "coefficient magnitude",
+          "wavelet energy",
+          "edge mask"
+        ],
+        "acceptance": "Check normalization and admissibility; compare discrete coefficients against analytic test signal."
+      },
+      "computational_cost": {
+        "time_complexity": "O(S·B·L) para escalas S, traslaciones B y soporte L",
+        "memory_complexity": "O(S·B)",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "La CWT es redundante y costosa; DWT es preferible para compresión.",
+        "La convención de unidades depende de wavelet y normalización."
       ],
-      "edge_cases": [
-        "a=0: rechazar.",
-        "Wavelet no admisible: análisis puede calcularse pero reconstrucción no queda garantizada.",
-        "Ventana finita: documentar efectos de borde.",
-        "Escalas no finitas: rechazar."
-      ],
-      "complexity": "O(N_a·N_b·C_integral); depende de cuadratura y soporte.",
-      "failure_conditions": [
-        "Escala nula",
-        "Wavelet no integrable",
-        "Cuadratura no convergente",
-        "Coeficientes no finitos"
-      ],
-      "derived_from": [
-        "ψ_a,b(t)=1/√|a| ψ((t−b)/a)",
-        "W(a,b)=∫f(t)ψ*_{a,b}(t)dt",
-        "admissibility condition"
-      ]
+      "convergence_stability": "La estabilidad numérica depende del soporte, discretización y wavelet; no interpretar bordes sin máscara.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:12",
       "name": "Monte Carlo sampling",
-      "inputs": [
-        "integrando f(x) y densidad p(x)",
-        "soporte y medida dx",
-        "N muestras y generador aleatorio"
+      "use": "integración, distribución y estimación",
+      "source_equations": [
+        "I=∫Ω f(x)p(x)dx /?; if X~p, E[f(X)]=∫Ω f(x)p(x)dx; Ĩ=(1/N)Σf(X_i)"
       ],
-      "outputs": [
-        "estimador I_hat y estimación de error"
+      "mathematical_derivation": "Por definición de esperanza bajo densidad p normalizada, E[f(X)]=∫f(x)p(x)dx. Las muestras independientes e idénticamente distribuidas dan estimador insesgado Ĩ=N⁻¹Σf(X_i), con varianza Var(f(X))/N y error estándar s/√N. Para integral uniforme sobre Ω, multiplicar la media por volumen |Ω|.",
+      "variables_units": {
+        "explicit": "x [unidad dominio]; p(x) [1/unidad de volumen]; f [U]; Ĩ [U] para esperanza, o [U·volumen] para integral sin normalizar; N adimensional.",
+        "all_symbols": "Muestras IID de p normalizada; semilla y generador registrados."
+      },
+      "dimensional_analysis": {
+        "equation": "I=∫Ω f(x)p(x)dx /?; if X~p, E[f(X)]=∫Ω f(x)p(x)dx; Ĩ=(1/N)Σf(X_i)",
+        "term_dimensions": {
+          "f p dx": "[U]",
+          "sample mean": "[U]",
+          "|Ω|·mean": "[U·volumen]"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "p≥0 e integral p=1; varianza finita para CLT/error estándar."
       ],
-      "preconditions": [
-        "p normalizada, positiva donde f contribuye y muestreo conforme a p.",
-        "Varianza finita; la unidad de p es inversa de la medida integrada."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "N≥1; rechazar muestras fuera del dominio si el sampler no las contempla.",
+        "initial_conditions": "Semilla fija para reproducibilidad.",
+        "boundary_conditions": "Dominio Ω y pdf explícitos; importancia requiere p>0 donde f contribuye."
+      },
       "algorithm_steps": [
-        "Validar N>0 y distribución p normalizada/positiva en soporte relevante.",
-        "Generar x_i independientes según p.",
-        "Evaluar w_i=f(x_i)/p(x_i), verificando finitud.",
-        "Calcular promedio I_hat=(1/N)Σw_i.",
-        "Calcular varianza muestral y error estándar si N>1.",
-        "Registrar semilla/estado del generador para reproducibilidad."
+        "Definir estimando y pdf de muestreo.",
+        "Generar N muestras independientes con semilla.",
+        "Evaluar f(X_i), comprobar finitud.",
+        "Calcular media y varianza muestral.",
+        "Calcular error estándar y, si procede, intervalo de confianza."
       ],
-      "pseudocode": "function monteCarloIntegral(f,p,sample,N,rng):\n  require N > 0 and normalized(p) and finiteVarianceAssumed(p,f)\n  sum = 0; sumSquares = 0\n  for i in 1..N:\n    x = sample(p,rng)\n    px = p(x)\n    require finite(px) and px > 0\n    w = f(x)/px\n    require finite(w)\n    sum += w; sumSquares += w*w\n  estimate = sum/N\n  if N > 1:\n    variance = max(0,(sumSquares - sum*sum/N)/(N-1))\n    standardError = sqrt(variance/N)\n  else: standardError = undefined\n  return {estimate,standardError}",
-      "invariants": [
-        "f/p tiene unidad f·unidad(dx); el promedio conserva unidad de integral.",
-        "N es conteo adimensional.",
-        "El estimador es insesgado bajo hipótesis de soporte y muestreo."
+      "pseudocode": "INPUT f, samplerP, N, seed\n rng=PRNG(seed); sum=0; sum2=0\nFOR i=1..N:\n    x=samplerP(rng); y=f(x); ASSERT finite(y)\n    sum+=y; sum2+=y*y\nmean=sum/N\nvariance=max(0,(sum2-sum*sum/N)/(N-1)) if N>1 else undefined\nse=sqrt(variance/N)\nRETURN mean,se,seed",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "constant_integrand",
+            "f(x)=c",
+            "estimate exactly c for any samples",
+            1e-12
+          ],
+          [
+            "uniform_unit_interval",
+            "f(x)=x, X~U(0,1), large N",
+            "estimate near 0.5 within statistical interval",
+            0.02
+          ],
+          [
+            "reproducibility",
+            "same seed and N",
+            "identical sample sequence and estimate",
+            0
+          ]
+        ],
+        "metrics": [
+          "sample mean",
+          "sample variance",
+          "standard error",
+          "confidence coverage"
+        ],
+        "acceptance": "Statistical rather than deterministic tolerance; report seed, N and confidence interval."
+      },
+      "computational_cost": {
+        "time_complexity": "O(N·cost(f))",
+        "memory_complexity": "O(1) streaming",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "Convergencia O(N^-1/2) lenta; muestras correlacionadas invalidan error estándar IID.",
+        "Colas pesadas pueden dar varianza infinita."
       ],
-      "edge_cases": [
-        "p(x)=0 donde f no es cero: inválido.",
-        "N=0: rechazar; N=1: no estimar error muestral.",
-        "Pesos no finitos: fallar e informar muestra.",
-        "Varianza infinita: error estándar no fiable."
-      ],
-      "complexity": "O(N·C_sample+C_f) y O(1) memoria si se acumula en línea.",
-      "failure_conditions": [
-        "PDF no normalizada o no positiva en soporte",
-        "Muestreo no conforme a p",
-        "Peso no finito",
-        "N inválido"
-      ],
-      "derived_from": [
-        "I=∫f(x)p(x)/p(x)dx",
-        "x_i∼p(x)",
-        "I=E_p[f(x)/p(x)]",
-        "I_hat=(1/N)Σf(x_i)/p(x_i)"
-      ]
+      "convergence_stability": "La estimación es probabilística; no declarar precisión solo por N sin varianza observada.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:13",
       "name": "Blue-noise sampling",
-      "inputs": [
-        "dominio Ω",
-        "distancia mínima r_min>0",
-        "N puntos objetivo o criterio de cobertura",
-        "criterio espectral de baja frecuencia y presupuesto de iteraciones"
+      "use": "muestreo visual uniforme",
+      "source_equations": [
+        "minimize low-frequency spectral energy subject to ||x_i-x_j||≥r_min for i≠j"
       ],
-      "outputs": [
-        "conjunto de puntos con separación mínima y diagnóstico espectral"
+      "mathematical_derivation": "Blue noise no es una ecuación única: se define por distribución espacial con ausencia de agrupamiento de baja frecuencia y separación mínima. La condición hard-core exige distancia entre muestras ≥r_min. Un algoritmo Poisson-disk produce un conjunto maximal aproximado mediante candidatos locales y una rejilla aceleradora; el espectro radial sirve como diagnóstico, no como condición suficiente aislada.",
+      "variables_units": {
+        "explicit": "x_i [m] o coordenadas normalizadas; r_min [m]; k [1/m] número de onda; N adimensional.",
+        "all_symbols": "Dominio Ω, métrica y distancia mínima; radio de rejilla ≤r_min/√d."
+      },
+      "dimensional_analysis": {
+        "equation": "minimize low-frequency spectral energy subject to ||x_i-x_j||≥r_min for i≠j",
+        "term_dimensions": {
+          "||x_i-x_j||": "[m]",
+          "r_min": "[m]",
+          "k·x": "adimensional"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Métrica euclídea y dominio definido; dimensión d fija."
       ],
-      "preconditions": [
-        "Dominio y métrica definidos; puntos finitos dentro de Ω.",
-        "El criterio espectral y el presupuesto de iteraciones se suministran; no hay solución universal."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "r_min>0; dominio acotado; validar vecinos en celdas adyacentes; frontera con política explícita.",
+        "initial_conditions": "Semilla PRNG para repetibilidad.",
+        "boundary_conditions": "Rechazar candidatos fuera de Ω; periodicidad solo si el dominio lo declara."
+      },
       "algorithm_steps": [
-        "Validar dominio, r_min y criterio espectral.",
-        "Inicializar conjunto vacío y generador reproducible.",
-        "Generar candidatos en Ω y aceptar solo si distancia a todo punto aceptado es ≥r_min.",
-        "Evaluar estructura espectral S(k) del conjunto con normalización declarada.",
-        "Si el criterio de baja frecuencia no se cumple, proponer reposición/ajuste de puntos que mantenga separación.",
-        "Detener al cumplir criterio, presupuesto o falta de candidatos; devolver estado y diagnóstico."
+        "Crear rejilla espacial con celdas de tamaño r_min/√d.",
+        "Insertar primera muestra válida.",
+        "Elegir activo y generar candidatos en anillo [r_min,2r_min].",
+        "Comprobar distancia a vecinos de celdas próximas.",
+        "Aceptar candidato si respeta separación; si no, continuar intentos.",
+        "Retirar activo tras k fallos; terminar cuando lista activa vacía."
       ],
-      "pseudocode": "function blueNoiseSample(domain,rMin,targetCount,spectralCriterion,budget,rng):\n  require valid(domain) and rMin > 0 and targetCount > 0 and budget > 0\n  points = []\n  for attempt in 1..budget:\n    candidate = sampleUniform(domain,rng)\n    if all(distance(candidate,p) >= rMin for p in points):\n      points.append(candidate)\n    if length(points) == targetCount: break\n  spectrum = structureFactor(points)\n  status = spectralCriterion(spectrum) ? 'CRITERION_MET' : 'BUDGET_OR_CANDIDATES_EXHAUSTED'\n  return {points,spectrum,status}",
-      "invariants": [
-        "r_min tiene unidad de longitud; k·x es adimensional.",
-        "Los puntos aceptados permanecen en Ω y separados al menos r_min.",
-        "El criterio espectral depende del dominio, densidad y normalización."
+      "pseudocode": "INPUT domain Ω, rMin, attempts k, seed\nASSERT rMin>0 AND k>0\ngrid=emptyGrid(cellSize=rMin/sqrt(d)); active=[]; points=[]\np0=uniformPoint(Ω,rng); insert(p0); active.push(p0)\nWHILE active not empty:\n  i=randomIndex(active); accepted=false\n  REPEAT k times:\n    candidate=annulusSample(active[i],rMin,2*rMin,rng)\n    IF inside(candidate,Ω) AND allNeighborsDistanceAtLeast(candidate,rMin,grid):\n       insert(candidate); active.push(candidate); accepted=true; BREAK\n  IF not accepted: remove active[i]\nRETURN points",
+      "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "separation",
+            "all generated pairs",
+            "minimum pair distance >= rMin",
+            1e-9
+          ],
+          [
+            "domain",
+            "bounded rectangle",
+            "all points inside Ω",
+            0
+          ],
+          [
+            "determinism",
+            "same seed and settings",
+            "same ordered point set",
+            0
+          ]
+        ],
+        "metrics": [
+          "minimum pair distance",
+          "coverage radius",
+          "radial power spectrum",
+          "point count"
+        ],
+        "acceptance": "Hard minimum-distance invariant must pass exactly within geometric tolerance; spectral quality assessed statistically."
+      },
+      "computational_cost": {
+        "time_complexity": "Expected near O(N) with grid; worst case higher",
+        "memory_complexity": "O(N+grid cells)",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "Poisson-disk is one blue-noise approximation, not globally optimal spectrum.",
+        "Boundary and finite-size effects alter spectrum."
       ],
-      "edge_cases": [
-        "Dominio vacío o r_min≤0: rechazar.",
-        "No se puede alcanzar N puntos con r_min dado: devolver conjunto parcial y estado.",
-        "Conjunto pequeño: estimación espectral inestable; marcar diagnóstico insuficiente."
-      ],
-      "complexity": "O(A·N) con comprobación ingenua de A candidatos y N puntos; aceleración espacial queda fuera de esta especificación.",
-      "failure_conditions": [
-        "Dominio inválido",
-        "Criterio espectral ausente",
-        "Presupuesto inválido",
-        "No se alcanza densidad objetivo"
-      ],
-      "derived_from": [
-        "generate Poisson-separated candidates",
-        "S(k)=|Σ_j e^(−ik·x_j)|²/N",
-        "penalize low-frequency S(k)",
-        "accept/reposition points to minimize spectral penalty"
-      ]
+      "convergence_stability": "Termination depends on attempts and domain; verify separation independently after generation.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     },
     {
       "record_key": "D35:14",
       "name": "Integración volumétrica Beer–Lambert",
-      "inputs": [
-        "rayo y paso espacial Δs>0",
-        "σ_t(s), σ_s(s), ρ(s)",
-        "radiancia incidente y fase p normalizada angularmente"
+      "use": "",
+      "source_equations": [
+        "T(s)=exp(−∫_0^s σ_t(x)dx)",
+        "L≈Σ_i T_i σ_s ρ_i p(θ_i)L_i Δs"
       ],
-      "outputs": [
-        "transmisión T y radiancia acumulada"
+      "mathematical_derivation": "La ley diferencial dT/ds=-σ_t(s)T, con T(0)=1, se resuelve separando variables: lnT=-∫σ_t ds y T=exp(-∫σ_t ds). La radiancia dispersada acumulada integra la fuente σ_s L_i atenuada por la transmittancia previa. Para medio homogéneo por tramo Δs, T_step=exp(-σ_tΔs); la opacidad equivalente es α=1-T_step.",
+      "variables_units": {
+        "explicit": "σ_t,σ_s [m⁻¹]; s,D,Δs [m]; T,α [adimensional]; L_i,L [radiancia]; j=σ_sL_i [radiancia/m].",
+        "all_symbols": "σ_t=σ_a+σ_s≥0; albedo σ_s/σ_t∈[0,1] si σ_t>0."
+      },
+      "dimensional_analysis": {
+        "equation": "T(s)=exp(-∫₀ˢ σ_t(l)dl); L=∫₀ᴰ T(s)σ_s(s)L_i(s)ds",
+        "term_dimensions": {
+          "σ_t ds": "m⁻¹·m=1",
+          "T": "1",
+          "σ_s L_i ds": "radiancia"
+        },
+        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
+        "status": "dimensionally_checked_in_manifest"
+      },
+      "assumptions": [
+        "Usar unidades coherentes y entradas finitas.",
+        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
+        "Medio absorbente/dispersivo sin emisión adicional salvo fuente definida; coeficientes no negativos."
       ],
-      "preconditions": [
-        "σ_t≥σ_s≥0; Δs>0; ρ adimensional.",
-        "p tiene unidad sr⁻¹ y se integra a 1 sobre ángulo sólido; fuente direccional usa delta angular coherente.",
-        "La radiancia y coeficientes tienen unidades físicas compatibles."
-      ],
+      "domain_constraints_boundary_conditions": {
+        "constraints": "σ_t≥0; σ_s≥0; Δs>0; evitar dividir por σ_t=0; limitar profundidad de integración.",
+        "initial_conditions": "T(0)=1; L(0)=0.",
+        "boundary_conditions": "Integrar a lo largo del rayo [0,D]; terminar en primer impacto/volumen límite."
+      },
       "algorithm_steps": [
-        "Inicializar T=1 y radiancia acumulada L=0.",
-        "Para cada segmento evaluar σ_t, σ_s, ρ y fuente angular integrada.",
-        "Calcular profundidad óptica τ=σ_t·Δs para coeficientes constantes por segmento.",
-        "Calcular transmisión de segmento Tseg=exp(−τ).",
-        "Acumular contribución ΔL=T·σ_s·ρ·S_angular·Δs con S_angular=∫pL_i dω.",
-        "Actualizar T←T·Tseg.",
-        "Detener si el rayo termina o T es menor que el umbral de terminación suministrado; no inventar ese umbral.",
-        "Devolver L y T con diagnóstico de pasos."
+        "Inicializar T=1 y L=0.",
+        "Dividir rayo en pasos Δs o usar integración adaptativa.",
+        "Evaluar σ_t,σ_s y fuente en el tramo.",
+        "Calcular T_step=exp(-σ_tΔs).",
+        "Acumular L += T·σ_s·L_i·(1-T_step)/σ_t para coeficientes constantes; usar límite Δs cuando σ_t→0.",
+        "Actualizar T*=T_step y terminar si T<epsilon."
       ],
-      "pseudocode": "function integrateBeerLambert(segments, angularSource, stopThreshold):\n  T = 1; L = 0\n  for segment in segments:\n    require segment.ds > 0 and segment.sigmaT >= segment.sigmaS >= 0\n    S = angularSource.integratePhase(segment)  # integral over solid angle\n    tau = segment.sigmaT * segment.ds\n    Tseg = exp(-tau)\n    L += T * segment.sigmaS * segment.rho * S * segment.ds\n    T *= Tseg\n    if stopThreshold is defined and T <= stopThreshold: break\n  require finite(L,T)\n  return {radiance:L,transmittance:T}",
-      "invariants": [
-        "σ_tΔs y la exponencial son adimensionales.",
-        "σ_sΔs es adimensional; integral angular de fase por radiancia conserva radiancia.",
-        "La transmisión se mantiene en [0,1] para coeficientes no negativos."
+      "pseudocode": "INPUT ray, D, stepSize\nT=1; L=0\nFOR s=0; s<D; s+=stepSize:\n  ds=min(stepSize,D-s); st=sampleSigmaT(ray,s); ss=sampleSigmaS(ray,s); Li=sampleIncidentRadiance(ray,s)\n  ASSERT st>=0 AND ss>=0\n  Tr=exp(-st*ds)\n  IF st>epsilon: segment=(ss/st)*Li*(1-Tr)\n  ELSE: segment=ss*Li*ds\n  L += T*segment\n  T *= Tr\n  IF T<transmittanceCutoff: BREAK\nRETURN L,T",
+      "threejs_adaptation": "Raymarch en shader de pantalla/volumen; usar depth texture; calidad por pasos y resolución.",
+      "numerical_validation": {
+        "cases": [
+          [
+            "vacuum",
+            "σt=0,σs=0",
+            "T=1; L=0",
+            1e-12
+          ],
+          [
+            "homogeneous_transmission",
+            "σt=0.5 m^-1,D=2m",
+            "T=exp(-1)",
+            1e-12
+          ],
+          [
+            "pure_absorption",
+            "σs=0,σt>0",
+            "L_scattered=0; T=exp(-σtD)",
+            1e-12
+          ]
+        ],
+        "metrics": [
+          "transmittance",
+          "radiance",
+          "energy bounds"
+        ],
+        "acceptance": "T∈[0,1]; refine Δs and compare radiance/transmittance convergence."
+      },
+      "computational_cost": {
+        "time_complexity": "O(number of ray steps) por rayo",
+        "memory_complexity": "O(1) acumuladores",
+        "backend": "CPU para estado y validación; GPU solo para grandes lotes independientes."
+      },
+      "limitations": [
+        "Single-scattering approximation omits multiple scattering unless source includes it.",
+        "Step size trades quality against cost; heterogeneous media need sampling/adaptive steps."
       ],
-      "edge_cases": [
-        "Δs≤0 o σ_s>σ_t: rechazar.",
-        "No integrar la fase angular: rechazar como especificación incompleta.",
-        "Coeficientes variables dentro del segmento requieren cuadratura/subdivisión declarada.",
-        "Múltiple dispersión no incluida por la formulación de una sola dispersión."
-      ],
-      "complexity": "O(S·C_angular) para S segmentos.",
-      "failure_conditions": [
-        "Coeficientes no físicos/no finitos",
-        "Paso no positivo",
-        "Fase no normalizada o fuente angular indefinida",
-        "Acumulación no finita"
-      ],
-      "derived_from": [
-        "dT/ds=−σ_tT",
-        "T(s)=exp(−∫σ_t ds)",
-        "dL=Tσ_sρ[∫pL_i dω]ds",
-        "raymarch sum with Δs"
-      ]
+      "convergence_stability": "Exponencial exacta por segmento homogéneo; error de cuadratura en variación espacial de coeficientes.",
+      "evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
+      "derivation_status": "derivada"
     }
   ],
-  "algorithmValidation": {
+  "validation": {
+    "source_fidelity": "Se copiaron los campos técnicos originales de las 15 fichas D35; no se sustituyeron ecuaciones ni pseudocódigo por variantes inferidas.",
     "structural_checks": [
-      "15/15 técnicas D35 tienen entradas, salidas, precondiciones, pasos, pseudocódigo, invariantes, casos límite, complejidad y condiciones de fallo.",
-      "Los pseudocódigos son especificaciones independientes del motor; no llaman APIs de Godot ni de otro motor.",
-      "Los parámetros de tolerancia, límites y políticas que dependen del caso se reciben como entradas, no se inventan constantes universales."
+      "15/15 fichas incluyen pseudocódigo de origen y pasos algorítmicos.",
+      "Se conservan unidades, restricciones, límites, validación numérica, coste y adaptación Three.js tal como están en el manifiesto."
     ],
     "limitations": [
-      "Este archivo no demuestra por sí solo corrección numérica; requiere pruebas independientes Python y JavaScript y revisión de correspondencia contra ecuaciones de origen.",
-      "Blue-noise se limita a muestreo por separación y diagnóstico espectral; la optimización/reubicación queda parametrizada y no se presenta como algoritmo universal.",
-      "PID anti-windup se expresa como regla condicional declarada; la convención exacta de dirección de saturación debe contrastarse con la ecuación/fuente del registro.",
-      "La técnica Beer–Lambert usa integral angular explícita; no incluye dispersión múltiple."
+      "El pseudocódigo fuente puede contener decisiones incompletas o inconsistencias; la fidelidad de copia no equivale a revisión matemática ni a aprobación de producción.",
+      "D35:13 usa Poisson-disk como aproximación con separación mínima; la calidad espectral debe medirse, no suponerse.",
+      "D35:14 debe revisarse por separado por el uso de ε/umbral en el límite σ_t→0 y por la consistencia de fase angular/radiancia."
     ]
   },
   "integrity": {
-    "manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd",
-    "derivation_blob_sha": "273f4578ffb56ddea12f8ab9e0e652a2e3162270"
+    "manifest_blob_sha": "bce84fe0fa56df03bb3fafab6c968dc4c1afb2dd"
   }
 }
