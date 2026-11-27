@@ -1,0 +1,45 @@
+name: Ensambla manifiesto Three.js v3.5 desde partes
+
+on:
+  push:
+    paths:
+      - "docs/threejs/v3_5_parts/**"
+      - ".github/workflows/assemble-manifest-v35.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: assemble-v35-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  assemble:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Ensamblar partes en orden y validar JSON y conteos
+        run: |
+          set -e
+          out=docs/threejs/Manifiesto_ThreeJS_v3_5_jedl-studio.json
+          : > "$out"
+          for f in $(ls docs/threejs/v3_5_parts/part_o*.json | sort); do
+            cat "$f" >> "$out"
+          done
+          python3 -c "import json;d=json.load(open('docs/threejs/Manifiesto_ThreeJS_v3_5_jedl-studio.json',encoding='utf-8'));dom=len(d.get('domains',[]));tec=sum(len(x.get('techniques',[])) for x in d.get('domains',[]));ver=d.get('manifest',{}).get('version','');print('version',ver,'dominios',dom,'tecnicas',tec);assert ver=='3.5.0-jedl-studio-single-document','version inesperada';assert dom==42 and tec==616,'conteo inesperado'"
+      - name: Commit del manifiesto ensamblado
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/threejs/Manifiesto_ThreeJS_v3_5_jedl-studio.json
+          if ! git diff --cached --quiet; then
+            git commit -m "Ensambla manifiesto Three.js v3.5 desde partes (42 dominios / 616 tecnicas)"
+            for attempt in 1 2 3; do
+              git pull --rebase origin "$GITHUB_REF_NAME" && git push && exit 0
+              git fetch origin "$GITHUB_REF_NAME"
+            done
+            echo "::warning::publicacion del manifiesto ensamblado perdio carrera concurrente"
+          fi
