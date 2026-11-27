@@ -42,7 +42,7 @@ class D06ReferenceValidationTests(unittest.TestCase):
 
     def test_hair_scattering_is_not_misrepresented_as_complete(self):
         hair = next(r for r in self.data["records"] if r["record_key"] == "D06:11")
-        self.assertEqual(hair["local_adaptation_status"], "APPROXIMATION_IMPLEMENTED_TESTS_PENDING")
+        self.assertEqual(hair["local_adaptation_status"], "APPROXIMATION_TESTS_PASSED_MODEL_INCOMPLETE")
         self.assertEqual(hair["certification_status"], "PENDING_FULL_MARSCHNER_MODEL")
         self.assertIn("not", hair["implementation_note"].lower())
 
@@ -64,7 +64,9 @@ class D06ReferenceValidationTests(unittest.TestCase):
         self.assertEqual(summary["records_in_scope"], 8)
         self.assertEqual(summary["protected_records_preserved"], 4)
         self.assertEqual(summary["local_adaptations_implemented"], 8)
-        self.assertEqual(summary["local_adaptations_tested"], 0)
+        self.assertEqual(summary["local_adaptations_tested"], 8)
+        self.assertEqual(summary["pending_local_ci"], 0)
+        self.assertEqual(summary["pending_model_completeness"], 1)
         self.assertEqual(summary["certified_as_locally_operational"], 0)
 
 if __name__ == "__main__":
