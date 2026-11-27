@@ -2911,63 +2911,356 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "SMOOTHED_STRUCTURE_TENSOR_EIGENORIENTATION_AND_COHERENCE",
+        "symbol_table": [
+          {
+            "symbol": "f(x,y)",
+            "meaning": "input RGB image",
+            "unit": "normalized intensity 1 or code value",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite image samples"
+          },
+          {
+            "symbol": "f_x,f_y",
+            "meaning": "Gaussian-derivative image gradients",
+            "unit": "intensity/pixel",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite smoothed derivatives"
+          },
+          {
+            "symbol": "J=[[Jxx,Jxy],[Jxy,Jyy]]",
+            "meaning": "smoothed 2x2 structure tensor",
+            "unit": "intensity²/pixel²",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "symmetric positive-semidefinite tensor"
+          },
+          {
+            "symbol": "lambda_max,lambda_min",
+            "meaning": "ordered tensor eigenvalues",
+            "unit": "intensity²/pixel²",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "lambda_max>=lambda_min>=0"
+          },
+          {
+            "symbol": "theta_gradient",
+            "meaning": "dominant eigenvector angle, normal to local edge",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "orientation modulo pi"
+          },
+          {
+            "symbol": "theta_stroke",
+            "meaning": "minor eigenvector angle, tangent to local feature",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "(theta_gradient+pi/2) modulo pi"
+          },
+          {
+            "symbol": "epsilon",
+            "meaning": "positive denominator stabilizer for coherence",
+            "unit": "same as eigenvalues",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "strictly positive"
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "Ix,Iy dependen de escala/normalización de luminancia y píxel; σ en píxeles."
+            "Gradient outer products and eigenvalues share intensity²/pixel². Angles and coherence are dimensionless; epsilon must have the same scale as eigenvalues."
           ]
         },
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "Apply Gaussian derivative kernels to the image to estimate f_x and f_y.",
+            "For RGB input, form the symmetric tensor using channel-vector dot products; each entry measures local squared directional change.",
+            "For symmetric J=[[a,b],[b,c]], solve det(J-lambda I)=0 to obtain lambda=(a+c ± sqrt((a-c)^2+4b²))/2.",
+            "The dominant eigenvector angle is half atan2(2b,a-c); it follows the strongest intensity-gradient direction and is normal to an edge.",
+            "The minimum-eigenvalue direction is perpendicular to the dominant eigenvector and follows the local feature/edge tangent; this is the natural brush-stroke direction in the cited method.",
+            "Normalize the eigenvalue gap by their sum to obtain anisotropy; epsilon>0 is an implementation stabilizer for the zero-tensor case."
+          ]
         },
         "assumptions": [
-          "Definir ejes de imagen, origen y sentido del ángulo; usar tensor suavizado."
+          "Tensor is symmetric positive semidefinite; image axes and y-down/y-up convention are fixed by the caller.",
+          "Gradient smoothing scale sigma is expressed in pixels; tensor smoothing is a separate Gaussian stage and must be recorded separately.",
+          "The kernel returns both gradient-normal and tangent-stroke angles to avoid confusing the two eigen-directions.",
+          "The cited paper's anisotropy formula has no epsilon; the positive epsilon in this kernel is an explicit numerical stabilization."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
+        "valid_domain": [
+          "Finite Jxx,Jxy,Jyy; Jxx>=0, Jyy>=0 and determinant >=0 within numerical tolerance; epsilon>0."
+        ],
+        "boundary_conditions": [
+          "For isotropic J (equal eigenvalues), orientation is mathematically undefined; deterministic fallback angle 0 is used and coherence is 0.",
+          "For zero tensor, both eigenvalues are zero; coherence returns 0 due to epsilon.",
+          "Orientation is modulo pi because eigenvectors are unoriented axes, not directed vectors.",
+          "Clamp tiny negative eigenvalues caused by roundoff to zero only within a declared tolerance."
+        ],
+        "inputs": [
+          "Smoothed structure tensor components Jxx,Jxy,Jyy",
+          "Positive epsilon with the same units/scale as eigenvalues"
+        ],
+        "outputs": [
+          "Ordered eigenvalues",
+          "Gradient-normal angle",
+          "Brush-stroke tangent angle",
+          "Coherence in [0,1]"
+        ],
         "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
         "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(1) per tensor after gradient/tensor filtering; filtering cost depends on kernel support",
+          "space": "O(1) per pixel for the analytic eigensystem; image/tensor buffers are O(width*height)"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_IMAGE_PIPELINE_INTEGRATION_PENDING",
+          "details": "Compute Gaussian derivatives and tensor channels in CPU typed arrays or ping-pong render targets; use the closed-form 2x2 eigensystem in a fullscreen ShaderMaterial/TSL pass. Convert the tangent angle to the brush orientation under the chosen image-axis convention."
         },
         "source_claims": [
           {
             "url": "https://www.kyprianidis.com/p/pg2009/jkyprian-pg2009.pdf",
-            "type": "PRIMARY_PAPER_PDF",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null,
-            "formula_locator": "Exact locator pending; claim must remain incomplete."
+            "type": "PRIMARY_PACIFIC_GRAPHICS_PAPER",
+            "supported_claim": "RGB structure tensor from Gaussian derivatives, smoothed tensor eigenvalues/eigenvectors, local tangent orientation and anisotropy measure.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Kyprianidis, Kang & Döllner 2009, §3.1, PDF p. 4 (printed p. 1959): Gaussian derivatives, structure tensor, eigenvalues, minimum-change eigenvector and anisotropy A=(lambda1-lambda2)/(lambda1+lambda2).",
+            "formula_locator": "Kyprianidis, Kang & Döllner 2009, §3.1, PDF p. 4 (printed p. 1959): Gaussian derivatives, structure tensor, eigenvalues, minimum-change eigenvector and anisotropy A=(lambda1-lambda2)/(lambda1+lambda2)."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "J=diag(4,1) gives eigenvalues 4,1; gradient angle 0; tangent angle pi/2; coherence 3/5.",
+              "oracle": "Analytic eigenpairs of a diagonal symmetric matrix."
+            },
+            {
+              "description": "Isotropic J=diag(2,2) yields zero coherence and deterministic fallback.",
+              "oracle": "Repeated-eigenvalue property."
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Same diagonal and isotropic fixtures as Python.",
+              "oracle": "Cross-language parity plus analytic eigenpairs."
+            }
+          ],
+          "edge_cases": [
+            "Zero tensor",
+            "Repeated eigenvalues",
+            "Jxy nonzero rotated tensor",
+            "Near-zero determinant from floating-point error",
+            "Image y-axis orientation convention",
+            "Epsilon scale changes with image intensity normalization"
+          ]
         },
-        "variables": [],
-        "algorithm_steps": [
-          "Calcular gradiente de luminancia.",
-          "Formar productos exteriores.",
-          "Suavizar con Gaussiana.",
-          "Diagonalizar analíticamente 2×2.",
-          "Usar autovector dominante como dirección."
+        "variables": [
+          {
+            "symbol": "f(x,y)",
+            "meaning": "input RGB image",
+            "unit": "normalized intensity 1 or code value",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite image samples"
+          },
+          {
+            "symbol": "f_x,f_y",
+            "meaning": "Gaussian-derivative image gradients",
+            "unit": "intensity/pixel",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite smoothed derivatives"
+          },
+          {
+            "symbol": "J=[[Jxx,Jxy],[Jxy,Jyy]]",
+            "meaning": "smoothed 2x2 structure tensor",
+            "unit": "intensity²/pixel²",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "symmetric positive-semidefinite tensor"
+          },
+          {
+            "symbol": "lambda_max,lambda_min",
+            "meaning": "ordered tensor eigenvalues",
+            "unit": "intensity²/pixel²",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "lambda_max>=lambda_min>=0"
+          },
+          {
+            "symbol": "theta_gradient",
+            "meaning": "dominant eigenvector angle, normal to local edge",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "orientation modulo pi"
+          },
+          {
+            "symbol": "theta_stroke",
+            "meaning": "minor eigenvector angle, tangent to local feature",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "(theta_gradient+pi/2) modulo pi"
+          },
+          {
+            "symbol": "epsilon",
+            "meaning": "positive denominator stabilizer for coherence",
+            "unit": "same as eigenvalues",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "strictly positive"
+          }
         ],
-        "pseudocode": "grad=gradient(luma); J=blur(outer(grad,grad)); theta=0.5*atan2(2*J.xy,J.xx-J.yy);",
+        "algorithm_steps": [
+          "Validate finite tensor entries and epsilon>0.",
+          "Check positive-semidefinite conditions.",
+          "Compute trace and eigenvalue gap.",
+          "Compute lambda_max and lambda_min.",
+          "Compute gradient eigenvector angle; use deterministic fallback for isotropic tensor.",
+          "Rotate by pi/2 for tangent stroke direction and wrap modulo pi.",
+          "Compute regularized coherence."
+        ],
+        "pseudocode": "function structureFeatures(Jxx,Jxy,Jyy,epsilon):\n  require finite inputs and epsilon>0\n  require Jxx>=0, Jyy>=0, Jxx*Jyy-Jxy^2>=-tol\n  gap=hypot(Jxx-Jyy,2*Jxy)\n  lmax=(Jxx+Jyy+gap)/2; lmin=(Jxx+Jyy-gap)/2\n  thetaG = 0 if gap<=tol else 0.5*atan2(2*Jxy,Jxx-Jyy)\n  thetaStroke=(thetaG+pi/2) mod pi\n  coherence=(lmax-lmin)/(lmax+lmin+epsilon)\n  return lmax,lmin,thetaG,thetaStroke,coherence",
         "implementation_mapping": {
-          "threejs_api": "Custom CPU implementation or ShaderMaterial/TSL function as specified in threejs_binding; exact API integration remains pending.",
-          "cpu_reference": "tests/threejs/test_r31_math_kernels.py; isolated standard-library numerical reference where implemented.",
-          "gpu_strategy": "Three.js binding requires further implementation-specific validation."
-        }
+          "threejs_api": "CPU typed-array image processing or fullscreen ShaderMaterial/TSL passes for Gaussian derivative and tensor-eigenfeature stages.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py: structure_tensor_features; tests/threejs/r31_kernels.mjs: structureTensorFeatures.",
+          "gpu_strategy": "Two or more ping-pong render targets for derivative/tensor channels; analytic eigenfeature pass. The full painterly Kuwahara filter is a separate R31 technique."
+        },
+        "equations": [
+          {
+            "expression": "f_x=G_(sigma,x)*f; f_y=G_(sigma,y)*f",
+            "meaning": "Gaussian derivative estimates",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "J=[[f_x·f_x,f_x·f_y],[f_x·f_y,f_y·f_y]]",
+            "meaning": "RGB structure tensor",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "lambda_(max,min)=(Jxx+Jyy ± sqrt((Jxx-Jyy)^2+4Jxy^2))/2",
+            "meaning": "eigenvalues of symmetric 2x2 tensor",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "theta_gradient=0.5*atan2(2Jxy,Jxx-Jyy); theta_stroke=(theta_gradient+pi/2) mod pi",
+            "meaning": "major eigenvector and perpendicular minor eigenvector orientation",
+            "dimensional_check": "pass",
+            "status": "derived_and_checked"
+          },
+          {
+            "expression": "coherence=(lambda_max-lambda_min)/(lambda_max+lambda_min+epsilon)",
+            "meaning": "regularized anisotropy/coherence",
+            "dimensional_check": "pass",
+            "status": "derived_and_checked"
+          }
+        ]
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
