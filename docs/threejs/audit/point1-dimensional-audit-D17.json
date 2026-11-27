@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D17 Objetos, vehículos, maquinaria y mecanismos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -900,11 +900,26 @@
             "J": 0
           },
           "domain": "finita"
+        },
+        {
+          "symbol": "ω",
+          "meaning": "velocidad angular en marco del cuerpo",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
         }
       ],
       "constraints": [
-        "F=m·a: cada lado tiene M·L·T^-2; τ=I·α: ambos lados M·L²·T^-2.",
-        "Para tensor de inercia, usar τ=Iα solo en marco apropiado; en cuerpo rotatorio general aparece término giroscópico ω×(Iω)."
+        "Traslación: F_net=m a. Rotación en marco del cuerpo: τ=Iα+ω×(Iω).",
+        "La simplificación τ=Iα solo vale en eje principal, cuerpo isotrópico o cuando el término giroscópico es nulo/despreciable."
       ],
       "valid_domain": [
         "m>0; I positivo definido; fuerzas, torque y estados finitos; paso temporal controlado."
@@ -914,15 +929,16 @@
         "Masa o inercia singular requieren constraint/regularización explícita, no inversión directa."
       ],
       "dimensional_checks": [
-        "m·a tiene N; I·α tiene N·m.",
-        "ω tiene T^-1 y ω×(Iω) tiene torque M·L²·T^-2."
+        "m·a tiene N; I·α y ω×(Iω) tienen N·m.",
+        "ω tiene T⁻¹; I tiene kg·m²; el término giroscópico tiene kg·m²·s⁻²=N·m."
       ]
     }
   ],
   "validation": {
     "structural_checks": [
       "10/10 técnicas incluidas",
-      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas"
+      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "D17:9 distingue ecuación rotacional Euler completa de la simplificación de eje principal."
     ],
     "limitations": [
       "Revisión dimensional; algoritmos de simulación, integración, contacto y validación numérica corresponden a puntos posteriores."
