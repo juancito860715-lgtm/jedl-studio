@@ -42,6 +42,26 @@ class D01GitHubReferenceEvidenceTests(unittest.TestCase):
         self.assertEqual(summary["local_adaptations_tested"], 0)
         self.assertEqual(summary["certified_as_locally_operational"], 0)
 
+    def test_d01_spatial_and_demand_adaptations_are_present_but_not_certified(self):
+        records = {r["record_key"]: r for r in self.data["records"]}
+        for key, source, test in [
+            ("D01:5", "src/threejs/spatial-grid.mjs", "tests/threejs/d01-spatial-grid.test.mjs"),
+            ("D01:6", "src/threejs/demand-render-scheduler.mjs", "tests/threejs/d01-demand-render-scheduler.test.mjs"),
+        ]:
+            with self.subTest(record=key):
+                record = records[key]
+                self.assertEqual(record["local_adaptation_status"], "IMPLEMENTED_TESTS_PENDING")
+                self.assertEqual(record["certification_status"], "PENDING_LOCAL_CI")
+                self.assertIn(source, record["implementation_files"])
+                self.assertIn(test, record["implementation_files"])
+
+    def test_summary_distinguishes_implementation_from_tested_certification(self):
+        summary = self.data["summary"]
+        self.assertEqual(summary["local_adaptations_implemented"], 2)
+        self.assertEqual(summary["local_adaptations_tested"], 0)
+        self.assertEqual(summary["pending_local_ci"], 2)
+        self.assertEqual(summary["certified_as_locally_operational"], 0)
+
 
 if __name__ == "__main__":
     unittest.main()
