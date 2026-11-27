@@ -270,3 +270,24 @@ export function blendDualQuaternions(items) {
   const [r,d]=dualQuaternionNormalize(real,dual);
   return [r,d];
 }
+
+
+// Authored local contour heuristic. Depths must be positive linear view-space values;
+// normals are normalized here so decoded render-target values cannot bias the dot.
+export function depthNormalEdgeScore(z0,z1,n0,n1,zFloor,normalWeight) {
+  const values=[z0,z1,zFloor,normalWeight,...n0,...n1];
+  if(values.some(v=>!Number.isFinite(v))||z0<=0||z1<=0||zFloor<=0||normalWeight<0)
+    throw new RangeError("positive finite depths/floor and nonnegative finite weight required");
+  if(n0.length!==3||n1.length!==3)throw new RangeError("normals must be 3-vectors");
+  const l0=Math.hypot(...n0),l1=Math.hypot(...n1);
+  if(l0<=1e-15||l1<=1e-15)throw new RangeError("normal vectors must be nonzero");
+  const dot=Math.max(-1,Math.min(1,n0.reduce((s,v,i)=>s+(v/l0)*(n1[i]/l1),0)));
+  const depthJump=Math.abs(z0-z1)/Math.max(Math.min(z0,z1),zFloor);
+  return depthJump+normalWeight*(1-dot);
+}
+export function edgeCoverage(score,low,high) {
+  if(!Number.isFinite(score)||!Number.isFinite(low)||!Number.isFinite(high)||low<0||high<=low)
+    throw new RangeError("require finite score and 0 <= low < high");
+  const x=Math.max(0,Math.min(1,(score-low)/(high-low)));
+  return x*x*(3-2*x);
+}
