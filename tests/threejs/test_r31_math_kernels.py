@@ -155,6 +155,19 @@ def ggx_ndf(cos_theta, alpha):
     return a2 / (math.pi * denom * denom)
 
 
+
+def anisotropic_kuwahara_mean(means, stddev_norms, q=8):
+    """Kyprianidis et al. 2009 weighted sector mean: alpha_i=1/(1+||s_i||^q)."""
+    if not means or len(means) != len(stddev_norms):
+        raise ValueError("means and stddev_norms must be nonempty and same length")
+    if q <= 0 or any(v < 0 for v in stddev_norms):
+        raise ValueError("q must be positive and standard deviations nonnegative")
+    weights = [1.0 / (1.0 + value ** q) for value in stddev_norms]
+    total = sum(weights)
+    if total == 0 or not math.isfinite(total):
+        raise ValueError("invalid Kuwahara weight normalization")
+    return sum(m * w for m, w in zip(means, weights)) / total
+
 def weighted_sector_mean(means, variances):
     if not means or len(means) != len(variances):
         raise ValueError("means and variances must be nonempty and same length")
@@ -373,6 +386,14 @@ class TestR31NumericalKernels(unittest.TestCase):
         self.assertAlmostEqual(ggx_ndf(1.0,alpha),1.0/(math.pi*alpha*alpha))
         self.assertGreater(ggx_ndf(1.0,alpha),ggx_ndf(0.0,alpha))
 
+    def test_anisotropic_kuwahara_matches_published_weight_rule(self):
+        # Independent closed-form fixture: s=(0,3), q=2 -> weights (1,1/10).
+        self.assertAlmostEqual(anisotropic_kuwahara_mean([0.0, 10.0], [0.0, 3.0], q=2), 10.0/11.0)
+        # Published example setting q=8: weights (1,1/6562).
+        self.assertAlmostEqual(anisotropic_kuwahara_mean([0.0, 10.0], [0.0, 3.0]), 10.0/6563.0)
+        self.assertAlmostEqual(anisotropic_kuwahara_mean([2.0, 4.0], [0.0, 0.0]), 3.0)
+        with self.assertRaises(ValueError):
+            anisotropic_kuwahara_mean([1.0], [-0.1])
     def test_kuwahara_weighted_sector_mean_prefers_low_variance(self):
         self.assertAlmostEqual(weighted_sector_mean([0.0,10.0],[0.0,9.0]),10.0/11.0)
 
