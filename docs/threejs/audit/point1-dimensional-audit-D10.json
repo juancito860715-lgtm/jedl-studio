@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D10 Atmósfera, cielo, nubes y niebla",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -101,9 +101,9 @@
         "Definir continuidad en horizonte y zenit; clamp del coseno a rango válido."
       ],
       "dimensional_checks": [
-        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
-        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
-        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+        "θ is an angle in radians; cosθ is dimensionless and γ is dimensionless.",
+        "horizon, zenith and C(θ) must share the same linear RGB representation; interpolation preserves their channel units.",
+        "At θ=π/2 and θ=0 the expression must use the chosen zenith/horizon convention consistently."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -139,7 +139,7 @@
             "N": 0,
             "J": 0
           },
-          "domain": "proporcional a λ⁻⁴ con factor material dimensional"
+          "domain": "β_R=N_mol·σ_R; dimensión L⁻¹; forma espectral proporcional a λ⁻⁴ con coeficiente L³"
         },
         {
           "symbol": "n",
@@ -155,6 +155,36 @@
             "J": 0
           },
           "domain": "positivo"
+        },
+        {
+          "symbol": "N_mol",
+          "meaning": "densidad numérica molecular",
+          "unit": "m⁻³",
+          "dimension": {
+            "L": -3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "σ_R",
+          "meaning": "sección eficaz Rayleigh",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa; depende de λ y propiedades moleculares"
         }
       ],
       "constraints": [
@@ -169,9 +199,9 @@
         "Coeficiente no negativo."
       ],
       "dimensional_checks": [
-        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
-        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
-        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+        "λ has L; λ^-4 has L^-4, so the proportionality coefficient must have L³ for β_R to have L^-1.",
+        "A number density N_mol has L^-3; the Rayleigh cross-section has L², and β_R=N_mol·σ_R therefore has L^-1.",
+        "The refractive index n is dimensionless; wavelength must be expressed in the same length unit as the molecular model."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -237,9 +267,9 @@
         "Límites g→±1 requieren tratamiento numérico."
       ],
       "dimensional_checks": [
-        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
-        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
-        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+        "g and μ=cosθ are dimensionless; the phase function has inverse-solid-angle convention sr^-1.",
+        "The denominator is dimensionless; normalization over 4π solid angle preserves the phase-function units.",
+        "Require −1<g<1; values near ±1 need numerical safeguards."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -303,9 +333,9 @@
         "d=0 o σ_t=0 da T=1; d→∞ con σ_t>0 da T→0."
       ],
       "dimensional_checks": [
-        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
-        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
-        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+        "σ_t has L^-1 and d has L; optical depth σ_t d is dimensionless.",
+        "T=exp(−σ_t d) is dimensionless and lies in (0,1] for σ_t,d≥0.",
+        "For spatially varying extinction, replace the product with the path integral ∫σ_t(s)ds, still dimensionless."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -401,9 +431,9 @@
         "Si d≤0 detectar cruce/penetración y resolver sin paso negativo."
       ],
       "dimensional_checks": [
-        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
-        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
-        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+        "ro and d(p), ε have L; rd is unitless and t is a length parameter, so ro+t·rd has L.",
+        "The SDF must be exact signed distance or a conservative lower bound for safe sphere tracing; arbitrary scalar fields do not guarantee safe steps.",
+        "Stop condition d≤ε compares two lengths; maximum travel distance and iteration count need explicit bounds."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -514,9 +544,9 @@
         "Partículas fuera del volumen se reciclan con semilla determinista."
       ],
       "dimensional_checks": [
-        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
-        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
-        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+        "p0 has L; v_rain·t has L; streak length in pixels requires projection scale in px/m multiplied by speed·exposure.",
+        "speed has L/T and exposure has T; their product is L before projection.",
+        "The streak direction is dimensionless; perspective projection makes px/m depth-dependent."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -612,9 +642,9 @@
         "Lejos del evento la envolvente decae a cero."
       ],
       "dimensional_checks": [
-        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
-        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
-        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+        "t, t_i and τ_i have T; (t−t_i)/τ_i is dimensionless and the exponential is well-defined.",
+        "A_i and flash must share one declared output type: either dimensionless normalized envelope or radiance units; noiseBurst is dimensionless.",
+        "If A_i is physical radiance, summing flashes preserves radiance units; clamp or tone mapping is a later operation."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -655,9 +685,9 @@
         {
           "symbol": "ρ0",
           "meaning": "densidad base",
-          "unit": "unidad de densidad volumétrica",
+          "unit": "m⁻¹ (coeficiente de extinción base)",
           "dimension": {
-            "L": 0,
+            "L": -1,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -670,9 +700,9 @@
         {
           "symbol": "ρ(y)",
           "meaning": "densidad",
-          "unit": "misma unidad ρ0",
+          "unit": "m⁻¹",
           "dimension": {
-            "L": 0,
+            "L": -1,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -694,9 +724,9 @@
         "y=y0 produce ρ0; k=0 produce densidad constante."
       ],
       "dimensional_checks": [
-        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
-        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
-        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+        "y−y0 has L and k has L^-1; k(y−y0) is dimensionless.",
+        "ρ0 and ρ(y) must share the same density/extinction units; for extinction coefficient use m^-1.",
+        "If ρ is integrated along a ray, ∫ρ ds is dimensionless optical depth."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -760,18 +790,22 @@
         "ρ=0 o d=0 produce T=1; d→∞ con ρ>0 produce T→0."
       ],
       "dimensional_checks": [
-        "Coeficientes de extinción/densidad tienen dimensión L⁻¹; al multiplicar por distancia el exponente es adimensional.",
-        "Posiciones y distancias tienen L; direcciones, cosenos, fase y pesos son adimensionales.",
-        "Los modelos espectrales requieren longitud de onda y constantes con unidades consistentes."
+        "ρ has L^-1 and d has L; ρd is dimensionless.",
+        "T=exp(−ρd) is dimensionless and bounded (0,1] for nonnegative ρ,d.",
+        "For heterogeneous fog, use the line integral of ρ along the ray."
       ],
       "status": "REVIEWED_POINT1"
     }
   ],
   "validation": {
     "structural_checks": [
-      "9/15 registros no protegidos incluidos; 6 registros protegidos excluidos",
-      "Todos los registros tienen variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
-      "7 registros protegidos excluidos"
+      "9/15 técnicas no protegidas incluidas",
+      "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "6 registros protegidos excluidos; conteo contrastado con mapa de preservación",
+      "Aclaradas unidades de Rayleigh, extinción volumétrica y proyección de estelas de lluvia"
+    ],
+    "limitations": [
+      "La fórmula Rayleigh requiere parámetros moleculares para fijar el coeficiente espectral; el registro explicita sus dimensiones sin inventar una constante."
     ]
   },
   "integrity": {
