@@ -1008,31 +1008,43 @@
             "J": 0
           },
           "domain": "acotada"
+        },
+        {
+          "symbol": "w_s,w_a,w_c",
+          "meaning": "ganancias dimensionales para salida aceleración",
+          "unit": "L²/T²; T⁻¹; T⁻²",
+          "dimension": "respectivamente L²T⁻², T⁻¹, T⁻²",
+          "domain": "finitas y calibradas"
         }
       ],
       "constraints": [
         "La suma declarada w_sS_i+w_aA_i+w_cC_i es dimensionalmente inválida: los tres términos tienen L⁻¹, L/T y L respectivamente.",
-        "Para implementar, convertir cada término a una unidad común (p.ej. aceleración L/T²) con ganancias dimensionales explícitas antes de sumarlos."
+        "Para implementar, convertir cada término a una unidad común (p.ej. aceleración L/T²) con ganancias dimensionales explícitas antes de sumarlos.",
+        "Para a=w_sS+w_aA+w_cC, fijar w_s [L²/T²], w_a [T⁻¹] y w_c [T⁻²]; así cada término tiene L/T². Si la salida se define como velocidad, las unidades de las ganancias cambian y deben recalcularse."
       ],
       "valid_domain": [
-        "Vecindarios y estados finitos; ganancias de conversión declaradas."
+        "Vecindarios y estados finitos; ganancias de conversión declaradas.",
+        "Convención cerrada: la suma devuelve aceleración en m/s²; no reutilizar estos pesos para una salida de velocidad."
       ],
       "boundary_conditions": [
         "Sin vecinos, los tres términos son cero.",
-        "Distancia nula requiere regularización con escala L."
+        "Distancia nula requiere regularización con escala L.",
+        "Ganancias cero eliminan el componente correspondiente; aceleración final se limita según el modelo de movimiento."
       ],
       "dimensional_checks": [
         "S_i tiene L⁻¹; A_i L/T; C_i L; pesos adimensionales no corrigen incompatibilidad.",
-        "Solo la forma convertida puede producir a_i con L/T²."
+        "Solo la forma convertida puede producir a_i con L/T².",
+        "w_s·S=(L²/T²)(L⁻¹)=L/T²; w_a·A=(T⁻¹)(L/T)=L/T²; w_c·C=(T⁻²)(L)=L/T²."
       ],
-      "status": "CONDITIONAL_POINT1_WEIGHT_UNITS_REQUIRED"
+      "status": "REVIEWED_POINT1"
     }
   ],
   "validation": {
     "structural_checks": [
       "13/13 técnicas incluidas",
       "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
-      "D27:12 queda condicional: la suma de separation/alignment/cohesion en la ficha mezcla dimensiones incompatibles sin ganancias dimensionales"
+      "D27:12 queda condicional: la suma de separation/alignment/cohesion en la ficha mezcla dimensiones incompatibles sin ganancias dimensionales",
+      "D27:12 cerrada al declarar las unidades de cada ganancia para la salida aceleración."
     ],
     "limitations": [
       "Las expresiones de comportamiento son esquemáticas; la auditoría no inventa pesos con unidades ni una política física no especificada."
