@@ -1,0 +1,461 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D39 Iluminación, atmósfera y transporte radiativo",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D39",
+    "record_count": 12,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D39 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D39:0",
+      "name": "Radiative transfer equation",
+      "starting_principles": [
+        "σ_t≥σ_s≥0; fase normalizada; medio y fuente definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "dL/ds=−σ_tL+σ_s∫p(ω',ω)L(ω')dω'+Q",
+          "justification": "Balancear extinción, dispersión hacia la dirección y emisión."
+        },
+        {
+          "step": 2,
+          "equation": "T(s)=exp(−∫_0^sσ_tdu)",
+          "justification": "Resolver atenuación homogénea/heterogénea."
+        },
+        {
+          "step": 3,
+          "equation": "L_o=T(D)L_bg+∫_0^DT(s)S(s)ds",
+          "justification": "Integrar fuente local S atenuada por transmisión."
+        },
+        {
+          "step": 4,
+          "equation": "discretize ray into Δs",
+          "justification": "Aproximar integral con pasos y acumulación front-to-back."
+        }
+      ],
+      "assumptions": [
+        "σ_t≥σ_s≥0; fase normalizada; medio y fuente definidos."
+      ],
+      "result": "RTE deriva del balance de radiancia a lo largo de un rayo.",
+      "limits": [
+        "Discretización y múltiples scattering pueden elevar coste/ruido."
+      ]
+    },
+    {
+      "record_key": "D39:1",
+      "name": "Henyey–Greenstein phase function",
+      "starting_principles": [
+        "−1<g<1; dirección unitaria; fase normalizada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "cosθ=ω_i·ω_o",
+          "justification": "Calcular ángulo entre dirección incidente y observada."
+        },
+        {
+          "step": 2,
+          "equation": "p(cosθ)=(1−g²)/(4π(1+g²−2gcosθ)^(3/2))",
+          "justification": "Definir fase HG."
+        },
+        {
+          "step": 3,
+          "equation": "∫_{S²}p dω=1",
+          "justification": "La normalización conserva probabilidad angular."
+        },
+        {
+          "step": 4,
+          "equation": "g=0 isotropic; g>0 forward",
+          "justification": "Interpretar parámetro de anisotropía."
+        }
+      ],
+      "assumptions": [
+        "−1<g<1; dirección unitaria; fase normalizada."
+      ],
+      "result": "Henyey–Greenstein es una fase angular normalizada parametrizada por anisotropía.",
+      "limits": [
+        "HG no reproduce todas las fases reales de aerosoles."
+      ]
+    },
+    {
+      "record_key": "D39:2",
+      "name": "Rayleigh scattering",
+      "starting_principles": [
+        "Partículas mucho menores que longitud de onda; K tipado."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "α=2π/λ",
+          "justification": "Definir número de onda."
+        },
+        {
+          "step": 2,
+          "equation": "β_R(λ)=K/λ⁴",
+          "justification": "En límite dipolar de partículas mucho menores que λ, la dispersión escala con λ⁻⁴."
+        },
+        {
+          "step": 3,
+          "equation": "T_R=exp(−∫β_Rρ ds)",
+          "justification": "Integrar extinción a lo largo de atmósfera."
+        },
+        {
+          "step": 4,
+          "equation": "L_R=∫T_R β_Rρ p_R L_sun ds",
+          "justification": "Acumular luz solar dispersada."
+        }
+      ],
+      "assumptions": [
+        "Partículas mucho menores que longitud de onda; K tipado."
+      ],
+      "result": "Rayleigh deriva del límite dipolar y produce dependencia aproximada λ⁻⁴.",
+      "limits": [
+        "Rayleigh requiere K y densidad calibrados; no aplica a aerosoles grandes."
+      ]
+    },
+    {
+      "record_key": "D39:3",
+      "name": "Mie scattering",
+      "starting_principles": [
+        "Distribución de radios e índices refractivos conocidos; aproximación de partículas esféricas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n(r)dr=number density of particles in radius interval",
+          "justification": "Definir distribución de tamaño de aerosoles."
+        },
+        {
+          "step": 2,
+          "equation": "β_s(λ)=∫n(r)C_sca(r,λ)dr",
+          "justification": "Integrar sección eficaz de dispersión sobre tamaños."
+        },
+        {
+          "step": 3,
+          "equation": "p_M(θ,λ)=weighted average of particle phase functions",
+          "justification": "Promediar fase angular según contribución de cada tamaño."
+        },
+        {
+          "step": 4,
+          "equation": "T=exp(−∫β_ext ds)",
+          "justification": "Integrar extinción de aerosoles."
+        }
+      ],
+      "assumptions": [
+        "Distribución de radios e índices refractivos conocidos; aproximación de partículas esféricas."
+      ],
+      "result": "Mie pondera sección eficaz y fase sobre distribución de tamaños de aerosoles.",
+      "limits": [
+        "Mie exacto requiere resolver dispersión electromagnética; approximations only in real-time."
+      ]
+    },
+    {
+      "record_key": "D39:4",
+      "name": "Volumetric cloud density",
+      "starting_principles": [
+        "Ruido y escalas definidos; densidad normalizada o calibrada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ρ_base=Σ_i a_i max(0,noise_i(λ_i x)−t_i)",
+          "justification": "Combinar ruidos de varias escalas."
+        },
+        {
+          "step": 2,
+          "equation": "ρ=coverage·verticalProfile(y)·ρ_base",
+          "justification": "Modular forma por cobertura y perfil vertical."
+        },
+        {
+          "step": 3,
+          "equation": "ρ=clamp(ρ,0,ρ_max)",
+          "justification": "Limitar densidad."
+        },
+        {
+          "step": 4,
+          "equation": "sample along view ray",
+          "justification": "Usar densidad en integral volumétrica."
+        }
+      ],
+      "assumptions": [
+        "Ruido y escalas definidos; densidad normalizada o calibrada."
+      ],
+      "result": "Las nubes se construyen como densidad volumétrica de ruido multiescala modulada por perfiles.",
+      "limits": [
+        "El campo procedural no es meteorología ni microfísica de nube."
+      ]
+    },
+    {
+      "record_key": "D39:5",
+      "name": "Cloud self-shadowing",
+      "starting_principles": [
+        "Coeficiente σ_t en L⁻¹; rayo solar y medio definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "τ_light=∫_0^Dσ_t(x+sω_light)ds",
+          "justification": "Integrar extinción entre muestra y fuente."
+        },
+        {
+          "step": 2,
+          "equation": "T_light=exp(−τ_light)",
+          "justification": "Aplicar Beer–Lambert."
+        },
+        {
+          "step": 3,
+          "equation": "L_local'=T_light L_sun",
+          "justification": "Atenuar luz incidente antes de dispersión."
+        },
+        {
+          "step": 4,
+          "equation": "use L_local' in view integration",
+          "justification": "Incluir auto-sombra en contribución volumétrica."
+        }
+      ],
+      "assumptions": [
+        "Coeficiente σ_t en L⁻¹; rayo solar y medio definidos."
+      ],
+      "result": "Cloud self-shadowing deriva de integrar extinción solar y aplicar transmitancia.",
+      "limits": [
+        "Pasos grandes subestiman auto-sombra; requiere integración suficiente."
+      ]
+    },
+    {
+      "record_key": "D39:6",
+      "name": "Multiple importance sampling for environment",
+      "starting_principles": [
+        "PDFs compatibles y soporte completo; pesos normalizados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x_i∼p_i(x)",
+          "justification": "Muestrear desde BSDF o entorno."
+        },
+        {
+          "step": 2,
+          "equation": "w_i=p_i²/(Σ_jp_j²)",
+          "justification": "Calcular peso de potencia."
+        },
+        {
+          "step": 3,
+          "equation": "I_hat=Σ_iw_i f(x_i)/p_i(x_i)",
+          "justification": "Combinar estimadores."
+        },
+        {
+          "step": 4,
+          "equation": "convert PDFs to same measure",
+          "justification": "Asegurar equivalencia entre área y sólido angular."
+        }
+      ],
+      "assumptions": [
+        "PDFs compatibles y soporte completo; pesos normalizados."
+      ],
+      "result": "MIS combina muestreo de BSDF y entorno con pesos de potencia.",
+      "limits": [
+        "PDFs en medidas distintas sesgan estimador si no se convierten."
+      ]
+    },
+    {
+      "record_key": "D39:7",
+      "name": "Temporal accumulation",
+      "starting_principles": [
+        "Motion/depth alineados; buffers de historial válidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C_hist'=reproject(C_hist,motion,depth)",
+          "justification": "Alinear historia al píxel actual."
+        },
+        {
+          "step": 2,
+          "equation": "C_t=αC_current+(1−α)C_hist'",
+          "justification": "Aplicar filtro exponencial."
+        },
+        {
+          "step": 3,
+          "equation": "α based on confidence/disocclusion",
+          "justification": "Ajustar peso según validez de historia."
+        },
+        {
+          "step": 4,
+          "equation": "store current for next frame",
+          "justification": "Actualizar buffers de acumulación."
+        }
+      ],
+      "assumptions": [
+        "Motion/depth alineados; buffers de historial válidos."
+      ],
+      "result": "Temporal accumulation combina muestra actual e historia reproyectada.",
+      "limits": [
+        "Historia incorrecta produce ghosting; validación por profundidad/normal necesaria."
+      ]
+    },
+    {
+      "record_key": "D39:8",
+      "name": "Shadow mapping",
+      "starting_principles": [
+        "Proyección de luz y depth buffer con misma convención."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_l=Project_light(p)",
+          "justification": "Proyectar receptor al espacio de luz."
+        },
+        {
+          "step": 2,
+          "equation": "z_l=depth(p_l); z_s=sample(shadowMap,uv_l)",
+          "justification": "Obtener profundidad actual y almacenada."
+        },
+        {
+          "step": 3,
+          "equation": "visible=step(z_l−bias,z_s)",
+          "justification": "Comparar con bias."
+        },
+        {
+          "step": 4,
+          "equation": "filter visibility",
+          "justification": "Suavizar con PCF/VSM u otra técnica."
+        }
+      ],
+      "assumptions": [
+        "Proyección de luz y depth buffer con misma convención."
+      ],
+      "result": "Shadow mapping compara profundidad de receptor con profundidad vista desde luz.",
+      "limits": [
+        "Bias incorrecto causa acne o peter-panning."
+      ]
+    },
+    {
+      "record_key": "D39:9",
+      "name": "Cascaded shadow maps",
+      "starting_principles": [
+        "Cascadas ordenadas; λ∈[0,1]; frustum de cámara conocido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d_i=λd_log,i+(1−λ)d_uniform,i",
+          "justification": "Mezclar splits logarítmicos y uniformes."
+        },
+        {
+          "step": 2,
+          "equation": "fit light frustum to camera slice",
+          "justification": "Ajustar volumen de luz a cada tramo de cámara."
+        },
+        {
+          "step": 3,
+          "equation": "render depth map per cascade",
+          "justification": "Generar mapa de profundidad por nivel."
+        },
+        {
+          "step": 4,
+          "equation": "select cascade by view depth",
+          "justification": "Elegir mapa según distancia del fragmento."
+        }
+      ],
+      "assumptions": [
+        "Cascadas ordenadas; λ∈[0,1]; frustum de cámara conocido."
+      ],
+      "result": "CSM divide frustum en tramos y asigna resolución de sombra por cascada.",
+      "limits": [
+        "Transiciones de cascada requieren estabilización y mezcla."
+      ]
+    },
+    {
+      "record_key": "D39:10",
+      "name": "Global illumination probe interpolation",
+      "starting_principles": [
+        "SH y probes con orden/normalización comunes; pesos positivos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "c_i,lm=∫L_i(ω)Y_lm(ω)dω",
+          "justification": "Proyectar entorno local a SH."
+        },
+        {
+          "step": 2,
+          "equation": "w_i(x)≥0; Σw_i=1",
+          "justification": "Calcular pesos espaciales normalizados."
+        },
+        {
+          "step": 3,
+          "equation": "c_lm(x)=Σ_iw_i(x)c_i,lm",
+          "justification": "Interpolar coeficientes de probes."
+        },
+        {
+          "step": 4,
+          "equation": "E(x,n)=Σ_lm k_l c_lm(x)Y_lm(n)",
+          "justification": "Evaluar irradiancia difusa según normal."
+        }
+      ],
+      "assumptions": [
+        "SH y probes con orden/normalización comunes; pesos positivos."
+      ],
+      "result": "GI probes interpolan coeficientes SH espaciales y evalúan irradiancia por normal.",
+      "limits": [
+        "SH de bajo orden no representa reflejos especulares agudos."
+      ]
+    },
+    {
+      "record_key": "D39:11",
+      "name": "Fresnel Schlick y reflectancia angular",
+      "starting_principles": [
+        "N,V unitarios; F0∈[0,1] o RGB metálico; cosθ clamp."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "c=clamp(N·V,0,1)",
+          "justification": "Calcular coseno de vista."
+        },
+        {
+          "step": 2,
+          "equation": "F=F_0+(1−F_0)(1−c)^5",
+          "justification": "Aplicar aproximación de Schlick."
+        },
+        {
+          "step": 3,
+          "equation": "C=F C_reflect+(1−F)C_base",
+          "justification": "Mezclar respuesta reflejada con componente restante."
+        },
+        {
+          "step": 4,
+          "equation": "F_0 from indices/material",
+          "justification": "Determinar reflectancia frontal por material."
+        }
+      ],
+      "assumptions": [
+        "N,V unitarios; F0∈[0,1] o RGB metálico; cosθ clamp."
+      ],
+      "result": "Schlick aproxima reflectancia angular desde F0.",
+      "limits": [
+        "Schlick no es Fresnel espectral exacto."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "12/12 técnicas cubiertas.",
+      "Cada derivación contiene pasos, supuestos y límites.",
+      "Se distinguen transporte radiativo, fases angulares, medios atmosféricos, acumulación temporal y probes."
+    ],
+    "limitations": [
+      "Las aproximaciones de tiempo real no equivalen a solución espectral/multiscattering completa; validar según medio y escala."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
