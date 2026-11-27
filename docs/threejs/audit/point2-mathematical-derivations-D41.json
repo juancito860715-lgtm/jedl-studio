@@ -38,6 +38,10 @@
       "result": "Gray–Scott combina difusión y reacción no lineal.",
       "limits": [
         "Patrones dependen de F,k,D y resolución."
+      ],
+      "dimensional_verification": [
+        "u,v are dimensionless normalized concentrations; D_u,D_v have L²/T; F,k have T⁻¹.",
+        "∂u/∂t, D∇²u and reaction terms all have T⁻¹."
       ]
     },
     {
@@ -67,6 +71,10 @@
       "result": "Reynolds combina separación, alineación y cohesión.",
       "limits": [
         "Pesos mal tipados producen aceleraciones incoherentes."
+      ],
+      "dimensional_verification": [
+        "p_i have L; v_i L/T; a_i L/T²; neighbor radius r L.",
+        "S_i L⁻¹, A_i L/T, C_i L; weights w_s L²/T², w_a T⁻¹, w_c T⁻² convert each to acceleration."
       ]
     },
     {
@@ -96,6 +104,10 @@
       "result": "Brownian motion suma deriva e incremento Wiener.",
       "limits": [
         "Trayectorias no diferenciables; no inferir velocidad instantánea clásica."
+      ],
+      "dimensional_verification": [
+        "X has L; μ has L/T; dW has √T; σ has L/√T.",
+        "μdt and σdW both have L."
       ]
     },
     {
@@ -130,6 +142,10 @@
       "result": "OU incorpora retorno a media con actualización exponencial.",
       "limits": [
         "Euler puede sesgar OU; usar actualización exacta."
+      ],
+      "dimensional_verification": [
+        "X and μ have L; θ has T⁻¹; dt T; σ has L/√T.",
+        "θ(μ−X)dt and σdW both have L."
       ]
     },
     {
@@ -159,6 +175,10 @@
       "result": "Worley usa distancias a semillas y F2−F1.",
       "limits": [
         "Métrica y jitter cambian celdas y bordes."
+      ],
+      "dimensional_verification": [
+        "x and seed points p_i have L; F1,F2 and cell distances have L.",
+        "Jitter is dimensionless or scaled by L; metric comparisons share units."
       ]
     },
     {
@@ -168,8 +188,8 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "f_i=noise(λ^i x)",
-          "justification": "Ruido a frecuencia creciente."
+          "equation": "n_i(x)=noise(f_0 λ^i x), [f_0]=L⁻¹, λ>1",
+          "justification": "Convertir la coordenada física en argumento adimensional y aumentar la frecuencia por octava."
         },
         {
           "step": 2,
@@ -178,16 +198,21 @@
         },
         {
           "step": 3,
-          "equation": "fBm=Σ_{i=0}^{N−1}a^if_i",
-          "justification": "Sumar octavas."
+          "equation": "fBm(x)=A_0Σ_{i=0}^{N−1}a^i n_i(x)",
+          "justification": "Escalar la suma adimensional por amplitud base A_0, que aporta la unidad de salida."
         }
       ],
       "assumptions": [
-        "λ>1; 0≤a<1; octavas finitas."
+        "λ>1; 0≤a<1; octavas finitas.",
+        "A_0 tiene la unidad del campo final; para heightfield A_0 tiene L."
       ],
       "result": "fBm combina ruido multiescala.",
       "limits": [
         "Octavas sobre Nyquist producen aliasing."
+      ],
+      "dimensional_verification": [
+        "x has L; base frequency f0 has L⁻¹; f0λ^i x is dimensionless; λ,a dimensionless.",
+        "A0 supplies output unit (e.g. L for height); fBm preserves that unit."
       ]
     },
     {
@@ -217,6 +242,10 @@
       "result": "Vuelo suma trayectoria, oscilación y ruido correlacionado.",
       "limits": [
         "Es animación procedural, no aerodinámica."
+      ],
+      "dimensional_verification": [
+        "x0 and A have L; v0 has L/T; ω has T⁻¹; t has T; η has L.",
+        "Each trajectory term has L."
       ]
     },
     {
@@ -241,11 +270,16 @@
         }
       ],
       "assumptions": [
-        "Campo de luz muestreable; ε>0."
+        "Campo de luz muestreable; ε>0.",
+        "ε es longitud; d es unitario; k se calibra según la unidad del campo luminoso para producir aceleración L/T²."
       ],
       "result": "Phototaxis usa gradiente de luz como preferencia.",
       "limits": [
         "Puede quedar en máximos locales de luz."
+      ],
+      "dimensional_verification": [
+        "ε has L; d is unitless; L(x+εd)−L(x) has light-signal unit.",
+        "For acceleration output L/T², k has L/(T²·unit(LightSignal))."
       ]
     },
     {
@@ -270,11 +304,16 @@
         }
       ],
       "assumptions": [
-        "Campos ambientales compatibles; step>0."
+        "Campos ambientales compatibles; step>0.",
+        "obstacleGradient se normaliza a dirección adimensional antes de combinarse con lightDir y gravityDir."
       ],
       "result": "Tropismo combina crecimiento y campos ambientales.",
       "limits": [
         "Aproximación inspirada en biología."
+      ],
+      "dimensional_verification": [
+        "g, lightDir, gravityDir and normalized obstacle direction are dimensionless; α,β,γ dimensionless.",
+        "Growth step has L; updated branch position retains L."
       ]
     },
     {
@@ -299,11 +338,16 @@
         }
       ],
       "assumptions": [
-        "Parámetros positivos; poblaciones no negativas."
+        "Parámetros positivos; poblaciones no negativas.",
+        "x,y son conteos normalizados adimensionales; si representan densidades espaciales, β y δ deben reescalarse por el área/volumen."
       ],
       "result": "Lotka–Volterra acopla poblaciones presa/depredador.",
       "limits": [
         "No incluye todos los factores ecológicos."
+      ],
+      "dimensional_verification": [
+        "x,y are population counts (dimensionless); dx/dt and dy/dt have T⁻¹.",
+        "α,γ have T⁻¹; β,δ have T⁻¹ per normalized individual-count unit."
       ]
     },
     {
@@ -333,6 +377,10 @@
       "result": "Foraging elige la mayor tasa de ganancia.",
       "limits": [
         "No representa memoria/competencia compleja."
+      ],
+      "dimensional_verification": [
+        "energyGain has J; searchTime and handlingTime have s; utility has W (J/s).",
+        "All candidate utilities share the same energy/time convention."
       ]
     },
     {
@@ -362,6 +410,10 @@
       "result": "Gait oscillator asigna fases a articulaciones.",
       "limits": [
         "Sin IK los pies pueden deslizar."
+      ],
+      "dimensional_verification": [
+        "A_i and φ_i are angular amplitudes/phases, dimensionless radians; ω has T⁻¹; t T.",
+        "θ_i remains angular and dimensionless."
       ]
     },
     {
@@ -391,6 +443,10 @@
       "result": "CPG es una red de osciladores que produce ritmo motor.",
       "limits": [
         "Acoplamiento excesivo bloquea fase; insuficiente no sincroniza."
+      ],
+      "dimensional_verification": [
+        "If oscillator state x_i is dimensionless, dot x_i has T⁻¹; f_i and coupling outputs have T⁻¹.",
+        "w_ij dimensionless if coupling functions output the same state/time unit."
       ]
     },
     {
@@ -420,17 +476,24 @@
       "result": "Kuramoto sincroniza fases por acoplamiento sinusoidal.",
       "limits": [
         "Umbral depende de red y frecuencias."
+      ],
+      "dimensional_verification": [
+        "θ_i is angular dimensionless; dθ_i/dt and ω_i have T⁻¹; K has T⁻¹.",
+        "N is a dimensionless oscillator count; sine terms are dimensionless."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "14/14 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen PDE, procesos estocásticos, comportamiento y modelos ecológicos."
+      "14/14 técnicas D41 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Gray–Scott y fBm tipan difusión, reacción, frecuencia espacial y amplitud",
+      "Brownian/OU distinguen deriva L/T y difusión L/√T",
+      "Flocking y phototaxis convierten señales locales a aceleraciones con ganancias tipadas",
+      "Lotka–Volterra, foraging, gait, CPG y Kuramoto distinguen conteos, energía, fase y frecuencia"
     ],
     "limitations": [
-      "Modelos simplificados para visualización; no son predicciones científicas validadas."
+      "Los modelos ecológicos y de comportamiento son simplificaciones para animación; no son predicciones biológicas o ecológicas validadas."
     ]
   },
   "integrity": {
