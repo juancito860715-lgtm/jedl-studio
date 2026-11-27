@@ -1,0 +1,1091 @@
+     "research_id": "R31-ADVECCI-N-SEMI-LAGRANGIANA-DE-PIGMENTO",
+     "category": "simulación pictórica",
+     "foundation": "Transporta un campo escalar/vectorial siguiendo el flujo inverso desde cada celda; estable para pasos relativamente grandes, aunque introduce difusión numérica.",
+     "equations": [
+      "∂c/∂t + u·∇c = D∇²c − k c",
+      "c^(n+1)(x)≈c^n(x−u(x)Δt)"
+     ],
+     "algorithm_steps": [
+      "Definir grid UV y campo de velocidad.",
+      "Retrotrazar cada celda.",
+      "Muestrear pigmento previo bilinealmente.",
+      "Aplicar difusión/decaimiento y condiciones de borde.",
+      "Depositar o secar pigmento."
+     ],
+     "pseudocode": "for x in grid: back=x-dt*velocity(x); cNext[x]=sample(c,back); cNext[x]=diffuseAndDry(cNext[x])",
+     "threejs_adaptation": "Render targets ping-pong para agua, velocidad y pigmento; una textura por canal o packing controlado.",
+     "compatibility": {
+      "javascript_cpu": "sí",
+      "webgl2_glsl_es_300": "posible con buffers/pases",
+      "webgpu_wgsl": "posible; compute según algoritmo",
+      "threejs_webglrenderer": "sí, CPU + renderizado",
+      "threejs_webgpurenderer_tsl": "sí con nodos/compute compatibles; validar versión"
+     },
+     "parameters": {
+      "dt": "0.005–0.05 unidades de simulación; validar estabilidad visual",
+      "diffusion": "0–1 según escala",
+      "drying": "0–1 por segundo"
+     },
+     "computational_cost": "O(N) por celda y paso; memoria O(N·campos).",
+     "limitations": "Difusión numérica; límites de precisión y coste multipaso; no equivale a simulación espectral de pigmentos.",
+     "source_ids": [
+      "SRC-DIVERDI-2013",
+      "SRC-WATERCOLOR-THIN-FILM"
+     ],
+     "evidence_status": "derivado/pendiente de prototipo",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D22",
+   "domain": "Telas, tejidos, cuerdas, cabello y materiales deformables",
+   "techniques": [
+    {
+     "name": "Mass-spring cloth",
+     "equation": "m_i x_i''=Σ_j k_ij(|x_j-x_i|-l_ij) n_ij-cv_i+f_i",
+     "use": "telas y banderas discretizadas",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Structural/shear/bend constraints",
+     "equation": "C(x)=|x_i-x_j|-d_ij=0",
+     "use": "mantener longitudes y resistencia a flexión",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "PBD distance constraint",
+     "equation": "Δx_i=-w_i λ∇_{x_i}C; λ=C/(Σ_j w_j|∇C_j|²)",
+     "use": "resolver restricciones de tela de forma estable",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "XPBD compliance",
+     "equation": "Δλ=-(C+αλ)/(Σ_i w_i|∇C_i|²+α/Δt²)",
+     "use": "controlar rigidez menos dependiente del paso temporal",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Bending dihedral constraint",
+     "equation": "C=θ-θ_0",
+     "use": "resistencia al pliegue entre triángulos",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Continuum elasticity",
+     "equation": "σ=λ tr(ε)I+2με",
+     "use": "elasticidad lineal isotrópica",
+     "model": "físico local",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Strain tensor",
+     "equation": "ε=½(∇u+∇u^T)",
+     "use": "medir deformación infinitesimal",
+     "model": "matemático",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Neo-Hookean hyperelasticity",
+     "equation": "W=μ/2(I_1-3)-μ ln J+λ/2(ln J)²",
+     "use": "goma, piel y tejidos con grandes deformaciones",
+     "model": "constitutivo",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Finite element method",
+     "equation": "K u=f; K=∫B^T D B dV",
+     "use": "deformación elástica y estructuras complejas",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Discrete elastic rods",
+     "equation": "E=Σ_i (a_i κ_i²+b_i τ_i²)",
+     "use": "cables, pelo, cuerdas y tentáculos finos",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Cosserat rod",
+     "equation": "r'=R v; R'=R[ω]×",
+     "use": "barras flexibles con flexión y torsión",
+     "model": "continuo discretizado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Hair strand dynamics",
+     "equation": "m x''=f_gravity+f_bend+f_twist+f_drag+f_collision",
+     "use": "cabello y fibras",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Hair anisotropic BRDF",
+     "equation": "f_r≈longitudinal lobe × azimuthal lobe",
+     "use": "reflejos alargados en fibras",
+     "model": "óptico aproximado",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Catenary",
+     "equation": "y=a cosh((x-x_0)/a)+c",
+     "use": "cables y cadenas suspendidas bajo gravedad uniforme",
+     "model": "solución ideal",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Cloth self-collision",
+     "equation": "d(triangle_i,triangle_j)>ε",
+     "use": "evitar que la tela se atraviese a sí misma",
+     "model": "detección geométrica",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D23",
+   "domain": "Destrucción, fractura, granularidad y sólidos",
+   "techniques": [
+    {
+     "name": "Voronoi fracture",
+     "equation": "cell_i={p:|p-s_i|≤|p-s_j| ∀j}",
+     "use": "fragmentar rocas, muros y objetos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Stress-based fracture",
+     "equation": "fracture when σ_max>σ_critical",
+     "use": "rotura según tensión",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Griffith crack criterion",
+     "equation": "G≥G_c",
+     "use": "propagación de grietas según energía",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Cohesive zone",
+     "equation": "traction=T(opening displacement)",
+     "use": "separación progresiva en interfaces",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Rigid body translation",
+     "equation": "m v'=ΣF; Iω'=Στ",
+     "use": "fragmentos y cuerpos rígidos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Impulse collision",
+     "equation": "J=-(1+e)(v_rel·n)/(1/m_1+1/m_2)",
+     "use": "respuesta impulsiva de colisión",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Coulomb friction",
+     "equation": "|F_t|≤μF_n",
+     "use": "fricción estática y dinámica",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "DEM granular contact",
+     "equation": "F_n=k_n δ n-c_n v_n; F_t=-k_t ξ",
+     "use": "arena, grava, escombros y partículas sólidas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Angle of repose",
+     "equation": "tan(θ_repose)≈μ",
+     "use": "taludes de arena y acumulación granular",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Rigid cluster approximation",
+     "equation": "fragment_i(t)=M_i(t)·fragment_i(0)",
+     "use": "destrucción precalculada reproducible",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Bond break graph",
+     "equation": "bond(i,j)=active until |x_i-x_j|>threshold",
+     "use": "madera, puentes y estructuras conectadas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Crack branching",
+     "equation": "direction_new=rotate(direction, seededAngle)",
+     "use": "fracturas ramificadas estilizadas",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D24",
+   "domain": "Óptica, lentes, cámaras físicas y transporte de luz",
+   "techniques": [
+    {
+     "name": "Rendering equation",
+     "equation": "L_o(x,ω_o)=L_e(x,ω_o)+∫_Ω f_r(x,ω_i,ω_o)L_i(x,ω_i)(n·ω_i)dω_i",
+     "use": "base matemática del transporte de luz",
+     "model": "físico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Monte Carlo integration",
+     "equation": "I≈(1/N)Σ_i f(x_i)/p(x_i)",
+     "use": "integrar iluminación y reflejos con muestreo",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Path tracing",
+     "equation": "L=Σ_bounce β_b L_b",
+     "use": "iluminación global por caminos de luz",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Next event estimation",
+     "equation": "directLight≈f_r L_light cosθ / pdf_light",
+     "use": "muestrear luces explícitamente en path tracing",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Multiple importance sampling",
+     "equation": "w_i=p_i²/(Σ_j p_j²)",
+     "use": "combinar muestreo de luz y BSDF",
+     "model": "numérico",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Lambertian BRDF",
+     "equation": "f_r=ρ/π",
+     "use": "superficie difusa ideal",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "GGX normal distribution",
+     "equation": "D_GGX=α²/[π((N·H)²(α²-1)+1)²]",
+     "use": "microfacetas especulares",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Smith masking-shadowing",
+     "equation": "G=G_1(N·V)G_1(N·L)",
+     "use": "auto-ocultación microfacet",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Thin lens",
+     "equation": "1/f=1/s+1/s'",
+     "use": "enfoque óptico y profundidad de campo",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Circle of confusion",
+     "equation": "c≈A|s'-v|/s'",
+     "use": "tamaño del desenfoque en sensor",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Snell law",
+     "equation": "n_1 sinθ_1=n_2 sinθ_2",
+     "use": "refracción en agua y vidrio",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Fresnel dielectric",
+     "equation": "F_0=((n_1-n_2)/(n_1+n_2))²",
+     "use": "reflexión de dieléctricos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Total internal reflection",
+     "equation": "sinθ_c=n_2/n_1, n_1>n_2",
+     "use": "reflexión interna en vidrio y agua",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Thin film interference",
+     "equation": "phase≈4π n d cosθ/λ",
+     "use": "iridiscencia de burbujas y películas finas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Dispersion",
+     "equation": "n=n(λ)",
+     "use": "separación cromática en prismas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Atmospheric extinction",
+     "equation": "L(d)=L_0 e^{-βd}+L_atmosphere(1-e^{-βd})",
+     "use": "perspectiva aérea",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Photon mapping",
+     "equation": "L≈Σ_i Φ_i K(||x-x_i||/r)",
+     "use": "aproximar iluminación indirecta mediante fotones",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D25",
+   "domain": "Iluminación global, radiosidad y reflejos",
+   "techniques": [
+    {
+     "name": "Radiosity",
+     "equation": "B_i=E_i+ρ_iΣ_j F_ij B_j",
+     "use": "interreflexión difusa entre superficies",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Form factor",
+     "equation": "F_ij=(1/A_i)∫Ai∫Aj cosθ_i cosθ_j/(πr²) V dA_j dA_i",
+     "use": "fracción de energía que pasa de una superficie a otra",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Ambient cube",
+     "equation": "L_ambient(n)=Σ_{l,m} c_lm Y_lm(n)",
+     "use": "aproximar iluminación ambiental direccional",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Spherical harmonics",
+     "equation": "L(ω)=Σ_lΣ_m c_lm Y_lm(ω)",
+     "use": "iluminación difusa de baja frecuencia",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Reflection probe blending",
+     "equation": "L=Σ_i w_i(p)L_i(reflectDir); Σw_i=1",
+     "use": "reflejos locales por zonas",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Parallax-corrected cubemap",
+     "equation": "reflect ray intersect proxy box then sample cubemap",
+     "use": "mejorar reflejo local en interiores",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Screen-space reflections",
+     "equation": "ray march in depth buffer along reflected view ray",
+     "use": "reflejos de objetos visibles en pantalla",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Planar reflection",
+     "equation": "view'=reflectionTransform(plane)·view",
+     "use": "agua y espejos planos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Light probes",
+     "equation": "irradiance(n)=Σ c_lmY_lm(n)",
+     "use": "iluminación indirecta aproximada",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Caustics",
+     "equation": "E(x)≈Σ rayPower_i / areaFootprint_i",
+     "use": "patrones luminosos concentrados bajo agua o vidrio",
+     "derivation_status": "no_evaluada"
+    }
+   ]
+  },
+  {
+   "id": "D26",
+   "domain": "Animación facial, expresiones y actuación",
+   "techniques": [
+    {
+     "name": "Blendshape deformation",
+     "equation": "p'=p+Σ_i w_i Δp_i",
+     "use": "expresiones faciales y morph targets",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Blendshape deformation». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "p'=p+Σ_i w_i Δp_i",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "p'=p+Σ_i w_i Δp_i",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Blendshape deformation» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: p'=p+Σ_i w_i Δp_i.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Blendshape deformation\", normalizar)\nresultado = resolver_relacion(\"p'=p+Σ_i w_i Δp_i\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Blendshape deformation\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "FACS-inspired action units",
+     "equation": "face(t)=base+Σ_i w_i(t)AU_i",
+     "use": "combinar movimientos faciales interpretables",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «FACS-inspired action units». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "face(t)=base+Σ_i w_i(t)AU_i",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "face(t)=base+Σ_i w_i(t)AU_i",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «FACS-inspired action units» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: face(t)=base+Σ_i w_i(t)AU_i.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"FACS-inspired action units\", normalizar)\nresultado = resolver_relacion(\"face(t)=base+Σ_i w_i(t)AU_i\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"FACS-inspired action units\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Jaw hinge",
+     "equation": "M_jaw=T(pivot)R(axis,angle)T(-pivot)",
+     "use": "habla y apertura de boca",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Jaw hinge». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "M_jaw=T(pivot)R(axis,angle)T(-pivot)",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "M_jaw=T(pivot)R(axis,angle)T(-pivot)",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Jaw hinge» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: M_jaw=T(pivot)R(axis,angle)T(-pivot).",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Jaw hinge\", normalizar)\nresultado = resolver_relacion(\"M_jaw=T(pivot)R(axis,angle)T(-pivot)\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Jaw hinge\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Viseme interpolation",
+     "equation": "face(t)=Σ_i w_i(t)viseme_i; Σw_i≈1",
+     "use": "sincronía labial",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Viseme interpolation». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "face(t)=Σ_i w_i(t)viseme_i; Σw_i≈1",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "face(t)=Σ_i w_i(t)viseme_i; Σw_i≈1",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Viseme interpolation» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: face(t)=Σ_i w_i(t)viseme_i; Σw_i≈1.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Viseme interpolation\", normalizar)\nresultado = resolver_relacion(\"face(t)=Σ_i w_i(t)viseme_i; Σw_i≈1\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Viseme interpolation\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Coarticulation",
+     "equation": "w_i(t)=Σ_j influence_j(t-center_j)",
+     "use": "transiciones naturales entre fonemas",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Coarticulation». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "w_i(t)=Σ_j influence_j(t-center_j)",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "w_i(t)=Σ_j influence_j(t-center_j)",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Coarticulation» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: w_i(t)=Σ_j influence_j(t-center_j).",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Coarticulation\", normalizar)\nresultado = resolver_relacion(\"w_i(t)=Σ_j influence_j(t-center_j)\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Coarticulation\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Eye saccade",
+     "equation": "gaze(t)=piecewise target with short ballistic transition",
+     "use": "movimientos oculares rápidos",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Eye saccade». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "gaze(t)=piecewise target with short ballistic transition",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "gaze(t)=piecewise target with short ballistic transition",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Eye saccade» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: gaze(t)=piecewise target with short ballistic transition.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Eye saccade\", normalizar)\nresultado = resolver_relacion(\"gaze(t)=piecewise target with short ballistic transition\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Eye saccade\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Blink envelope",
+     "equation": "blink(t)=smoothClose·smoothOpen",
+     "use": "parpadeo",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Blink envelope». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "blink(t)=smoothClose·smoothOpen",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "blink(t)=smoothClose·smoothOpen",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Blink envelope» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: blink(t)=smoothClose·smoothOpen.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Blink envelope\", normalizar)\nresultado = resolver_relacion(\"blink(t)=smoothClose·smoothOpen\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Blink envelope\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Facial muscle field",
+     "equation": "Δp=Σ_i activation_i·falloff(distanceToMuscle_i)·direction_i",
+     "use": "deformación procedural localizada",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Facial muscle field». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "Δp=Σ_i activation_i·falloff(distanceToMuscle_i)·direction_i",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "Δp=Σ_i activation_i·falloff(distanceToMuscle_i)·direction_i",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Facial muscle field» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: Δp=Σ_i activation_i·falloff(distanceToMuscle_i)·direction_i.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Facial muscle field\", normalizar)\nresultado = resolver_relacion(\"Δp=Σ_i activation_i·falloff(distanceToMuscle_i)·direction_i\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Facial muscle field\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Emotion parameter space",
+     "equation": "expression=blend(neutral,emotionTargets,intensity)",
+     "use": "actuación facial controlable",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Emotion parameter space». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "expression=blend(neutral,emotionTargets,intensity)",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "expression=blend(neutral,emotionTargets,intensity)",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Emotion parameter space» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: expression=blend(neutral,emotionTargets,intensity).",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Emotion parameter space\", normalizar)\nresultado = resolver_relacion(\"expression=blend(neutral,emotionTargets,intensity)\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Emotion parameter space\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    },
+    {
+     "name": "Gaze coordination",
+     "equation": "eyeTarget(t)=headTarget(t-τ)+offset",
+     "use": "mirada anticipada o retrasada respecto a cabeza",
+     "mathematical_derivation": "Derivación pendiente de formalizar desde las hipótesis del modelo «Gaze coordination». Partir de la definición constitutiva indicada, declarar coordenadas y convención de signos, aplicar las reglas de cálculo pertinentes y comprobar que ambos miembros tienen la misma dimensión. La ecuación de inventario se conserva como forma objetivo, no como derivación demostrada.",
+     "variables_units": {
+      "symbols_extracted_from_equation": "eyeTarget(t)=headTarget(t-τ)+offset",
+      "unit_policy": "SI; cada símbolo debe recibir dimensión según su significado físico; símbolos adimensionales declarados explícitamente.",
+      "warning": "No inferir unidades únicamente por la letra del símbolo; completar la tabla de variables semántica antes de certificar."
+     },
+     "dimensional_analysis": {
+      "equation": "eyeTarget(t)=headTarget(t-τ)+offset",
+      "method": "Asignar dimensión a cada variable por su definición; expandir productos, cocientes, derivadas e integrales; comparar dimensiones de todos los sumandos y ambos lados.",
+      "status": "requires_symbol_by_symbol_review"
+     },
+     "assumptions": [
+      "Geometría y parámetros expresados en un sistema de unidades coherente.",
+      "Entradas finitas; convenciones de ejes, handedness y unidades angulares declaradas.",
+      "La validez del modelo se limita al régimen físico y numérico indicado por su formulación."
+     ],
+     "domain_constraints_boundary_conditions": {
+      "domain": "Definir intervalo espacial/temporal y rangos admisibles de parámetros.",
+      "constraints": [
+       "rechazar NaN/Inf",
+       "proteger divisiones por cero y matrices singulares",
+       "mantener pesos normalizados cuando el modelo lo requiera"
+      ],
+      "initial_conditions": "declarar estado inicial y velocidad inicial cuando exista evolución temporal",
+      "boundary_conditions": "declarar condiciones Dirichlet/Neumann/periódicas o justificar que no aplican"
+     },
+     "algorithm_steps": [
+      "Leer entradas específicas de «Gaze coordination» y convertirlas a unidades SI coherentes.",
+      "Validar dominio, valores finitos, dimensiones, singularidades y condiciones de borde aplicables.",
+      "Calcular los términos de la relación matemática documentada: eyeTarget(t)=headTarget(t-τ)+offset.",
+      "Aplicar la discretización/solver indicado, conservando invariantes y restricciones.",
+      "Comprobar residuo, error, tolerancia y criterio de parada; rechazar estados no válidos.",
+      "Escribir el resultado en el estado de escena sin mutar datos de entrada; emitir métricas y diagnóstico."
+     ],
+     "pseudocode": "INPUT: datos, parámetros, unidades, restricciones, tolerancias, estadoAnterior\nASSERT unidades_compatibles(datos, parámetros)\nASSERT finitos(datos) AND dominio_valido(datos, parámetros)\nnormalizar = convertir_a_SI(datos, parámetros)\nconstruir_operador_especifico(\"Gaze coordination\", normalizar)\nresultado = resolver_relacion(\"eyeTarget(t)=headTarget(t-τ)+offset\", normalizar)\nWHILE no_converge(resultado) AND iteracion < maxIter:\n    resultado = paso_especifico(\"Gaze coordination\", resultado, normalizar)\n    residuo = medir_residuo(resultado)\n    error = estimar_error(resultado)\n    IF no_finito(resultado) OR viola_restriccion(resultado): FAIL\nASSERT residuo <= tolerancia OR criterio_parada_documentado\nvalidar_invariantes(resultado)\nRETURN resultado, {'residuo': 'residuo', 'error': 'error', 'iteraciones': 'iteracion'}",
+     "threejs_adaptation": "Implementar como módulo TypeScript independiente del render; adaptar salida a Object3D/Camera/BufferGeometry/ShaderMaterial según dominio; validar en CPU antes de GPU.",
+     "numerical_validation": {
+      "reference_cases": [
+       "caso identidad/trivial",
+       "caso límite del dominio",
+       "caso aleatorio reproducible con semilla fija"
+      ],
+      "metrics": [
+       "error absoluto",
+       "error relativo",
+       "residuo",
+       "conservación/invariante relevante"
+      ],
+      "acceptance": "tolerancia definida a partir del orden del método y escala física; comparar con solución analítica o referencia de mayor precisión."
+     },
+     "computational_cost": {
+      "time_complexity": "declarar en función de número de muestras/nodos/huesos/iteraciones según técnica",
+      "memory_complexity": "declarar buffers y estado auxiliar",
+      "gpu_cpu": "justificar backend por tamaño y precisión"
+     },
+     "limitations": [
+      "El pseudocódigo especifica el flujo, pero no sustituye una implementación ejecutada.",
+      "La estabilidad depende de paso temporal, discretización, escala y condiciones de contorno."
+     ],
+     "evidence_status": "documented_unverified",
+     "derivation_status": "plantilla_pendiente"
+    }
+   ]
+  },
+  {
+   "id": "D27",
+   "domain": "Multitudes, navegación y comportamiento",
+   "techniques": [
+    {
+     "name": "A* pathfinding",
+     "equation": "f(n)=g(n)+h(n)",
+     "use": "rutas en rejillas y grafos",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Dijkstra",
+     "equation": "dist(v)=min_u(dist(u)+cost(u,v))",
+     "use": "ruta de coste mínimo sin heurística",
+     "derivation_status": "no_evaluada"
+    },
+    {
+     "name": "Flow fields",
