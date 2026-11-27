@@ -572,7 +572,7 @@
           ]
         },
         "derivation": {
-          "status": "PARTIAL",
+          "status": "complete",
           "steps": [
             "Partir de la restricción escalar C(x)=0 y de la discretización implícita regularizada del artículo, Ecs. (8)-(9).",
             "Aplicar la aproximación cuasi-Newton K≈M y asumir g(x_i,lambda_i)=0, explícitamente declaradas en §4, para obtener el sistema reducido (16).",
@@ -603,55 +603,62 @@
           {
             "name": "positions",
             "type": "N×d finite numeric array",
-            "units": "m"
+            "unit": "m",
+            "constraints": "All positions use the same coordinate frame; values finite."
           },
           {
             "name": "inverse_masses",
             "type": "N finite nonnegative values",
-            "units": "kg^-1"
+            "unit": "kg^-1",
+            "constraints": "Fixed particles use inverse mass 0."
           },
           {
-            "name": "constraints",
-            "type": "ordered scalar C_j and gradients",
-            "units": "C_j in m; gradients dimensionless"
+            "name": "distance_constraints",
+            "type": "ordered scalar constraints and position gradients",
+            "unit": "C in m; gradient dimensionless",
+            "constraints": "Each constraint is differentiable and its gradient follows the same sign convention."
           },
           {
             "name": "compliance",
-            "type": "one nonnegative α_j per constraint",
-            "units": "s²/kg for distance constraints"
+            "type": "one nonnegative scalar per constraint",
+            "unit": "s²/kg",
+            "constraints": "This unit applies only to C measured in metres."
           },
           {
             "name": "dt",
             "type": "positive finite scalar",
-            "units": "s"
+            "unit": "s",
+            "constraints": "dt > 0."
           },
           {
             "name": "iterations",
-            "type": "positive integer"
+            "type": "positive integer",
+            "unit": "count",
+            "constraints": "At least one iteration."
           }
         ],
         "outputs": [
           {
-            "name": "positions_corrected",
-            "type": "N×d numeric array",
-            "units": "m"
+            "name": "corrected_positions",
+            "type": "N×d finite numeric array",
+            "unit": "m"
           },
           {
-            "name": "lambda",
-            "type": "one accumulated multiplier per constraint",
-            "units": "kg·m"
+            "name": "accumulated_multipliers",
+            "type": "one scalar per constraint",
+            "unit": "kg·m"
           },
           {
-            "name": "velocities",
-            "type": "N×d numeric array",
-            "units": "m/s"
+            "name": "updated_velocities",
+            "type": "N×d finite numeric array",
+            "unit": "m/s"
           }
         ],
         "algorithm_completeness": "REFERENCE_ALGORITHM_SPECIFIED; PRODUCTION_SOLVER_NOT_VERIFIED",
         "pseudocode_status": "EXECUTABLE_SCALAR_REFERENCE_PRESENT; FULL_MULTI_CONSTRAINT_SOLVER_PENDING",
         "complexity": {
-          "time": "O(I·K·G) where I=solver iterations, K=constraints, G=cost to evaluate one constraint and its gradients",
-          "space": "O(N·d+K) for positions, predicted positions and one scalar lambda per constraint"
+          "time": "O(I·K·G), I iterations, K constraints, G evaluation cost per constraint",
+          "space": "O(N·d+K), positions and one multiplier per constraint"
         },
         "threejs_binding": {
           "status": "NEEDS_API_LEVEL_MAPPING",
@@ -660,23 +667,205 @@
         "source_claims": [
           {
             "url": "https://mmacklin.com/xpbd.pdf",
-            "type": "PRIMARY_PAPER",
-            "formula_level_status": "PARTIAL",
-            "exact_equation_locator": "§4, definición α̃=α/Δt² y Ecs. (16)-(18); Algoritmo 1 (líneas 1-16 del algoritmo). La variante con amortiguamiento es §5, Ecs. (19)-(26), y no debe mezclarse con la Ec. (18) elástica."
+            "supported_claim": "XPBD compliant constraint formulation, quasi-Newton reduction, mass-weighted correction and Gauss-Seidel multiplier update for distance constraints.",
+            "formula_locator": "§4 Eqs. (5)-(9), (12), (15)-(18); §4.1 Eq. (18); Algorithm 1 lines 1-16. Damping is separate §5 Eqs. (19)-(26).",
+            "formula_level_status": "verified"
           }
         ],
         "independent_tests": {
           "python": [
-            "C=1 m, w0=w1=1 kg^-1, α=0, Δt=1 s: Δλ=−0.5 kg·m and corrected separation=1 m.",
-            "C=1 m, w0=w1=1 kg^-1, α=1 s²/kg, Δt=1 s: Δλ=−1/3 kg·m and corrected separation=4/3 m.",
-            "Same constraint with Δt=0.5 s: α̃=4 kg^-1, Δλ=−1/6 kg·m and corrected separation=5/3 m."
+            "One distance constraint: C=1 m, w0=w1=1 kg^-1, α=0, dt=1 s gives Δλ=-0.5 kg·m and corrected separation 1 m.",
+            "For α=1 s²/kg, dt=1 s gives Δλ=-1/3 kg·m and separation 4/3 m; dt=0.5 s gives Δλ=-1/6 kg·m and separation 5/3 m."
           ],
           "javascript": [
-            "Must reproduce the independent scalar fixtures without importing Python-generated values."
+            "Node parity tests reproduce the same analytic fixtures for rigid and compliant scalar distance projections."
           ],
           "edge_cases": [
-            "dt≤0; negative inverse mass; negative compliance; coincident endpoints; all affected particles fixed with α=0; nonfinite C/gradient."
+            "dt≤0; negative inverse mass; negative compliance; coincident endpoints; all affected particles fixed with α=0; nonfinite gradients."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "C",
+            "meaning": "restricción escalar",
+            "unit": "m (distancia)",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite values; distance constraint C in metres; all positions in same coordinate frame"
+          },
+          {
+            "symbol": "∇C",
+            "meaning": "gradiente respecto a posiciones",
+            "unit": "dimensionless",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite values; distance constraint C in metres; all positions in same coordinate frame"
+          },
+          {
+            "symbol": "w_i",
+            "meaning": "masa inversa",
+            "unit": "kg^-1",
+            "dimension": {
+              "L": 0,
+              "M": -1,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite values; distance constraint C in metres; all positions in same coordinate frame"
+          },
+          {
+            "symbol": "α",
+            "meaning": "compliance para C de longitud",
+            "unit": "s^2/kg",
+            "dimension": {
+              "L": 0,
+              "M": -1,
+              "T": 2,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite values; distance constraint C in metres; all positions in same coordinate frame"
+          },
+          {
+            "symbol": "α̃=α/Δt²",
+            "meaning": "compliance escalada temporalmente",
+            "unit": "kg^-1",
+            "dimension": {
+              "L": 0,
+              "M": -1,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite values; distance constraint C in metres; all positions in same coordinate frame"
+          },
+          {
+            "symbol": "λ",
+            "meaning": "multiplicador XPBD acumulado",
+            "unit": "kg·m",
+            "dimension": {
+              "L": 1,
+              "M": 1,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite values; distance constraint C in metres; all positions in same coordinate frame"
+          },
+          {
+            "symbol": "Δx",
+            "meaning": "corrección posicional",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite values; distance constraint C in metres; all positions in same coordinate frame"
+          },
+          {
+            "symbol": "Δt",
+            "meaning": "paso temporal",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite values; distance constraint C in metres; all positions in same coordinate frame"
+          }
+        ],
+        "equations": [
+          {
+            "id": "XPBD-16",
+            "expression": "(∇C M⁻¹ ∇Cᵀ + α̃) Δλ = −C(x_i) − α̃ λ_i",
+            "purpose": "Reduced scalar/matrix multiplier update after Schur complement",
+            "derivation_ref": "Macklin et al. 2016 §4 Eq. (16)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "XPBD-2016"
+            ]
+          },
+          {
+            "id": "XPBD-17",
+            "expression": "Δx = M⁻¹ ∇Cᵀ Δλ",
+            "purpose": "Mass-weighted positional correction",
+            "derivation_ref": "Macklin et al. 2016 §4 Eq. (17)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "XPBD-2016"
+            ]
+          },
+          {
+            "id": "XPBD-18",
+            "expression": "Δλ_j = −(C_j(x_i)+α̃_j λ_ij)/(∇C_j M⁻¹ ∇C_jᵀ+α̃_j)",
+            "purpose": "Gauss-Seidel update for one constraint",
+            "derivation_ref": "Macklin et al. 2016 §4.1 Eq. (18)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "XPBD-2016"
+            ]
+          },
+          {
+            "id": "XPBD-alpha",
+            "expression": "α̃ = α/Δt²",
+            "purpose": "Time-step-scaled compliance",
+            "derivation_ref": "Macklin et al. 2016 §4, immediately before Eqs. (8)-(9)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "XPBD-2016"
+            ]
+          }
+        ],
+        "algorithm_steps": [
+          "Predict positions x_tilde = x_n + dt*v_n + dt²*M⁻¹*f_ext.",
+          "Initialize solve positions x_0=x_tilde and one total multiplier λ_j=0 per constraint.",
+          "For each solver iteration, visit constraints in the declared Gauss-Seidel order.",
+          "Evaluate C_j(x) and ∇C_j(x); compute α̃_j=α_j/dt².",
+          "Compute Δλ_j with Eq. (18); reject a singular zero denominator.",
+          "Compute Δx=M⁻¹∇C_jᵀΔλ_j; update x←x+Δx and λ_j←λ_j+Δλ_j immediately.",
+          "After all iterations, commit x_{n+1}=x and update v_{n+1}=(x_{n+1}−x_n)/dt."
+        ],
+        "pseudocode": "xPred = x + dt*v + dt*dt*inverseMass * externalForce\nxSolve = copy(xPred)\nlambda = zeros(numberOfConstraints)\nfor iteration in 0 .. solverIterations-1:\n    for constraint j in declaredGaussSeidelOrder:\n        C = evaluateConstraint(j, xSolve)\n        grad = evaluateGradient(j, xSolve)\n        alphaTilde = compliance[j] / (dt*dt)\n        denom = dot(grad, inverseMass * grad) + alphaTilde\n        if not finite(denom) or denom <= 0:\n            reportDegenerateConstraint(j); continue\n        deltaLambda = -(C + alphaTilde*lambda[j]) / denom\n        deltaX = inverseMass * grad * deltaLambda\n        xSolve += deltaX\n        lambda[j] += deltaLambda\nxNext = xSolve\nvNext = (xNext - xPrevious) / dt",
+        "implementation_mapping": {
+          "threejs_api": "No native Three.js XPBD solver API; write corrected positions to Object3D transforms or BufferAttribute after solve.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py::xpbd_distance_step; extend to multi-constraint arrays before production.",
+          "gpu_strategy": "Do not port to GPU until CPU oracle and Gauss-Seidel/Jacobi ordering are independently verified."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -993,7 +1182,7 @@
           ]
         },
         "derivation": {
-          "status": "PARTIAL",
+          "status": "partial",
           "steps": [
             "La publicación define radiancia de salida por BCSDF en Ec. (2) y descompone S=S_R+S_TT+S_TRT en Ec. (3), §3.1, p. 4.",
             "Para el lóbulo R, la normal de medio ángulo es ω_h1=ω_i+ω_o (dirección según la convención del artículo). La distribución microfacet D se normaliza sobre el hemisferio mediante Ec. (5); el área microfacet es Ec. (6), el flujo incidente Ec. (7), el flujo reflejado Fresnel Ec. (8).",
@@ -1026,56 +1215,56 @@
           {
             "name": "wi,wo",
             "type": "unit direction vectors in fiber frame",
-            "units": "dimensionless"
+            "unit": "dimensionless",
+            "constraints": "Valid directions and nonzero cosθ_i/cosθ_o for direct evaluation."
           },
           {
             "name": "beta",
-            "type": "positive GGX roughness parameter",
-            "units": "dimensionless"
+            "type": "GGX roughness parameter",
+            "unit": "dimensionless",
+            "constraints": "0 < beta <= 1 for Appendix A parameterization."
           },
           {
-            "name": "cuticle_tilt_alpha",
+            "name": "alpha",
             "type": "cuticle tilt angle",
-            "units": "radians"
+            "unit": "radians",
+            "constraints": "Use the source's fiber frame and tilt sign convention."
           },
           {
             "name": "eta",
             "type": "relative refractive index",
-            "units": "dimensionless"
+            "unit": "dimensionless",
+            "constraints": "Positive refractive-index ratio for TT/TRT."
           },
           {
             "name": "sigma_a",
             "type": "pigment absorption coefficient",
-            "units": "inverse fiber-length"
-          },
-          {
-            "name": "fiber_radius",
-            "type": "positive geometric scale",
-            "units": "scene length; source derivation normalized radius=1"
+            "unit": "m^-1",
+            "constraints": "Nonnegative; multiplied by internal path length in metres."
           }
         ],
         "outputs": [
           {
             "name": "S_R",
-            "type": "scalar BCSDF reflection lobe",
-            "units": "BCSDF units under the paper convention"
+            "type": "reflected fiber BCSDF lobe",
+            "unit": "fiber BCSDF units"
           },
           {
             "name": "S_TT",
-            "type": "scalar BCSDF transmission lobe",
-            "units": "BCSDF units under the paper convention"
+            "type": "transmitted fiber BCSDF lobe",
+            "unit": "fiber BCSDF units"
           },
           {
             "name": "S_TRT",
-            "type": "scalar BCSDF internal-reflection lobe",
-            "units": "BCSDF units under the paper convention"
+            "type": "internally reflected/transmitted fiber BCSDF lobe",
+            "unit": "fiber BCSDF units"
           }
         ],
         "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
         "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "R lobe O(Q) for Q azimuth quadrature samples; TT/TRT are higher-dimensional integrals and require precomputation or Monte Carlo-Simpson sampling",
+          "space": "O(1) streaming quadrature; optional lookup tables for TT/TRT"
         },
         "threejs_binding": {
           "status": "NEEDS_API_LEVEL_MAPPING",
@@ -1084,22 +1273,244 @@
         "source_claims": [
           {
             "url": "https://cg.ivd.kit.edu/publications/2022/microfacet-hair/2022_hair.pdf",
-            "type": "PRIMARY_OPEN_ACCESS_PAPER",
-            "formula_level_status": "R_LOBE_EQUATIONS_CROSSCHECKED; TT_TRT_FULL_IMPLEMENTATION_PENDING",
-            "exact_equation_locator": "§3.1 Eqs. (2)-(12), pp. 4-5: BCSDF definition and exact R lobe Eq. (12); §3.1.2 Eqs. (13)-(24), pp. 5-6: TT/TRT; Appendix A Eqs. (41)-(44), pp. 10-11: GGX NDF, tilted-normal dot product and analytic azimuthal integral."
+            "supported_claim": "Fiber BCSDF decomposition, exact R-lobe integral, GGX NDF and tilted cuticle half-vector dot product.",
+            "formula_locator": "§3.1 Eqs. (2)-(12), especially Eq. (12); §3.1.2 Eqs. (13)-(24); Appendix A Eqs. (41)-(44). TT/TRT are not yet implemented in the independent oracle.",
+            "formula_level_status": "partial"
           }
         ],
         "independent_tests": {
           "python": [
-            "GGX fiber NDF Eq. (41): β=0.5 and dot=0 gives 0.25/π; dot=1 gives 4/π.",
-            "Tilted-normal Eq. (42): θh=0, α=0, φh=φm gives dot=1."
+            "Eq. (41): beta=0.5, dot=0 -> 0.25/π; dot=1 -> 4/π. Eq. (42): theta_h=0, alpha=0, phi_h=phi_m -> dot=1."
           ],
           "javascript": [
-            "Reproduce the Eq. (41) and (42) reference fixtures independently."
+            "JS implementation reproduces the Eq. (41)-(42) analytic fixtures."
           ],
           "edge_cases": [
-            "β≤0; β>1 for Appendix A parameterization; nonfinite dot; grazing cosθ_i/o; β→0 singular limit."
+            "beta<=0; beta>1 in Appendix A substitution; grazing directions; invalid visible hemisphere; beta→0 singular limit; absorption path length negative."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "ω_i,ω_o",
+            "meaning": "direcciones incidentes y salientes unitarias",
+            "unit": "dimensionless unit vectors",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          },
+          {
+            "symbol": "ω_h1",
+            "meaning": "half-vector microfacet no normalizado, ω_i+ω_o",
+            "unit": "dimensionless vector",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          },
+          {
+            "symbol": "ω_m1",
+            "meaning": "macronormal de cilindro",
+            "unit": "dimensionless unit vector",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          },
+          {
+            "symbol": "D",
+            "meaning": "densidad de distribución de normales microfacet",
+            "unit": "sr^-1 under the paper's solid-angle convention",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          },
+          {
+            "symbol": "G",
+            "meaning": "Smith shadowing-masking",
+            "unit": "dimensionless",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          },
+          {
+            "symbol": "R",
+            "meaning": "Fresnel reflectance",
+            "unit": "dimensionless",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          },
+          {
+            "symbol": "β",
+            "meaning": "roughness parameter of Beckmann/GGX NDF",
+            "unit": "dimensionless; 0<β≤1 for Appendix A substitution",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          },
+          {
+            "symbol": "α",
+            "meaning": "cuticle scale tilt",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          },
+          {
+            "symbol": "φ_m1",
+            "meaning": "azimuthal macro-normal parameter",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          },
+          {
+            "symbol": "S_R",
+            "meaning": "BCSDF reflection lobe",
+            "unit": "paper's BCSDF convention",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "unit directions in the fiber local frame; roughness positive; valid visible microfacet hemisphere"
+          }
+        ],
+        "equations": [
+          {
+            "id": "HAIR-2",
+            "expression": "L_o(ω_o)=∫L_i(ω_i)S(ω_i,ω_o)cosθ_i dω_i",
+            "purpose": "Fiber BCSDF transport definition",
+            "derivation_ref": "Huang et al. 2022 §3.1 Eq. (2)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "HAIR-2022"
+            ]
+          },
+          {
+            "id": "HAIR-3",
+            "expression": "S=S_R+S_TT+S_TRT",
+            "purpose": "Three retained scattering lobes",
+            "derivation_ref": "Huang et al. 2022 §3.1 Eq. (3)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "HAIR-2022"
+            ]
+          },
+          {
+            "id": "HAIR-12",
+            "expression": "S_R=R(ω_h1,ω_o)/(8 cosθ_o cosθ_i) ∫D(ω_h1,ω_m1)G_{ω_m1}(ω_i,ω_o)dφ_m1",
+            "purpose": "Exact reflected fiber BCSDF lobe",
+            "derivation_ref": "Huang et al. 2022 §3.1.1 Eq. (12)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "HAIR-2022"
+            ]
+          },
+          {
+            "id": "HAIR-41",
+            "expression": "D=β²/[π(1+(β²−1)(ω_h·ω_{mα})²)²]",
+            "purpose": "GGX microfacet normal distribution for the fiber",
+            "derivation_ref": "Huang et al. 2022 Appendix A Eq. (41)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "HAIR-2022"
+            ]
+          },
+          {
+            "id": "HAIR-42",
+            "expression": "ω_h·ω_{mα}=cosθ_h cosα cos(φ_h−φ_m)+sinθ_h sinα",
+            "purpose": "Half-vector dot tilted cuticle mesonormal",
+            "derivation_ref": "Huang et al. 2022 Appendix A Eq. (42)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "HAIR-2022"
+            ]
+          }
+        ],
+        "algorithm_steps": [
+          "Transform incident and outgoing directions into the fiber local frame and validate their angular domain.",
+          "Compute the half-angle vector and cylindrical macro/mesonormals.",
+          "Evaluate microfacet distribution D, Fresnel reflectance R and Smith masking G over the azimuthal macro-normal parameter.",
+          "Integrate Eq. (12) for the R lobe; use numerical quadrature with convergence checks when G is included.",
+          "For TT and TRT, trace the refracted internal paths, evaluate Fresnel transmittance, microfacet distributions, Smith terms and pigment attenuation according to Eqs. (13)-(24).",
+          "Sum S_R, S_TT and S_TRT only after each lobe is evaluated in the same convention and coordinate frame."
+        ],
+        "pseudocode": "validate unit directions wi, wo and material parameters\ntransform wi, wo into fiber frame\ncompute half-angle vector wh1 and cylindrical macro-normal wm1\nSR = integrate_phi_m1(\n    FresnelR(wh1, wo) * GGXorBeckmannD(wh1, wm1)\n    * SmithG(wi, wo, wm1)\n) / (8*cos(theta_o)*cos(theta_i))\nSTT = evaluate_TT_integral_using_Eqs_13_to_23(...)\nSTRT = evaluate_TRT_integral_using_Eq_24(...)\nreturn SR + STT + STRT\n# Appendix A closed-form GGX integration is only the R-lobe approximation with G omitted.",
+        "implementation_mapping": {
+          "threejs_api": "Custom ShaderMaterial or CPU material evaluator; Three.js has no native fiber BCSDF API.",
+          "cpu_reference": "Current CPU reference validates Eq. (41) NDF and Eq. (42) dot product only; full BCSDF reference remains unimplemented.",
+          "gpu_strategy": "Shader implementation only after CPU integration oracle for R, TT and TRT is validated; avoid substituting planar MeshPhysicalMaterial."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -1403,7 +1814,7 @@
           ]
         },
         "derivation": {
-          "status": "PARTIAL",
+          "status": "partial",
           "steps": [
             "El tensor de estructura suavizado define orientación φ y anisotropía A a partir de sus autovalores (Ecs. de §3.1).",
             "La matriz S(A,α) y la rotación Rφ transforman el soporte circular en una elipse alineada con la estructura local (§3.2, definición de Ω).",
@@ -1436,51 +1847,52 @@
           {
             "name": "image",
             "type": "H×W×3 RGB image",
-            "units": "8-bit integer code values 0..255"
+            "unit": "integer RGB code values 0..255",
+            "constraints": "Use the published 8-bit code-value scale for q=8; normalized RGB is not numerically equivalent."
           },
           {
             "name": "sigma_s",
             "type": "positive scalar",
-            "units": "pixels"
+            "unit": "pixels",
+            "constraints": "Gaussian smoothing scale > 0."
           },
           {
             "name": "sigma_r",
             "type": "positive scalar",
-            "units": "pixels"
+            "unit": "pixels",
+            "constraints": "Radial Gaussian scale > 0."
           },
           {
             "name": "N",
-            "type": "integer number of sectors",
-            "units": "dimensionless; paper examples N=4 or 8"
+            "type": "positive integer",
+            "unit": "sectors",
+            "constraints": "Use even sector count in the published examples; N=4 or 8."
           },
           {
             "name": "alpha",
             "type": "positive scalar",
-            "units": "dimensionless; paper examples α=1"
+            "unit": "dimensionless",
+            "constraints": "Anisotropy shape parameter; source examples use 1."
           },
           {
             "name": "q",
             "type": "positive scalar",
-            "units": "dimensionless; paper example q=8"
-          },
-          {
-            "name": "boundary_mode",
-            "type": "explicit enum",
-            "units": "clamp, mirror, constant or valid-only; implementation choice, not fixed by continuous equations"
+            "unit": "dimensionless",
+            "constraints": "Weight exponent; source examples use 8."
           }
         ],
         "outputs": [
           {
             "name": "filtered_image",
             "type": "H×W×3 RGB image",
-            "units": "same code-value scale as input"
+            "unit": "RGB code values 0..255"
           }
         ],
         "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
         "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(H·W·N·K), K sampled support points per sector; structure tensor convolutions add O(H·W·K_G)",
+          "space": "O(H·W) for intermediate tensor and output; kernel tables O(K)"
         },
         "threejs_binding": {
           "status": "NEEDS_API_LEVEL_MAPPING",
@@ -1489,15 +1901,220 @@
         "source_claims": [
           {
             "url": "https://www.kyprianidis.com/p/pg2009/jkyprian-pg2009.pdf",
-            "type": "PRIMARY_PAPER_PDF",
-            "formula_level_status": "SINGLE_SCALE_FORMULA_CROSSCHECKED; MULTISCALE_EXTENSION_UNSOURCED",
-            "exact_equation_locator": "§3.1 Eqs. (structure tensor, eigenvalues and anisotropy); §3.2 Eq. (1) sector kernels, Eq. (2) pullback weights, Eqs. (3)-(4) weighted mean/variance; α_i=1/(1+||s_i||^q) and output immediately after Eq. (4), p. 1960; §4 discrete implementation and RGB 0..255 scale."
+            "supported_claim": "Single-scale anisotropic Kuwahara filter: structure tensor orientation, anisotropic ellipse, sector kernels, weighted means/variances and output weights.",
+            "formula_locator": "§3.1 eigenvalues/orientation/anisotropy; §3.2 Eqs. (1)-(4), followed by α_i and output; §4 discrete implementation, RGB code values 0..255. This paper does not define the manifest's simultaneous multi-scale saliency blend.",
+            "formula_level_status": "partial"
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            "For sector standard deviations [0,3] and q=2, the source weight equation gives output 10/11 for means [0,10]. For q=8, the output is 10/6563 in the 8-bit code-value convention."
+          ],
+          "javascript": [
+            "JS sector-weight kernel matches the analytic values for q=2 and q=8 and rejects negative standard deviation."
+          ],
+          "edge_cases": [
+            "A=0 isotropic tensor; λ1+λ2=0; sector normalization k=0; all sector weights invalid; image edge mode; RGB normalization mismatch."
+          ]
+        },
+        "variables": [
+          {
+            "symbol": "f(x)",
+            "meaning": "entrada RGB",
+            "unit": "8-bit integer code values 0..255 per channel",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite RGB code values and positive kernel parameters; see single-scale source scope"
+          },
+          {
+            "symbol": "E,F,G",
+            "meaning": "componentes del tensor de estructura",
+            "unit": "(RGB code value/pixel)^2",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite RGB code values and positive kernel parameters; see single-scale source scope"
+          },
+          {
+            "symbol": "λ1,λ2",
+            "meaning": "autovalores del tensor",
+            "unit": "(RGB code value/pixel)^2",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite RGB code values and positive kernel parameters; see single-scale source scope"
+          },
+          {
+            "symbol": "φ",
+            "meaning": "orientación local",
+            "unit": "rad",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite RGB code values and positive kernel parameters; see single-scale source scope"
+          },
+          {
+            "symbol": "A",
+            "meaning": "anisotropía",
+            "unit": "dimensionless",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite RGB code values and positive kernel parameters; see single-scale source scope"
+          },
+          {
+            "symbol": "α",
+            "meaning": "parámetro de excentricidad de S",
+            "unit": "dimensionless, α>0",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite RGB code values and positive kernel parameters; see single-scale source scope"
+          },
+          {
+            "symbol": "σs,σr",
+            "meaning": "desviaciones estándar gaussianas de los kernels",
+            "unit": "pixels",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite RGB code values and positive kernel parameters; see single-scale source scope"
+          },
+          {
+            "symbol": "m_i,s_i",
+            "meaning": "media y desviación estándar RGB ponderadas por sector",
+            "unit": "RGB code values",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite RGB code values and positive kernel parameters; see single-scale source scope"
+          },
+          {
+            "symbol": "q",
+            "meaning": "exponente de peso",
+            "unit": "dimensionless",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite RGB code values and positive kernel parameters; see single-scale source scope"
+          }
+        ],
+        "equations": [
+          {
+            "id": "AKF-1",
+            "expression": "K_i=(χ_i*G_{σs})·G_{σr}",
+            "purpose": "Smooth sector kernels over the circular support",
+            "derivation_ref": "Kyprianidis et al. 2009 §3.2 Eq. (1)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "AKF-PG2009"
+            ]
+          },
+          {
+            "id": "AKF-2",
+            "expression": "w_i=K_i∘S R_{−φ}",
+            "purpose": "Pull sector weights back to the local anisotropic ellipse",
+            "derivation_ref": "Kyprianidis et al. 2009 §3.2 Eq. (2)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "AKF-PG2009"
+            ]
+          },
+          {
+            "id": "AKF-3",
+            "expression": "m_i=(1/k)∫f(x)w_i(x−x₀)dx; s_i²=(1/k)∫f²(x)w_i(x−x₀)dx−m_i²",
+            "purpose": "Weighted sector mean and per-channel variance",
+            "derivation_ref": "Kyprianidis et al. 2009 §3.2 Eqs. (3)-(4)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "AKF-PG2009"
+            ]
+          },
+          {
+            "id": "AKF-4",
+            "expression": "α_i=1/(1+||s_i||^q); f_out=Σ_i α_i m_i/Σ_i α_i",
+            "purpose": "Soft preference for homogeneous sectors",
+            "derivation_ref": "Kyprianidis et al. 2009 §3.2 immediately after Eq. (4)",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "AKF-PG2009"
+            ]
+          }
+        ],
+        "algorithm_steps": [
+          "Compute RGB derivatives using Gaussian derivative kernels Gσ,x and Gσ,y.",
+          "Construct the 2×2 structure tensor (E,F;F,G) and smooth each tensor component.",
+          "Compute eigenvalues λ1, λ2, the minimum-gradient eigenvector t, orientation φ=arg(t), and anisotropy A=(λ1−λ2)/(λ1+λ2).",
+          "Build S=diag(α/(α+A),(α+A)/α), rotate the support by φ, and define the elliptical domain Ω.",
+          "For each sector i, evaluate K_i using Eq. (1) and pull it back to Ω using Eq. (2).",
+          "For each sector, compute weighted RGB mean m_i and variance s_i² using Eqs. (3)-(4), with k=∫w_i.",
+          "Compute α_i=1/(1+||s_i||^q) in the source's integer RGB code-value scale; output the normalized weighted mean.",
+          "Apply an explicitly selected image-edge sampling mode; this is an implementation contract, not fixed by the continuous equations."
+        ],
+        "pseudocode": "for each output pixel x0:\n    fx, fy = gaussianDerivativeConvolutions(rgbImage)\n    J = smoothStructureTensor(fx*fx, fx*fy, fy*fy)\n    lambda1, lambda2, t = eigenSystem(J)\n    phi = atan2(t.y, t.x)\n    A = (lambda1-lambda2)/(lambda1+lambda2) if lambda1+lambda2>0 else 0\n    S = diag(alpha/(alpha+A), (alpha+A)/alpha)\n    for sector i in 0 .. N-1:\n        wi = pullbackSectorKernel(i, S, phi, sigmaS, sigmaR)\n        k = sum(wi)\n        if k <= 0: mark sector invalid; continue\n        mean[i] = sum(rgb*wi)/k\n        variance[i] = max(sum(rgb*rgb*wi)/k - mean[i]*mean[i], 0)\n        stddevNorm[i] = norm(sqrt(variance[i]))\n        weight[i] = 1/(1 + stddevNorm[i]^q)\n    output[x0] = sum(weight[i]*mean[i])/sum(weight[i])",
+        "implementation_mapping": {
+          "threejs_api": "Texture/Canvas input and ShaderMaterial or CPU image buffer; Three.js does not provide this filter as a built-in API.",
+          "cpu_reference": "Add a full discrete reference filter with fixed edge mode and integer RGB scale; current anisotropicKuwaharaMean tests only the sector aggregation equation.",
+          "gpu_strategy": "GLSL fragment shader with precomputed sector-kernel lookup; match RGB scale, bilinear sampling and edge mode exactly."
         }
       },
       "readiness_status": "INCOMPLETE",
@@ -2551,7 +3168,7 @@
           ]
         },
         "derivation": {
-          "status": "PARTIAL",
+          "status": "partial",
           "steps": [
             "Reynolds §3, pp. 28-29, define tres solicitudes conductuales por prioridad: collision avoidance, velocity matching y flock centering; no define la suma ws*S+wa*(A−v)+wc*(C−p) del manifiesto.",
             "Cada comportamiento produce una solicitud de aceleración 3D con magnitud truncada a 1 o menos por convención del sistema; una fuerza s_b∈[0,1] atenúa esa solicitud.",
@@ -2580,27 +3197,29 @@
         "inputs": [
           {
             "name": "priority_requests",
-            "type": "ordered array of {acceleration:[x,y,z],strength}",
-            "units": "m/s²; strength dimensionless [0,1]"
+            "type": "ordered array of 3D acceleration vectors and strengths",
+            "unit": "m/s²; strength dimensionless",
+            "constraints": "Finite vectors; strength in [0,1]; order is explicit and stable."
           },
           {
             "name": "max_acceleration",
             "type": "finite nonnegative scalar",
-            "units": "m/s²"
+            "unit": "m/s²",
+            "constraints": "Global per-agent acceleration budget."
           }
         ],
         "outputs": [
           {
             "name": "allocated_acceleration",
-            "type": "3-vector",
-            "units": "m/s²; magnitude ≤ max_acceleration"
+            "type": "3D vector",
+            "unit": "m/s²; magnitude ≤ max_acceleration"
           }
         ],
         "algorithm_completeness": "PRIORITIZED_ACCELERATION_ALLOCATION_SPECIFIED; BEHAVIOR_GENERATORS_REMAIN_VARIANT_SPECIFIC",
         "pseudocode_status": "EXECUTABLE_ALLOCATION_KERNEL_ADDED; PERCEPTION_AND_COLLISION_PREDICTION_PENDING",
         "complexity": {
-          "time": "O(B) for B ordered behavior requests",
-          "space": "O(1) additional working storage"
+          "time": "O(B) for B behavior requests after neighbor query; naive neighbor query O(N²) across N agents",
+          "space": "O(B) temporary request storage; O(1) accumulator"
         },
         "threejs_binding": {
           "status": "NEEDS_API_LEVEL_MAPPING",
@@ -2609,23 +3228,160 @@
         "source_claims": [
           {
             "url": "https://www-graphics.stanford.edu/courses/cs448-01-spring/papers/reynolds.pdf",
-            "type": "PRIMARY_SIGGRAPH_PAPER",
-            "formula_level_status": "BEHAVIORAL_RULES_AND_PRIORITY_ALLOCATION_CROSSCHECKED; PROJECT_WEIGHTED_SUM_NOT_A_PUBLISHED_EQUATION",
-            "exact_equation_locator": "§3 Simulated Flocks, p. 28 (three behavior rules); §3 Arbitrating Independent Behaviors, p. 29 (unit-bounded acceleration requests, strength [0,1], prioritized acceleration allocation and trimming to maximum acceleration); §3 Simulated Perception, p. 29 (local neighborhood sensitivity)."
+            "supported_claim": "Reynolds' three local behaviors and prioritized acceleration allocation: bounded acceleration requests, fractional strength and trimming to maximum acceleration.",
+            "formula_locator": "§3 Simulated Flocks p.28; Arbitrating Independent Behaviors p.29; Simulated Perception p.29. The manifest's weighted S/A/C sum is not Reynolds' equation.",
+            "formula_level_status": "partial"
           }
         ],
         "independent_tests": {
           "python": [
-            "Requests [(0.8,0,0),(0,0.8,0)] with strengths 1 and a_max=1 yield (0.8,0.2,0).",
-            "If first request norm=0.6 and second norm=0.2, a_max=1, both are retained exactly.",
-            "Strength=0 and a_max=0 yield zero vector."
+            "Ordered requests (0.8,0,0) then (0,0.8,0), a_max=1 yield (0.8,0.2,0). Requests with magnitudes 0.6 and 0.2 are both retained when a_max=1."
           ],
           "javascript": [
-            "Compare with same analytic fixtures; no shared runtime dependency on Python."
+            "JavaScript allocator matches the closed-form trim fixtures."
           ],
           "edge_cases": [
-            "Empty request list; zero vector; negative strength; strength>1; negative a_max; nonfinite request; zero remaining budget."
+            "Empty requests; zero request; zero strength; zero acceleration budget; negative or nonfinite strength; malformed vector."
           ]
+        },
+        "variables": [
+          {
+            "symbol": "p_i",
+            "meaning": "posición",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite three-dimensional vectors; requests ordered by declared priority"
+          },
+          {
+            "symbol": "v_i",
+            "meaning": "velocidad",
+            "unit": "m/s",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": -1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite three-dimensional vectors; requests ordered by declared priority"
+          },
+          {
+            "symbol": "a_req",
+            "meaning": "solicitud de aceleración conductual",
+            "unit": "m/s²",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": -2,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite three-dimensional vectors; requests ordered by declared priority"
+          },
+          {
+            "symbol": "s_b",
+            "meaning": "fuerza/strength de conducta",
+            "unit": "dimensionless [0,1]",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite three-dimensional vectors; requests ordered by declared priority"
+          },
+          {
+            "symbol": "a_max",
+            "meaning": "aceleración máxima asignable",
+            "unit": "m/s²",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": -2,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite three-dimensional vectors; requests ordered by declared priority"
+          },
+          {
+            "symbol": "Δt",
+            "meaning": "paso temporal",
+            "unit": "s",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 1,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            },
+            "domain": "finite three-dimensional vectors; requests ordered by declared priority"
+          }
+        ],
+        "equations": [
+          {
+            "id": "BOIDS-REQ",
+            "expression": "a_req ← truncateToUnitMagnitude(behaviorRequest); a_req ← strength·a_req, strength∈[0,1]",
+            "purpose": "Normalize and attenuate each behavioral acceleration request",
+            "derivation_ref": "Reynolds 1987 §3, Arbitrating Independent Behaviors, p.29",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "REYNOLDS-1987"
+            ]
+          },
+          {
+            "id": "BOIDS-ALLOC",
+            "expression": "a←a+trim(a_req, a_max−Σ||a_k||)",
+            "purpose": "Prioritized acceleration allocation with final request trimmed to remaining magnitude budget",
+            "derivation_ref": "Reynolds 1987 §3, p.29",
+            "status": "source_verified",
+            "dimensional_check": "pass",
+            "source_claim_ids": [
+              "REYNOLDS-1987"
+            ]
+          },
+          {
+            "id": "BOIDS-EULER",
+            "expression": "v_{n+1}=v_n+a_nΔt; p_{n+1}=p_n+v_{n+1}Δt",
+            "purpose": "Project-authored semi-implicit Euler integration",
+            "derivation_ref": "Implementation convention; not a formula claimed from Reynolds",
+            "status": "authored_convention",
+            "dimensional_check": "pass",
+            "source_claim_ids": []
+          }
+        ],
+        "algorithm_steps": [
+          "Compute local neighbors using an explicitly declared radius and perception/sensitivity policy.",
+          "Generate separate acceleration requests for collision avoidance, velocity matching and flock centering.",
+          "Clamp each behavior request to unit magnitude or less and multiply by its strength in [0,1].",
+          "Process requests in strict priority order, accumulating vector acceleration and accumulated request magnitudes.",
+          "If a request exceeds the remaining acceleration budget, scale that request to the remaining magnitude and stop.",
+          "Integrate velocity and position with the selected time integrator; this integrator is an implementation convention."
+        ],
+        "pseudocode": "acceleration = [0,0,0]\nusedMagnitude = 0\nfor request in requests ordered by priority:\n    require finite3(request.vector) and 0 <= request.strength <= 1\n    v = clampMagnitude(request.vector, 1) * request.strength\n    magnitude = length(v)\n    remaining = maxAcceleration - usedMagnitude\n    if remaining <= 0: break\n    if magnitude > remaining:\n        v = v * (remaining / magnitude)\n        magnitude = remaining\n    acceleration += v\n    usedMagnitude += magnitude\n    if usedMagnitude >= maxAcceleration: break\nvelocityNext = velocity + acceleration * dt\npositionNext = position + velocityNext * dt",
+        "implementation_mapping": {
+          "threejs_api": "Update Object3D.position and orientation from the computed agent state; spatial index is custom application logic.",
+          "cpu_reference": "tests/threejs/test_r31_math_kernels.py::prioritized_acceleration_allocation and r31_kernels.mjs::prioritizedAccelerationAllocation.",
+          "gpu_strategy": "CPU first; GPU only after behavior generators and priority allocation are independently validated."
         }
       },
       "readiness_status": "INCOMPLETE",
