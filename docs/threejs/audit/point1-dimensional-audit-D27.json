@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D27 Multitudes, navegación y comportamiento",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -443,11 +443,26 @@
             "J": 0
           },
           "domain": "acotada"
+        },
+        {
+          "symbol": "k_s",
+          "meaning": "Ganancia que convierte separación en aceleración",
+          "unit": "m²/s²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y calibrada"
         }
       ],
       "constraints": [
-        "La suma −(p_j−p_i)/|p_j−p_i|² tiene L⁻¹; no es aceleración hasta aplicar ganancia con unidad L²/T².",
-        "Vecinos coincidentes requieren dirección de respaldo."
+        "S_i=−Σ(p_j−p_i)/|p_j−p_i|² tiene m⁻¹; k_s debe tener m²/s² para producir aceleración.",
+        "No sumar S_i directamente con aceleraciones; convertir mediante ganancia dimensional."
       ],
       "valid_domain": [
         "Radio de vecindad positivo; distancias no nulas o singularidad tratada."
@@ -525,6 +540,21 @@
             "J": 0
           },
           "domain": "acotada"
+        },
+        {
+          "symbol": "k_a",
+          "meaning": "Ganancia que convierte diferencia de velocidad en aceleración",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y calibrada"
         }
       ],
       "constraints": [
@@ -607,6 +637,21 @@
             "J": 0
           },
           "domain": "acotada"
+        },
+        {
+          "symbol": "k_c",
+          "meaning": "Ganancia que convierte vector de cohesión en aceleración",
+          "unit": "s⁻²",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita y calibrada"
         }
       ],
       "constraints": [
@@ -936,7 +981,7 @@
       "variables": [
         {
           "symbol": "S_i",
-          "meaning": "separación",
+          "meaning": "Separación",
           "unit": "m⁻¹",
           "dimension": {
             "L": -1,
@@ -951,7 +996,7 @@
         },
         {
           "symbol": "A_i",
-          "meaning": "alineación",
+          "meaning": "Alineación (diferencia de velocidades)",
           "unit": "m/s",
           "dimension": {
             "L": 1,
@@ -966,7 +1011,7 @@
         },
         {
           "symbol": "C_i",
-          "meaning": "cohesión",
+          "meaning": "Cohesión (diferencia de posiciones)",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -980,23 +1025,53 @@
           "domain": "finita"
         },
         {
-          "symbol": "w_s,w_a,w_c",
-          "meaning": "pesos",
-          "unit": "1",
+          "symbol": "w_s",
+          "meaning": "Ganancia de separación",
+          "unit": "m²/s²",
           "dimension": {
-            "L": 0,
+            "L": 2,
             "M": 0,
-            "T": 0,
+            "T": -2,
             "I": 0,
             "Theta": 0,
             "N": 0,
             "J": 0
           },
-          "domain": "finitos"
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_a",
+          "meaning": "Ganancia de alineación",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "w_c",
+          "meaning": "Ganancia de cohesión",
+          "unit": "s⁻²",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
         },
         {
           "symbol": "a_i",
-          "meaning": "aceleración resultante",
+          "meaning": "Aceleración resultante",
           "unit": "m/s²",
           "dimension": {
             "L": 1,
@@ -1008,19 +1083,12 @@
             "J": 0
           },
           "domain": "acotada"
-        },
-        {
-          "symbol": "w_s,w_a,w_c",
-          "meaning": "ganancias dimensionales para salida aceleración",
-          "unit": "L²/T²; T⁻¹; T⁻²",
-          "dimension": "respectivamente L²T⁻², T⁻¹, T⁻²",
-          "domain": "finitas y calibradas"
         }
       ],
       "constraints": [
-        "La suma declarada w_sS_i+w_aA_i+w_cC_i es dimensionalmente inválida: los tres términos tienen L⁻¹, L/T y L respectivamente.",
-        "Para implementar, convertir cada término a una unidad común (p.ej. aceleración L/T²) con ganancias dimensionales explícitas antes de sumarlos.",
-        "Para a=w_sS+w_aA+w_cC, fijar w_s [L²/T²], w_a [T⁻¹] y w_c [T⁻²]; así cada término tiene L/T². Si la salida se define como velocidad, las unidades de las ganancias cambian y deben recalcularse."
+        "La suma declarada w_sS_i+w_aA_i+w_cC_i requiere que cada término tenga aceleración L/T².",
+        "Fijar w_s [L²/T²], w_a [T⁻¹] y w_c [T⁻²]; pesos adimensionales no corrigen incompatibilidades dimensionales.",
+        "Si la salida se define como velocidad en vez de aceleración, recalcular las unidades de las tres ganancias."
       ],
       "valid_domain": [
         "Vecindarios y estados finitos; ganancias de conversión declaradas.",
@@ -1032,22 +1100,20 @@
         "Ganancias cero eliminan el componente correspondiente; aceleración final se limita según el modelo de movimiento."
       ],
       "dimensional_checks": [
-        "S_i tiene L⁻¹; A_i L/T; C_i L; pesos adimensionales no corrigen incompatibilidad.",
-        "Solo la forma convertida puede producir a_i con L/T².",
-        "w_s·S=(L²/T²)(L⁻¹)=L/T²; w_a·A=(T⁻¹)(L/T)=L/T²; w_c·C=(T⁻²)(L)=L/T²."
+        "S_i tiene L⁻¹; A_i tiene L/T; C_i tiene L.",
+        "w_s·S_i, w_a·A_i y w_c·C_i tienen cada uno L/T²; la suma produce a_i en m/s²."
       ],
       "status": "REVIEWED_POINT1"
     }
   ],
   "validation": {
     "structural_checks": [
-      "13/13 técnicas incluidas",
-      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
-      "D27:12 queda condicional: la suma de separation/alignment/cohesion en la ficha mezcla dimensiones incompatibles sin ganancias dimensionales",
-      "D27:12 cerrada al declarar las unidades de cada ganancia para la salida aceleración."
+      "13/13 técnicas incluidas; ninguna protegida",
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Se eliminaron definiciones duplicadas/contradictorias de pesos Boids y se añadieron ganancias dimensionales individuales para separación, alineación y cohesión"
     ],
     "limitations": [
-      "Las expresiones de comportamiento son esquemáticas; la auditoría no inventa pesos con unidades ni una política física no especificada."
+      "Las ganancias deben calibrarse numéricamente; la auditoría dimensional no determina sus valores óptimos ni garantiza comportamiento emergente estable."
     ]
   },
   "integrity": {
