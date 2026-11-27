@@ -1,0 +1,845 @@
+{
+  "title": "Auditoría dimensional punto 1 — D26 Animación facial, expresiones y actuación",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D26",
+    "domain": "Animación facial, expresiones y actuación",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D26 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "angles": "Radianes; adimensionales en SI base.",
+    "time": "Segundos; retardos/duraciones con dimensión T.",
+    "facial_channels": "Posiciones L, ángulos rad, pesos adimensionales; estado facial heterogéneo."
+  },
+  "records": [
+    {
+      "record_key": "D26:0",
+      "name": "Blendshape deformation",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición base",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "Δp_i",
+          "meaning": "desplazamiento morph",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "peso blendshape",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "p'",
+          "meaning": "posición deformada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Todos los Δp_i usan mismo marco y unidad; pesos son adimensionales.",
+        "Limitar pesos o declarar extrapolación fuera de [0,1]."
+      ],
+      "valid_domain": [
+        "Malla base y targets con topología/índices compatibles."
+      ],
+      "boundary_conditions": [
+        "Todos los pesos cero reproducen p.",
+        "Targets faltantes se rechazan o se omiten según política."
+      ],
+      "dimensional_checks": [
+        "w_iΔp_i tiene L; p' conserva L.",
+        "Pesos son adimensionales."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D26:1",
+      "name": "FACS-inspired action units",
+      "variables": [
+        {
+          "symbol": "base",
+          "meaning": "parámetros faciales base",
+          "unit": "m o rad según canal",
+          "dimension": "tipado por canal",
+          "domain": "finito"
+        },
+        {
+          "symbol": "AU_i",
+          "meaning": "delta de acción facial",
+          "unit": "misma unidad que canal",
+          "dimension": "tipado por canal",
+          "domain": "finito"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "activación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango calibrado"
+        },
+        {
+          "symbol": "face",
+          "meaning": "estado facial",
+          "unit": "vector heterogéneo",
+          "dimension": "dimensión por componente",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Cada AU debe declarar canales y unidades; no sumar desplazamientos, ángulos y pesos como escalares homogéneos.",
+        "Activaciones y combinaciones se limitan a rangos de calibración."
+      ],
+      "valid_domain": [
+        "AU finitas; pesos finitos; base válida."
+      ],
+      "boundary_conditions": [
+        "w_i=0 conserva neutral.",
+        "Canales fuera de rango se saturan o marcan inválidos."
+      ],
+      "dimensional_checks": [
+        "w_i es adimensional; AU_i conserva unidad de cada canal.",
+        "face es estado heterogéneo, no una única magnitud."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D26:2",
+      "name": "Jaw hinge",
+      "variables": [
+        {
+          "symbol": "pivot",
+          "meaning": "pivote mandibular",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "axis",
+          "meaning": "eje de giro",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitario"
+        },
+        {
+          "symbol": "angle",
+          "meaning": "apertura",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango anatómico"
+        },
+        {
+          "symbol": "M_jaw",
+          "meaning": "transformación",
+          "unit": "afín tipada",
+          "dimension": "bloque lineal 1; traslación L",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Traslaciones usan L; rotación usa eje unitario y ángulo radianes.",
+        "Pivote y mandíbula deben estar en mismo marco local."
+      ],
+      "valid_domain": [
+        "Pivote finito; eje unitario; ángulo limitado."
+      ],
+      "boundary_conditions": [
+        "angle=0 devuelve pose cerrada.",
+        "El pivote permanece fijo bajo la rotación."
+      ],
+      "dimensional_checks": [
+        "pivot tiene L; axis y rotación son adimensionales.",
+        "M_jaw conserva tipado afín."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D26:3",
+      "name": "Viseme interpolation",
+      "variables": [
+        {
+          "symbol": "viseme_i",
+          "meaning": "pose de visema",
+          "unit": "vector tipado",
+          "dimension": "L/rad por canal",
+          "domain": "finito"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "peso",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "w_i≥0"
+        },
+        {
+          "symbol": "Σw_i",
+          "meaning": "suma de pesos",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≈1"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Pesos deben normalizarse o declararse suma parcial; poses comparten topología y canal dimensional.",
+        "Interpolación angular/quaternion requiere método apropiado, no promedio escalar ingenuo."
+      ],
+      "valid_domain": [
+        "Visemas definidos; pesos finitos; tiempos ordenados."
+      ],
+      "boundary_conditions": [
+        "Un peso 1 reproduce visema correspondiente.",
+        "Sin visemas activos, neutral explícito."
+      ],
+      "dimensional_checks": [
+        "Pesos adimensionales; cada canal conserva unidad de la pose.",
+        "Tiempo tiene T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D26:4",
+      "name": "Coarticulation",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "center_j",
+          "meaning": "centro fonético",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ordenado"
+        },
+        {
+          "symbol": "width_j",
+          "meaning": "duración/influencia",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        },
+        {
+          "symbol": "w_i",
+          "meaning": "peso de visema",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "t-center_j y width_j deben compartir T; su cociente es adimensional.",
+        "Influence_j devuelve peso adimensional; la suma y normalización de visemas se declaran."
+      ],
+      "valid_domain": [
+        "Eventos finitos y ordenados; widths positivos."
+      ],
+      "boundary_conditions": [
+        "Fuera de ventana, influencia cero o neutral según curva.",
+        "Eventos simultáneos requieren suma/mezcla determinista."
+      ],
+      "dimensional_checks": [
+        "Argumentos temporales normalizados son adimensionales; salida w_i adimensional.",
+        "Los centros y anchos tienen T."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D26:5",
+      "name": "Eye saccade",
+      "variables": [
+        {
+          "symbol": "g0,g1",
+          "meaning": "direcciones de mirada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitarias"
+        },
+        {
+          "symbol": "t0,t1",
+          "meaning": "instantes",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "t1>t0"
+        },
+        {
+          "symbol": "v_gaze",
+          "meaning": "velocidad angular",
+          "unit": "rad/s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "desplazamiento angular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango ocular"
+        }
+      ],
+      "constraints": [
+        "Transición temporal debe parametrizarse con u=(t−t0)/(t1−t0) adimensional.",
+        "Direcciones deben normalizarse; interpolación angular usa slerp o arco esférico."
+      ],
+      "valid_domain": [
+        "t1>t0; direcciones unitarias; límites oculares declarados."
+      ],
+      "boundary_conditions": [
+        "t≤t0 conserva g0; t≥t1 alcanza g1.",
+        "Direcciones antipodales requieren eje de giro de respaldo."
+      ],
+      "dimensional_checks": [
+        "v_gaze tiene T⁻¹; integración en tiempo produce ángulo.",
+        "Direcciones y ángulos son adimensionales angulares."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D26:6",
+      "name": "Blink envelope",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "t_close,t_open",
+          "meaning": "duraciones",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivas"
+        },
+        {
+          "symbol": "b(t)",
+          "meaning": "apertura normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "apertura mínima",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        }
+      ],
+      "constraints": [
+        "Curvas smoothClose/smoothOpen operan sobre tiempo normalizado adimensional.",
+        "La salida es apertura normalizada; no debe confundirse con distancia física del párpado."
+      ],
+      "valid_domain": [
+        "Duraciones positivas; eventos ordenados."
+      ],
+      "boundary_conditions": [
+        "Fuera de evento b=1; cierre completo b=ε o 0 según anatomía.",
+        "Eventos solapados requieren combinación determinista."
+      ],
+      "dimensional_checks": [
+        "t y duraciones tienen T; b y ε son adimensionales.",
+        "La curva no tiene unidad física."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D26:7",
+      "name": "Facial muscle field",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "posición de superficie",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "c_i",
+          "meaning": "centro muscular",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia al músculo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "ℓ",
+          "meaning": "radio de influencia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ℓ>0"
+        },
+        {
+          "symbol": "activation",
+          "meaning": "activación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango declarado"
+        },
+        {
+          "symbol": "Δp",
+          "meaning": "desplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "d/ℓ debe ser adimensional; falloff es adimensional y dirección unitaria.",
+        "La suma de desplazamientos debe usar el mismo marco y limitar auto-intersecciones."
+      ],
+      "valid_domain": [
+        "ℓ>0; puntos y centros finitos; activación acotada."
+      ],
+      "boundary_conditions": [
+        "activation=0 produce Δp=0.",
+        "d fuera de soporte produce falloff cero."
+      ],
+      "dimensional_checks": [
+        "p,c_i,d,ℓ,Δp tienen L; activation y dirección son adimensionales.",
+        "El campo devuelve desplazamiento L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D26:8",
+      "name": "Emotion parameter space",
+      "variables": [
+        {
+          "symbol": "neutral",
+          "meaning": "pose neutral",
+          "unit": "vector tipado",
+          "dimension": "L/rad por canal",
+          "domain": "finita"
+        },
+        {
+          "symbol": "emotionTargets",
+          "meaning": "poses objetivo",
+          "unit": "vector tipado",
+          "dimension": "misma dimensión por canal",
+          "domain": "finitas"
+        },
+        {
+          "symbol": "intensity",
+          "meaning": "intensidad",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1] o rango calibrado"
+        },
+        {
+          "symbol": "expression",
+          "meaning": "pose resultante",
+          "unit": "vector tipado",
+          "dimension": "hereda canal",
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Blend solo combina canales homólogos y unidades iguales.",
+        "Intensidad no es probabilidad ni magnitud física; es parámetro de control."
+      ],
+      "valid_domain": [
+        "Targets y neutral con topología compatible; intensidad finita."
+      ],
+      "boundary_conditions": [
+        "intensity=0 produce neutral.",
+        "intensity=1 reproduce target si mezcla definida."
+      ],
+      "dimensional_checks": [
+        "intensity es adimensional; salida hereda unidades por canal.",
+        "No asignar una sola dimensión al vector heterogéneo."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D26:9",
+      "name": "Gaze coordination",
+      "variables": [
+        {
+          "symbol": "headTarget",
+          "meaning": "objetivo de cabeza",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "offset",
+          "meaning": "desplazamiento ocular",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "τ",
+          "meaning": "retardo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "τ≥0"
+        },
+        {
+          "symbol": "eyeTarget",
+          "meaning": "objetivo ocular",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "t−τ mantiene unidad T; headTarget se evalúa en tiempo retardado.",
+        "offset se suma como vector de longitud en marco declarado."
+      ],
+      "valid_domain": [
+        "τ≥0; trayectoria de cabeza definida en intervalo retardado."
+      ],
+      "boundary_conditions": [
+        "τ=0 sincroniza objetivo ocular con cabeza.",
+        "Si t−τ precede el primer dato, usar pose inicial o extrapolación declarada."
+      ],
+      "dimensional_checks": [
+        "headTarget, offset y eyeTarget tienen L; τ y t tienen T.",
+        "La suma espacial es homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "10/10 técnicas incluidas; ninguna protegida",
+      "Cada técnica contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
+      "Se separan canales faciales de posición, rotación, tiempo y pesos de control"
+    ],
+    "limitations": [
+      "Auditoría dimensional; calibración anatómica, sincronización fonética y validación perceptual pertenecen a puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
