@@ -1,0 +1,642 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D22 Telas, tejidos, cuerdas, cabello y materiales deformables",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D22",
+    "record_count": 15,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D22 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D22:0",
+      "name": "Mass-spring cloth",
+      "starting_principles": [
+        "m_i>0; k,c≥0; longitudes y velocidades en unidades coherentes.",
+        "Topología de tela y condiciones de borde declaradas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_s,ij=−k_ij(ℓ_ij−l_ij)n_ij",
+          "justification": "Hooke: cada arista ejerce fuerza proporcional a elongación."
+        },
+        {
+          "step": 2,
+          "equation": "F_d,ij=−c_ij(v_i−v_j)·n_ij n_ij",
+          "justification": "Añadir amortiguamiento relativo en dirección de resorte."
+        },
+        {
+          "step": 3,
+          "equation": "m_i x_i''=Σ_j(F_s,ij+F_d,ij)+f_i",
+          "justification": "Aplicar segunda ley a cada nodo de la malla."
+        },
+        {
+          "step": 4,
+          "equation": "integrate(x_i,v_i,Δt)",
+          "justification": "Actualizar estado con integrador elegido."
+        }
+      ],
+      "assumptions": [
+        "m_i>0; k,c≥0; longitudes y velocidades en unidades coherentes.",
+        "Topología de tela y condiciones de borde declaradas."
+      ],
+      "result": "La tela discreta deriva de masas conectadas por resortes y amortiguadores.",
+      "limits": [
+        "Rigidez alta exige pasos pequeños o solver implícito/constraints."
+      ]
+    },
+    {
+      "record_key": "D22:1",
+      "name": "Structural/shear/bend constraints",
+      "starting_principles": [
+        "Distancias objetivo positivas; topología triangular/cuadrilateral definida.",
+        "Las restricciones se resuelven iterativamente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C_struct=||x_i−x_j||−d_ij",
+          "justification": "Restricción de longitud entre vecinos estructurales."
+        },
+        {
+          "step": 2,
+          "equation": "C_shear=||x_i−x_j||−d_diag",
+          "justification": "Restringir diagonales para resistir cizalla."
+        },
+        {
+          "step": 3,
+          "equation": "C_bend=||x_i−x_j||−d_twoRing",
+          "justification": "Conectar nodos separados para controlar flexión."
+        },
+        {
+          "step": 4,
+          "equation": "C(x)=0",
+          "justification": "Cada familia de restricciones mantiene su métrica objetivo."
+        }
+      ],
+      "assumptions": [
+        "Distancias objetivo positivas; topología triangular/cuadrilateral definida.",
+        "Las restricciones se resuelven iterativamente."
+      ],
+      "result": "Las tres familias se derivan de distancias objetivo entre pares de nodos con roles topológicos distintos.",
+      "limits": [
+        "Una restricción de distancia entre nodos no sustituye el modelo continuo de flexión."
+      ]
+    },
+    {
+      "record_key": "D22:2",
+      "name": "PBD distance constraint",
+      "starting_principles": [
+        "w_i=1/m_i; masas fijas pueden tener w_i=0.",
+        "d>0; gradientes no nulos; iteraciones finitas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(x)=||x_i−x_j||−d",
+          "justification": "Definir error escalar de longitud."
+        },
+        {
+          "step": 2,
+          "equation": "∇_iC=n; ∇_jC=−n",
+          "justification": "Derivar respecto a posiciones de los extremos."
+        },
+        {
+          "step": 3,
+          "equation": "λ=−C/(w_i||∇_iC||²+w_j||∇_jC||²)",
+          "justification": "Elegir multiplicador que elimina el error linealizado."
+        },
+        {
+          "step": 4,
+          "equation": "Δx_i=w_iλ∇_iC; Δx_j=w_jλ∇_jC",
+          "justification": "Distribuir corrección según inversa de masa."
+        },
+        {
+          "step": 5,
+          "equation": "repeat constraints",
+          "justification": "Repetir proyección para restricciones acopladas."
+        }
+      ],
+      "assumptions": [
+        "w_i=1/m_i; masas fijas pueden tener w_i=0.",
+        "d>0; gradientes no nulos; iteraciones finitas."
+      ],
+      "result": "PBD deriva de proyectar posiciones sobre la variedad C(x)=0 usando gradientes y pesos inversos de masa.",
+      "limits": [
+        "Es estable visualmente pero la rigidez efectiva depende de iteraciones y timestep."
+      ]
+    },
+    {
+      "record_key": "D22:3",
+      "name": "XPBD compliance",
+      "starting_principles": [
+        "Δt>0; α≥0; gradientes y pesos compatibles.",
+        "Unidades de compliance dependen de tipo de restricción."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(x)=0",
+          "justification": "Definir restricción."
+        },
+        {
+          "step": 2,
+          "equation": "α̃=α/Δt²",
+          "justification": "Escalar compliance por paso temporal."
+        },
+        {
+          "step": 3,
+          "equation": "Δλ=−(C+α̃λ)/(Σ_iw_i||∇_iC||²+α̃)",
+          "justification": "Resolver multiplicador con compliance y valor acumulado."
+        },
+        {
+          "step": 4,
+          "equation": "Δx_i=w_i∇_iCΔλ",
+          "justification": "Aplicar corrección de posición."
+        },
+        {
+          "step": 5,
+          "equation": "λ←λ+Δλ",
+          "justification": "Conservar multiplicador dentro del paso/iteraciones."
+        }
+      ],
+      "assumptions": [
+        "Δt>0; α≥0; gradientes y pesos compatibles.",
+        "Unidades de compliance dependen de tipo de restricción.",
+        "λ se conserva según formulación XPBD."
+      ],
+      "result": "XPBD incorpora compliance al multiplicador de PBD para controlar rigidez con menor dependencia del paso temporal.",
+      "limits": [
+        "El resultado sigue dependiendo de discretización, iteraciones y elección de compliance."
+      ]
+    },
+    {
+      "record_key": "D22:4",
+      "name": "Bending dihedral constraint",
+      "starting_principles": [
+        "Triángulos no degenerados; arista compartida.",
+        "θ_0 y θ en misma convención; ángulos envueltos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "n_1=normalize(e_1×e_2); n_2=normalize(e_3×e_4)",
+          "justification": "Calcular normales de los dos triángulos adyacentes a una arista."
+        },
+        {
+          "step": 2,
+          "equation": "θ=atan2(e_hat·(n_1×n_2),n_1·n_2)",
+          "justification": "Obtener ángulo diedro con signo alrededor de la arista."
+        },
+        {
+          "step": 3,
+          "equation": "C=wrapAngle(θ−θ_0)",
+          "justification": "Medir desviación respecto al ángulo de reposo."
+        },
+        {
+          "step": 4,
+          "equation": "E_b=½k_b C²",
+          "justification": "Definir energía elástica cuadrática de flexión."
+        }
+      ],
+      "assumptions": [
+        "Triángulos no degenerados; arista compartida.",
+        "θ_0 y θ en misma convención; ángulos envueltos."
+      ],
+      "result": "La flexión se mide como cambio del ángulo entre normales de caras vecinas.",
+      "limits": [
+        "Ángulo diedro requiere manejo de ±π y topología de borde."
+      ]
+    },
+    {
+      "record_key": "D22:5",
+      "name": "Continuum elasticity",
+      "starting_principles": [
+        "Pequeñas deformaciones; material isotrópico lineal.",
+        "λ,μ son constantes de Lamé; desplazamientos diferenciables."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "ε=½(∇u+∇uᵀ)",
+          "justification": "Medir deformación infinitesimal simétrica."
+        },
+        {
+          "step": 2,
+          "equation": "σ=λ tr(ε)I+2με",
+          "justification": "Aplicar ley de Hooke isotrópica lineal."
+        },
+        {
+          "step": 3,
+          "equation": "∇·σ+ρb=ρü",
+          "justification": "Balance local de momento."
+        },
+        {
+          "step": 4,
+          "equation": "solve displacement u",
+          "justification": "Resolver desplazamiento con condiciones de borde."
+        }
+      ],
+      "assumptions": [
+        "Pequeñas deformaciones; material isotrópico lineal.",
+        "λ,μ son constantes de Lamé; desplazamientos diferenciables."
+      ],
+      "result": "La elasticidad lineal deriva de una relación constitutiva entre tensor de deformación y tensión.",
+      "limits": [
+        "No válida para grandes deformaciones ni materiales hiperelásticos."
+      ]
+    },
+    {
+      "record_key": "D22:6",
+      "name": "Strain tensor",
+      "starting_principles": [
+        "u diferenciable; desplazamientos pequeños.",
+        "Coordenadas de referencia y desplazamiento compatibles."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F=I+∇u",
+          "justification": "Definir gradiente de deformación en régimen de desplazamiento pequeño."
+        },
+        {
+          "step": 2,
+          "equation": "ε=(F+Fᵀ)/2−I",
+          "justification": "Extraer parte simétrica del gradiente y descartar rotación rígida de primer orden."
+        },
+        {
+          "step": 3,
+          "equation": "ε=½(∇u+∇uᵀ)",
+          "justification": "Simplificar al sustituir F=I+∇u."
+        },
+        {
+          "step": 4,
+          "equation": "ε_ij=½(∂u_i/∂x_j+∂u_j/∂x_i)",
+          "justification": "Expresar componentes."
+        }
+      ],
+      "assumptions": [
+        "u diferenciable; desplazamientos pequeños.",
+        "Coordenadas de referencia y desplazamiento compatibles."
+      ],
+      "result": "El tensor de deformación infinitesimal es la parte simétrica del gradiente de desplazamiento.",
+      "limits": [
+        "Para grandes deformaciones usar tensor Green–Lagrange u otro objetivo."
+      ]
+    },
+    {
+      "record_key": "D22:7",
+      "name": "Neo-Hookean hyperelasticity",
+      "starting_principles": [
+        "J>0; μ>0; λ≥0 según calibración.",
+        "Deformación continua; material isotrópico hiperelástico."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F=∂x/∂X; J=det(F)",
+          "justification": "Definir gradiente de deformación y cambio de volumen."
+        },
+        {
+          "step": 2,
+          "equation": "I_1=tr(FᵀF)",
+          "justification": "Construir primer invariante del tensor de Cauchy–Green."
+        },
+        {
+          "step": 3,
+          "equation": "W=μ/2(I_1−3)−μ lnJ+λ/2(lnJ)²",
+          "justification": "Definir energía libre neo-Hookean compresible."
+        },
+        {
+          "step": 4,
+          "equation": "P=∂W/∂F=μ(F−F^{-T})+λ lnJ F^{-T}",
+          "justification": "Derivar energía respecto a F para obtener primer tensor de Piola–Kirchhoff."
+        },
+        {
+          "step": 5,
+          "equation": "ρ_0 ẍ=Div(P)+ρ_0b",
+          "justification": "Aplicar balance de momento en configuración de referencia."
+        }
+      ],
+      "assumptions": [
+        "J>0; μ>0; λ≥0 según calibración.",
+        "Deformación continua; material isotrópico hiperelástico.",
+        "F invertible."
+      ],
+      "result": "La ley constitutiva se deriva de una función de energía de deformación y su gradiente.",
+      "limits": [
+        "El modelo es una aproximación isotrópica; tejidos reales pueden ser anisótropos/viscoelásticos."
+      ]
+    },
+    {
+      "record_key": "D22:8",
+      "name": "Finite element method",
+      "starting_principles": [
+        "Malla válida; funciones de forma y cuadratura definidas.",
+        "D constitutiva positiva/compatible; restricciones de borde suficientes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "u_h=Σ_aN_a d_a",
+          "justification": "Aproximar campo de desplazamiento con funciones de forma."
+        },
+        {
+          "step": 2,
+          "equation": "ε_h=Bd",
+          "justification": "Derivar deformación discreta desde grados de libertad."
+        },
+        {
+          "step": 3,
+          "equation": "σ=Dε_h",
+          "justification": "Aplicar matriz constitutiva."
+        },
+        {
+          "step": 4,
+          "equation": "K=∫_ΩBᵀDB dΩ; f=∫_ΩNᵀb dΩ+∫_∂ΩNᵀt dS",
+          "justification": "Derivar rigidez y cargas desde forma débil."
+        },
+        {
+          "step": 5,
+          "equation": "Kd=f",
+          "justification": "Ensamblar contribuciones de elementos."
+        }
+      ],
+      "assumptions": [
+        "Malla válida; funciones de forma y cuadratura definidas.",
+        "D constitutiva positiva/compatible; restricciones de borde suficientes."
+      ],
+      "result": "FEM deriva de la forma débil de equilibrio y aproximación por funciones de forma.",
+      "limits": [
+        "Malla pobre o integración insuficiente puede generar locking o modos espurios."
+      ]
+    },
+    {
+      "record_key": "D22:9",
+      "name": "Discrete elastic rods",
+      "starting_principles": [
+        "Segmentos no degenerados; marcos transportados coherentemente.",
+        "a_i,b_i positivos; curvatura/torsión discretas definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "t_i=normalize(x_{i+1}−x_i)",
+          "justification": "Definir tangentes de segmentos."
+        },
+        {
+          "step": 2,
+          "equation": "κ_i≈2(t_{i−1}×t_i)/(1+t_{i−1}·t_i)",
+          "justification": "Aproximar curvatura discreta entre segmentos."
+        },
+        {
+          "step": 3,
+          "equation": "τ_i=twist(frame_i,frame_{i+1})",
+          "justification": "Medir giro relativo de marcos."
+        },
+        {
+          "step": 4,
+          "equation": "E=Σ_i[a_i||κ_i−κ_i^0||²+b_i(τ_i−τ_i^0)²]",
+          "justification": "Acumular energías de flexión y torsión respecto a reposo."
+        },
+        {
+          "step": 5,
+          "equation": "forces=−∂E/∂x",
+          "justification": "Obtener fuerzas generalizadas como gradiente negativo de energía."
+        }
+      ],
+      "assumptions": [
+        "Segmentos no degenerados; marcos transportados coherentemente.",
+        "a_i,b_i positivos; curvatura/torsión discretas definidas."
+      ],
+      "result": "Las barras/cuerdas discretas se modelan mediante energía de curvatura y torsión.",
+      "limits": [
+        "La discretización puede depender de longitud de segmento; normalizar pesos por longitud."
+      ]
+    },
+    {
+      "record_key": "D22:10",
+      "name": "Cosserat rod",
+      "starting_principles": [
+        "R∈SO(3); s longitud de arco; K matrices positivas.",
+        "v y ω se expresan en marco material."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "r'(s)=R(s)v(s)",
+          "justification": "Relacionar derivada de línea central con deformación local v en marco del material."
+        },
+        {
+          "step": 2,
+          "equation": "R'(s)=R(s)[ω(s)]_×",
+          "justification": "La derivada de orientación se expresa mediante vector de curvatura/torsión ω."
+        },
+        {
+          "step": 3,
+          "equation": "[ω]_×a=ω×a",
+          "justification": "Definir matriz antisimétrica del producto cruzado."
+        },
+        {
+          "step": 4,
+          "equation": "energy=∫(v−v_0)ᵀK_v(v−v_0)+(ω−ω_0)ᵀK_ω(ω−ω_0) ds",
+          "justification": "Penalizar extensión/cizalla y flexión/torsión respecto a estado natural."
+        }
+      ],
+      "assumptions": [
+        "R∈SO(3); s longitud de arco; K matrices positivas.",
+        "v y ω se expresan en marco material."
+      ],
+      "result": "Cosserat deriva de describir una barra mediante línea central y marco orientado con deformación interna.",
+      "limits": [
+        "La integración espacial requiere preservar ortogonalidad de R."
+      ]
+    },
+    {
+      "record_key": "D22:11",
+      "name": "Hair strand dynamics",
+      "starting_principles": [
+        "Masa positiva; fuerzas y posiciones finitas.",
+        "Energías de flexión/torsión definidas; paso temporal estable."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "m_i x_i''=f_gravity+f_bend+f_twist+f_drag+f_collision",
+          "justification": "Aplicar balance de fuerzas a nodos de cada hebra."
+        },
+        {
+          "step": 2,
+          "equation": "f_bend=−∂E_bend/∂x; f_twist=−∂E_twist/∂x",
+          "justification": "Derivar fuerzas elásticas desde energías discretas de barra."
+        },
+        {
+          "step": 3,
+          "equation": "f_drag=−c(v−v_air)",
+          "justification": "Modelar resistencia proporcional a velocidad relativa."
+        },
+        {
+          "step": 4,
+          "equation": "integrate(x,v,Δt)",
+          "justification": "Actualizar hebras y resolver contactos con cabeza/cuerpo."
+        }
+      ],
+      "assumptions": [
+        "Masa positiva; fuerzas y posiciones finitas.",
+        "Energías de flexión/torsión definidas; paso temporal estable.",
+        "Colisiones geométricas con cuerpo."
+      ],
+      "result": "La dinámica de hebras combina fuerzas externas, energía elástica y arrastre.",
+      "limits": [
+        "Un gran número de hebras exige LOD, agrupación o simulación reducida."
+      ]
+    },
+    {
+      "record_key": "D22:12",
+      "name": "Hair anisotropic BRDF",
+      "starting_principles": [
+        "T,L,V unitarios; lóbulo y Fresnel normalizados.",
+        "La factorización es aproximación y requiere parámetros calibrados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T=hair tangent; L,V directions",
+          "justification": "Definir orientación de fibra y direcciones de iluminación/vista."
+        },
+        {
+          "step": 2,
+          "equation": "θ_l=angle(T,L); θ_v=angle(T,V)",
+          "justification": "Reducir direcciones a coordenadas longitudinales."
+        },
+        {
+          "step": 3,
+          "equation": "φ=azimuth around T",
+          "justification": "Medir componente azimutal alrededor de fibra."
+        },
+        {
+          "step": 4,
+          "equation": "f_r≈M_long(θ_l,θ_v)·N_az(φ)·F",
+          "justification": "Separar lóbulo longitudinal y azimutal como aproximación."
+        },
+        {
+          "step": 5,
+          "equation": "L_o=∫f_r L_i cosθ_i dω_i",
+          "justification": "Insertar BRDF en ecuación de reflexión."
+        }
+      ],
+      "assumptions": [
+        "T,L,V unitarios; lóbulo y Fresnel normalizados.",
+        "La factorización es aproximación y requiere parámetros calibrados."
+      ],
+      "result": "El brillo anisotrópico de fibras se aproxima separando dispersión longitudinal y azimutal.",
+      "limits": [
+        "La aproximación separable puede perder acoplamiento entre ángulos; usar BCSDF no separable para mayor fidelidad."
+      ]
+    },
+    {
+      "record_key": "D22:13",
+      "name": "Catenary",
+      "starting_principles": [
+        "Cable flexible, homogéneo, inextensible; gravedad uniforme.",
+        "Carga distribuida por peso propio; apoyos fijados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E[y]=∫ρg y√(1+y'²) dx",
+          "justification": "La energía potencial depende de altura y longitud diferencial de cable."
+        },
+        {
+          "step": 2,
+          "equation": "Lagrangian=ρg y√(1+y'²)",
+          "justification": "Formular problema variacional con densidad lineal uniforme."
+        },
+        {
+          "step": 3,
+          "equation": "Euler–Lagrange ⇒ y/√(1+y'²)=constant",
+          "justification": "Como integrando no depende explícitamente de x, aplicar primera integral."
+        },
+        {
+          "step": 4,
+          "equation": "y'=sinh((x−x_0)/a)",
+          "justification": "Resolver para pendiente."
+        },
+        {
+          "step": 5,
+          "equation": "y=a cosh((x−x_0)/a)+c",
+          "justification": "Integrar para obtener catenaria."
+        }
+      ],
+      "assumptions": [
+        "Cable flexible, homogéneo, inextensible; gravedad uniforme.",
+        "Carga distribuida por peso propio; apoyos fijados."
+      ],
+      "result": "La catenaria minimiza energía potencial de un cable flexible de densidad lineal uniforme bajo gravedad.",
+      "limits": [
+        "No es parabólica salvo aproximación de flecha pequeña; cargas adicionales cambian forma."
+      ]
+    },
+    {
+      "record_key": "D22:14",
+      "name": "Cloth self-collision",
+      "starting_principles": [
+        "ε≥0; triángulos no degenerados; bounds actualizados.",
+        "Evitar pares adyacentes/topológicamente conectados según regla."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "broadphase: bounds_i∩bounds_j≠∅",
+          "justification": "Descartar pares de triángulos cuyas cajas no se solapan."
+        },
+        {
+          "step": 2,
+          "equation": "d=distance(triangle_i,triangle_j)",
+          "justification": "Calcular distancia geométrica entre primitivas candidatas."
+        },
+        {
+          "step": 3,
+          "equation": "collision iff d<ε",
+          "justification": "Detectar proximidad/intersección bajo grosor de tela ε."
+        },
+        {
+          "step": 4,
+          "equation": "normal=closestPointDirection",
+          "justification": "Obtener dirección de corrección entre puntos más cercanos."
+        },
+        {
+          "step": 5,
+          "equation": "project positions with constraint",
+          "justification": "Resolver penetración mediante corrección/constraint."
+        }
+      ],
+      "assumptions": [
+        "ε≥0; triángulos no degenerados; bounds actualizados.",
+        "Evitar pares adyacentes/topológicamente conectados según regla."
+      ],
+      "result": "La autocolisión deriva de una búsqueda broadphase seguida de distancia exacta/continua y restricción de separación.",
+      "limits": [
+        "La detección discreta puede perder colisiones rápidas; usar continuous collision detection cuando proceda."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "15/15 técnicas cubiertas.",
+      "Cada derivación contiene pasos justificados, supuestos y límites.",
+      "Se separan modelos discretos, constitutivos continuos, hiperelasticidad y óptica de fibras."
+    ],
+    "limitations": [
+      "Los modelos constitutivos son aproximaciones según sus hipótesis; parámetros de materiales y validación numérica se abordan en fases posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
