@@ -80,7 +80,8 @@ export function createArchGeometry({center=[0,0],radius=1,thickness=.2,depth=.4,
  for(let i=1;i<=segments;i++){const a=startAngle+(endAngle-startAngle)*i/segments;shape.lineTo(center[0]+outer*Math.cos(a),center[1]+outer*Math.sin(a));}
  for(let i=segments;i>=0;i--){const a=startAngle+(endAngle-startAngle)*i/segments;shape.lineTo(center[0]+inner*Math.cos(a),center[1]+inner*Math.sin(a));}
  shape.closePath();
- return new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:bevel>0,bevelSegments:2,steps:1,bevelSize:bevel,bevelThickness:bevel});
+ const geometry=new THREE.ExtrudeGeometry(shape,{depth,bevelEnabled:bevel>0,bevelSegments:2,steps:1,bevelSize:bevel,bevelThickness:bevel});
+ geometry.computeBoundingBox();geometry.computeBoundingSphere();return geometry;
 }
 
 export function createFlutedColumnGeometry({radius=.5,height=4,flutes=12,amplitude=.025,segments=64,heightSegments=8}={}){
