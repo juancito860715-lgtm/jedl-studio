@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D36 Matemáticas profundas de simulación y métodos numéricos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -602,9 +602,9 @@
           "meaning": "gradiente forma",
           "unit": "m⁻¹",
           "dimension": {
-            "L": 0,
+            "L": -1,
             "M": 0,
-            "T": -1,
+            "T": 0,
             "I": 0,
             "Theta": 0,
             "N": 0,
@@ -635,8 +635,9 @@
         }
       ],
       "constraints": [
-        "Ku=f exige K_ij con unidad f_i/u_j; integral BᵀDBdΩ debe tiparse por material y volumen.",
-        "Derivadas espaciales de funciones de forma tienen L⁻¹."
+        "B es gradiente de funciones de forma y tiene m⁻¹; D tiene unidad tensión/deformación y dΩ tiene m³.",
+        "K=∫BᵀDB dΩ debe producir rigidez con unidad carga/desplazamiento; Ku y f deben compartir unidad de carga.",
+        "Las condiciones de contorno y el tipo de elemento determinan la forma de K."
       ],
       "valid_domain": [
         "Malla no degenerada; material y restricciones definidos."
@@ -645,8 +646,8 @@
         "Grados de libertad fijos eliminan modos rígidos; sistema homogéneo estable con carga cero da solución trivial."
       ],
       "dimensional_checks": [
-        "B tiene L⁻¹; D y dΩ se tipan por material y volumen.",
-        "Ku y f comparten unidad."
+        "B tiene L⁻¹ (no T⁻¹); D se tipa como Pa por deformación adimensional.",
+        "BᵀDB dΩ tiene unidad de rigidez compatible con f/u; Ku y f son homogéneos."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -1009,11 +1010,11 @@
   "validation": {
     "structural_checks": [
       "15/15 técnicas incluidas; ninguna protegida",
-      "Variables, unidades, restricciones, dominios, límites y verificaciones específicas por técnica",
-      "Separadas unidades de estado, derivadas, residuos, flujos, tensiones y operadores discretos"
+      "Variables, unidades, restricciones, dominios, límites y comprobaciones dimensionales por técnica",
+      "Corregida la dimensión del gradiente de funciones de forma FEM: B tiene L⁻¹"
     ],
     "limitations": [
-      "Auditoría dimensional; no certifica estabilidad/convergencia de un esquema concreto ni exactitud constitutiva."
+      "La auditoría dimensional no certifica convergencia, estabilidad ni exactitud de los solvers."
     ]
   },
   "integrity": {
