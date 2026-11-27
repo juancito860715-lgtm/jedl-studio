@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D17 Objetos, vehículos, maquinaria y mecanismos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -428,8 +428,8 @@
         },
         {
           "step": 3,
-          "equation": "τ_net=Στ_i; Iα=τ_net",
-          "justification": "Aplicar ecuación rotacional en eje principal o aproximación escalar."
+          "equation": "τ_body=Iα+ω×(Iω)",
+          "justification": "Aplicar la ecuación de Euler en marco del cuerpo: el primer término es aceleración angular ponderada por inercia y el segundo corrige el acoplamiento giroscópico cuando la velocidad angular no está alineada con un eje principal."
         },
         {
           "step": 4,
@@ -440,20 +440,27 @@
           "step": 5,
           "equation": "ω_{n+1}=ω_n+αΔt; q_{n+1}=integrate(q_n,ω,Δt)",
           "justification": "Integrar estado angular y actualizar orientación."
+        },
+        {
+          "step": 6,
+          "equation": "si I es escalar/isotrópico o ω×(Iω)=0: τ=Iα",
+          "justification": "Recuperar la aproximación escalar del catálogo bajo sus condiciones explícitas."
         }
       ],
       "assumptions": [
         "m>0; tensor de inercia válido; fuerzas/torques finitos.",
         "Tiempo y longitud coherentes; orientación unitaria.",
         "Contactos y restricciones se resuelven aparte.",
-        "Iα=τ se usa en eje principal o aproximación escalar; el caso 3D general requiere término giroscópico ω×(Iω)."
+        "Iα=τ se usa en eje principal o aproximación escalar; el caso 3D general requiere término giroscópico ω×(Iω).",
+        "La ecuación rotacional completa se expresa en marco del cuerpo; la simplificación Iα exige ejes principales, inercia isotrópica o término giroscópico nulo."
       ],
-      "result": "La aproximación rígida deriva de las ecuaciones de Newton–Euler y su integración temporal.",
+      "result": "La aproximación rígida se deriva de Newton–Euler: fuerza lineal y ecuación rotacional completa, con simplificación escalar solo bajo condiciones de simetría/alineación.",
       "limits": [
         "La integración explícita puede ser inestable con pasos grandes; colisiones y fricción requieren modelos separados."
       ],
       "dimensional_verification": [
         "F tiene N; m kg; a L/T²; torque N·m; I kg·m²; α T⁻².",
+        "ω tiene T⁻¹; ω×(Iω) tiene kg·m²·s⁻²=N·m.",
         "vΔt tiene L; aΔt tiene L/T; ωΔt es ángulo adimensional; quaternion es adimensional."
       ]
     }
@@ -464,7 +471,8 @@
       "Cada derivación tiene pasos matemáticos justificados, supuestos, límites y verificación dimensional",
       "Suspensión separa desplazamiento de carretera y fuerza externa",
       "Ackermann, engranajes y pistón-biela conservan relaciones geométricas homogéneas",
-      "Newton–Euler tipa fuerza, torque, inercia, aceleración y velocidad angular"
+      "Newton–Euler tipa fuerza, torque, inercia, aceleración y velocidad angular",
+      "Newton–Euler incluye término giroscópico y delimita cuándo es válida la forma τ=Iα."
     ],
     "limitations": [
       "Los modelos son aproximaciones para animación y simulación visual; no constituyen especificaciones de ingeniería mecánica certificada ni validación de un vehículo real."
