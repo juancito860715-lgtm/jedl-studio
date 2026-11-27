@@ -728,5 +728,51 @@ class TestR31ExtendedKernels(unittest.TestCase):
         with self.assertRaises(ValueError):
             structure_tensor_features(1.0, 2.0, 1.0)
 
+
+def depth_normal_edge_score(z0, z1, n0, n1, z_floor, normal_weight):
+    """Dimensionless authored local cue fusion; z values are positive linear view-depths."""
+    values = (z0, z1, z_floor, normal_weight, *n0, *n1)
+    if not all(math.isfinite(v) for v in values) or z0 <= 0 or z1 <= 0 or z_floor <= 0 or normal_weight < 0:
+        raise ValueError("depths/floor must be positive and weight finite/nonnegative")
+    if len(n0) != 3 or len(n1) != 3:
+        raise ValueError("normals must be 3-vectors")
+    l0, l1 = math.sqrt(sum(v*v for v in n0)), math.sqrt(sum(v*v for v in n1))
+    if l0 <= 1e-15 or l1 <= 1e-15:
+        raise ValueError("normal vectors must be nonzero")
+    dot = sum((a/l0)*(b/l1) for a,b in zip(n0,n1))
+    dot = min(1.0, max(-1.0, dot))
+    depth_jump = abs(z0-z1) / max(min(z0,z1), z_floor)
+    normal_change = 1.0 - dot
+    return depth_jump + normal_weight * normal_change
+
+
+def edge_coverage(score, low, high):
+    if not all(math.isfinite(v) for v in (score, low, high)) or low < 0 or high <= low:
+        raise ValueError("require finite score and 0 <= low < high")
+    x = min(1.0, max(0.0, (score-low)/(high-low)))
+    return x*x*(3.0-2.0*x)
+
+
+class TestDepthNormalContour(unittest.TestCase):
+    def test_depth_jump_has_closed_form_and_scale_invariance(self):
+        a=depth_normal_edge_score(2,4,(0,0,1),(0,0,1),0.1,2)
+        b=depth_normal_edge_score(20,40,(0,0,1),(0,0,1),0.1,2)
+        self.assertAlmostEqual(a,1.0); self.assertAlmostEqual(a,b)
+
+    def test_normal_discontinuity_has_closed_form(self):
+        self.assertAlmostEqual(depth_normal_edge_score(4,4,(1,0,0),(0,1,0),0.1,2),2.0)
+        self.assertAlmostEqual(depth_normal_edge_score(4,4,(1,0,0),(-1,0,0),0.1,2),4.0)
+
+    def test_identical_samples_and_smoothstep_boundaries(self):
+        self.assertAlmostEqual(depth_normal_edge_score(3,3,(0,0,1),(0,0,1),0.1,2),0.0)
+        self.assertAlmostEqual(edge_coverage(0.5,0.5,1.5),0.0)
+        self.assertAlmostEqual(edge_coverage(1.0,0.5,1.5),0.5)
+        self.assertAlmostEqual(edge_coverage(1.5,0.5,1.5),1.0)
+
+    def test_invalid_depth_normals_and_thresholds_are_rejected(self):
+        with self.assertRaises(ValueError): depth_normal_edge_score(0,1,(1,0,0),(1,0,0),0.1,1)
+        with self.assertRaises(ValueError): depth_normal_edge_score(1,2,(0,0,0),(1,0,0),0.1,1)
+        with self.assertRaises(ValueError): edge_coverage(1,1,1)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
