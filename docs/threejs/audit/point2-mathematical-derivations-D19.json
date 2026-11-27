@@ -46,6 +46,10 @@
       "result": "La receta se deriva de transporte de luz, microfacetas y respuesta de cámara.",
       "limits": [
         "Raster PBR no calcula toda la iluminación indirecta."
+      ],
+      "dimensional_verification": [
+        "N,L,V,H son direcciones adimensionales; D tiene sr⁻¹; F y G son adimensionales; BRDF tiene sr⁻¹.",
+        "L_i y L_o son radiancias W·m⁻²·sr⁻¹; la integral angular conserva radiancia."
       ]
     },
     {
@@ -82,6 +86,10 @@
       "result": "Combina geometría multiescala, microfacetas y respuesta de sensor.",
       "limits": [
         "No existe fórmula universal de hiperrealismo; depende de referencias y validación."
+      ],
+      "dimensional_verification": [
+        "σ_macro y σ_micro son parámetros de rugosidad/varianza adimensionales si se usan como escalas microfacet.",
+        "D tiene sr⁻¹; L(λ) es radiancia espectral por longitud de onda; integrar dλ (L) produce radiancia; a_i hereda unidad de detalle."
       ]
     },
     {
@@ -118,6 +126,10 @@
       "result": "Combina curvas, poses, easing y deformación controlada.",
       "limits": [
         "La fórmula no sustituye staging, timing ni dirección artística."
+      ],
+      "dimensional_verification": [
+        "t,u y pesos de pose son adimensionales; puntos Bezier y canales de pose conservan sus unidades.",
+        "s_x,s_y,s_z son factores adimensionales; easing adimensional."
       ]
     },
     {
@@ -154,6 +166,10 @@
       "result": "Combina volúmenes 3D, rampas de color y contornos.",
       "limits": [
         "Screen-space edges pueden parpadear o detectar bordes no deseados."
+      ],
+      "dimensional_verification": [
+        "I=N·L es adimensional; depth z tiene L si está linealizado; normales son unitarias.",
+        "λ debe compensar unidad de ∇z si depth lineal; E y umbral comparten unidad; máscara adimensional."
       ]
     },
     {
@@ -190,6 +206,10 @@
       "result": "La receta deriva de cuantización de iluminación y rim light.",
       "limits": [
         "Los umbrales pueden producir popping."
+      ],
+      "dimensional_verification": [
+        "I, bandas, rim y exponent p son adimensionales.",
+        "La rampa de color conserva el espacio/escala de señal de entrada."
       ]
     },
     {
@@ -226,6 +246,10 @@
       "result": "Combina morph targets, escalado y curvas temporales.",
       "limits": [
         "Conservación exacta de volumen requiere más que producto de escalas."
+      ],
+      "dimensional_verification": [
+        "Δp_i tiene L; pesos w_i y escalas s_i son adimensionales.",
+        "La suma p'=p+Σw_iΔp_i conserva L; el producto de escalas es adimensional."
       ]
     },
     {
@@ -257,11 +281,16 @@
         }
       ],
       "assumptions": [
-        "Malla válida; triángulos no degenerados; bordes protegidos si son importantes."
+        "Malla válida; triángulos no degenerados; bordes protegidos si son importantes.",
+        "QEM se construye a partir de planos normalizados n·x+d=0; por ello Q tiene unidad L²."
       ],
       "result": "Deriva de simplificación QEM y sombreado facetado.",
       "limits": [
         "QEM puede eliminar rasgos finos."
+      ],
+      "dimensional_verification": [
+        "QEM residual (n·v+d) tiene L; Q tiene L²; A es adimensional, b L y c L².",
+        "El minimizador v* tiene L; normal de cara normalizada es adimensional."
       ]
     },
     {
@@ -298,6 +327,10 @@
       "result": "Combina superficies suaves, subdivisión y desplazamiento.",
       "limits": [
         "Más polígonos no garantizan mejor imagen y elevan memoria/coste."
+      ],
+      "dimensional_verification": [
+        "P_ij y P(u,v) tienen L; bases N_i,M_j son adimensionales; h tiene L.",
+        "κ tiene L⁻¹ y edgeLength² L²; error estimado tiene L."
       ]
     },
     {
@@ -334,6 +367,10 @@
       "result": "Deriva de sample-and-hold temporal más microvariación por frame.",
       "limits": [
         "Jitter excesivo parece error."
+      ],
+      "dimensional_verification": [
+        "t y t_q tienen T; fps_s tiene T⁻¹; t·fps_s y k son adimensionales/discretos.",
+        "ε_k hereda unidad del canal; x_q conserva unidad del canal."
       ]
     },
     {
@@ -370,6 +407,10 @@
       "result": "Combina volúmenes suaves, huellas y relieve superficial.",
       "limits": [
         "No reproduce plasticidad real ni memoria material."
+      ],
+      "dimensional_verification": [
+        "d_i, k, σ_i y h_surface tienen L; h smooth-min es adimensional.",
+        "∇h_surface es adimensional si se deriva respecto a coordenadas físicas L; N' conserva unidad vectorial 1."
       ]
     },
     {
@@ -401,11 +442,16 @@
         }
       ],
       "assumptions": [
-        "D≥0; u L/T; D L²/T; modelo 2D aproximado."
+        "D≥0; u L/T; D L²/T; modelo 2D aproximado.",
+        "c tiene unidad de concentración declarada; S y E tienen unidad c/s. h es espesor de agua en L y el flujo h·u en L²/T."
       ],
       "result": "Deriva de transporte simplificado de agua/pigmento y absorción.",
       "limits": [
         "No reproduce capilaridad real ni mezcla espectral completa."
+      ],
+      "dimensional_verification": [
+        "c es concentración tipada; D tiene L²/T; u L/T; k T⁻¹; cada término de la PDE tiene c/T.",
+        "h tiene L; flujo h·u tiene L²/T; divergencia tiene L/T; S y E tienen L/T; σ_aℓ es adimensional."
       ]
     },
     {
@@ -442,6 +488,10 @@
       "result": "Combina orientación, filtro anisotrópico y relieve de pincelada.",
       "limits": [
         "No simula mezcla química ni espesor real de pintura."
+      ],
+      "dimensional_verification": [
+        "∇I tiene unidad de color por longitud; tensor J tiene color²/L²; autovalores comparten esa unidad.",
+        "θ y pesos w_k son adimensionales; μ_k conserva unidad de color; σ²_k tiene color²; altura h tiene L."
       ]
     },
     {
@@ -478,6 +528,10 @@
       "result": "Deriva de generación geométrica, cuantización de color y bordes.",
       "limits": [
         "No sustituye composición y jerarquía visual."
+      ],
+      "dimensional_verification": [
+        "C y palette entries comparten señal/espacio; distancia d(C,c) se calcula en métrica declarada.",
+        "∇luma tiene L⁻¹ si coordenadas físicas o px⁻¹ en pantalla; edge y máscaras deben normalizarse."
       ]
     },
     {
@@ -514,6 +568,10 @@
       "result": "Combina contorno, hachurado y semitono.",
       "limits": [
         "Umbrales screen-space pueden parpadear y producir moiré."
+      ],
+      "dimensional_verification": [
+        "∇z es adimensional si z y coordenadas son longitudes lineales; λ es adimensional; n·n_neighbor adimensional.",
+        "p y spacing tienen misma unidad; phase y semitono son adimensionales; tinta/coverage son máscaras adimensionales."
       ]
     },
     {
@@ -525,8 +583,8 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "p_virtual=floor(p_screen·R)/R",
-          "justification": "Cuantizar coordenadas de pantalla."
+          "equation": "p_virtual=floor(p_screen·R)/R, [R]=px⁻¹",
+          "justification": "Convertir coordenadas de pantalla a índices de bloque mediante una frecuencia espacial de píxel y devolver el centro de bloque en píxeles."
         },
         {
           "step": 2,
@@ -545,11 +603,16 @@
         }
       ],
       "assumptions": [
-        "R>0; paleta finita; dithering acotado."
+        "R>0; paleta finita; dithering acotado.",
+        "R es resolución inversa de bloque en px⁻¹; no confundir con número de bloques adimensional."
       ],
       "result": "Deriva de baja resolución virtual, cuantización y nearest filtering.",
       "limits": [
         "Requiere diseño de clusters/siluetas; render bajo por sí solo no basta."
+      ],
+      "dimensional_verification": [
+        "p_screen tiene px; R tiene px⁻¹; floor(p_screen·R)/R devuelve px.",
+        "η es adimensional; Δ tiene unidad de color; C_out conserva unidad/escala de color."
       ]
     },
     {
@@ -586,6 +649,10 @@
       "result": "Deriva de un campo discreto de ocupación y extracción de superficies.",
       "limits": [
         "La resolución fija limita detalle y produce aliasing geométrico."
+      ],
+      "dimensional_verification": [
+        "p y origin tienen L; voxelSize L; el cociente produce índice entero adimensional.",
+        "occupancy y faceCount son discretos; posición reconstruida conserva L."
       ]
     },
     {
@@ -622,6 +689,10 @@
       "result": "Combina fractales, crestas, niebla y paleta.",
       "limits": [
         "Es dirección artística, no un algoritmo único."
+      ],
+      "dimensional_verification": [
+        "p tiene L; frecuencia espacial λ tiene L⁻¹; argumento noise es adimensional; a y F son adimensionales.",
+        "k tiene L⁻¹; y−y0 L; ρ0 y ρ(y) tienen L⁻¹ si representan extinción; palette es señal visual."
       ]
     },
     {
@@ -658,6 +729,10 @@
       "result": "Combina módulos, superficies y máscaras emisivas.",
       "limits": [
         "La apariencia no implica funcionalidad física."
+      ],
+      "dimensional_verification": [
+        "P(u,v), d_seam y seamWidth tienen L; u,v adimensionales; mask es adimensional.",
+        "Emisión L_e tiene unidad de radiancia o señal lineal declarada; multiplicar por mask conserva unidad."
       ]
     },
     {
@@ -689,11 +764,16 @@
         }
       ],
       "assumptions": [
-        "r_0>0; γ>0; marcos estables; unidades coherentes."
+        "r_0>0; γ>0; marcos estables; unidades coherentes.",
+        "k en F_t=k(l−l0) tiene N/m; la fuerza elástica es N y no una magnitud adimensional."
       ],
       "result": "Combina geometría orgánica tubular y restricciones de tensión visual.",
       "limits": [
         "No es anatomía ni biomecánica médica validada."
+      ],
+      "dimensional_verification": [
+        "C(s), r0, r(s), l y l0 tienen L; s y γ son adimensionales.",
+        "k elástico tiene N/m; k(l−l0) tiene N; la geometría barrida conserva L."
       ]
     },
     {
@@ -730,6 +810,10 @@
       "result": "Deriva de composición de transformaciones y campos implícitos.",
       "limits": [
         "Transformaciones singulares pueden colapsar geometría."
+      ],
+      "dimensional_verification": [
+        "P y b tienen L; matriz A(t) es adimensional; transformaciones compuestas preservan L.",
+        "SDF d_A,d_B tienen L y deben compartir marco/signo; cámara path tiene L."
       ]
     },
     {
@@ -766,6 +850,10 @@
       "result": "Deriva de una recurrencia compleja y criterio de escape.",
       "limits": [
         "Zoom profundo exige mayor precisión; distancia estimada es aproximada."
+      ],
+      "dimensional_verification": [
+        "z y c son complejos adimensionales; R y |z| adimensionales; n es conteo discreto.",
+        "El color de salida es señal RGB normalizada adimensional."
       ]
     },
     {
@@ -802,17 +890,23 @@
       "result": "Deriva de sistemas dinámicos, geometría paramétrica y mapeo de atributos.",
       "limits": [
         "La complejidad no garantiza jerarquía visual; controlar densidad y composición."
+      ],
+      "dimensional_verification": [
+        "x tiene L; V tiene L/T; VΔt tiene L; integración conserva L.",
+        "P(u,v) tiene L; u,v y seed son adimensionales/discretos; color conserva señal declarada."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "22/22 recetas STYLE-CODE-01 a STYLE-CODE-22 cubiertas.",
-      "Cada derivación parte de las herramientas matemáticas declaradas por la receta y explica su construcción.",
-      "Se distinguen modelos físicos, aproximaciones raster/NPR y direcciones artísticas."
+      "22/22 recetas visual_style_atlas_v4 cubiertas exactamente",
+      "Cada receta incluye derivación, supuestos, límites y verificación dimensional",
+      "Se distinguen magnitudes físicas (radiancia, fuerza, longitud) de parámetros artísticos adimensionales",
+      "QEM, blur, acuarela, hachurado, pixel art, atmósfera y biomecánica tienen unidades explícitas",
+      "Las 13 etiquetas resumen domains[D19].styles no se cuentan como recetas adicionales"
     ],
     "limitations": [
-      "Las recetas son especificaciones de estilo; no existe una ecuación universal que garantice el resultado perceptual."
+      "Una receta artística no tiene una única ecuación universal ni garantiza un resultado perceptual; las derivaciones explican los operadores matemáticos seleccionados y sus dominios."
     ]
   },
   "integrity": {
