@@ -1,0 +1,394 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D32 Volúmenes, datos 3D y visualización científica",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D32",
+    "record_count": 10,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D32 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D32:0",
+      "name": "Voxel grid",
+      "starting_principles": [
+        "voxelSize>0; grid y coordenadas en mismo marco."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "q=(p−origin)/voxelSize",
+          "justification": "Convertir posición a unidades de celda."
+        },
+        {
+          "step": 2,
+          "equation": "index=floor(q)",
+          "justification": "Asignar celda entera."
+        },
+        {
+          "step": 3,
+          "equation": "local=q−index",
+          "justification": "Obtener coordenada fraccional dentro de celda."
+        },
+        {
+          "step": 4,
+          "equation": "voxelCenter=origin+(index+0.5)voxelSize",
+          "justification": "Reconstruir centro de voxel."
+        }
+      ],
+      "assumptions": [
+        "voxelSize>0; grid y coordenadas en mismo marco."
+      ],
+      "result": "Voxel grid deriva de discretizar el espacio en celdas uniformes y usar índices enteros.",
+      "limits": [
+        "Coordenadas en frontera requieren convención half-open y clamp."
+      ]
+    },
+    {
+      "record_key": "D32:1",
+      "name": "Trilinear interpolation",
+      "starting_principles": [
+        "Valores de esquina finitos; u,v,w∈[0,1]."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "x=i+u; y=j+v; z=k+w",
+          "justification": "Expresar punto como coordenada fraccional dentro de celda."
+        },
+        {
+          "step": 2,
+          "equation": "w_ijk=(i?u:1−u)(j?v:1−v)(k?w:1−w)",
+          "justification": "Construir pesos producto de interpolación lineal por eje."
+        },
+        {
+          "step": 3,
+          "equation": "f(x,y,z)=Σ_{i,j,k∈{0,1}}w_ijk f_ijk",
+          "justification": "Sumar los ocho valores de esquina ponderados."
+        },
+        {
+          "step": 4,
+          "equation": "Σw_ijk=1",
+          "justification": "La interpolación conserva campos constantes."
+        }
+      ],
+      "assumptions": [
+        "Valores de esquina finitos; u,v,w∈[0,1]."
+      ],
+      "result": "Trilinear interpolation deriva del producto de interpolaciones lineales por eje.",
+      "limits": [
+        "Es continua dentro de celda pero derivada puede cambiar en fronteras."
+      ]
+    },
+    {
+      "record_key": "D32:2",
+      "name": "Volume rendering",
+      "starting_principles": [
+        "σ_t≥σ_s≥0; paso de muestreo suficiente; color lineal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T(s)=exp(−∫_0^sσ_t(u)du)",
+          "justification": "Derivar transmitancia desde dT/ds=−σ_tT."
+        },
+        {
+          "step": 2,
+          "equation": "dC=T(s)σ_s(s)c(s)ds",
+          "justification": "Calcular contribución emitida/dispersada por segmento."
+        },
+        {
+          "step": 3,
+          "equation": "C=∫Tσ_sc ds+T(D)C_bg",
+          "justification": "Integrar contribución a lo largo del rayo y atenuar fondo."
+        },
+        {
+          "step": 4,
+          "equation": "discrete: C_{i+1}=C_i+T_iα_i c_i; T_{i+1}=T_i(1−α_i)",
+          "justification": "Aproximar por composición alfa front-to-back."
+        }
+      ],
+      "assumptions": [
+        "σ_t≥σ_s≥0; paso de muestreo suficiente; color lineal."
+      ],
+      "result": "Volume rendering deriva de integrar emisión/scattering atenuados por transmitancia.",
+      "limits": [
+        "El paso de integración afecta error y transparencia aparente."
+      ]
+    },
+    {
+      "record_key": "D32:3",
+      "name": "Maximum intensity projection",
+      "starting_principles": [
+        "Rayo y campo escalar en mismo espacio; muestreo definido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "samples={V(ray(s_i))}",
+          "justification": "Muestrear volumen a lo largo del rayo."
+        },
+        {
+          "step": 2,
+          "equation": "I(pixel)=max_i samples_i",
+          "justification": "Seleccionar máxima intensidad."
+        },
+        {
+          "step": 3,
+          "equation": "normalize I to display range",
+          "justification": "Mapear intensidad a color/ventana de visualización."
+        },
+        {
+          "step": 4,
+          "equation": "retain argmax depth if needed",
+          "justification": "Guardar posición de máximo para picking."
+        }
+      ],
+      "assumptions": [
+        "Rayo y campo escalar en mismo espacio; muestreo definido."
+      ],
+      "result": "MIP selecciona el máximo escalar a lo largo del rayo.",
+      "limits": [
+        "MIP pierde información de profundidad y contribución acumulada."
+      ]
+    },
+    {
+      "record_key": "D32:4",
+      "name": "Isosurface extraction",
+      "starting_principles": [
+        "Campo continuo/interpolable; iso y valores con misma unidad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f_i=V(p_i)−iso",
+          "justification": "Evaluar signo respecto al isovalor en vértices."
+        },
+        {
+          "step": 2,
+          "equation": "edge crossing iff f_i f_j<0",
+          "justification": "Identificar aristas que atraviesan superficie."
+        },
+        {
+          "step": 3,
+          "equation": "t=(iso−V_i)/(V_j−V_i)",
+          "justification": "Interpolar cruce bajo campo lineal en arista."
+        },
+        {
+          "step": 4,
+          "equation": "p_iso=p_i+t(p_j−p_i)",
+          "justification": "Obtener vértice de superficie."
+        },
+        {
+          "step": 5,
+          "equation": "N=normalize(∇V)",
+          "justification": "Usar gradiente para normal."
+        }
+      ],
+      "assumptions": [
+        "Campo continuo/interpolable; iso y valores con misma unidad."
+      ],
+      "result": "Isosurface extraction encuentra cruces de un campo con un nivel constante.",
+      "limits": [
+        "Resolución de muestreo limita detalle; casos ambiguos requieren topología coherente."
+      ]
+    },
+    {
+      "record_key": "D32:5",
+      "name": "Octree volume",
+      "starting_principles": [
+        "Error definido y monotónico con refinamiento; bounds finitos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "error(cell)=measure(field variation/geometry error)",
+          "justification": "Estimar error de aproximación dentro de celda."
+        },
+        {
+          "step": 2,
+          "equation": "if error>τ: split cell into 8 children",
+          "justification": "Refinar octante."
+        },
+        {
+          "step": 3,
+          "equation": "else: keep leaf",
+          "justification": "Conservar celda cuando error está bajo tolerancia."
+        },
+        {
+          "step": 4,
+          "equation": "repeat recursively",
+          "justification": "Construir estructura adaptativa."
+        }
+      ],
+      "assumptions": [
+        "Error definido y monotónico con refinamiento; bounds finitos."
+      ],
+      "result": "Octree refina recursivamente solo celdas cuyo error supera umbral.",
+      "limits": [
+        "Error y umbral dependen de aplicación; refinamiento puede crecer mucho."
+      ]
+    },
+    {
+      "record_key": "D32:6",
+      "name": "Sparse voxel octree",
+      "starting_principles": [
+        "Nodo y máscara de hijos con formato/versionado estable."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "node=(occupancy,children/material)",
+          "justification": "Definir datos de nodo octree."
+        },
+        {
+          "step": 2,
+          "equation": "if uniform cell: store leaf value",
+          "justification": "Comprimir regiones homogéneas como hoja."
+        },
+        {
+          "step": 3,
+          "equation": "else: store child mask and child indices",
+          "justification": "Almacenar solo subdivisiones necesarias."
+        },
+        {
+          "step": 4,
+          "equation": "traverse child by coordinate bits",
+          "justification": "Descender según octante que contiene la posición."
+        }
+      ],
+      "assumptions": [
+        "Nodo y máscara de hijos con formato/versionado estable."
+      ],
+      "result": "SVO comprime celdas uniformes y almacena nodos no uniformes de forma dispersa.",
+      "limits": [
+        "Actualizaciones locales requieren gestión de nodos y referencias."
+      ]
+    },
+    {
+      "record_key": "D32:7",
+      "name": "Gaussian splatting",
+      "starting_principles": [
+        "Covarianza Σ positiva definida; profundidad de splats ordenada."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "G_i(x)=α_i exp(−½(x−μ_i)^TΣ_i⁻¹(x−μ_i))",
+          "justification": "Definir gaussiana anisotrópica en 3D."
+        },
+        {
+          "step": 2,
+          "equation": "μ'_i=Project(μ_i); Σ'_i≈JΣ_iJᵀ",
+          "justification": "Proyectar media y covarianza mediante Jacobiano de cámara."
+        },
+        {
+          "step": 3,
+          "equation": "α_i(x)=opacity_i·G'_i(x)",
+          "justification": "Calcular cobertura por píxel."
+        },
+        {
+          "step": 4,
+          "equation": "C=Σ_i T_i α_i c_i; T_{i+1}=T_i(1−α_i)",
+          "justification": "Componer splats en orden de profundidad."
+        }
+      ],
+      "assumptions": [
+        "Covarianza Σ positiva definida; profundidad de splats ordenada."
+      ],
+      "result": "Gaussian splatting proyecta gaussianas 3D a elipses 2D y las compone por profundidad.",
+      "limits": [
+        "La proyección de covarianza es aproximada; orden de transparencia importa."
+      ]
+    },
+    {
+      "record_key": "D32:8",
+      "name": "Point cloud surfel",
+      "starting_principles": [
+        "Puntos y normales válidos; radio local positivo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "surfel_i=(p_i,n_i,r_i,c_i)",
+          "justification": "Representar muestra de superficie con normal, radio y color."
+        },
+        {
+          "step": 2,
+          "equation": "r_i≈κ·meanDistanceToKNeighbors(p_i)",
+          "justification": "Estimar radio local desde densidad de puntos."
+        },
+        {
+          "step": 3,
+          "equation": "A_i≈πr_i²",
+          "justification": "Aproximar área representada por surfel circular."
+        },
+        {
+          "step": 4,
+          "equation": "shade using n_i and area weighting",
+          "justification": "Iluminar/filtrar según orientación y área."
+        }
+      ],
+      "assumptions": [
+        "Puntos y normales válidos; radio local positivo."
+      ],
+      "result": "Surfel representa una pequeña área de superficie alrededor de cada punto.",
+      "limits": [
+        "Radio mal estimado genera huecos o sobrecobertura."
+      ]
+    },
+    {
+      "record_key": "D32:9",
+      "name": "Marching tetrahedra",
+      "starting_principles": [
+        "Tetraedros no degenerados; valores finitos; interpolación lineal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "split cube into tetrahedra",
+          "justification": "Descomponer celda cúbica en tetraedros sin ambigüedad de conectividad local."
+        },
+        {
+          "step": 2,
+          "equation": "classify tetra vertices by sign(V−iso)",
+          "justification": "Contar vértices dentro/fuera."
+        },
+        {
+          "step": 3,
+          "equation": "t=(iso−V_a)/(V_b−V_a)",
+          "justification": "Interpolar cada arista cruzada."
+        },
+        {
+          "step": 4,
+          "equation": "emit 1 or 2 triangles per tetra case",
+          "justification": "Construir polígono de cruce según patrón de signos."
+        }
+      ],
+      "assumptions": [
+        "Tetraedros no degenerados; valores finitos; interpolación lineal."
+      ],
+      "result": "Marching tetrahedra extrae cruces de isovalor en tetraedros y emite triángulos.",
+      "limits": [
+        "Conectividad entre tetraedros y diagonales debe ser consistente."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "10/10 técnicas cubiertas.",
+      "Cada derivación contiene pasos, supuestos y límites.",
+      "Se distinguen datos discretos, interpolación, transporte volumétrico, extracción de superficies y splatting."
+    ],
+    "limitations": [
+      "La fidelidad depende de resolución, muestreo, filtros y codificación de datos volumétricos."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
