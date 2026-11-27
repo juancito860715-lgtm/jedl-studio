@@ -295,24 +295,35 @@
           "unit": "unidad inversa de medida angular",
           "dimension": "según parametrización",
           "domain": ">0"
+        },
+        {
+          "symbol": "p_A, p_ω, r, cosθ_l",
+          "meaning": "PDF de área, PDF de ángulo sólido, distancia y coseno en emisor",
+          "unit": "m⁻²; sr⁻¹; m; 1",
+          "dimension": "p_A: L⁻²; p_ω: densidad angular inversa; r: L; cosθ_l: 1",
+          "domain": "r>0; cosθ_l>0"
         }
       ],
       "constraints": [
         "Estimador directo requiere dividir por PDF y aplicar geometría/visibilidad según medida de muestreo.",
-        "Si se muestrea área, pdf_area tiene m⁻² y debe incluir conversión área↔ángulo sólido."
+        "Si se muestrea área, pdf_area tiene m⁻² y debe incluir conversión área↔ángulo sólido.",
+        "Cuando la luz se muestrea sobre área, convertir a sólido angular con p_ω=p_A·r²/|n_l·(−ω)|; p_A tiene m⁻², r² m² y el coseno es adimensional, por lo que p_ω tiene sr⁻¹."
       ],
       "valid_domain": [
-        "Luz muestreable; pdf positiva; visibilidad definida."
+        "Luz muestreable; pdf positiva; visibilidad definida.",
+        "La conversión área→sólido angular requiere distancia r>0 y coseno emisor positivo; muestras rasantes requieren límite/estrategia específica."
       ],
       "boundary_conditions": [
         "Luz oculta aporta cero.",
-        "PDF cero en muestra válida invalida contribución."
+        "PDF cero en muestra válida invalida contribución.",
+        "Si cosθ_l→0, la PDF angular puede divergir; no evaluar división directa: descartar muestra no emisiva o usar parametrización estable."
       ],
       "dimensional_checks": [
         "f_r sr⁻¹ y L_light radiancia; coseno adimensional.",
-        "PDF y jacobiano deben convertir la integral a radiancia; ficha esquemática no especifica todos los factores."
+        "PDF y jacobiano deben convertir la integral a radiancia; ficha esquemática no especifica todos los factores.",
+        "p_A[m⁻²]·r²[m²]/cosθ_l produce densidad por sr; después de la conversión puede combinarse con BRDF sr⁻¹."
       ],
-      "status": "CONDITIONAL_POINT1_MEASURE_CONVERSION_REQUIRED"
+      "status": "REVIEWED_POINT1"
     },
     {
       "record_key": "D24:4",
@@ -1294,7 +1305,8 @@
     "structural_checks": [
       "17/17 técnicas incluidas; ninguna protegida",
       "Cada técnica tiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
-      "D24:3 queda condicional si no se declara conversión de PDF área/ángulo sólido"
+      "D24:3 queda condicional si no se declara conversión de PDF área/ángulo sólido",
+      "D24:3 cerrada al explicitar el jacobiano de conversión de PDF de área a ángulo sólido."
     ],
     "limitations": [
       "Las ecuaciones esquemáticas de NEE y algunos estimadores requieren medidas/jacobianos completos para certificación de implementación; la auditoría no inventa factores omitidos."
