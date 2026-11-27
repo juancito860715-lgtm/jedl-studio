@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D05 Vegetación, hojas, árboles e insectos",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -103,9 +103,9 @@
         "Profundidad máxima termina recursión; escala cero genera rama degenerada y debe omitirse."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "B_n and branch positions/radii have dimension L; T_n linear block is dimensionless and translation block has L.",
+        "α_n is an angle in radians (dimensionless in SI base dimensions); s_n is dimensionless.",
+        "Composition of affine transforms preserves the typed separation between linear and translation blocks."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -186,9 +186,9 @@
         "Símbolo sin producción usa regla identidad o descarte declarado."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "Axiom, rules, symbols and iteration count are discrete and dimensionless; they are not geometric lengths.",
+        "Turtle step length has dimension L and turning angle has radians; generated vertices therefore have L.",
+        "A production rule that scales step length uses a dimensionless scale factor."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -229,17 +229,9 @@
         {
           "symbol": "Ω",
           "meaning": "dominio de muestreo",
-          "unit": "m³ o m²",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "región acotada 2D/3D declarada"
+          "unit": "geometric measure: m² in 2D or m³ in 3D",
+          "dimension": "L² in 2D; L³ in 3D",
+          "domain": "bounded region with declared sampling dimension (2D or 3D)"
         }
       ],
       "constraints": [
@@ -254,9 +246,9 @@
         "Dominio vacío devuelve conjunto vacío."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "p_i−p_j and r_min have dimension L; the exclusion inequality is dimensionally consistent.",
+        "Ω is a geometric region: its measure has dimension L² in 2D or L³ in 3D; its point coordinates have L.",
+        "Sampling density has dimension L^-2 (2D) or L^-3 (3D), if specified."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -336,9 +328,9 @@
         "n=0 da r=0; puntos sucesivos pueden colapsar si c=0, por lo que c>0 para distribución extendida."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "n is an integer index and dimensionless; goldenAngle and θ_n are angles in radians.",
+        "sqrt(n) is dimensionless and c supplies the length, so r_n has L.",
+        "Cartesian positions formed from r_n cosθ_n and r_n sinθ_n retain L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -433,9 +425,9 @@
         "r(0)=r0; para γ>0, r(1)=0; γ=0 conserva radio constante salvo convención 0⁰."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "s and γ are dimensionless; (1−s)^γ is dimensionless.",
+        "C(s), r0 and r(s) have L; the resulting swept cross-section dimensions remain L.",
+        "If s is arc length instead of normalized parameter, it must carry L and spline parameterization must be adjusted."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -529,9 +521,9 @@
         "v=0 sigue la línea central; v=±1 definen bordes; ancho cero en punta si se desea hoja puntiaguda."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "u and v are dimensionless; C(u), w(u) and P(u,v) have L.",
+        "N(u) is a unit direction and dimensionless; w·v·N therefore has L.",
+        "The leaf width must be nonnegative; a zero width at a tip is a geometric boundary condition."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -642,9 +634,9 @@
         "Al terminar caída, aplicar colisión/suelo o permitir salida de dominio declarada."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "v0t and ½gt² have L; drift(t) must also have L.",
+        "ω has T^-1; ωt is an angle (dimensionless/radians).",
+        "p(t) retains L; rotational noise must be expressed as angle, not length."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -755,9 +747,9 @@
         "En ausencia de viento bend=0 produce hoja recta."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "s is dimensionless; s·height·up has L because height is L and up is unitless.",
+        "bend(s,t) must have L; base and blade positions have L.",
+        "Any wind function generating bend must return a displacement, not a velocity or acceleration."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -766,38 +758,8 @@
       "name": "Enjambre de insectos",
       "variables": [
         {
-          "symbol": "p_i,v_i",
-          "meaning": "posición y velocidad",
-          "unit": "m; m/s",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "finitas"
-        },
-        {
-          "symbol": "a_i",
-          "meaning": "aceleración combinada",
-          "unit": "m/s²",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": -2,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "acotada"
-        },
-        {
-          "symbol": "r_n",
-          "meaning": "radio vecindad",
+          "symbol": "p_i",
+          "meaning": "posición del insecto",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -808,12 +770,42 @@
             "N": 0,
             "J": 0
           },
-          "domain": "positivo"
+          "domain": "vector finito"
         },
         {
-          "symbol": "light",
-          "meaning": "posición/intensidad de fuente",
-          "unit": "m y unidad radiométrica declarada",
+          "symbol": "v_i",
+          "meaning": "velocidad",
+          "unit": "m/s",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración de steering",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito y acotado"
+        },
+        {
+          "symbol": "r_n",
+          "meaning": "radio de vecindad",
+          "unit": "m",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -823,7 +815,29 @@
             "N": 0,
             "J": 0
           },
-          "domain": "fuente finita"
+          "domain": "r_n>0"
+        },
+        {
+          "symbol": "p_light",
+          "meaning": "posición de fuente luminosa",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "I_light",
+          "meaning": "intensidad/iluminancia de fuente",
+          "unit": "unidad radiométrica o fotométrica declarada",
+          "dimension": "depende de la magnitud: p.ej. W·sr^-1 o lux",
+          "domain": "no negativa; no mezclar con posición"
         }
       ],
       "constraints": [
@@ -838,9 +852,9 @@
         "Fuente luminosa ausente: término de atracción cero; distancia cero con luz requiere dirección de respaldo."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "p_i and r_n have L; v_i has L/T; a_i has L/T².",
+        "Cohesion, separation, noise and attraction must be converted to accelerations (L/T²) before summation; scalar weights alone do not repair unit mismatches.",
+        "Light position has L; illuminance/intensity is a separate radiometric quantity with its own unit and must not be stored in the same dimensional field."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -921,9 +935,9 @@
         "Si el path termina, mantener último punto o loop declarado."
       ],
       "dimensional_checks": [
-        "Distancias, radios, posiciones y desplazamientos comparten dimensión L.",
-        "Ángulos en radianes; parámetros, pesos, índices normalizados y direcciones unitarias son adimensionales.",
-        "Velocidad y aceleración conservan L/T y L/T² respectivamente."
+        "p_i and leaderPath(t) have L; v_i has L/T; a_i has L/T².",
+        "Boids steering and leader-following terms must share acceleration units before addition.",
+        "Weights are dimensionless only after steering terms have been normalized/scaled to compatible units."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -931,8 +945,12 @@
   "validation": {
     "structural_checks": [
       "10/13 técnicas no protegidas incluidas",
-      "Todos los registros incluyen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
-      "3 registros protegidos excluidos"
+      "Cada registro incluye variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "3 registros protegidos excluidos",
+      "Corregida la dimensión del dominio de muestreo Ω (L²/L³) y separada posición de luz de su intensidad"
+    ],
+    "limitations": [
+      "Revisión dimensional y estructural; las derivaciones formales y pruebas independientes corresponden a puntos posteriores."
     ]
   },
   "integrity": {
