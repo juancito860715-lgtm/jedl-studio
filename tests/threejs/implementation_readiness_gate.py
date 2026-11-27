@@ -103,6 +103,9 @@ def validate_dimensional_audit(payload, expected_ids):
         "m, strictly positive":{"L":1}, "m, nonnegative":{"L":1},
         "m (same as z)":{"L":1}, "m (or one consistent scene-length unit)":{"L":1},
         "m, k>0 for polynomial smooth union":{"L":1},
+        "translation-unit (length)":{"L":1}, "m, same coordinate space and sign convention":{"L":1},
+        "m per parameter unit":{"L":1}, "dimensionless normalized quaternion":{},
+        "1 (luminance difference)":{}, "dimensionless [0,1]":{},
     }
     required_dims={"L","M","T","I","Theta","N","J"}
     checked_units=0
