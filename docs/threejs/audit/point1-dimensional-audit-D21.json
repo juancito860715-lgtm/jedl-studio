@@ -602,7 +602,7 @@
             "N": 0,
             "J": 0
           },
-          "domain": "finito y calibrado"
+          "domain": "coeficiente de escala con dimensión L/T; no es un parámetro adimensional"
         },
         {
           "symbol": "f_conf",
@@ -622,10 +622,12 @@
       ],
       "constraints": [
         "N=∇|ω|/(|∇|ω||+ε_g) requiere ε_g con unidad m⁻¹s⁻¹ y produce N adimensional.",
-        "f_conf=ε_c(N×ω) tiene m/s² si ε_c tiene m/s; el coeficiente debe declararse con esa dimensión o definirse desde una escala espacial/temporal del solver."
+        "f_conf=ε_c(N×ω) tiene m/s² si ε_c tiene m/s; el coeficiente debe declararse con esa dimensión o definirse desde una escala espacial/temporal del solver.",
+        "Para cerrar el tipo dimensional de la ecuación abreviada, ε_c se define como escala de velocidad L/T; entonces ε_c·ω produce aceleración L/T². Si se desea fuerza por unidad de masa, esta es la convención adoptada."
       ],
       "valid_domain": [
-        "Campo suave; regularizador positivo con unidad del gradiente."
+        "Campo suave; regularizador positivo con unidad del gradiente.",
+        "ε_c se calibra como velocidad característica del solver; N=0 cuando ∇|ω|=0."
       ],
       "boundary_conditions": [
         "Gradiente nulo: N=0 o dirección estable.",
@@ -633,9 +635,10 @@
       ],
       "dimensional_checks": [
         "ω tiene T⁻¹; ∇|ω| y ε_g tienen L⁻¹T⁻¹; N es adimensional.",
-        "ε_c tiene L/T; ε_c·ω tiene L/T², unidad de aceleración."
+        "ε_c tiene L/T; ε_c·ω tiene L/T², unidad de aceleración.",
+        "La ecuación dada es aceleración específica: ε_c [L/T] × ω [T⁻¹] = L/T²; si se integra en velocidad, Δv=f_conf·Δt conserva L/T."
       ],
-      "status": "CONDITIONAL_POINT1_EQUATION_SCALE_REQUIRED"
+      "status": "REVIEWED_POINT1"
     },
     {
       "record_key": "D21:7",
@@ -899,20 +902,23 @@
       "constraints": [
         "C_i=ρ_i/ρ0−1 es adimensional y ∇_x C_i tiene L⁻¹.",
         "En la forma abreviada escrita Δx_i=Σ(λ_i+λ_j)∇W_ij, ∇W tiene L⁻⁴ y λ debe tener L⁵ para producir corrección L.",
-        "La formulación PBF habitual incorpora factores de masa y normalización; esa variante requiere volver a derivar la unidad de λ según la ecuación exacta implementada."
+        "La formulación PBF habitual incorpora factores de masa y normalización; esa variante requiere volver a derivar la unidad de λ según la ecuación exacta implementada.",
+        "Esta ficha audita literalmente la forma abreviada registrada en el manifiesto; la variable λ se define con L⁵ para que λ∇W sea una corrección de posición L. Si la implementación añade masas, densidad de referencia o normalización distinta, se deberá volver a tipar esa variante en el punto de derivación."
       ],
       "valid_domain": [
-        "ρ0>0; densidades y gradientes válidos."
+        "ρ0>0; densidades y gradientes válidos.",
+        "Para la forma abreviada registrada, λ tiene L⁵; kernel W tiene L⁻³ y gradiente ∇W tiene L⁻⁴."
       ],
       "boundary_conditions": [
         "ρ_i=ρ0 produce C_i=0.",
-        "Densidad nula/gradiente degenerado requiere fallback."
+        "Densidad nula/gradiente degenerado requiere fallback.",
+        "La corrección Δx_i debe permanecer finita y acotada por el paso del solver; si ∇W es degenerado, no aplicar corrección indefinida."
       ],
       "dimensional_checks": [
         "C_i es adimensional; ∇_x C_i tiene L⁻¹; kernel W tiene L⁻³ y gradiente L⁻⁴.",
         "Para la fórmula abreviada de la ficha, λ L⁵ produce Δx L; cualquier variante ponderada debe reauditar λ."
       ],
-      "status": "CONDITIONAL_POINT1_FULL_PBF_FORMULA_REQUIRED"
+      "status": "REVIEWED_POINT1"
     },
     {
       "record_key": "D21:10",
@@ -1871,7 +1877,8 @@
     "structural_checks": [
       "22/22 técnicas incluidas",
       "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
-      "Cerradas dimensionalmente las formas abreviadas de vorticity confinement y PBF mediante unidades explícitas de coeficientes/multiplicadores"
+      "Cerradas dimensionalmente las formas abreviadas de vorticity confinement y PBF mediante unidades explícitas de coeficientes/multiplicadores",
+      "D21:6 y D21:9 cerrados para el punto 1 al fijar explícitamente la convención de aceleración específica y la forma abreviada de PBF auditada; variantes de implementación se revalidan al derivar algoritmos."
     ],
     "limitations": [
       "Las asignaciones de ε_c y λ corresponden exactamente a las formas abreviadas declaradas; una implementación con otra normalización debe recalcular sus unidades antes de codificar."
