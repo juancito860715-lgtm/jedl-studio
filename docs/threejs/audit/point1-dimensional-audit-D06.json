@@ -699,9 +699,9 @@
       "name": "Modelo de dispersión microfacet para cabello",
       "variables": [
         {
-          "symbol": "ω_i, ω_o, ω_h, ω_m",
-          "meaning": "direcciones incidente/saliente, semivector y normal macro/micro",
-          "unit": "1 (direcciones unitarias; integración respecto de sr)",
+          "symbol": "ω_i,ω_o,ω_h,ω_m",
+          "meaning": "direcciones incidente/saliente, micronormal y macronormal/mesonormal",
+          "unit": "1",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -711,11 +711,33 @@
             "N": 0,
             "J": 0
           },
-          "domain": "vectores unitarios válidos; semivector no nulo; marcos fibra declarados"
+          "domain": "vectores unitarios; marco longitudinal-azimutal declarado"
         },
         {
-          "symbol": "θ_i, θ_o, φ_i, φ_o, φ_m, α",
-          "meaning": "ángulos longitudinales, azimutales y tilt de cutícula",
+          "symbol": "D(ω_h,ω_m)",
+          "meaning": "distribución de micronormales",
+          "unit": "sr⁻¹",
+          "dimension": "inversa de ángulo sólido (sr⁻¹; ángulo sólido adimensional en SI base)",
+          "domain": "D≥0 y normalizada: ∫ D |ω_h·ω_m| dω_h=1"
+        },
+        {
+          "symbol": "R,T,G",
+          "meaning": "reflectancia Fresnel, transmitancia y enmascaramiento/sombreado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤R,T,G≤1; T=1−R por interfaz dieléctrica"
+        },
+        {
+          "symbol": "α,θ_i,θ_o,φ",
+          "meaning": "inclinación de cutícula y ángulos longitudinales/azimutales",
           "unit": "rad",
           "dimension": {
             "L": 0,
@@ -726,55 +748,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "finitos; convenciones de intervalo y periodicidad declaradas"
+          "domain": "finitos; convención angular del artículo"
         },
         {
-          "symbol": "D(ω_h,ω_m)",
-          "meaning": "distribución de normales microfacet respecto a ángulo sólido",
-          "unit": "sr⁻¹",
-          "dimension": "densidad angular inversa; sr es unidad de ángulo sólido",
-          "domain": "no negativa e integrable; normalización integral de Eq. (5) del artículo"
-        },
-        {
-          "symbol": "G",
-          "meaning": "enmascaramiento/sombreado Smith",
-          "unit": "1",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "0≤G≤1"
-        },
-        {
-          "symbol": "R_i, T_i, F",
-          "meaning": "reflectancia y transmitancia de Fresnel",
-          "unit": "1",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "0≤R_i,T_i≤1; R_i+T_i=1 en interfaz sin absorción superficial"
-        },
-        {
-          "symbol": "S_R, S_TT, S_TRT; S",
-          "meaning": "lóbulos y BCSDF total",
-          "unit": "sr⁻¹",
-          "dimension": "densidad por ángulo sólido de entrada/salida conforme a Eq. (2)",
-          "domain": "no negativa; definida por integrales (12), (23), (24); evaluar singularidades por límites analíticos"
-        },
-        {
-          "symbol": "r_f",
-          "meaning": "radio físico de fibra; el artículo normaliza el radio circular a 1 en la derivación",
+          "symbol": "r_f,ds,ℓ_path",
+          "meaning": "radio de fibra, diferencial longitudinal y recorrido interno",
           "unit": "m",
           "dimension": {
             "L": 1,
@@ -785,11 +763,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "r_f>0; la geometría renderizada debe declarar escala"
+          "domain": "r_f>0; ds≥0; ℓ_path≥0"
         },
         {
-          "symbol": "σ_a",
-          "meaning": "coeficiente de absorción por unidad de longitud",
+          "symbol": "σ_a,σ_s",
+          "meaning": "coeficientes de absorción y dispersión internos",
           "unit": "m⁻¹",
           "dimension": {
             "L": -1,
@@ -800,26 +778,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "σ_a≥0"
+          "domain": "no negativos; definidos por longitud de recorrido"
         },
         {
-          "symbol": "ℓ_t, ℓ_tr",
-          "meaning": "longitud recorrida dentro de la fibra",
-          "unit": "m",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "no negativa; calculada por intersecciones y ángulo de refracción"
-        },
-        {
-          "symbol": "A_t, A_tr",
-          "meaning": "atenuación por absorción interna exp(−σ_a ℓ)",
+          "symbol": "ρ_e,ρ_p",
+          "meaning": "concentraciones normalizadas de pigmentos eumelanina/pheomelanina",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -830,11 +793,11 @@
             "N": 0,
             "J": 0
           },
-          "domain": "0<A≤1 para σ_a,ℓ≥0"
+          "domain": "no negativas; escala de concentración declarada"
         },
         {
-          "symbol": "η",
-          "meaning": "índice relativo de refracción",
+          "symbol": "A_t,A_tr",
+          "meaning": "atenuación a lo largo de recorridos transmitidos",
           "unit": "1",
           "dimension": {
             "L": 0,
@@ -845,51 +808,43 @@
             "N": 0,
             "J": 0
           },
-          "domain": "η>0; valores físicos del material"
+          "domain": "A=exp(−σ_a ℓ_path); 0≤A≤1"
         },
         {
-          "symbol": "e, b",
-          "meaning": "excentricidad y razón de semiejes de sección elíptica",
-          "unit": "1",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "domain": "0≤e<1; b=√(1−e²) para parametrización del artículo"
+          "symbol": "S_R,S_TT,S_TRT,S",
+          "meaning": "BCSDF de reflexión, transmisión y transmisión-reflexión",
+          "unit": "sr⁻¹",
+          "dimension": "inversa de ángulo sólido",
+          "domain": "no negativa e integrable respecto de dω_i; S=S_R+S_TT+S_TRT"
         }
       ],
       "constraints": [
-        "El modelo de Huang, Hullin y Hanika (2022) define una BCSDF S(ω_i,ω_o), no una BRDF plana; no intercambiar las dos funciones.",
-        "Las ecuaciones (2)–(3) fijan la convención: L_o(ω_o)=∫L_i(ω_i)S(ω_i,ω_o)cosθ_i dω_i y S=S_R+S_TT+S_TRT. La unidad de S es sr⁻¹ respecto de la medida angular.",
-        "D(ω_h,ω_m) se normaliza sobre el hemisferio mediante ∫D|ω_h·ω_m|dω_h=1; por ello D es densidad angular sr⁻¹. G, R, T, η, e, b y atenuaciones son adimensionales.",
-        "La absorción usa σ_a=ρ_eσ_a,e+ρ_pσ_a,p con unidad m⁻¹; exponentes σ_aℓ son adimensionales. La expresión de Eq. (17) y Eq. (25) debe conservar la longitud recorrida correcta.",
-        "El artículo fija radio circular 1 para derivación normalizada; al escalar la hebra en escena, r_f conserva L y no se suma a ángulos ni parámetros de rugosidad.",
-        "Para sección elíptica, e y b son adimensionales y los factores √(1−e²sin²γ) son adimensionales; exigir 0≤e<1."
+        "La relación radiométrica del artículo es L_o(ω_o)=∫L_i(ω_i)S(ω_i,ω_o)cosθ_i dω_i; por tanto S tiene unidad sr⁻¹ bajo la medida angular sólida.",
+        "Para el lóbulo R, S_R=R/(8 cosθ_o cosθ_i) ∫D(ω_h,ω_m)G(ω_i,ω_o)dφ_m; D tiene sr⁻¹ y el resto de factores/variable angular de integración son adimensionales, por lo que S_R conserva sr⁻¹.",
+        "Para los lóbulos TT/TRT, productos de distribuciones D_i, medidas angulares y jacobianos de refracción deben conservar sr⁻¹; índices refractivos, cosenos, Fresnel y G son adimensionales.",
+        "La absorción interna A_t=exp(−σ_a ℓ_path) requiere σ_a en m⁻¹ y recorrido ℓ_path en m; el exponente es adimensional.",
+        "El artículo normaliza el radio del cilindro a 1 durante la derivación; al usar radio físico r_f, los elementos de área/proyección deben incorporar la misma escala y su cociente geométrico permanece adimensional."
       ],
       "valid_domain": [
-        "Geometría de fibra con radio estrictamente positivo, marco local regular y direcciones incidentes/salientes válidas.",
-        "Parámetros dentro del dominio publicado y calibrado; distribución no negativa e integrable.",
-        "Estado de dimensionalidad de la salida BCSDF: CONDICIONAL hasta recuperar la ecuación completa, definición de medida y jacobiano de SRC-HUANG-2022."
+        "Fibra cilíndrica o elíptica suave, radio positivo, marco local regular y direcciones incidentes/salientes válidas.",
+        "Distribución microfacet Beckmann o GGX no negativa y normalizada; parámetro de rugosidad y tilt dentro del dominio de la distribución.",
+        "σ_a,σ_s≥0; recorridos internos no negativos; índice refractivo relativo positivo.",
+        "El modelo del artículo limita lobos principales a R, TT y TRT; los lóbulos de orden superior se omiten como aproximación."
       ],
       "boundary_conditions": [
-        "Fibra de radio cero se rechaza como degenerada; límites de rugosidad deben seguir la parametrización publicada.",
-        "Direcciones rasantes y denominadores cercanos a cero requieren límite analítico o regularización documentada, no epsilon arbitrario.",
-        "En el límite de reflectancia nula, el lóbulo reflejado debe anularse; el balance total debe respetar la conservación energética del modelo."
+        "R=0 anula contribución reflejada; T=0 anula transmisión correspondiente.",
+        "Recorrido interno cero da A=1; σ_a=0 también da A=1.",
+        "En dirección rasante, límites y denominadores deben evaluarse con las condiciones del artículo; no introducir epsilon sin escala.",
+        "Radio físico r_f=0 es degenerado; cross-section circular se obtiene como caso particular de la formulación elíptica."
       ],
       "dimensional_checks": [
-        "Eq. (2): L_i y L_o son radiancias [W·m⁻²·sr⁻¹]; dω_i es sr y cosθ_i es adimensional; por tanto S debe tener sr⁻¹.",
-        "Eq. (5): D dω_h es adimensional como densidad angular integrada; D tiene sr⁻¹ y el producto escalar es adimensional.",
-        "Eq. (12): D [sr⁻¹] integrado en dφ_m (rad, adimensional SI) mantiene unidad sr⁻¹; R, G y cosenos no alteran unidades. Igual criterio aplica a los integrandos TT/TRT con las medidas angulares correspondientes.",
-        "Absorción: σ_a [m⁻¹]·ℓ [m] es adimensional; A_t y A_tr son factores adimensionales en (0,1].",
-        "Geometría: da_m=dφ_m ds tiene m; el radio físico aporta m si no se usa la normalización r_f=1 del artículo. Las variables angulares, η, e y b son adimensionales.",
-        "Se ha contrastado la definición integral y las expresiones de R, TT, TRT y sección elíptica con el artículo original; no se sustituye BCSDF por BRDF."
+        "Eq. (2): L_o y L_i son radiancias; dω_i aporta medida sr y cosθ es adimensional; S debe tener sr⁻¹ para que la integral conserve radiancia.",
+        "Eq. (5): ∫D|ω_h·ω_m|dω_h=1 implica D en sr⁻¹ bajo normalización angular.",
+        "Eq. (12): R,G y cosenos son adimensionales; ∫D dφ mantiene sr⁻¹; S_R queda sr⁻¹.",
+        "Absorción: σ_aℓ_path tiene (m⁻¹)(m)=1; A_t y A_tr son adimensionales.",
+        "Geometría de fibra: r_f, ds y ℓ_path tienen L; direcciones, índices relativos, ángulos y excentricidad son adimensionales."
       ],
-      "status": "REVIEWED_POINT1_SOURCE_VERIFIED",
+      "status": "REVIEWED_POINT1",
       "domain": [
         "Direcciones incidentes/salientes válidas y marcos locales de fibra definidos; evitar semivectores nulos y configuraciones fuera de los dominios de integración.",
         "Distribución D no negativa, integrable y normalizada; roughness/β dentro del dominio GGX o Beckmann empleado.",
@@ -902,19 +857,32 @@
         "En α=0 desaparece el tilt de cutícula; el modelo recupera la orientación no inclinada.",
         "En e=0 la sección elíptica se reduce al círculo; e→1 es degeneración y queda excluido.",
         "En cosθ→0 o denominadores angulares próximos a cero, evaluar límites/soporte del modelo y no introducir epsilons arbitrarios."
-      ]
+      ],
+      "source_reference": {
+        "authors": "W. Huang, M. B. Hullin, J. Hanika",
+        "year": 2022,
+        "title": "A Microfacet-based Hair Scattering Model",
+        "journal": "Computer Graphics Forum 41(4), 79–91",
+        "doi": "10.1111/cgf.14588",
+        "url": "https://doi.org/10.1111/cgf.14588",
+        "equation_locations": [
+          "Eq. (2) BCSDF radiometric definition",
+          "Eq. (5) microfacet normal distribution normalization",
+          "Eq. (12) reflected R-lobe BCSDF",
+          "Eqs. (17), (23), (24) absorption and transmitted lobes",
+          "Eqs. (28)–(30) elliptical fibers"
+        ]
+      }
     }
   ],
   "validation": {
     "structural_checks": [
       "8/12 técnicas no protegidas incluidas",
-      "Todos los registros contienen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
-      "4 registros protegidos excluidos",
-      "D06:11 separa BRDF convencional de BCSDF fibrosa y condiciona la unidad final a la medida integral de la fuente",
-      "D06:11 actualizado con definiciones y ecuaciones integrales del artículo primario Huang, Hullin y Hanika (2022); dimensionalidad de BCSDF verificada mediante Eq. (2)."
+      "Todos los registros tienen variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "D06:11 cerrada dimensionalmente usando ecuaciones publicadas del BCSDF; no se sustituyó por una BRDF plana"
     ],
     "limitations": [
-      "La revisión dimensional de D06 está cerrada. La reproducción numérica exacta del modelo de cabello, muestreo y conservación energética corresponde a puntos posteriores; no se declara implementado ni numéricamente validado aquí."
+      "El punto 1 dimensional queda resuelto para D06:11; fidelidad numérica, muestreo y adaptación de shader corresponden a los puntos posteriores."
     ]
   },
   "integrity": {
