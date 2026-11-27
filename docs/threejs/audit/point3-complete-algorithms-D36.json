@@ -1,0 +1,481 @@
+{
+  "title": "Algoritmos y pseudocódigo trazables — D36",
+  "version": "1.0.0",
+  "scope": {
+    "domain_id": "D36",
+    "domain": "Matemáticas profundas de simulación y métodos numéricos",
+    "record_count": 15,
+    "source_manifest_path": "docs/threejs/Manifiesto_ThreeJS_Diccionario_Tecnico_v3_1_Integrado.json",
+    "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "source_order": "Manifest v3.5 domain D36, techniques array in source order"
+  },
+  "records": [
+    {
+      "record_key": "D36:0",
+      "name": "Derivada material",
+      "source_equation": "Dφ/Dt = ∂φ/∂t + u·∇φ",
+      "source_derivation": "La variación que experimenta una partícula que se mueve con velocidad u suma el cambio local temporal y el cambio espacial que atraviesa. Aplicar la regla de la cadena a φ(x(t),t) produce la expresión.",
+      "source_parameters": {
+        "u": "campo de velocidad",
+        "φ": "temperatura, densidad, concentración o velocidad",
+        "∇": "gradiente espacial"
+      },
+      "source_variants": [
+        "forma Euleriana",
+        "forma Lagrangiana"
+      ],
+      "algorithm_steps": [
+        "Definir campo φ en la malla o partículas",
+        "Evaluar ∂φ/∂t en el punto",
+        "Calcular u·∇φ",
+        "Sumar ambos términos",
+        "Integrar temporalmente con Euler, RK2 o RK4"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Definir campo φ en la malla o partículas\n  PASO 2: Evaluar ∂φ/∂t en el punto\n  PASO 3: Calcular u·∇φ\n  PASO 4: Sumar ambos términos\n  PASO 5: Integrar temporalmente con Euler, RK2 o RK4\nFIN",
+      "threejs_adaptation": "ShaderMaterial/TSL para campos discretos; CPU para prototipos",
+      "model": "fundamento físico/matemático",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:1",
+      "name": "Euler explícito",
+      "source_equation": "y_{n+1}=y_n+Δt f(t_n,y_n)",
+      "source_derivation": "Aproximar la solución mediante el primer término de Taylor y descartar términos O(Δt²).",
+      "source_parameters": {
+        "Δt": "paso temporal",
+        "f": "derivada del estado"
+      },
+      "source_variants": [
+        "Euler explícito",
+        "Euler semi-implícito/symplectic",
+        "Euler implícito"
+      ],
+      "algorithm_steps": [
+        "Evaluar fuerzas del estado actual",
+        "Calcular aceleración",
+        "Actualizar velocidad",
+        "Actualizar posición",
+        "Reducir Δt o substep si hay inestabilidad"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Evaluar fuerzas del estado actual\n  PASO 2: Calcular aceleración\n  PASO 3: Actualizar velocidad\n  PASO 4: Actualizar posición\n  PASO 5: Reducir Δt o substep si hay inestabilidad\nFIN",
+      "threejs_adaptation": "bucle de simulación propio; fijar timestep independiente del render",
+      "model": "numérico",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:2",
+      "name": "Runge–Kutta de cuarto orden",
+      "source_equation": "y_{n+1}=y_n+(Δt/6)(k1+2k2+2k3+k4)",
+      "source_derivation": "Combina cuatro evaluaciones de la pendiente para aproximar la integral temporal con error local O(Δt^5).",
+      "source_parameters": {
+        "k1": "f(t,y)",
+        "k2": "f(t+Δt/2,y+Δt k1/2)",
+        "k3": "f(t+Δt/2,y+Δt k2/2)",
+        "k4": "f(t+Δt,y+Δt k3)"
+      },
+      "source_variants": [
+        "RK2 midpoint",
+        "RK3",
+        "RK4 clásico",
+        "Runge–Kutta adaptativo"
+      ],
+      "algorithm_steps": [
+        "Calcular k1",
+        "Calcular k2 en el punto medio estimado",
+        "Calcular k3 con la segunda estimación",
+        "Calcular k4 al final estimado",
+        "Combinar pendientes con pesos 1,2,2,1"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Calcular k1\n  PASO 2: Calcular k2 en el punto medio estimado\n  PASO 3: Calcular k3 con la segunda estimación\n  PASO 4: Calcular k4 al final estimado\n  PASO 5: Combinar pendientes con pesos 1,2,2,1\nFIN",
+      "threejs_adaptation": "simulación CPU de trayectorias, resortes, cámaras y partículas",
+      "model": "numérico",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:3",
+      "name": "Integrador Verlet",
+      "source_equation": "x_{n+1}=2x_n-x_{n-1}+a_n Δt²",
+      "source_derivation": "Sumar expansiones de Taylor hacia delante y atrás cancela términos impares y produce una actualización de segundo orden.",
+      "source_parameters": {
+        "Δt": "paso fijo",
+        "a_n": "aceleración en el estado actual"
+      },
+      "source_variants": [
+        "Position Verlet",
+        "Velocity Verlet",
+        "leapfrog"
+      ],
+      "algorithm_steps": [
+        "Guardar posición actual y anterior",
+        "Calcular fuerzas y aceleración",
+        "Obtener nueva posición",
+        "Resolver restricciones",
+        "Reconstruir velocidad desde diferencia de posiciones"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Guardar posición actual y anterior\n  PASO 2: Calcular fuerzas y aceleración\n  PASO 3: Obtener nueva posición\n  PASO 4: Resolver restricciones\n  PASO 5: Reconstruir velocidad desde diferencia de posiciones\nFIN",
+      "threejs_adaptation": "telas, cuerdas, cabello, banderas y partículas",
+      "model": "numérico/simpléctico",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:4",
+      "name": "CFL condition",
+      "source_equation": "C=|u|Δt/Δx ≤ C_max",
+      "source_derivation": "El dominio de dependencia numérico debe cubrir el dominio de dependencia físico; si una señal cruza demasiadas celdas por paso, el esquema explícito puede volverse inestable.",
+      "source_parameters": {
+        "u": "velocidad máxima",
+        "Δt": "paso temporal",
+        "Δx": "tamaño de celda",
+        "C_max": "límite dependiente del esquema"
+      },
+      "source_variants": [
+        "CFL para advección",
+        "CFL acústico",
+        "CFL multidimensional"
+      ],
+      "algorithm_steps": [
+        "Medir velocidad máxima",
+        "Calcular Δt máximo admisible",
+        "Subdividir el paso si se supera el límite",
+        "Repetir hasta cumplir la condición"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Medir velocidad máxima\n  PASO 2: Calcular Δt máximo admisible\n  PASO 3: Subdividir el paso si se supera el límite\n  PASO 4: Repetir hasta cumplir la condición\nFIN",
+      "threejs_adaptation": "solvers de agua, humo, ondas y campos volumétricos",
+      "model": "criterio de estabilidad",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:5",
+      "name": "Poisson equation",
+      "source_equation": "∇²φ=f",
+      "source_derivation": "Relaciona un campo escalar con la divergencia de su gradiente; aparece al imponer restricciones como incomprensibilidad o potenciales electrostáticos.",
+      "source_parameters": {
+        "φ": "potencial o presión",
+        "f": "fuente",
+        "∇²": "laplaciano"
+      },
+      "source_variants": [
+        "Poisson de presión",
+        "Poisson de potencial",
+        "Poisson con condiciones Dirichlet/Neumann"
+      ],
+      "algorithm_steps": [
+        "Discretizar laplaciano en la malla",
+        "Aplicar condiciones de contorno",
+        "Resolver con Jacobi, Gauss-Seidel, conjugate gradient o multigrid",
+        "Comprobar residuo"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Discretizar laplaciano en la malla\n  PASO 2: Aplicar condiciones de contorno\n  PASO 3: Resolver con Jacobi, Gauss-Seidel, conjugate gradient o multigrid\n  PASO 4: Comprobar residuo\nFIN",
+      "threejs_adaptation": "compute shader o solver CPU; visualizar solución en textura 3D/2D",
+      "model": "ecuación diferencial",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:6",
+      "name": "Conjugate gradient",
+      "source_equation": "α_k=(r_kᵀr_k)/(p_kᵀAp_k); x_{k+1}=x_k+α_k p_k",
+      "source_derivation": "Minimiza una forma cuadrática asociada a un sistema simétrico definido positivo avanzando en direcciones conjugadas.",
+      "source_parameters": {
+        "A": "matriz simétrica definida positiva",
+        "r": "residuo",
+        "p": "dirección conjugada",
+        "tol": "tolerancia"
+      },
+      "source_variants": [
+        "CG",
+        "preconditioned CG",
+        "nonlinear CG"
+      ],
+      "algorithm_steps": [
+        "Inicializar x y residuo r=b-Ax",
+        "Elegir p=r",
+        "Calcular α",
+        "Actualizar x y r",
+        "Calcular β y nueva dirección",
+        "Parar por tolerancia o máximo de iteraciones"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Inicializar x y residuo r=b-Ax\n  PASO 2: Elegir p=r\n  PASO 3: Calcular α\n  PASO 4: Actualizar x y r\n  PASO 5: Calcular β y nueva dirección\n  PASO 6: Parar por tolerancia o máximo de iteraciones\nFIN",
+      "threejs_adaptation": "solver numérico personalizado; no es una función automática de Three.js",
+      "model": "álgebra numérica",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:7",
+      "name": "Multigrid",
+      "source_equation": "e^{coarse}=Restrict(e^{fine}); correction=Prolong(e^{coarse})",
+      "source_derivation": "Los suavizadores eliminan errores de alta frecuencia; los errores de baja frecuencia se representan mejor en mallas gruesas.",
+      "source_parameters": {
+        "levels": "niveles de resolución",
+        "ν1/ν2": "pasadas de suavizado",
+        "restriction": "operador de restricción",
+        "prolongation": "operador de prolongación"
+      },
+      "source_variants": [
+        "geometric multigrid",
+        "algebraic multigrid",
+        "V-cycle",
+        "W-cycle",
+        "F-cycle"
+      ],
+      "algorithm_steps": [
+        "Pre-suavizar",
+        "Calcular residuo",
+        "Restringir residuo a nivel grueso",
+        "Resolver error grueso",
+        "Prolongar corrección",
+        "Post-suavizar"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Pre-suavizar\n  PASO 2: Calcular residuo\n  PASO 3: Restringir residuo a nivel grueso\n  PASO 4: Resolver error grueso\n  PASO 5: Prolongar corrección\n  PASO 6: Post-suavizar\nFIN",
+      "threejs_adaptation": "solvers de presión y campos de gran escala",
+      "model": "método numérico",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:8",
+      "name": "Método de volúmenes finitos",
+      "source_equation": "d/dt∫_V U dV + ∮_{∂V} F(U)·n dA = ∫_V S dV",
+      "source_derivation": "Integrar la ley de conservación sobre un volumen de control y aplicar el teorema de divergencia convierte flujos internos en flujos de frontera.",
+      "source_parameters": {
+        "U": "variables conservadas",
+        "F": "flujo",
+        "S": "fuentes",
+        "V": "volumen de control"
+      },
+      "source_variants": [
+        "cell-centered",
+        "vertex-centered",
+        "Godunov",
+        "finite volume upwind"
+      ],
+      "algorithm_steps": [
+        "Dividir dominio en volúmenes",
+        "Reconstruir estados en caras",
+        "Calcular flujos numéricos",
+        "Sumar flujos entrantes y salientes",
+        "Aplicar fuentes",
+        "Avanzar tiempo"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Dividir dominio en volúmenes\n  PASO 2: Reconstruir estados en caras\n  PASO 3: Calcular flujos numéricos\n  PASO 4: Sumar flujos entrantes y salientes\n  PASO 5: Aplicar fuentes\n  PASO 6: Avanzar tiempo\nFIN",
+      "threejs_adaptation": "agua superficial, gases y simulaciones conservativas",
+      "model": "numérico/conservativo",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:9",
+      "name": "Método de elementos finitos",
+      "source_equation": "K u=f; K=∫_Ω BᵀDB dΩ",
+      "source_derivation": "Partir de la forma débil de una ecuación variacional, aproximar el campo con funciones de forma y ensamblar contribuciones de cada elemento.",
+      "source_parameters": {
+        "B": "matriz deformación-desplazamiento",
+        "D": "matriz constitutiva",
+        "K": "rigidez global",
+        "u": "grados de libertad"
+      },
+      "source_variants": [
+        "FEM lineal/cuadrático",
+        "tetraédrico/hexaédrico",
+        "explícito/implícito",
+        "FEM no lineal"
+      ],
+      "algorithm_steps": [
+        "Crear malla y grados de libertad",
+        "Elegir funciones de forma",
+        "Integrar matrices elementales",
+        "Ensamblar K y f",
+        "Imponer restricciones",
+        "Resolver y recuperar tensiones"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Crear malla y grados de libertad\n  PASO 2: Elegir funciones de forma\n  PASO 3: Integrar matrices elementales\n  PASO 4: Ensamblar K y f\n  PASO 5: Imponer restricciones\n  PASO 6: Resolver y recuperar tensiones\nFIN",
+      "threejs_adaptation": "Three.js muestra la malla/resultados; el solver FEM es externo o propio",
+      "model": "numérico",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:10",
+      "name": "Smoothed Particle Hydrodynamics completo",
+      "source_equation": "A(r_i)≈Σ_j m_j A_j/ρ_j W(r_i-r_j,h)",
+      "source_derivation": "Aproximar un campo continuo mediante convolución con un kernel de soporte compacto y sustituir la integral por una suma sobre partículas.",
+      "source_parameters": {
+        "h": "radio de suavizado",
+        "W": "kernel normalizado",
+        "m_j": "masa",
+        "ρ_j": "densidad"
+      },
+      "source_variants": [
+        "WCSPH",
+        "ISPH",
+        "DFSPH",
+        "PCISPH",
+        "δ-SPH"
+      ],
+      "algorithm_steps": [
+        "Distribuir partículas",
+        "Buscar vecinos con grid/hash",
+        "Calcular densidad",
+        "Calcular presión",
+        "Calcular fuerzas de presión, viscosidad y superficie",
+        "Integrar movimiento",
+        "Resolver límites y colisiones"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Distribuir partículas\n  PASO 2: Buscar vecinos con grid/hash\n  PASO 3: Calcular densidad\n  PASO 4: Calcular presión\n  PASO 5: Calcular fuerzas de presión, viscosidad y superficie\n  PASO 6: Integrar movimiento\n  PASO 7: Resolver límites y colisiones\nFIN",
+      "threejs_adaptation": "Points/InstancedMesh para visualizar; compute shader para cálculo masivo",
+      "model": "Lagrangiano",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:11",
+      "name": "Ecuación de elasticidad de Cauchy",
+      "source_equation": "ρ ü = ∇·σ + ρb",
+      "source_derivation": "Aplicar conservación del momento lineal a un continuo; la divergencia del tensor de tensiones genera fuerza interna por volumen.",
+      "source_parameters": {
+        "ρ": "densidad",
+        "u": "desplazamiento",
+        "σ": "tensor de tensiones",
+        "b": "fuerza de cuerpo"
+      },
+      "source_variants": [
+        "elasticidad lineal",
+        "hiperelasticidad",
+        "viscoelasticidad",
+        "plasticidad"
+      ],
+      "algorithm_steps": [
+        "Definir geometría y material",
+        "Calcular deformación",
+        "Obtener tensión mediante ley constitutiva",
+        "Calcular divergencia de tensión",
+        "Integrar aceleración",
+        "Resolver contactos"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Definir geometría y material\n  PASO 2: Calcular deformación\n  PASO 3: Obtener tensión mediante ley constitutiva\n  PASO 4: Calcular divergencia de tensión\n  PASO 5: Integrar aceleración\n  PASO 6: Resolver contactos\nFIN",
+      "threejs_adaptation": "visualización de deformaciones con BufferGeometry y atributos GPU",
+      "model": "físico",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:12",
+      "name": "Viscoelasticidad Kelvin–Voigt",
+      "source_equation": "σ=Eε+η ε̇",
+      "source_derivation": "Combina un resorte elástico y un amortiguador viscoso en paralelo: las tensiones se suman.",
+      "source_parameters": {
+        "E": "módulo de Young",
+        "η": "viscosidad",
+        "ε": "deformación"
+      },
+      "source_variants": [
+        "Kelvin–Voigt",
+        "Maxwell",
+        "Standard Linear Solid",
+        "generalized Maxwell"
+      ],
+      "algorithm_steps": [
+        "Calcular deformación",
+        "Calcular tasa de deformación",
+        "Evaluar tensión elástica",
+        "Evaluar tensión viscosa",
+        "Sumar tensiones"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Calcular deformación\n  PASO 2: Calcular tasa de deformación\n  PASO 3: Evaluar tensión elástica\n  PASO 4: Evaluar tensión viscosa\n  PASO 5: Sumar tensiones\nFIN",
+      "threejs_adaptation": "piel, gel, goma y tejidos blandos aproximados",
+      "model": "constitutivo",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:13",
+      "name": "Plasticidad J2 von Mises",
+      "source_equation": "σ_eq=√(3/2 s:s); yield if σ_eq>σ_y",
+      "source_derivation": "La energía de distorsión del tensor desviador define una superficie de fluencia independiente de la presión hidrostática.",
+      "source_parameters": {
+        "s": "tensor desviador",
+        "σ_y": "límite de fluencia",
+        "H": "endurecimiento"
+      },
+      "source_variants": [
+        "perfect plasticity",
+        "isotropic hardening",
+        "kinematic hardening",
+        "return mapping"
+      ],
+      "algorithm_steps": [
+        "Calcular tensión de prueba",
+        "Evaluar criterio de fluencia",
+        "Si no fluye, aceptar",
+        "Si fluye, proyectar al yield surface",
+        "Actualizar deformación plástica y endurecimiento"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Calcular tensión de prueba\n  PASO 2: Evaluar criterio de fluencia\n  PASO 3: Si no fluye, aceptar\n  PASO 4: Si fluye, proyectar al yield surface\n  PASO 5: Actualizar deformación plástica y endurecimiento\nFIN",
+      "threejs_adaptation": "deformación permanente de metales, barro o props",
+      "model": "constitutivo",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    },
+    {
+      "record_key": "D36:14",
+      "name": "Difusión anisotrópica",
+      "source_equation": "∂u/∂t=∇·(D(x)∇u)",
+      "source_derivation": "Generaliza la ley de Fick permitiendo que el tensor D cambie según posición y dirección.",
+      "source_parameters": {
+        "D": "tensor de difusión",
+        "u": "concentración o temperatura"
+      },
+      "source_variants": [
+        "isotrópica",
+        "anisotrópica",
+        "edge-preserving",
+        "reaction-diffusion"
+      ],
+      "algorithm_steps": [
+        "Definir tensor D por celda",
+        "Calcular gradiente",
+        "Multiplicar por D",
+        "Calcular divergencia del flujo",
+        "Integrar con esquema estable"
+      ],
+      "pseudocode": "INICIO\n  PASO 1: Definir tensor D por celda\n  PASO 2: Calcular gradiente\n  PASO 3: Multiplicar por D\n  PASO 4: Calcular divergencia del flujo\n  PASO 5: Integrar con esquema estable\nFIN",
+      "threejs_adaptation": "patrones, difusión térmica, pigmento y procesos biológicos estilizados",
+      "model": "PDE",
+      "derivation_status": "SOURCE_DERIVATION_PRESERVED",
+      "implementation_status": "NOT_CERTIFIED",
+      "source_fidelity": "VERBATIM_FIELDS_FROM_MANIFEST"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "15/15 técnicas D36 incluidas en orden de origen",
+      "Ecuación, derivación, parámetros, variantes, algoritmo y adaptación Three.js preservados literalmente desde la ficha fuente",
+      "Pseudocódigo expresa los pasos fuente en el mismo orden, sin añadir operaciones ni constantes"
+    ],
+    "limitations": [
+      "La transcripción y estructuración del algoritmo fuente no equivalen a revisión matemática independiente ni a prueba ejecutable",
+      "Las técnicas que necesitan discretización, datos, material o condiciones de contorno siguen sin quedar certificadas por este archivo",
+      "D36:13 conserva la ficha constitutiva de origen; la derivación visual segura del punto 2 no autoriza una simulación de plasticidad física"
+    ]
+  }
+}
