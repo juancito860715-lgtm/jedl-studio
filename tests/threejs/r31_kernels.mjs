@@ -303,3 +303,15 @@ export function halftoneCoverage(luminance,mask,aaWidth) {
   const x=Math.max(0,Math.min(1,(delta+aaWidth)/(2*aaWidth)));
   return x*x*(3-2*x);
 }
+
+
+// Periodic stripe coverage. phase is wrapped to [0,1); widths are fractions
+// of one hatch period, not world-space lengths.
+export function hatchCoverage(phase,halfWidth,aaWidth) {
+  if([phase,halfWidth,aaWidth].some(v=>!Number.isFinite(v))||halfWidth<0||aaWidth<0||halfWidth+aaWidth>.5)
+    throw new RangeError("finite widths with 0 <= halfWidth and halfWidth+aaWidth <= 0.5 required");
+  const p=phase-Math.floor(phase),distance=Math.abs(p-.5);
+  if(aaWidth===0)return distance<=halfWidth?1:0;
+  const x=Math.max(0,Math.min(1,(distance-halfWidth)/aaWidth));
+  return 1-x*x*(3-2*x);
+}
