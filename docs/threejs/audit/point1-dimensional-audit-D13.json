@@ -1,0 +1,1467 @@
+{
+  "title": "Auditoría dimensional punto 1 — D13 Cámaras, lentes y lenguaje cinematográfico",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D13",
+    "domain": "Cámaras, lentes y lenguaje cinematográfico",
+    "catalog_records": 17,
+    "record_count": 17,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay claves D13 protegidas en el mapa Crimson Loong."
+  },
+  "conventions": {
+    "SI_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "scene_length": "Unidad global de longitud de escena; Three.js no impone metros. Si se adopta SI, usar metros.",
+    "dimensionless": "1",
+    "counts": "conteos discretos adimensionales",
+    "camera_coordinates": "Distinguir coordenadas de plano de imagen en metros de coordenadas raster en píxeles; px/m es factor de conversión.",
+    "angles": "Radianes para FOV, orientación y ángulos de composición; adimensionales en SI."
+  },
+  "records": [
+    {
+      "record_key": "D13:0",
+      "name": "Perspective projection",
+      "variables": [
+        {
+          "symbol": "x,y,z",
+          "meaning": "Coordenadas de punto en espacio de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "z>0 en convención de cámara hacia delante"
+        },
+        {
+          "symbol": "f",
+          "meaning": "Distancia focal física",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "f>0"
+        },
+        {
+          "symbol": "x_s,y_s",
+          "meaning": "Coordenadas en plano de imagen",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "s_x,s_y",
+          "meaning": "Escalas de sensor/píxel",
+          "unit": "px/m",
+          "dimension": "factor de conversión px por metro",
+          "domain": "positivas"
+        }
+      ],
+      "constraints": [
+        "x_s=f·x/z e y_s=f·y/z producen coordenadas de plano de imagen con dimensión L.",
+        "Para coordenadas en píxeles, multiplicar por escala px/m y aplicar principal point; no mezclar m con px.",
+        "Puntos con z≤0 están detrás o en el plano de cámara y no admiten proyección perspectiva estándar."
+      ],
+      "valid_domain": [
+        "f>0; z>0; sensor y escala de píxel declarados; x,y,z finitos."
+      ],
+      "boundary_conditions": [
+        "Cuando z→0+, la proyección diverge; recortar por near plane antes de dividir.",
+        "Puntos fuera del frustum se recortan según política de viewport."
+      ],
+      "dimensional_checks": [
+        "f·x/z y f·y/z tienen L; la escala px/m convierte L a píxeles.",
+        "Las razones x/z,y/z son adimensionales; no confundir coordenadas de imagen física con coordenadas raster."
+      ]
+    },
+    {
+      "record_key": "D13:1",
+      "name": "Orthographic projection",
+      "variables": [
+        {
+          "symbol": "x,y",
+          "meaning": "Coordenadas en cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "s_x,s_y",
+          "meaning": "Escalas ortográficas",
+          "unit": "1",
+          "dimension": "adimensional",
+          "domain": "positivas; inversas a unidades por pantalla"
+        },
+        {
+          "symbol": "x_s,y_s",
+          "meaning": "Coordenadas proyectadas normalizadas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "W,H",
+          "meaning": "Dimensiones de viewport",
+          "unit": "px",
+          "dimension": "conteos discretos",
+          "domain": "enteros positivos"
+        }
+      ],
+      "constraints": [
+        "La proyección ortográfica no depende de z; x_s=s_x·x e y_s=s_y·y conservan L si s es adimensional.",
+        "Para rasterizar, aplicar conversión de longitud de cámara a píxeles usando frustum width/height y viewport."
+      ],
+      "valid_domain": [
+        "Escalas y frustum width/height estrictamente positivos; viewport con W,H>0."
+      ],
+      "boundary_conditions": [
+        "Cambios de aspecto deben ajustar frustum sin deformar escala física, salvo stretch explícito.",
+        "Puntos detrás de cámara pueden requerir clipping aunque la proyección 2D sea finita."
+      ],
+      "dimensional_checks": [
+        "s_x y s_y son adimensionales; x_s,y_s conservan L.",
+        "Conversión a px requiere px/m; W,H son conteos, no longitudes físicas."
+      ]
+    },
+    {
+      "record_key": "D13:2",
+      "name": "Field of view",
+      "variables": [
+        {
+          "symbol": "FOV",
+          "meaning": "Ángulo de campo visual",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<FOV<π"
+        },
+        {
+          "symbol": "f_norm",
+          "meaning": "Focal normalizada por dimensión de sensor",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "S",
+          "meaning": "Dimensión activa del sensor",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "S>0"
+        },
+        {
+          "symbol": "f_phys",
+          "meaning": "Distancia focal física",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "f_phys>0"
+        }
+      ],
+      "constraints": [
+        "f_norm=1/tan(FOV/2) es adimensional; la focal física requiere f_phys=S/[2tan(FOV/2)].",
+        "Declarar si FOV es vertical u horizontal; conversión depende de aspect ratio."
+      ],
+      "valid_domain": [
+        "0<FOV<π; S>0; sensor y eje de FOV declarados."
+      ],
+      "boundary_conditions": [
+        "FOV→0 implica focal→∞; FOV→π implica focal→0 y no es un lente físico utilizable.",
+        "Cambiar aspect ratio manteniendo FOV vertical cambia FOV horizontal."
+      ],
+      "dimensional_checks": [
+        "tan(FOV/2) es adimensional; f_norm es adimensional.",
+        "S/[2tan(FOV/2)] tiene L y devuelve focal física."
+      ]
+    },
+    {
+      "record_key": "D13:3",
+      "name": "Depth of field approximation",
+      "variables": [
+        {
+          "symbol": "f",
+          "meaning": "Distancia focal",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "f>0"
+        },
+        {
+          "symbol": "s",
+          "meaning": "Distancia al sujeto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "s>f"
+        },
+        {
+          "symbol": "s_focus",
+          "meaning": "Distancia de enfoque",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "s_focus>f"
+        },
+        {
+          "symbol": "N",
+          "meaning": "Número f",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "N>0"
+        },
+        {
+          "symbol": "c",
+          "meaning": "Círculo de confusión en plano de imagen",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "c≥0"
+        }
+      ],
+      "constraints": [
+        "La aproximación c≈f²|s−s_focus|/[N·s·(s_focus−f)] produce longitud en plano de imagen.",
+        "El modelo delgado supone distancias y focal en el mismo medio/unidad; N es adimensional."
+      ],
+      "valid_domain": [
+        "f>0; s>f; s_focus>f; N>0; distancias finitas."
+      ],
+      "boundary_conditions": [
+        "Si s=s_focus, c=0 en el modelo ideal.",
+        "Cuando s_focus→f, la expresión se vuelve singular; rechazar configuración o usar modelo óptico más completo."
+      ],
+      "dimensional_checks": [
+        "Numerador f²·|s−s_focus| tiene L³; denominador N·s·(s_focus−f) tiene L²; c tiene L.",
+        "La conversión de c a píxeles requiere densidad de píxel/sensor."
+      ]
+    },
+    {
+      "record_key": "D13:4",
+      "name": "Look-at orientation",
+      "variables": [
+        {
+          "symbol": "target,cameraPosition",
+          "meaning": "Objetivo y posición de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vectores finitos"
+        },
+        {
+          "symbol": "forward",
+          "meaning": "Dirección de mirada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "up",
+          "meaning": "Vector vertical de referencia",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitario y no paralelo a forward"
+        },
+        {
+          "symbol": "q",
+          "meaning": "Orientación",
+          "unit": "cuaternión unitario",
+          "dimension": "adimensional",
+          "domain": "norma 1"
+        }
+      ],
+      "constraints": [
+        "forward=normalize(target−cameraPosition) requiere distancia mayor que tolerancia.",
+        "up no puede ser paralelo a forward; construir base ortonormal con fallback."
+      ],
+      "valid_domain": [
+        "Posición y objetivo finitos; ‖target−cameraPosition‖>ε; up no colineal."
+      ],
+      "boundary_conditions": [
+        "Si objetivo coincide con cámara, conservar orientación previa válida.",
+        "Si up y forward casi paralelos, seleccionar eje auxiliar determinista."
+      ],
+      "dimensional_checks": [
+        "target−cameraPosition tiene L; su normalización produce vector adimensional.",
+        "q y los vectores unitarios son adimensionales."
+      ]
+    },
+    {
+      "record_key": "D13:5",
+      "name": "Dolly",
+      "variables": [
+        {
+          "symbol": "C0",
+          "meaning": "Posición inicial",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "path(t)",
+          "meaning": "Desplazamiento de trayectoria",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "t",
+          "meaning": "Tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "intervalo definido"
+        },
+        {
+          "symbol": "C(t)",
+          "meaning": "Posición de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "C(t)=C0+path(t) requiere path expresado como desplazamiento desde C0, no como velocidad.",
+        "Si path se parametriza por tiempo, declarar continuidad y velocidad/aceleración admisible."
+      ],
+      "valid_domain": [
+        "t dentro de intervalo de toma; trayectoria evaluable y finita."
+      ],
+      "boundary_conditions": [
+        "En inicio, path(t0) debe coincidir con desplazamiento inicial previsto.",
+        "En final, definir hold, stop o continuidad al siguiente plano."
+      ],
+      "dimensional_checks": [
+        "C0 y path tienen L; su suma C(t) conserva L.",
+        "Si se deriva path(t), velocidad tiene L/T y aceleración L/T²."
+      ]
+    },
+    {
+      "record_key": "D13:6",
+      "name": "Truck / pan / tilt",
+      "variables": [
+        {
+          "symbol": "Δp",
+          "meaning": "Traslación de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "θ_pan,θ_tilt",
+          "meaning": "Ángulos de rotación",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "q",
+          "meaning": "Cuaternión de rotación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitario"
+        },
+        {
+          "symbol": "C",
+          "meaning": "Posición de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "Truck aplica traslación en un marco declarado; pan/tilt aplican rotación adimensional.",
+        "No sumar ángulos a posiciones ni combinar rotaciones sin orden de composición definido."
+      ],
+      "valid_domain": [
+        "Δp finito; cuaterniones normalizados; convención de ejes y orden de rotación declarados."
+      ],
+      "boundary_conditions": [
+        "Rotación cero conserva orientación inicial; traslación cero conserva posición.",
+        "En ángulos de inclinación singulares, usar cuaternión/marco para evitar gimbal lock."
+      ],
+      "dimensional_checks": [
+        "Δp y C tienen L; ángulos y cuaterniones son adimensionales.",
+        "La transformación afín mantiene bloque lineal adimensional y traslación L."
+      ]
+    },
+    {
+      "record_key": "D13:7",
+      "name": "Crane / jib",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "Parámetro de spline",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "u∈[0,1]"
+        },
+        {
+          "symbol": "P_i",
+          "meaning": "Claves de posición",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas y ordenadas por u"
+        },
+        {
+          "symbol": "C(u)",
+          "meaning": "Posición de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "t",
+          "meaning": "Tiempo",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "mapeado a u"
+        }
+      ],
+      "constraints": [
+        "La spline interpola puntos de posición de dimensión L; u es adimensional.",
+        "La relación t→u define velocidad temporal y debe evitar saltos o ambigüedades."
+      ],
+      "valid_domain": [
+        "Claves finitas; u dentro de [0,1]; parametrización monotónica."
+      ],
+      "boundary_conditions": [
+        "Definir tangentes terminales para evitar quiebres; continuidad C1/C2 según toma.",
+        "Fuera de rango aplicar clamp o extensión explícita."
+      ],
+      "dimensional_checks": [
+        "P_i y C(u) tienen L; u es adimensional.",
+        "dC/dt tiene L/T y d²C/dt² tiene L/T²."
+      ]
+    },
+    {
+      "record_key": "D13:8",
+      "name": "Orbit",
+      "variables": [
+        {
+          "symbol": "cx,cz",
+          "meaning": "Centro orbital",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "r",
+          "meaning": "Radio orbital",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r≥0"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "Ángulo orbital",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "x,z",
+          "meaning": "Coordenadas resultantes",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        }
+      ],
+      "constraints": [
+        "r cosθ y r sinθ tienen L y se suman al centro.",
+        "Si la órbita es temporal, θ(t) requiere velocidad angular T^-1."
+      ],
+      "valid_domain": [
+        "r≥0; centro finito; ángulo definido."
+      ],
+      "boundary_conditions": [
+        "r=0 fija la cámara en el centro; ángulos periódicos módulo 2π.",
+        "Evitar salto al cruzar ±π mediante unwrap si se interpola."
+      ],
+      "dimensional_checks": [
+        "cx,cz,r,x,z tienen L; sinθ y cosθ son adimensionales.",
+        "θ es angular; dθ/dt tiene T^-1."
+      ]
+    },
+    {
+      "record_key": "D13:9",
+      "name": "Camera shake",
+      "variables": [
+        {
+          "symbol": "C",
+          "meaning": "Posición base",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "A(t)",
+          "meaning": "Amplitud de desplazamiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada y típicamente decreciente"
+        },
+        {
+          "symbol": "noise",
+          "meaning": "Ruido",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizado/acotado"
+        },
+        {
+          "symbol": "freq",
+          "meaning": "Frecuencia temporal",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        },
+        {
+          "symbol": "C′",
+          "meaning": "Posición perturbada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "A(t)·noise(freq·t) tiene L; freq·t es adimensional.",
+        "Si el shake también rota, usar amplitud angular separada en radianes."
+      ],
+      "valid_domain": [
+        "A(t) acotada; ruido reproducible; frecuencia positiva y tiempo finito."
+      ],
+      "boundary_conditions": [
+        "A(t)=0 recupera cámara sin shake.",
+        "En inicio/fin de impacto, envolvente debe ser continua si no se desea discontinuidad."
+      ],
+      "dimensional_checks": [
+        "A(t) y C tienen L; ruido es adimensional; C′ conserva L.",
+        "freq tiene T^-1 y freq·t es adimensional."
+      ]
+    },
+    {
+      "record_key": "D13:10",
+      "name": "Follow camera",
+      "variables": [
+        {
+          "symbol": "P_subject",
+          "meaning": "Posición del sujeto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "offset",
+          "meaning": "Desplazamiento relativo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "marco local/world declarado"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "Tasa de suavizado",
+          "unit": "s⁻¹",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ≥0"
+        },
+        {
+          "symbol": "Δt",
+          "meaning": "Paso temporal",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "Δt≥0"
+        },
+        {
+          "symbol": "C_target,C",
+          "meaning": "Posiciones objetivo y actual",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        }
+      ],
+      "constraints": [
+        "1−exp(−λΔt) es adimensional y puede usarse como peso lerp.",
+        "offset debe transformarse al marco elegido antes de sumarlo a P_subject."
+      ],
+      "valid_domain": [
+        "λ≥0; Δt≥0; posiciones finitas."
+      ],
+      "boundary_conditions": [
+        "λ=0 o Δt=0 conserva C; para λΔt grande C converge a C_target.",
+        "En teleportación del sujeto, declarar snap o seguimiento amortiguado."
+      ],
+      "dimensional_checks": [
+        "P_subject, offset, C_target y C tienen L.",
+        "λΔt es adimensional; el factor de interpolación no cambia unidades."
+      ]
+    },
+    {
+      "record_key": "D13:11",
+      "name": "Motion blur",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "Tiempo central de muestra",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "shutter",
+          "meaning": "Duración de obturador",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "u",
+          "meaning": "Parámetro de integración",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "u∈[0,1]"
+        },
+        {
+          "symbol": "C_pixel",
+          "meaning": "Color/ radiancia por instante",
+          "unit": "RGB lineal",
+          "dimension": "tipo de color declarado",
+          "domain": "finito"
+        },
+        {
+          "symbol": "C_blur",
+          "meaning": "Color integrado",
+          "unit": "mismo tipo que C_pixel",
+          "dimension": "tipo de color declarado",
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "La integral temporal usa t+u·shutter; u·shutter tiene T.",
+        "La integración debe ponderar por exposición/función de obturador normalizada para conservar unidades de color/radiancia."
+      ],
+      "valid_domain": [
+        "shutter≥0; intervalo de exposición definido; muestras dentro de trayectoria temporal."
+      ],
+      "boundary_conditions": [
+        "shutter=0 devuelve la muestra instantánea C_pixel(t).",
+        "En cortes/eventos discontinuos, dividir integración o respetar el corte sin mezclar planos."
+      ],
+      "dimensional_checks": [
+        "t y shutter tienen T; u es adimensional; t+u·shutter tiene T.",
+        "La integral normalizada conserva unidades RGB/radiancia de C_pixel."
+      ]
+    },
+    {
+      "record_key": "D13:12",
+      "name": "Shot continuity",
+      "variables": [
+        {
+          "symbol": "d_i",
+          "meaning": "Dirección de pantalla/acción",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "e_i",
+          "meaning": "Dirección de mirada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "θ_max",
+          "meaning": "Umbral angular",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "definido por puesta en escena"
+        },
+        {
+          "symbol": "s_i",
+          "meaning": "Posición de sujeto en pantalla",
+          "unit": "1",
+          "dimension": "coordenada normalizada de imagen",
+          "domain": "[0,1] o viewport definido"
+        }
+      ],
+      "constraints": [
+        "Comparar direcciones mediante producto escalar/ángulo; todas las direcciones deben compartir marco de cámara o screen-space.",
+        "Regla de 180° y eyeline son restricciones de composición, no magnitudes físicas; umbrales deben declararse."
+      ],
+      "valid_domain": [
+        "Direcciones no nulas y normalizadas; planos con eje de acción identificable."
+      ],
+      "boundary_conditions": [
+        "Si el eje cambia, introducir plano de transición que establezca la nueva geografía.",
+        "Cuando dirección es ambigua, no forzar continuidad numérica; marcar plano neutral."
+      ],
+      "dimensional_checks": [
+        "Direcciones, coordenadas normalizadas y pesos de composición son adimensionales.",
+        "θ_max es angular; no compararlo directamente con distancias o coordenadas."
+      ]
+    },
+    {
+      "record_key": "D13:13",
+      "name": "Camera beat sheet",
+      "variables": [
+        {
+          "symbol": "t",
+          "meaning": "Tiempo de guion",
+          "unit": "s",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "claves ordenadas"
+        },
+        {
+          "symbol": "C(t)",
+          "meaning": "Posición de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "FOV(t)",
+          "meaning": "Campo visual",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0<FOV<π"
+        },
+        {
+          "symbol": "key_i",
+          "meaning": "Clave temporal/cinemática",
+          "unit": "s, m y rad por campo",
+          "dimension": "tipado por canal",
+          "domain": "sin mezcla de unidades"
+        }
+      ],
+      "constraints": [
+        "Cada canal de beat sheet mantiene su unidad: posición L, tiempo T y FOV angular.",
+        "La interpolación de FOV se realiza en radianes (o espacio transformado declarado) y se limita a rango válido."
+      ],
+      "valid_domain": [
+        "Claves ordenadas; posición, FOV y tiempos finitos; FOV válido."
+      ],
+      "boundary_conditions": [
+        "Definir continuidad de posición y FOV entre planos; los cortes pueden ser discontinuidades intencionales.",
+        "Antes/después del rango usar hold/clamp o política de transición."
+      ],
+      "dimensional_checks": [
+        "C(t) conserva L; t tiene T; FOV es adimensional angular.",
+        "No interpolar un vector de posición y FOV como un único vector sin tipado por componente."
+      ]
+    },
+    {
+      "record_key": "D13:14",
+      "name": "SDF smooth union y modelado implícito",
+      "variables": [
+        {
+          "symbol": "a,b",
+          "meaning": "Campos de distancia firmada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "valores finitos en punto p"
+        },
+        {
+          "symbol": "k",
+          "meaning": "Radio de suavizado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k>0 para smooth-min"
+        },
+        {
+          "symbol": "h",
+          "meaning": "Factor de mezcla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "h=max(k−|a−b|,0)/k"
+        },
+        {
+          "symbol": "d_union",
+          "meaning": "Campo combinado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "p",
+          "meaning": "Punto de evaluación",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        }
+      ],
+      "constraints": [
+        "h es adimensional; h²k tiene L y puede restarse de min(a,b).",
+        "La fórmula requiere k>0; para k=0 usar unión dura min(a,b).",
+        "SDF de entrada deben usar mismo marco y escala; smooth-min puede dejar de ser distancia exacta."
+      ],
+      "valid_domain": [
+        "a,b,k finitos; k>0; SDF o campos con unidades L."
+      ],
+      "boundary_conditions": [
+        "Si |a−b|≥k, h=0 y resultado min(a,b).",
+        "Cuando k→0, aproximar unión dura; gradiente nulo requiere normal alternativa."
+      ],
+      "dimensional_checks": [
+        "a,b,k,d_union,p tienen L; h y h² son adimensionales.",
+        "h²k tiene L, homogéneo con min(a,b)."
+      ]
+    },
+    {
+      "record_key": "D13:15",
+      "name": "Curvas de cámara con marco de orientación estable",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "Parámetro de curva",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "u∈[0,1]"
+        },
+        {
+          "symbol": "C(u)",
+          "meaning": "Posición de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "curva regular"
+        },
+        {
+          "symbol": "T,N,B",
+          "meaning": "Marco tangente-normal-binormal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ortonormal"
+        },
+        {
+          "symbol": "q",
+          "meaning": "Cuaternión de orientación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitario"
+        },
+        {
+          "symbol": "samples",
+          "meaning": "Número de muestras",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        }
+      ],
+      "constraints": [
+        "T=C′/|C′| requiere derivada no nula; con u adimensional, C′ tiene L y su normalización es adimensional.",
+        "El transporte paralelo mantiene un marco ortonormal; q debe representar orientación del mismo marco.",
+        "Look-at y orientación de trayectoria son objetivos distintos; resolver su combinación explícitamente."
+      ],
+      "valid_domain": [
+        "Curva finita y diferenciable por tramos; |C′|>ε en muestras; número de muestras finito."
+      ],
+      "boundary_conditions": [
+        "En cúspides/tangente nula, reutilizar marco previo o insertar marco de respaldo.",
+        "Cerrar loops exige comprobar holonomía/torsión acumulada y corregir costura si procede."
+      ],
+      "dimensional_checks": [
+        "C(u) tiene L; C′ tiene L porque u es adimensional; T,N,B y q son adimensionales.",
+        "samples es conteo entero; no se mezcla con longitudes."
+      ]
+    },
+    {
+      "record_key": "D13:16",
+      "name": "Curvas de cámara con marco de orientación estable",
+      "variables": [
+        {
+          "symbol": "u",
+          "meaning": "Parámetro de arco normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "u∈[0,1]"
+        },
+        {
+          "symbol": "C(u)",
+          "meaning": "Trayectoria",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "T(u)",
+          "meaning": "Tangente",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "N(u),B(u)",
+          "meaning": "Marco transportado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ortonormal"
+        },
+        {
+          "symbol": "q(u)",
+          "meaning": "Orientación",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "cuaternión unitario"
+        }
+      ],
+      "constraints": [
+        "Si u es longitud de arco normalizada, su conversión a distancia requiere longitud total L_path; no confundir con parámetro temporal.",
+        "Slerp/interpolación de cuaterniones opera en magnitudes adimensionales y requiere normalización/signo coherente."
+      ],
+      "valid_domain": [
+        "Trayectoria con longitud total positiva; muestras finitas; marcos válidos."
+      ],
+      "boundary_conditions": [
+        "Longitud total cero invalida la parametrización por arco.",
+        "En tangentes discontinuas, suavizar o insertar transición de marco; no permitir salto arbitrario de up."
+      ],
+      "dimensional_checks": [
+        "C(u) tiene L; T,N,B y q son adimensionales.",
+        "Velocidad física solo aparece tras mapear u(t): dC/dt tiene L/T."
+      ]
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "17/17 técnicas incluidas",
+      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas"
+    ],
+    "limitations": [
+      "Revisión dimensional y estructural; las derivaciones completas, algoritmos y pruebas numéricas pertenecen a puntos posteriores."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
