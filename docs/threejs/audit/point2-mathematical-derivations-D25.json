@@ -47,6 +47,10 @@
       "result": "Radiosity se deriva del balance de energía difusa entre superficies y forma un sistema lineal.",
       "limits": [
         "La solución completa puede ser costosa; discretización de superficies introduce error."
+      ],
+      "dimensional_verification": [
+        "B_i,E_i,H_i tienen W/m²; ρ_i y F_ji son adimensionales.",
+        "La suma radiosidad emitida+reflejada conserva W/m²."
       ]
     },
     {
@@ -80,11 +84,16 @@
       ],
       "assumptions": [
         "Superficies y visibilidad definidas; cosenos no negativos.",
-        "Integración de área con unidad consistente."
+        "Integración de área con unidad consistente.",
+        "F_ij es adimensional; la integración sobre ambas superficies incluye el promedio 1/A_i y usa la misma unidad de área."
       ],
       "result": "El factor de forma es una integral geométrica de visibilidad y cosenos sobre dos áreas.",
       "limits": [
         "El cálculo numérico es caro y requiere muestreo/visibilidad robustos."
+      ],
+      "dimensional_verification": [
+        "A_i,A_j,dA tienen m²; r² tiene m²; cosenos, V y π son adimensionales.",
+        "F_ij resulta adimensional; reciprocidad A_iF_ij=A_jF_ji tiene m²."
       ]
     },
     {
@@ -123,6 +132,10 @@
       "result": "Ambient cube aproxima irradiancia hemisférica mediante muestras direccionales discretas.",
       "limits": [
         "No representa alta frecuencia ni iluminación fuera de las direcciones almacenadas."
+      ],
+      "dimensional_verification": [
+        "L(ω) tiene radiancia W·m⁻²·sr⁻¹; dω sr; E(n) tiene W/m².",
+        "SH coefficients inherit radiance/irradiance scale according to projection; Y_lm and convolution factors are dimensionless under normalized angular measure."
       ]
     },
     {
@@ -161,6 +174,10 @@
       "result": "SH representa iluminación esférica como expansión en una base ortonormal.",
       "limits": [
         "Truncamiento a pocas bandas suaviza detalles de iluminación."
+      ],
+      "dimensional_verification": [
+        "Y_lm and solid-angle measure are dimensionless in SI base dimensions; c_lm inherits signal/radiance scale.",
+        "The truncated sum reconstructs L with same unit as coefficients."
       ]
     },
     {
@@ -199,6 +216,10 @@
       "result": "Blending combina radiancia de probes locales con pesos espaciales normalizados.",
       "limits": [
         "Probes no representan oclusión/paralaje exactos fuera de sus volúmenes."
+      ],
+      "dimensional_verification": [
+        "L_i are radiances in same units/color space; w_i are dimensionless and sum to 1.",
+        "The weighted blend L preserves radiance units."
       ]
     },
     {
@@ -242,6 +263,10 @@
       "result": "Parallax correction aproxima punto de reflexión dentro de un volumen proxy antes de consultar cubemap.",
       "limits": [
         "Proxy box aproximada puede fallar en habitaciones no convexas o geometría compleja."
+      ],
+      "dimensional_verification": [
+        "p, q and probeCenter have L; r is unitless; t_hit has L.",
+        "dir_probe is normalized and dimensionless; cubemap coordinates are angular/normalized."
       ]
     },
     {
@@ -280,11 +305,16 @@
       ],
       "assumptions": [
         "Depth/color buffers sincronizados con cámara actual.",
-        "Rayo y depth usan misma proyección; paso y thickness definidos."
+        "Rayo y depth usan misma proyección; paso y thickness definidos.",
+        "El depth buffer debe linearizarse o compararse en su codificación original consistente; thickness comparte esa unidad."
       ],
       "result": "SSR estima reflejos trazando un rayo en profundidad visible de pantalla.",
       "limits": [
         "SSR no ve objetos fuera de pantalla ni superficies ocultas."
+      ],
+      "dimensional_verification": [
+        "p_k and Δs have L; r direction is unitless; projected uv is dimensionless.",
+        "z_ray, z_scene and thickness use same depth unit/encoding."
       ]
     },
     {
@@ -323,6 +353,10 @@
       "result": "Planar reflection se deriva de reflejar puntos/cámara respecto a un plano.",
       "limits": [
         "Solo es exacta para plano; objetos fuera del buffer/reflection clip no aparecen."
+      ],
+      "dimensional_verification": [
+        "n is unitless; p has L; plane offset d has L.",
+        "R is dimensionless; translation t has L; reflected point remains L."
       ]
     },
     {
@@ -361,6 +395,10 @@
       "result": "Light probes almacenan coeficientes de iluminación y reconstruyen irradiancia difusa.",
       "limits": [
         "SH de bajo orden no reproduce reflejos especulares de alta frecuencia."
+      ],
+      "dimensional_verification": [
+        "SH basis and blend weights are dimensionless; coefficients retain irradiance W/m².",
+        "E(n) retains W/m² after cosine-kernel convolution."
       ]
     },
     {
@@ -394,22 +432,30 @@
       ],
       "assumptions": [
         "Rayos y superficie receptora parametrizables; flujo por rayo conocido.",
-        "Footprint no nulo; refracción y visibilidad coherentes."
+        "Footprint no nulo; refracción y visibilidad coherentes.",
+        "Φ_i representa potencia radiométrica W; si se almacena energía por paquete, convertir a potencia por intervalo temporal."
       ],
       "result": "Caustics estima concentración de flujo como potencia por área de recepción.",
       "limits": [
         "Caustics requieren muestreo suficiente y filtro de footprint para evitar ruido."
+      ],
+      "dimensional_verification": [
+        "Φ_i has W; A_footprint has m²; Φ_i/A has W/m².",
+        "∂x/∂u and ∂x/∂v have L for dimensionless parameters; cross product gives area L²."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "10/10 técnicas cubiertas.",
-      "Cada derivación incluye pasos matemáticos, supuestos y límites.",
-      "Se distinguen balance energético, bases esféricas, reflejos screen-space y estimación de caústicas."
+      "10/10 técnicas D25 cubiertas; ninguna protegida",
+      "Cada derivación contiene pasos justificados, supuestos, límites y verificación dimensional",
+      "Radiosity y form factors mantienen balance de energía y factores adimensionales",
+      "SH, ambient cube y probes conservan unidades de radiancia/irradiancia según su representación",
+      "SSR y parallax-corrected cubemap distinguen espacio mundo, vista, pantalla y profundidad",
+      "Caustics convierte potencia por footprint en irradiancia W/m²"
     ],
     "limitations": [
-      "Los métodos de aproximación tienen límites de visibilidad, frecuencia angular y muestreo que deben conservarse en implementación."
+      "La auditoría matemática no certifica convergencia de iluminación global, ausencia de sesgo, estabilidad de muestreo ni rendimiento; requieren pruebas posteriores."
     ]
   },
   "integrity": {
