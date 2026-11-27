@@ -798,5 +798,31 @@ class TestHalftoneCoverage(unittest.TestCase):
         with self.assertRaises(ValueError): halftone_coverage(.5,.5,-.01)
         with self.assertRaises(ValueError): halftone_coverage(float("nan"),.5,.1)
 
+
+def hatch_coverage(phase, half_width, aa_width):
+    """Coverage of a periodic stripe centered at phase=0.5 (modulo one)."""
+    if not all(math.isfinite(v) for v in (phase, half_width, aa_width)) or half_width < 0 or aa_width < 0 or half_width+aa_width > 0.5:
+        raise ValueError("finite widths with 0 <= half_width and half_width+aa_width <= 0.5 required")
+    p = phase-math.floor(phase)
+    distance = abs(p-0.5)
+    if aa_width == 0:
+        return 1.0 if distance <= half_width else 0.0
+    x = min(1.0, max(0.0, (distance-half_width)/aa_width))
+    return 1.0-(x*x*(3.0-2.0*x))
+
+
+class TestVectorHatchCoverage(unittest.TestCase):
+    def test_periodic_line_coverage_closed_form(self):
+        self.assertAlmostEqual(hatch_coverage(.5,.1,.1),1.0)
+        self.assertAlmostEqual(hatch_coverage(.35,.1,.1),.5)
+        self.assertAlmostEqual(hatch_coverage(.25,.1,.1),0.0)
+        self.assertAlmostEqual(hatch_coverage(1.5,.1,.1),1.0)
+
+    def test_binary_limit_and_invalid_widths(self):
+        self.assertEqual(hatch_coverage(.5,.1,0),1.0)
+        self.assertEqual(hatch_coverage(.2,.1,0),0.0)
+        with self.assertRaises(ValueError): hatch_coverage(.5,.4,.2)
+        with self.assertRaises(ValueError): hatch_coverage(float("nan"),.1,.1)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
