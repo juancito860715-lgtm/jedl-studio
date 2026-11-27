@@ -51,7 +51,14 @@ def spec_gaps(spec):
             for k in ("symbol","meaning","dimension","unit","domain"):
                 if not v.get(k): gaps.append(f"variables[{i}].{k}")
     deriv=spec.get("derivation") or {}
-    if deriv.get("status") not in ("complete","not_applicable") or not deriv.get("steps"):
+    deriv_status=str(deriv.get("status") or "").strip().lower()
+    derivation_scope_complete=(deriv_status in ("complete","not_applicable") or deriv_status.startswith("complete_for_"))
+    # R31 records use explicit scoped statuses such as complete_for_core_kernel and
+    # COMPLETE_FOR_SINGLE_PERIODIC_HATCH_FAMILY. These are valid derivations for the
+    # stated kernel/family, but do not imply that the whole production technique is done.
+    # Keep partial/incomplete derivations as specification gaps and keep production
+    # integration tracked separately by readiness_status and implementation evidence.
+    if not derivation_scope_complete or not deriv.get("steps"):
         gaps.append("derivation.complete_steps")
     equations=spec.get("equations") or []
     if not equations: gaps.append("equations.normalized")
