@@ -1213,67 +1213,75 @@
       "record_key": "D35:12",
       "name": "Monte Carlo sampling",
       "starting_principles": [
-        "p normalizada y positiva en soporte de f; varianza finita."
+        "X_1,…,X_N son muestras independientes e idénticamente distribuidas según p en Ω.",
+        "p(x)≥0 y ∫_Ω p(x)dx=1.",
+        "E_p[f(X)^2]<∞ para que la varianza del estimador sea finita."
       ],
       "derivation": [
         {
           "step": 1,
-          "equation": "X∼p; p(x)≥0; ∫Ωp(x)dx=1",
-          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+          "equation": "X_i iid∼p;  p(x)≥0;  ∫_Ω p(x)dx=1",
+          "justification": "Se define la distribución de muestreo normalizada, tal como exige la esperanza bajo p."
         },
         {
           "step": 2,
-          "equation": "E[f(X)]=∫Ω f(x)p(x)dx",
-          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+          "equation": "E_p[f(X)]=∫_Ω f(x)p(x)dx",
+          "justification": "Es la definición de esperanza para una variable aleatoria continua con densidad p."
         },
         {
           "step": 3,
-          "equation": "I=∫Ω f(x)dx requiere estimador de importancia I=E_p[f(X)/p(X)]",
-          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+          "equation": "Ĩ_N=(1/N)Σ_{i=1}^N f(X_i)",
+          "justification": "La media muestral sustituye la esperanza por el promedio de N muestras IID; coincide con la ecuación fuente."
         },
         {
           "step": 4,
-          "equation": "I_hat=(1/N)Σ_i f(X_i)/p(X_i)",
-          "justification": "Paso trazado a la formulación y derivación del registro fuente D35 correspondiente."
+          "equation": "E[Ĩ_N]=(1/N)Σ E[f(X_i)]=E_p[f(X)]",
+          "justification": "Por linealidad de la esperanza y distribución idéntica, el estimador es insesgado para la esperanza bajo p."
+        },
+        {
+          "step": 5,
+          "equation": "Var(Ĩ_N)=Var_p(f(X))/N;  SE≈s_f/√N",
+          "justification": "La independencia hace que las varianzas de la suma se sumen; la desviación estándar muestral estima el error estándar."
+        },
+        {
+          "step": 6,
+          "equation": "Si p(x)=1/|Ω| en Ω:  ∫_Ω f(x)dx=|Ω|E_p[f(X)]≈(|Ω|/N)Σ f(X_i)",
+          "justification": "La conversión a integral no normalizada requiere muestreo uniforme y el factor de volumen; no debe confundirse con la esperanza estimada en el paso 3."
         }
       ],
       "assumptions": [
-        "p normalizada y positiva en soporte de f; varianza finita."
+        "Muestras IID de p normalizada.",
+        "N≥1; p>0 donde la función contribuya a la esperanza.",
+        "Varianza finita para reportar error estándar y aplicar aproximaciones asintóticas.",
+        "Para estimar la integral no normalizada con media simple, el muestreo debe ser uniforme y se multiplica por |Ω|."
       ],
-      "result": "La ficha fuente contiene una ecuación escrita como `I=∫Ω f(x)p(x)dx /?` y luego presenta E[f(X)] para X~p, que estima una esperanza, no la integral sin ponderación. El punto 2 propone importance sampling, pero no se puede declarar validado contra la ficha hasta corregir formalmente la ecuación de origen.",
+      "result": "La media muestral estima sin sesgo E_p[f(X)]=∫_Ω f(x)p(x)dx. Para la integral no normalizada ∫_Ω f(x)dx, el caso uniforme requiere multiplicar la media por |Ω|.",
       "limits": [
-        "NO_CUBIERTO: resolver la contradicción entre esperanza bajo p e integral objetivo antes de certificar o implementar."
+        "La media simple no estima ∫_Ω f(x)dx para una densidad p arbitraria sin ponderación.",
+        "El error estándar estimado depende de varianza finita y no garantiza una cota determinista para cada muestra.",
+        "Registrar semilla, N, distribución p y convención del objetivo."
       ],
       "dimensional_verification": [
-        "p(x) has inverse measure of dx; f/p has unit(f)·unit(dx); I_hat has unit of integral I.",
-        "N is dimensionless sample count; p integrates to 1."
+        "p(x) tiene dimensión [x]⁻¹ y p(x)dx es adimensional; f(x)p(x)dx y la esperanza tienen unidad [f].",
+        "La media (1/N)Σf(X_i) tiene unidad [f], pues N es adimensional.",
+        "La integral no normalizada tiene unidad [f]·[x]; |Ω| multiplica la esperanza uniforme para recuperar esa unidad."
       ],
       "source_record_key": "D35:12",
-      "source_equation": "I=∫Ω f(x)p(x)dx /?; if X~p, E[f(X)]=∫Ω f(x)p(x)dx; Ĩ=(1/N)Σf(X_i)",
-      "source_mathematical_derivation": "Por definición de esperanza bajo densidad p normalizada, E[f(X)]=∫f(x)p(x)dx. Las muestras independientes e idénticamente distribuidas dan estimador insesgado Ĩ=N⁻¹Σf(X_i), con varianza Var(f(X))/N y error estándar s/√N. Para integral uniforme sobre Ω, multiplicar la media por volumen |Ω|.",
-      "source_variables_units": {
-        "explicit": "x [unidad dominio]; p(x) [1/unidad de volumen]; f [U]; Ĩ [U] para esperanza, o [U·volumen] para integral sin normalizar; N adimensional.",
-        "all_symbols": "Muestras IID de p normalizada; semilla y generador registrados."
-      },
+      "source_equation": "E[f]≈(1/N)Σ_i f(x_i)",
       "source_dimensional_analysis": {
-        "equation": "I=∫Ω f(x)p(x)dx /?; if X~p, E[f(X)]=∫Ω f(x)p(x)dx; Ĩ=(1/N)Σf(X_i)",
-        "term_dimensions": {
-          "f p dx": "[U]",
-          "sample mean": "[U]",
-          "|Ω|·mean": "[U·volumen]"
-        },
-        "conclusion": "Todos los sumandos tienen la dimensión del miembro izquierdo bajo las unidades declaradas. No mezclar unidades de escena normalizadas con SI sin una escala explícita.",
-        "status": "dimensionally_checked_in_manifest"
+        "equation": "E[f]≈(1/N)Σ_i f(x_i)",
+        "conclusion": "La ecuación fuente estima la esperanza E_p[f(X)] mediante la media de muestras IID. La integral no normalizada requiere factor de medida |Ω| bajo muestreo uniforme, como indica la derivación fuente."
       },
       "source_assumptions": [
-        "Usar unidades coherentes y entradas finitas.",
-        "Fijar explícitamente la convención de signos y el sistema de coordenadas.",
-        "p≥0 e integral p=1; varianza finita para CLT/error estándar."
+        "Muestras IID de p normalizada.",
+        "N≥1; p>0 donde la función contribuya a la esperanza.",
+        "Varianza finita para reportar error estándar y aplicar aproximaciones asintóticas.",
+        "Para estimar la integral no normalizada con media simple, el muestreo debe ser uniforme y se multiplica por |Ω|."
       ],
       "source_domain_constraints_boundary_conditions": {
-        "constraints": "N≥1; rechazar muestras fuera del dominio si el sampler no las contempla.",
+        "constraints": "N≥1; p normalizada; muestras dentro del soporte declarado.",
         "initial_conditions": "Semilla fija para reproducibilidad.",
-        "boundary_conditions": "Dominio Ω y pdf explícitos; importancia requiere p>0 donde f contribuye."
+        "boundary_conditions": "Dominio Ω y densidad p explícitos."
       },
       "source_evidence_status": "mathematics_and_algorithm_specified; runtime_test_pending",
       "source_derivation_status": "derivada",
@@ -1305,8 +1313,7 @@
           "confidence coverage"
         ],
         "acceptance": "Statistical rather than deterministic tolerance; report seed, N and confidence interval."
-      },
-      "status": "BLOCKED_SOURCE_EQUATION_CONFLICT"
+      }
     },
     {
       "record_key": "D35:13",
@@ -1525,13 +1532,13 @@
       "Fourier, FFT y wavelet distinguen unidades de señal, tiempo y coeficientes",
       "Monte Carlo tipa PDF respecto a la medida integrada",
       "Beer–Lambert volumétrico integra fase angular y conserva radiancia",
-      "Trazabilidad fuente añadida para 15/15 técnicas D35 mediante ecuación, derivación, variables/unidades, hipótesis, restricciones, evidencia y casos de prueba del manifiesto v3.5."
+      "Trazabilidad fuente añadida para 15/15 técnicas D35 mediante ecuación, derivación, variables/unidades, hipótesis, restricciones, evidencia y casos de prueba del manifiesto v3.5.",
+      "D35:12 alineada con la ecuación fuente: media muestral para E_p[f(X)]; integral no normalizada separada con factor |Ω| solo en muestreo uniforme."
     ],
     "limitations": [
       "Los métodos numéricos dependen de escalado, condicionamiento, discretización y criterios de convergencia; los resultados requieren pruebas independientes posteriores.",
       "El hash de manifiesto se actualizó al blob v3.5 efectivamente auditado en la rama; la correspondencia semántica exacta de cada técnica con su registro de origen queda pendiente de la matriz de trazabilidad por ecuación.",
       "D35:5: la compatibilidad dimensional de λDᵀD con JᵀJ depende del escalado de parámetros; la ficha declara D diagonal pero no define completamente cómo se construye en casos heterogéneos.",
-      "D35:12: ecuación fuente ambigua (`I=∫ f p dx /?` frente a esperanza bajo p); bloqueada hasta corregir fuente.",
       "D35:14: se conserva la fórmula fuente sin añadir integral angular ni densidad; la definición de L_i como radiancia incidente agregada debe mantenerse explícita."
     ]
   },
