@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D39 Iluminación, atmósfera y transporte radiativo",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -211,11 +211,42 @@
           "unit": "unidad radiométrica declarada",
           "dimension": "tipada",
           "domain": "finita"
+        },
+        {
+          "symbol": "C_R",
+          "meaning": "Constante espectral molecular en σ_R=C_R/λ⁴",
+          "unit": "m⁶",
+          "dimension": {
+            "L": 6,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "depende de polarizabilidad/índice y convención espectral"
+        },
+        {
+          "symbol": "σ_R",
+          "meaning": "Sección eficaz Rayleigh por molécula",
+          "unit": "m²",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "σ_R=C_R/λ⁴"
         }
       ],
       "constraints": [
-        "β_R∝λ⁻⁴ requiere constante de proporcionalidad con unidad L³ para que β_R sea L⁻¹, según normalización del medio.",
-        "La aproximación aplica cuando partículas son mucho menores que λ."
+        "σ_R=C_R/λ⁴: C_R debe tener m⁶ para que σ_R tenga m².",
+        "β_R=N_m·σ_R: N_m tiene m⁻³ y σ_R m², por lo que β_R tiene m⁻¹.",
+        "No combinar densidad molecular y coeficiente proporcional sin declarar la constante que aporta las dimensiones faltantes."
       ],
       "valid_domain": [
         "λ>0; densidad no negativa; banda espectral definida."
@@ -224,8 +255,8 @@
         "Densidad cero produce β_R=0; λ fuera del rango modelado requiere parámetros espectrales válidos."
       ],
       "dimensional_checks": [
-        "λ⁻⁴ tiene L⁻⁴; constante proporcional aporta L³ para β_R L⁻¹.",
-        "La atenuación β_R·d es adimensional."
+        "C_R/λ⁴ tiene m⁶/m⁴=m²; sección eficaz σ_R tiene m².",
+        "N_m·σ_R tiene m⁻³·m²=m⁻¹; β_R·d es adimensional."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -949,11 +980,11 @@
   "validation": {
     "structural_checks": [
       "12/12 técnicas incluidas; ninguna protegida",
-      "Variables, unidades, restricciones, dominios, límites y verificaciones específicas por técnica",
-      "Separadas magnitudes radiométricas, densidades volumétricas, medidas angulares, profundidad y unidades raster"
+      "Cada registro contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales específicas",
+      "Rayleigh separa sección eficaz molecular m² y densidad molecular m⁻³ para obtener coeficiente m⁻¹"
     ],
     "limitations": [
-      "Auditoría dimensional; no valida exactitud meteorológica/atmosférica ni convergencia de raymarch en una escena concreta."
+      "La dispersión Rayleigh/Mie requiere parámetros espectrales y de material; las aproximaciones RGB no equivalen a transporte espectral completo."
     ]
   },
   "integrity": {
