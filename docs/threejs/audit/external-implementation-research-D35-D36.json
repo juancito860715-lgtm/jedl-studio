@@ -1,0 +1,320 @@
+{
+  "title": "Registro de investigación de implementaciones reales — D35/D36",
+  "version": "1.0.0",
+  "source_manifest": "Manifiesto ThreeJS v3.5.0-jedl-studio-single-document",
+  "scope": {
+    "domains": [
+      "D35",
+      "D36"
+    ],
+    "techniques": 30,
+    "implemented_and_local_ci_passed": 2,
+    "researched_external_sources_adaptation_pending": 4,
+    "source_research_pending": 24
+  },
+  "policy": [
+    "Una fuente externa solo cuenta como evidencia después de inspeccionar código, pruebas, licencia y ejecución CI.",
+    "Una prueba externa demuestra el comportamiento bajo sus propios supuestos; no transfiere automáticamente cobertura a una ecuación más general del manifiesto.",
+    "Toda adaptación en jedl-studio debe probar el código local directamente, no solo repetir una fórmula en un test aislado.",
+    "Three.js es la referencia de escena/render; los métodos numéricos pueden ser módulos JavaScript CPU independientes y alimentar datos a Three.js.",
+    "No certificar hasta satisfacer los requisitos del manifiesto: derivación revisada, pseudocódigo contrastado, implementación real ejecutada, pruebas en navegador y revisión matemática independiente."
+  ],
+  "sources": [
+    {
+      "id": "SRC-TANGENT-ODE",
+      "repository": "https://github.com/tangent-to/ode",
+      "commit": "fa5990adf6915abfe95f8767a2b159eeabde5ff9",
+      "license": "MIT",
+      "ci": "https://github.com/tangent-to/ode/actions/runs/33533751549",
+      "conclusion": "success",
+      "mapped_techniques": [
+        "D36:1",
+        "D36:2"
+      ]
+    },
+    {
+      "id": "SRC-FLUID-SIM",
+      "repository": "https://github.com/abho7/fluid-sim",
+      "commit": "aabf3d1cee198ab3fce86909ad7c362a521b817c",
+      "license": "MIT",
+      "ci": "https://github.com/abho7/fluid-sim/actions/runs/39702547020",
+      "conclusion": "success",
+      "tests": {
+        "passed": 76,
+        "failed": 0
+      },
+      "mapped_techniques": [
+        "D35:10",
+        "D36:5",
+        "D36:6",
+        "D36:7"
+      ]
+    }
+  ],
+  "records": [
+    {
+      "record_key": "D35:0",
+      "name": "PID controller",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:1",
+      "name": "Proportional tracking",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:2",
+      "name": "Critically damped spring",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:3",
+      "name": "Kalman state model",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:4",
+      "name": "Gradient descent",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:5",
+      "name": "Levenberg–Marquardt",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:6",
+      "name": "Newton method",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:7",
+      "name": "Bisection",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:8",
+      "name": "Cubic interpolation",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:9",
+      "name": "Fourier series",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:10",
+      "name": "FFT",
+      "status": "RESEARCHED_SOURCE_AND_TESTS_ADAPTATION_PENDING",
+      "source": {
+        "repository": "https://github.com/abho7/fluid-sim",
+        "commit": "aabf3d1cee198ab3fce86909ad7c362a521b817c",
+        "files": [
+          "src/core/fft.js"
+        ],
+        "tests": [
+          "test/core.test.js"
+        ],
+        "license": "MIT",
+        "ci_run": "https://github.com/abho7/fluid-sim/actions/runs/39702547020",
+        "ci_conclusion": "success",
+        "ci_test_log": "76 tests; 76 passed; 0 failed",
+        "evidence": "Radix-2 1D complex FFT and 2D FFT; tests compare with naive DFT, inverse round-trip and Parseval. Restriction: power-of-two lengths; not a universal arbitrary-length FFT."
+      },
+      "certification": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D35:11",
+      "name": "Wavelet transform",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:12",
+      "name": "Monte Carlo sampling",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:13",
+      "name": "Blue-noise sampling",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D35:14",
+      "name": "Integración volumétrica Beer–Lambert",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:0",
+      "name": "Derivada material",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:1",
+      "name": "Euler explícito",
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
+      "implementation": "src/threejs/numerics/ode-integrators.js",
+      "local_tests": "tests/threejs/d36-real-implementations.test.mjs",
+      "source": {
+        "repository": "https://github.com/tangent-to/ode",
+        "commit": "fa5990adf6915abfe95f8767a2b159eeabde5ff9",
+        "files": [
+          "src/fixed.js",
+          "tests/fixed.test.js"
+        ],
+        "license": "MIT",
+        "ci_run": "https://github.com/tangent-to/ode/actions/runs/33533751549",
+        "ci_conclusion": "success",
+        "evidence": "JavaScript ESM implementation with tests for convergence order, RK4 accuracy, oscillator integration, backward integration, nSteps behavior and non-finite RHS."
+      },
+      "local_ci": {
+        "run": 572,
+        "run_id": 46010312613,
+        "commit": "779c16456b786935c2d5ee62c878e83ffb7a1925",
+        "status": "in_progress_at_report_creation"
+      },
+      "certification": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:2",
+      "name": "Runge–Kutta de cuarto orden",
+      "status": "IMPLEMENTED_AND_LOCAL_CI_PASSED",
+      "implementation": "src/threejs/numerics/ode-integrators.js",
+      "local_tests": "tests/threejs/d36-real-implementations.test.mjs",
+      "source": {
+        "repository": "https://github.com/tangent-to/ode",
+        "commit": "fa5990adf6915abfe95f8767a2b159eeabde5ff9",
+        "files": [
+          "src/fixed.js",
+          "tests/fixed.test.js"
+        ],
+        "license": "MIT",
+        "ci_run": "https://github.com/tangent-to/ode/actions/runs/33533751549",
+        "ci_conclusion": "success",
+        "evidence": "JavaScript ESM implementation with tests for convergence order, RK4 accuracy, oscillator integration, backward integration, nSteps behavior and non-finite RHS."
+      },
+      "local_ci": {
+        "run": 572,
+        "run_id": 46010312613,
+        "commit": "779c16456b786935c2d5ee62c878e83ffb7a1925",
+        "status": "in_progress_at_report_creation"
+      },
+      "certification": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:3",
+      "name": "Integrador Verlet",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:4",
+      "name": "CFL condition",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:5",
+      "name": "Poisson equation",
+      "status": "RESEARCHED_SOURCE_AND_TESTS_ADAPTATION_PENDING",
+      "source": {
+        "repository": "https://github.com/abho7/fluid-sim",
+        "commit": "aabf3d1cee198ab3fce86909ad7c362a521b817c",
+        "files": [
+          "src/cpu/projection.js"
+        ],
+        "tests": [
+          "test/solver.test.js"
+        ],
+        "license": "MIT",
+        "ci_run": "https://github.com/abho7/fluid-sim/actions/runs/39702547020",
+        "ci_conclusion": "success",
+        "ci_test_log": "76 tests; 76 passed; 0 failed",
+        "evidence": "Poisson solver for periodic MAC grids; periodic compatibility condition and constant null-space are handled. Does not cover the manifest's full Dirichlet/Neumann boundary-condition generality."
+      },
+      "certification": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:6",
+      "name": "Conjugate gradient",
+      "status": "RESEARCHED_SOURCE_AND_TESTS_ADAPTATION_PENDING",
+      "source": {
+        "repository": "https://github.com/abho7/fluid-sim",
+        "commit": "aabf3d1cee198ab3fce86909ad7c362a521b817c",
+        "files": [
+          "src/cpu/projection.js"
+        ],
+        "tests": [
+          "test/solver.test.js"
+        ],
+        "license": "MIT",
+        "ci_run": "https://github.com/abho7/fluid-sim/actions/runs/39702547020",
+        "ci_conclusion": "success",
+        "ci_test_log": "76 tests; 76 passed; 0 failed",
+        "evidence": "Conjugate-gradient solver used on the periodic Laplacian with a constant null space; not a generic SPD-matrix API, so it is evidence for a restricted operator only."
+      },
+      "certification": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:7",
+      "name": "Multigrid",
+      "status": "RESEARCHED_SOURCE_AND_TESTS_ADAPTATION_PENDING",
+      "source": {
+        "repository": "https://github.com/abho7/fluid-sim",
+        "commit": "aabf3d1cee198ab3fce86909ad7c362a521b817c",
+        "files": [
+          "src/gpu/multigrid.js"
+        ],
+        "tests": [
+          "tools/gputest.html"
+        ],
+        "license": "MIT",
+        "ci_run": "https://github.com/abho7/fluid-sim/actions/runs/39702547020",
+        "ci_conclusion": "success",
+        "ci_test_log": "76 tests; 76 passed; 0 failed",
+        "evidence": "GPU geometric V-cycle with smoothing, residual restriction, coarse solve and prolongation; browser/WebGPU validation harness compares pressure-solver convergence. Requires port/adaptation; not directly a Three.js implementation."
+      },
+      "certification": "NOT_CERTIFIED"
+    },
+    {
+      "record_key": "D36:8",
+      "name": "Método de volúmenes finitos",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:9",
+      "name": "Método de elementos finitos",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:10",
+      "name": "Smoothed Particle Hydrodynamics completo",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:11",
+      "name": "Ecuación de elasticidad de Cauchy",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:12",
+      "name": "Viscoelasticidad Kelvin–Voigt",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:13",
+      "name": "Plasticidad J2 von Mises",
+      "status": "SOURCE_RESEARCH_PENDING"
+    },
+    {
+      "record_key": "D36:14",
+      "name": "Difusión anisotrópica",
+      "status": "SOURCE_RESEARCH_PENDING"
+    }
+  ],
+  "global_status": "D35_D36_PARTIAL; NO_CERTIFIED",
+  "next_sequence": [
+    "Completar adaptación y pruebas de D35:10",
+    "Adaptar y ampliar D36:5 y D36:6 con límites de contorno explícitos",
+    "Implementar y validar el V-cycle completo D36:7",
+    "Continuar las 24 técnicas restantes de D35/D36",
+    "Extender el mismo proceso secuencialmente a los otros 40 dominios del manifiesto"
+  ]
+}
