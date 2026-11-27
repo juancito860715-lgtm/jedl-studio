@@ -40,11 +40,16 @@
         }
       ],
       "assumptions": [
-        "Ganancias y error tipados; Δt>0; saturación anti-windup considerada."
+        "Ganancias y error tipados; Δt>0; saturación anti-windup considerada.",
+        "Las unidades de ganancias se derivan del tipo de salida U y del tipo de error X; no son constantes adimensionales universales."
       ],
       "result": "PID deriva de sumar corrección proporcional, acumulada y predictiva basada en derivada.",
       "limits": [
         "Integral windup y derivada ruidosa requieren anti-windup/filtrado."
+      ],
+      "dimensional_verification": [
+        "e has unit X; u has unit U; Kp U/X, Ki U/(X·T), Kd U·T/X.",
+        "Integral and derivative terms all have U; Δt has T."
       ]
     },
     {
@@ -81,6 +86,10 @@
       "result": "Proportional tracking deriva de una ODE de primer orden con error proporcional.",
       "limits": [
         "Ganancia excesiva produce overshoot si el sistema real tiene inercia/retardo."
+      ],
+      "dimensional_verification": [
+        "target−position has L; v has L/T; Kp has T⁻¹.",
+        "Kp t is dimensionless in the exponential solution; x(t) retains L."
       ]
     },
     {
@@ -117,6 +126,10 @@
       "result": "El resorte críticamente amortiguado tiene raíz doble y respuesta sin oscilación ideal.",
       "limits": [
         "Parámetros dependen de frecuencia natural; no modela saturación."
+      ],
+      "dimensional_verification": [
+        "x and target have L; x' L/T; x'' L/T²; ω T⁻¹.",
+        "Every term in x''+2ωx'+ω²(x−target) has L/T²."
       ]
     },
     {
@@ -153,6 +166,10 @@
       "result": "Kalman combina predicción del modelo y medición según incertidumbre.",
       "limits": [
         "Modelo lineal y gaussianidad aproximada pueden fallar en tracking no lineal."
+      ],
+      "dimensional_verification": [
+        "State and observation may be heterogeneous; A maps state to state; H maps state to observation.",
+        "P,Q covariance entries carry pairwise state units; R measurement units; K state/measurement."
       ]
     },
     {
@@ -169,8 +186,8 @@
         },
         {
           "step": 2,
-          "equation": "Δ=−η∇E",
-          "justification": "Elegir desplazamiento opuesto al gradiente."
+          "equation": "Δθ_j=−η_j∂E/∂θ_j; [η_j]=[θ_j]²/[E]",
+          "justification": "Elegir la escala de paso por parámetro para que el producto tenga la unidad de θ_j."
         },
         {
           "step": 3,
@@ -184,11 +201,16 @@
         }
       ],
       "assumptions": [
-        "E diferenciable; η positivo y suficientemente pequeño."
+        "E diferenciable; η positivo y suficientemente pequeño.",
+        "Para parámetros heterogéneos, usar tasas η_j o normalizar cada parámetro antes del descenso."
       ],
       "result": "Gradient descent usa expansión local para moverse en dirección de descenso.",
       "limits": [
         "η grande puede divergir; η pequeño converge lentamente."
+      ],
+      "dimensional_verification": [
+        "E has objective unit; θ_j has parameter unit; ∂E/∂θ_j has E/θ_j.",
+        "η_j must have θ_j²/E, or parameters/objective must be nondimensionalized."
       ]
     },
     {
@@ -200,31 +222,41 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "r(θ+Δ)≈r(θ)+JΔ",
-          "justification": "Linealizar residuo no lineal."
+          "equation": "θ̃_j=(θ_j−θ_ref,j)/s_j; r̃_i=r_i/r_scale,i",
+          "justification": "Nondimensionalizar parámetros y residuos con escalas no nulas."
         },
         {
           "step": 2,
-          "equation": "min_Δ||r+JΔ||²+λ||Δ||²",
-          "justification": "Añadir regularización a mínimos cuadrados."
+          "equation": "r̃(θ̃+Δθ̃)≈r̃(θ̃)+J̃Δθ̃",
+          "justification": "Linealizar el residuo normalizado; J̃ es adimensional."
         },
         {
           "step": 3,
-          "equation": "(JᵀJ+λI)Δ=−Jᵀr",
-          "justification": "Derivar respecto a Δ e igualar a cero."
+          "equation": "min ||r̃+J̃Δθ̃||²+λ||Δθ̃||²",
+          "justification": "Añadir regularización adimensional al problema de mínimos cuadrados."
         },
         {
           "step": 4,
-          "equation": "θ_next=θ+Δ",
-          "justification": "Actualizar parámetros."
+          "equation": "(J̃ᵀJ̃+λI)Δθ̃=−J̃ᵀr̃",
+          "justification": "Derivar el sistema normalizado respecto a Δθ̃."
+        },
+        {
+          "step": 5,
+          "equation": "θ_next=θ+s⊙Δθ̃",
+          "justification": "Convertir la actualización normalizada de vuelta a unidades de cada parámetro."
         }
       ],
       "assumptions": [
-        "Residuo diferenciable; λ≥0; J y parámetros escalados."
+        "Residuo diferenciable; λ≥0; J y parámetros escalados.",
+        "s_j tiene unidad de θ_j; r_scale,i tiene unidad de r_i; λ es adimensional."
       ],
       "result": "Levenberg–Marquardt deriva de mínimos cuadrados linealizados con regularización.",
       "limits": [
         "λ y escalado condicionan estabilidad; mínimos locales posibles."
+      ],
+      "dimensional_verification": [
+        "Raw J_ij has residual_i/parameter_j; JᵀJ is not generally dimensionally compatible with λI for heterogeneous parameters.",
+        "After normalizing residuals and parameters, J̃ and λ are dimensionless; Δθ_j=s_jΔθ̃_j restores parameter units."
       ]
     },
     {
@@ -261,6 +293,10 @@
       "result": "Newton deriva de resolver la aproximación lineal local de f(x)=0.",
       "limits": [
         "Puede divergir si f'≈0 o si la semilla está lejos."
+      ],
+      "dimensional_verification": [
+        "x and Δ have unit X; f(x) has unit F; f'(x) has F/X; f/f' has X.",
+        "x_next preserves X."
       ]
     },
     {
@@ -297,6 +333,10 @@
       "result": "Bisection reduce a la mitad un intervalo que contiene raíz por cambio de signo.",
       "limits": [
         "Converge lentamente pero es robusto; exige bracket inicial."
+      ],
+      "dimensional_verification": [
+        "a,b,m have unit X; interval width has X; n is an integer count.",
+        "f(a) and f(b) share output units; sign test is dimensionless."
       ]
     },
     {
@@ -333,6 +373,10 @@
       "result": "Interpolación cúbica determina cuatro coeficientes con dos valores y dos derivadas.",
       "limits": [
         "Oscilación/overshoot según tangentes; usar limitadores cuando necesario."
+      ],
+      "dimensional_verification": [
+        "If t is normalized dimensionless, a,b,c,d share unit of p; if t is seconds, coefficient k has unit p/T^k.",
+        "p(t) and endpoint/tangent constraints preserve declared output units."
       ]
     },
     {
@@ -369,6 +413,10 @@
       "result": "Fourier proyecta señal periódica sobre base seno/coseno ortogonal.",
       "limits": [
         "Señales no periódicas sufren leakage si no se ventanean."
+      ],
+      "dimensional_verification": [
+        "t and period T have seconds; ω has s⁻¹; nωt is dimensionless.",
+        "a_n,b_n,a_0 have same unit as f(t); coefficients retain signal units."
       ]
     },
     {
@@ -405,6 +453,10 @@
       "result": "FFT reduce coste de DFT mediante descomposición par/impar.",
       "limits": [
         "FFT clásica requiere muestreo uniforme; ventana y zero-padding cambian lectura."
+      ],
+      "dimensional_verification": [
+        "DFT X_k has same unit as discrete samples x_n; N,k,n are counts.",
+        "For a continuous Fourier integral, multiply DFT approximation by Δt, adding a time factor."
       ]
     },
     {
@@ -441,6 +493,10 @@
       "result": "Wavelet analiza señal mediante funciones dilatadas y trasladadas.",
       "limits": [
         "Resolución tiempo-frecuencia depende de wavelet/escala."
+      ],
+      "dimensional_verification": [
+        "a and b have T; ψ_{a,b} has T⁻¹/²; W(a,b) has unit(signal)·T¹/².",
+        "Reconstruction constants compensate the scale measure; do not treat CWT coefficient as same unit as raw signal."
       ]
     },
     {
@@ -477,6 +533,10 @@
       "result": "Monte Carlo estima integral como esperanza bajo distribución de muestreo.",
       "limits": [
         "Varianza alta puede requerir muchas muestras."
+      ],
+      "dimensional_verification": [
+        "p(x) has inverse measure of dx; f/p has unit(f)·unit(dx); I_hat has unit of integral I.",
+        "N is dimensionless sample count; p integrates to 1."
       ]
     },
     {
@@ -513,6 +573,10 @@
       "result": "Blue-noise sampling combina separación espacial con supresión espectral de baja frecuencia.",
       "limits": [
         "El objetivo espectral depende de dominio y densidad; no hay un único blue-noise universal."
+      ],
+      "dimensional_verification": [
+        "x_j has L; k has L⁻¹; k·x_j is dimensionless; S(k) dimensionless under stated normalization.",
+        "Minimum spacing r_min has L."
       ]
     },
     {
@@ -534,32 +598,42 @@
         },
         {
           "step": 3,
-          "equation": "dL= Tσ_sρp(θ)L_i ds",
-          "justification": "Acumular dispersión local ponderada por transmisión."
+          "equation": "dL=T(s)σ_sρ(s)[∫_{4π}p(ω_i,ω_o)L_i(ω_i)dω_i]ds",
+          "justification": "Integrar radiancia incidente sobre direcciones con la fase normalizada antes de acumular dispersión a lo largo del rayo."
         },
         {
           "step": 4,
-          "equation": "L≈Σ_iT_iσ_sρ_i p_iL_iΔs",
-          "justification": "Aproximar integral por raymarch discreto."
+          "equation": "L≈Σ_i T_iσ_sρ_i[∫p_iL_i dω_i]Δs",
+          "justification": "Aproximar la integral espacial por raymarch manteniendo la integral angular o una fuente direccional integrada."
         }
       ],
       "assumptions": [
-        "σ_t≥σ_s≥0; paso espacial y coeficientes compatibles."
+        "σ_t≥σ_s≥0; paso espacial y coeficientes compatibles.",
+        "p se normaliza sobre ángulo sólido; una fuente direccional requiere delta angular integrada con la misma medida."
       ],
       "result": "Beer–Lambert volumétrico integra transmisión y dispersión a lo largo del rayo.",
       "limits": [
-        "Raymarch discreto tiene error y omite múltiples dispersión si no se incluye."
+        "Raymarch discreto tiene error y omite múltiples dispersión si no se incluye.",
+        "No omitir la integral angular ni la convención de delta direccional, pues la radiancia quedaría dimensionalmente incompleta."
+      ],
+      "dimensional_verification": [
+        "σ_t and σ_s have L⁻¹; ρ is dimensionless; ds has L; optical depth is dimensionless.",
+        "Phase p has sr⁻¹; angular integral ∫pL_i dω has radiance; σ_s ds is dimensionless."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "15/15 técnicas cubiertas, incluida investigación R31 de Beer–Lambert volumétrico.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen control, optimización, raíces, interpolación, análisis espectral y transporte."
+      "15/15 técnicas D35 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "PID y tracking derivan ganancias según unidades de error, salida y tiempo",
+      "Gradient descent y Levenberg–Marquardt normalizan parámetros heterogéneos y evitan sumar magnitudes incompatibles",
+      "Fourier, FFT y wavelet distinguen unidades de señal, tiempo y coeficientes",
+      "Monte Carlo tipa PDF respecto a la medida integrada",
+      "Beer–Lambert volumétrico integra fase angular y conserva radiancia"
     ],
     "limitations": [
-      "Las fórmulas de control/optimización requieren estabilidad y calibración; la derivación no sustituye pruebas numéricas independientes del punto 5."
+      "Los métodos numéricos dependen de escalado, condicionamiento, discretización y criterios de convergencia; los resultados requieren pruebas independientes posteriores."
     ]
   },
   "integrity": {
