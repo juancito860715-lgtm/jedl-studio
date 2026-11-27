@@ -150,62 +150,216 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "GEOMETRIC_ITERATIVE_INVERSE_KINEMATICS",
+        "symbol_table": [
+          {
+            "symbol": "p_i",
+            "meaning": "joint position",
+            "unit": "m (or one consistent scene-length unit)",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "d_i",
+            "meaning": "fixed link length between p_i and p_(i+1)",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "t",
+            "meaning": "end-effector target position",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "r_i",
+            "meaning": "current distance between adjacent projected joints",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "k_i=d_i/r_i",
+            "meaning": "dimensionless interpolation ratio",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "epsilon",
+            "meaning": "end-effector convergence tolerance",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "I_max",
+            "meaning": "maximum full iterations",
+            "unit": "count",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "p, l y tolerancia en la misma unidad local."
+            "Dimensiones verificadas para el núcleo formulado; no extiende automáticamente la conclusión a variantes con otras magnitudes."
           ]
         },
+        "equations": [
+          {
+            "expression": "r_i = ||p_(i+1)-p_i||; k_i=d_i/r_i; p_(i+1)'=(1-k_i)p_i+k_i p_(i+1)",
+            "meaning": "collinear point projection preserving link length in a sweep",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "||t-p_root|| >= sum_i d_i => unreachable straight extension",
+            "meaning": "unreachable-target branch",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "||p_end-t|| <= epsilon",
+            "meaning": "convergence termination criterion",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          }
+        ],
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "The distance constraint requires the new point q to lie on the line through anchor a and old point p, with ||q-a||=d.",
+            "Set u=(p-a)/||p-a||; then q=a+d*u. Since k=d/||p-a||, q=(1-k)a+k*p, which is dimensionally consistent because k is dimensionless.",
+            "Backward sweep fixes the end effector at t and projects each predecessor at its link length; forward sweep restores the root to its fixed base and projects each successor.",
+            "If target distance is at least total chain length, all links align along the root-to-target direction; this is the unreachable branch."
+          ]
         },
         "assumptions": [
-          "Cadena abierta, longitudes positivas, sin límites articulares en el núcleo mínimo.",
-          "Definir tratamiento de vectores coincidentes y objetivo exactamente en raíz."
+          "Open serial chain with one end effector; fixed positive link lengths; Euclidean coordinates in one common frame.",
+          "Unconstrained core: no joint-angle limits, collision response, pole vector, multiple effectors, or orientation target.",
+          "The implementation kernel rejects zero-length projection directions rather than inventing a direction; production code must supply a deterministic fallback."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "valid_domain": [
+          "n>=2 joints; all d_i>0; finite positions/target; epsilon>=0; I_max>=1; consistent coordinate frame."
+        ],
+        "boundary_conditions": [
+          "Unreachable if root-target distance >= sum(d_i); exact equality is fully extended.",
+          "At target coincident with an intermediate projection anchor, direction is undefined and must use a deterministic fallback or report degeneracy.",
+          "At max iterations without meeting epsilon, return the best current pose and report non-convergence."
+        ],
+        "inputs": [
+          "Initial joint positions p[0..n-1]",
+          "Positive link lengths d[0..n-2]",
+          "Fixed root/base position",
+          "Target t",
+          "Maximum iterations and length tolerance"
+        ],
+        "outputs": [
+          "Updated joint positions preserving each link length within floating-point tolerance",
+          "End-effector residual and convergence status"
+        ],
+        "algorithm_completeness": "CORE_KERNEL_COMPLETE_FULL_METHOD_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_REFERENCE_KERNEL_TESTED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(I*n) for I full iterations and n joints; unreachable branch O(n)",
+          "space": "O(n) for the copied joint chain; O(1) auxiliary per projection"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_FULL_INTEGRATION_PENDING",
+          "details": "CPU solver over Vector3 joint positions. Convert solved world-space positions to each bone's local transform using parent world matrices; preserve bind lengths and update skeleton/bone matrices before SkinnedMesh rendering. GPU implementation is unnecessary for a single chain and requires a separate data-parallel design for crowds."
         },
         "source_claims": [
           {
-            "url": "https://www.sciencedirect.com/science/article/pii/S1524070311000178",
+            "url": "https://andreasaristidou.com/publications/papers/FABRIK.pdf",
             "type": "PRIMARY_PAPER",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "supported_claim": "FABRIK's reachable/unreachable branching, backward/forward positional projections and residual-based termination.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Aristidou & Lasenby 2011, Section 4, Algorithm 1; PDF pp. 245-246, lines 327-354 and 405-445; projection interpolation at lines 304-322."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "Reachable 2-link chain reaches (1,1) while preserving lengths 1,1.",
+              "oracle": "closed-form / independent standard-library reference"
+            },
+            {
+              "description": "Unreachable target extends to total reach exactly.",
+              "oracle": "closed-form / independent standard-library reference"
+            },
+            {
+              "description": "Root-target and zero-direction degeneracies are explicit rather than silently normalized.",
+              "oracle": "closed-form / independent standard-library reference"
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Same reachable/unreachable fixtures as Python.",
+              "oracle": "cross-language parity against Python reference"
+            }
+          ],
+          "edge_cases": [
+            "n=2 minimum chain; equality at reach boundary; max-iteration exhaustion; zero-length link rejected."
+          ]
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Full joint constraints and pole-vector handling",
+        "Production fallback for degenerate projection directions",
+        "Three.js skeleton integration tests and multi-chain validation"
       ]
     },
     {
@@ -250,61 +404,202 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "RIGID_TRANSFORM_BLEND_VIA_DUAL_QUATERNIONS",
+        "symbol_table": [
+          {
+            "symbol": "q_r",
+            "meaning": "unit real quaternion encoding rotation",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "q_d",
+            "meaning": "dual quaternion component encoding translation",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "w_i",
+            "meaning": "nonnegative skinning influence weight",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "b_0",
+            "meaning": "weighted sum of real quaternion components",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "b_epsilon",
+            "meaning": "weighted sum of dual quaternion components",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "v",
+            "meaning": "vertex position relative to the declared transform frame",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "t en unidades de escena; cuaterniones unitarios adimensionales."
+            "Dimensiones verificadas para el núcleo formulado; no extiende automáticamente la conclusión a variantes con otras magnitudes."
           ]
         },
+        "equations": [
+          {
+            "expression": "q_hat = q_r + epsilon*q_d, epsilon^2=0",
+            "meaning": "dual quaternion representation",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "b_hat = sum_i w_i*q_hat_i; c_0=b_0/||b_0||; c_epsilon=b_epsilon/||b_0||",
+            "meaning": "weighted blend and normalization used in the published shader algorithm",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "dot(q_r,q_d)=0; ||q_r||=1",
+            "meaning": "Study condition for a unit rigid dual quaternion; canonical projection used by this CPU reference kernel",
+            "dimensional_check": "pass",
+            "status": "derived_and_checked"
+          }
+        ],
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "A rigid transform is encoded by a unit rotation quaternion q_r and a dual component q_d=0.5*(0,t)*q_r under the Hamilton product convention used by the implementation.",
+            "Because q and -q represent the same rigid transform, sign alignment is required before linear blending; compare real quaternion dot products with a chosen reference and negate both real and dual parts when negative.",
+            "Accumulate weighted real and dual components. Normalize the real part and scale the dual part by the same real norm.",
+            "For a canonical unit dual quaternion, remove the component of q_d parallel to q_r so dot(q_r,q_d)=0. This Study-condition projection is an explicit CPU-reference normalization convention; the paper's optimized shader uses the normalized pair directly in its vector formula."
+          ]
         },
         "assumptions": [
-          "Normalización de pesos; convención Hamilton; orden de composición; antipodal sign alignment y transformación de normales deben fijarse."
+          "Rigid transforms only; no scale/shear in this core formulation.",
+          "Hamilton quaternion multiplication and q_d=0.5*(0,t)*q_r order are fixed and must match matrix composition convention.",
+          "Weights are finite, nonnegative and have positive sum; antipodal correction is relative to a reference real quaternion.",
+          "The simple reference sign alignment to the first positive-weight transform is deterministic but is not the paper's global all-pairs antipodality optimization."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "valid_domain": [
+          "At least one influence; finite quaternion components; positive real blend norm; weights>=0 and sum(weights)>0."
+        ],
+        "boundary_conditions": [
+          "Zero real-part blend is singular and must fail rather than divide by zero.",
+          "Zero-weight influences are ignored.",
+          "Antipodal equivalent inputs q and -q must produce the same transform after sign alignment.",
+          "Normals use rotation only for rigid transforms; nonuniform scale/shear requires inverse-transpose handling and a separate method."
+        ],
+        "inputs": [
+          "Per-bone dual quaternion pairs (q_r,q_d)",
+          "Per-vertex bone indices and weights",
+          "Vertex position and normal"
+        ],
+        "outputs": [
+          "Blended normalized dual quaternion",
+          "Transformed vertex position and normal"
+        ],
+        "algorithm_completeness": "CORE_KERNEL_COMPLETE_FULL_METHOD_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_REFERENCE_KERNEL_TESTED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(K) per vertex for K bone influences; O(1) accumulator storage",
+          "space": "O(1) per vertex excluding input influence arrays"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_FULL_INTEGRATION_PENDING",
+          "details": "Use CPU reference with Quaternion and Vector3 or a custom vertex shader. For GPU skinning, upload two vec4 values per bone, preserve sign alignment per vertex influence, and implement the paper's vector rotation/translation expression. Validate against CPU results; do not assume built-in SkinnedMesh uses dual quaternions."
         },
         "source_claims": [
           {
-            "url": "https://users.cs.utah.edu/~ladislav/kavan08geometric/kavan08geometric.html",
+            "url": "https://dcgi.fel.cvut.cz/home/zara/papers/KavanEtAll-TOG08.pdf",
             "type": "PRIMARY_PAPER",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "supported_claim": "Weighted dual-quaternion sum, normalization, vertex/normal transformation, and antipodality correction.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Kavan et al. 2008, Section 4, Algorithm 1, lines 588-609 (PDF pp. 105:12-13); antipodality and sign correction Section 4.1, Eq. (16), lines 603-609."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "Normalization enforces unit real quaternion and Study condition.",
+              "oracle": "closed-form / independent standard-library reference"
+            },
+            {
+              "description": "Equal identity and antipodal identity influences return identity.",
+              "oracle": "closed-form / independent standard-library reference"
+            },
+            {
+              "description": "Zero real quaternion and zero total weight reject.",
+              "oracle": "closed-form / independent standard-library reference"
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Same antipodal and normalization fixtures as Python.",
+              "oracle": "cross-language parity against Python reference"
+            }
+          ],
+          "edge_cases": [
+            "Zero-weight influences; antipodal pairs; degenerate zero real sum; non-finite components."
+          ]
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Validate quaternion-to-dual-quaternion conversion against transform matrices",
+        "Implement and test the published GPU vertex transform and normal handling",
+        "Resolve multi-influence antipodality globally or document chosen approximation"
       ]
     },
     {
@@ -932,62 +1227,215 @@
         "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK"
       },
       "technical_completion": {
-        "formulation_type": "PENDING_CLASSIFICATION",
-        "symbol_table": [],
+        "formulation_type": "UNIFORM_GRID_SPATIAL_HASH_FOR_BROADPHASE",
+        "symbol_table": [
+          {
+            "symbol": "x",
+            "meaning": "world/local position component",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "o",
+            "meaning": "grid origin component",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "h",
+            "meaning": "positive grid cell width",
+            "unit": "m",
+            "dimension": {
+              "L": 1,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "i,j,k",
+            "meaning": "integer grid-cell coordinates",
+            "unit": "1 (integer index)",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "p1,p2,p3",
+            "meaning": "integer hash multipliers",
+            "unit": "1",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "n",
+            "meaning": "positive hash-table size",
+            "unit": "count",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          },
+          {
+            "symbol": "H",
+            "meaning": "hash table bucket index",
+            "unit": "integer index",
+            "dimension": {
+              "L": 0,
+              "M": 0,
+              "T": 0,
+              "I": 0,
+              "Theta": 0,
+              "N": 0,
+              "J": 0
+            }
+          }
+        ],
         "dimensional_analysis": {
-          "status": "PARTIAL_OR_NOT_AUDITED",
+          "status": "AUDITED_FOR_DECLARED_CORE",
           "notes": [
-            "h y radio en unidades de mundo/local consistentes."
+            "Dimensiones verificadas para el núcleo formulado; no extiende automáticamente la conclusión a variantes con otras magnitudes."
           ]
         },
+        "equations": [
+          {
+            "expression": "i=floor((x-o_x)/h), j=floor((y-o_y)/h), k=floor((z-o_z)/h)",
+            "meaning": "uniform-grid quantization",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "H=((i*p1) XOR (j*p2) XOR (k*p3)) mod n",
+            "meaning": "integer spatial hash",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          },
+          {
+            "expression": "(p1,p2,p3)=(73856093,19349663,83492791)",
+            "meaning": "multipliers used in the paper's tested hash",
+            "dimensional_check": "pass",
+            "status": "source_verified"
+          }
+        ],
         "derivation": {
-          "status": "INCOMPLETE",
-          "steps": []
+          "status": "complete_for_core_kernel",
+          "steps": [
+            "Subtracting the grid origin and dividing by cell width yields dimensionless coordinates; floor maps each component to an integer cell index, including negative coordinates.",
+            "The three integer cell coordinates are mixed by multiplication with large primes and bitwise XOR.",
+            "Modulo the positive table size maps the integer hash to a bounded bucket index. Distinct cells may collide; therefore bucket entries must retain the original cell coordinates or be geometrically filtered."
+          ]
         },
         "assumptions": [
-          "Coordenadas y origen en el mismo espacio; floor también para coordenadas negativas.",
-          "Filtrar siempre candidatos por distancia geométrica exacta."
+          "One common coordinate frame and one positive scalar cell width for all axes in the isotropic grid.",
+          "Hash table index collisions are expected and are not spatial-cell identity; exact cell coordinates or AABB tests must disambiguate candidates.",
+          "The 32-bit unsigned wrap used by this JS/Python kernel is an explicit implementation convention; source specifies integer hash arithmetic but not JS Number semantics."
         ],
-        "valid_domain": [],
-        "boundary_conditions": [],
-        "inputs": [],
-        "outputs": [],
-        "algorithm_completeness": "PARTIAL_REVIEW_REQUIRED",
-        "pseudocode_status": "PRESENT_BUT_NOT_EXECUTION_VERIFIED",
+        "valid_domain": [
+          "Finite position and origin components; h>0; integer cell coordinates; integer n>0."
+        ],
+        "boundary_conditions": [
+          "Use floor, not truncation, for negative coordinates.",
+          "Modulo result must be normalized to [0,n-1].",
+          "Different cells may share a bucket; never treat bucket equality as proof of geometric proximity.",
+          "Large coordinate magnitudes require a declared integer range and overflow policy."
+        ],
+        "inputs": [
+          "Position and grid origin",
+          "Cell width h",
+          "Hash table size n",
+          "Integer hash multipliers"
+        ],
+        "outputs": [
+          "Integer cell coordinate triplet",
+          "Bucket index in [0,n-1]"
+        ],
+        "algorithm_completeness": "CORE_KERNEL_COMPLETE_FULL_METHOD_PARTIAL",
+        "pseudocode_status": "EXECUTABLE_REFERENCE_KERNEL_TESTED",
         "complexity": {
-          "time": null,
-          "space": null
+          "time": "O(1) expected per point insertion/query; candidate filtering depends on bucket occupancy; worst-case O(N) per query under pathological collisions",
+          "space": "O(N+n) for N stored primitives and n bucket headers"
         },
         "threejs_binding": {
-          "status": "NEEDS_API_LEVEL_MAPPING",
-          "details": null
+          "status": "CORE_MAPPING_DEFINED_FULL_INTEGRATION_PENDING",
+          "details": "Implement CPU broadphase with typed arrays and bucket heads/next indices, or a Map keyed by exact integer cell coordinates for a collision-free dictionary baseline. For WebGPU, use integer storage buffers and explicit atomic bucket insertion; keep exact cell coordinates for collision filtering. The kernel in this PR validates only cell quantization and bucket-index arithmetic, not tetrahedron/triangle intersection."
         },
         "source_claims": [
           {
             "url": "https://cgl.ethz.ch/Downloads/Publications/Papers/2003/Tes03/Tes03.pdf",
             "type": "PRIMARY_PAPER",
-            "formula_level_status": "REQUIRES_FORMULA_LEVEL_CROSSCHECK",
-            "exact_equation_locator": null
+            "supported_claim": "Uniform-grid floor quantization, prime-multiplier XOR hash, modulo table indexing, and collision-aware primitive candidate processing.",
+            "formula_level_status": "verified",
+            "exact_equation_locator": "Teschner et al. 2003, Section 4.1 Eq. (1), PDF p. 667 / lines 203-222; Section 3 and spatial hashing of vertices, lines 144-155 and 234-267."
           }
         ],
         "independent_tests": {
-          "python": [],
-          "javascript": [],
-          "edge_cases": []
+          "python": [
+            {
+              "description": "Cell floor handles negative coordinates exactly.",
+              "oracle": "closed-form / independent standard-library reference"
+            },
+            {
+              "description": "Published prime-XOR fixture maps to bounded modulo bucket.",
+              "oracle": "closed-form / independent standard-library reference"
+            },
+            {
+              "description": "Invalid h or table size rejects.",
+              "oracle": "closed-form / independent standard-library reference"
+            }
+          ],
+          "javascript": [
+            {
+              "description": "Same positive/negative coordinate and bucket fixture as Python.",
+              "oracle": "cross-language parity against Python reference"
+            }
+          ],
+          "edge_cases": [
+            "Coordinates on cell boundaries; negative epsilon; bucket collisions retained as candidates; large integer overflow policy."
+          ]
         }
       },
       "readiness_status": "INCOMPLETE",
       "gaps": [
-        "symbol_table_with_units_and_SI_dimensions",
-        "complete_derivation_or_explicit_authored_rule_justification",
-        "assumptions_and_validity_domain",
-        "boundary_and_degenerate_cases",
-        "complete_algorithm_initialization_iteration_termination",
-        "fully_executable_pseudocode",
-        "source_claim_mapped_to_exact_equation_or_section",
-        "independent_python_reference_tests",
-        "independent_javascript_parity_tests",
-        "Three.js_API_or_custom_shader_binding"
+        "Complete primitive AABB insertion over all covered cells",
+        "Implement and validate exact vertex/tetrahedron or triangle intersection tests",
+        "Benchmark hash distribution, bucket sizing and collision filtering"
       ]
     },
     {
