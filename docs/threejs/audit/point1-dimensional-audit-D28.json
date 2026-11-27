@@ -1,0 +1,1294 @@
+{
+  "title": "Auditoría dimensional punto 1 — D28 Procedural avanzado: gramáticas, crecimiento y geometría",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D28",
+    "domain": "Procedural avanzado: gramáticas, crecimiento y geometría",
+    "record_count": 16,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D28 protegidas."
+  },
+  "conventions": {
+    "si_dimension_order": [
+      "L",
+      "M",
+      "T",
+      "I",
+      "Theta",
+      "N",
+      "J"
+    ],
+    "curvature": "Curvatura de curva L⁻¹; curvatura gaussiana L⁻².",
+    "sampling": "Índices y códigos son discretos; cellSize convierte a longitud física.",
+    "sdf": "Campos SDF y suavizado usan unidad de longitud."
+  },
+  "records": [
+    {
+      "record_key": "D28:0",
+      "name": "Shape grammar",
+      "variables": [
+        {
+          "symbol": "S",
+          "meaning": "símbolo/forma",
+          "unit": "tipo discreto",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "gramática finita"
+        },
+        {
+          "symbol": "rule",
+          "meaning": "regla de producción",
+          "unit": "estructura tipada",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "determinista o sembrada"
+        },
+        {
+          "symbol": "parameters",
+          "meaning": "parámetros geométricos",
+          "unit": "unidades por parámetro",
+          "dimension": "heterogéneos",
+          "domain": "rangos definidos"
+        },
+        {
+          "symbol": "n",
+          "meaning": "profundidad",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "Cada parámetro conserva unidad por regla; una regla no suma parámetros de dimensiones incompatibles.",
+        "Limitar recursión y número de formas para acotar crecimiento."
+      ],
+      "valid_domain": [
+        "Gramática finita; parámetros finitos; reglas deterministas o semilla fija."
+      ],
+      "boundary_conditions": [
+        "n=0 conserva forma inicial.",
+        "Símbolo sin regla aplica identidad/descarte definido."
+      ],
+      "dimensional_checks": [
+        "Símbolos/reglas/índices son discretos; geometría generada mantiene unidades de sus parámetros.",
+        "Profundidad es conteo adimensional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:1",
+      "name": "L-system stochastic",
+      "variables": [
+        {
+          "symbol": "p_j",
+          "meaning": "probabilidad de regla",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "0≤p_j≤1"
+        },
+        {
+          "symbol": "Σp_j",
+          "meaning": "suma probabilidades",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "=1"
+        },
+        {
+          "symbol": "n",
+          "meaning": "iteraciones",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        },
+        {
+          "symbol": "ℓ",
+          "meaning": "longitud de segmento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ℓ>0"
+        },
+        {
+          "symbol": "θ",
+          "meaning": "ángulo de giro",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "Las probabilidades son adimensionales y suman 1 por símbolo/contexto.",
+        "Longitudes y ángulos de turtle geometry se mantienen tipados durante expansión."
+      ],
+      "valid_domain": [
+        "Probabilidades no negativas; reglas finitas; iteraciones acotadas."
+      ],
+      "boundary_conditions": [
+        "Una sola regla con probabilidad 1 es determinista.",
+        "n=0 produce axiom inicial."
+      ],
+      "dimensional_checks": [
+        "p_j es adimensional; ℓ tiene L; θ es angular adimensional.",
+        "La expansión no cambia unidades geométricas."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:2",
+      "name": "Space colonization",
+      "variables": [
+        {
+          "symbol": "p_i,a_j",
+          "meaning": "nodos y atractores",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "r_a",
+          "meaning": "radio de influencia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r_a>0"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "dir",
+          "meaning": "dirección de rama",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        },
+        {
+          "symbol": "ℓ",
+          "meaning": "paso de crecimiento",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "ℓ>0"
+        }
+      ],
+      "constraints": [
+        "Las direcciones se normalizan; la distancia se compara con radios de longitud.",
+        "La suma de direcciones normalizadas es adimensional antes de normalizar resultado."
+      ],
+      "valid_domain": [
+        "Atractores finitos; radios y paso positivos."
+      ],
+      "boundary_conditions": [
+        "Nodo sin atractores cercanos no crece o sigue regla terminal.",
+        "Suma vectorial nula requiere dirección de respaldo."
+      ],
+      "dimensional_checks": [
+        "p,a,d,r_a,ℓ tienen L; dir es adimensional.",
+        "El paso ℓ·dir produce desplazamiento L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:3",
+      "name": "Delaunay triangulation",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "puntos de muestra",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "r_c",
+          "meaning": "radio circunscrito",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo si triángulo no degenerado"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "tolerancia geométrica",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        },
+        {
+          "symbol": "index",
+          "meaning": "índice de punto",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "discreto"
+        }
+      ],
+      "constraints": [
+        "Prueba de circuncírculo compara distancias/longitudes en mismo marco.",
+        "Puntos colineales/cocirculares requieren política de degeneración/desempate."
+      ],
+      "valid_domain": [
+        "Puntos finitos; triangulación en dimensión declarada."
+      ],
+      "boundary_conditions": [
+        "Menos de tres puntos en 2D no forma triángulo.",
+        "Triángulos de área cero se rechazan."
+      ],
+      "dimensional_checks": [
+        "Puntos y radios tienen L; índices discretos.",
+        "El criterio vacío de circuncírculo no mezcla unidades."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:4",
+      "name": "Voronoi dual",
+      "variables": [
+        {
+          "symbol": "p,s_i",
+          "meaning": "punto y sitios",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "d_i",
+          "meaning": "distancia a sitio",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativa"
+        },
+        {
+          "symbol": "cellId",
+          "meaning": "índice de celda",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "determinista"
+        }
+      ],
+      "constraints": [
+        "Comparaciones de distancias requieren misma métrica y unidad.",
+        "El dual Voronoi-Delaunay depende de la misma configuración de sitios."
+      ],
+      "valid_domain": [
+        "Sitios finitos; desempate determinista en equidistancia."
+      ],
+      "boundary_conditions": [
+        "Sitios coincidentes se fusionan o desempatan explícitamente.",
+        "Bordes del dominio se recortan o extienden."
+      ],
+      "dimensional_checks": [
+        "p,s_i,d_i tienen L; cellId discreto.",
+        "La relación de vecindad no introduce dimensión adicional."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:5",
+      "name": "Poisson disk sampling",
+      "variables": [
+        {
+          "symbol": "p_i,p_j",
+          "meaning": "muestras",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "r",
+          "meaning": "radio mínimo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "r>0"
+        },
+        {
+          "symbol": "d_ij",
+          "meaning": "distancia entre muestras",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d_ij≥r"
+        },
+        {
+          "symbol": "N",
+          "meaning": "cantidad de muestras",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero ≥0"
+        }
+      ],
+      "constraints": [
+        "La condición ‖p_i−p_j‖≥r compara longitudes homogéneas.",
+        "El dominio de muestreo y métrica (euclídea/geodésica) deben declararse."
+      ],
+      "valid_domain": [
+        "r>0; dominio acotado o criterio de terminación; N finito."
+      ],
+      "boundary_conditions": [
+        "Dominio menor que el radio puede producir conjunto vacío.",
+        "No poder añadir más muestras es condición de terminación, no error."
+      ],
+      "dimensional_checks": [
+        "p_i,p_j,d_ij,r tienen L; N es conteo.",
+        "La desigualdad es dimensionalmente consistente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:6",
+      "name": "Blue noise spectrum",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "posiciones de muestras",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "k",
+          "meaning": "frecuencia espacial",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "S(k)",
+          "meaning": "espectro de potencia",
+          "unit": "unidad de señal²·medida",
+          "dimension": "según normalización",
+          "domain": "finito"
+        },
+        {
+          "symbol": "r",
+          "meaning": "escala mínima",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positiva"
+        }
+      ],
+      "constraints": [
+        "La frecuencia espacial es inversa a longitud; productos k·p son adimensionales.",
+        "La energía espectral depende de normalización y dimensión del dominio; declarar PSD o espectro discreto."
+      ],
+      "valid_domain": [
+        "Muestras finitas; dominio y resolución definidos."
+      ],
+      "boundary_conditions": [
+        "En frecuencias fuera del Nyquist, no interpretar contenido no muestreado.",
+        "Con pocas muestras, estadística espectral es aproximada."
+      ],
+      "dimensional_checks": [
+        "k tiene L⁻¹ y p tiene L; k·p es adimensional.",
+        "S(k) requiere unidad según normalización elegida."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:7",
+      "name": "Hilbert curve",
+      "variables": [
+        {
+          "symbol": "index",
+          "meaning": "índice de curva",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango de resolución"
+        },
+        {
+          "symbol": "x,y,z",
+          "meaning": "coordenadas de celda",
+          "unit": "índices enteros",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dentro de rejilla"
+        },
+        {
+          "symbol": "N",
+          "meaning": "resolución por eje",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "potencia de 2 si implementación lo exige"
+        },
+        {
+          "symbol": "cellSize",
+          "meaning": "tamaño de celda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Mapeo índice↔celda opera sobre enteros; conversión a mundo multiplica por cellSize.",
+        "Dimensiones 2D/3D y orden de bits deben declararse."
+      ],
+      "valid_domain": [
+        "Resolución positiva; índice dentro de rango representable."
+      ],
+      "boundary_conditions": [
+        "Índice mínimo mapea origen de rejilla.",
+        "Índice fuera de rango se rechaza o envuelve según política."
+      ],
+      "dimensional_checks": [
+        "Índices son discretos; cellSize tiene L; coordenada mundo tiene L.",
+        "La curva no asigna longitud física al índice sin escala."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:8",
+      "name": "Space-filling Morton code",
+      "variables": [
+        {
+          "symbol": "x,y,z",
+          "meaning": "coordenadas de celda",
+          "unit": "enteros",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango de bits"
+        },
+        {
+          "symbol": "code",
+          "meaning": "código Morton",
+          "unit": "entero",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "sin overflow"
+        },
+        {
+          "symbol": "bits",
+          "meaning": "bits por eje",
+          "unit": "conteo",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "entero positivo"
+        },
+        {
+          "symbol": "cellSize",
+          "meaning": "tamaño de celda",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": ">0"
+        }
+      ],
+      "constraints": [
+        "Intercalar bits es operación discreta; no suma magnitudes geométricas.",
+        "Capacidad de código debe cubrir bits de cada coordenada sin truncamiento."
+      ],
+      "valid_domain": [
+        "Coordenadas enteras no negativas dentro de rango."
+      ],
+      "boundary_conditions": [
+        "Coordenada cero produce bloque de bits cero.",
+        "Overflow debe detectarse y no truncar silenciosamente."
+      ],
+      "dimensional_checks": [
+        "code y coordenadas son índices discretos; cellSize tiene L.",
+        "Posición mundo se obtiene multiplicando índice por cellSize."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:9",
+      "name": "Signed distance blending",
+      "variables": [
+        {
+          "symbol": "a,b",
+          "meaning": "campos SDF",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos"
+        },
+        {
+          "symbol": "k",
+          "meaning": "suavizado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "k>0"
+        },
+        {
+          "symbol": "h",
+          "meaning": "factor intermedio",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "[0,1]"
+        },
+        {
+          "symbol": "d",
+          "meaning": "SDF combinado",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        }
+      ],
+      "constraints": [
+        "|a−b|/k es adimensional; h es adimensional; término h²k tiene L.",
+        "La unión suave modifica el campo y no conserva distancia exacta en toda región."
+      ],
+      "valid_domain": [
+        "a,b finitos; k>0 para smooth-min; k=0 usar min duro."
+      ],
+      "boundary_conditions": [
+        "k→0 debe converger a min(a,b).",
+        "Gradiente nulo requiere normal alternativa."
+      ],
+      "dimensional_checks": [
+        "a,b,k,d tienen L; h adimensional.",
+        "d=min(a,b)−h²k/4 conserva L."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:10",
+      "name": "Medial axis",
+      "variables": [
+        {
+          "symbol": "p",
+          "meaning": "punto del esqueleto",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "b1,b2",
+          "meaning": "puntos más cercanos de frontera",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitos y distintos"
+        },
+        {
+          "symbol": "d",
+          "meaning": "distancia a frontera",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "d≥0"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "tolerancia",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "Equidistancia a múltiples puntos de frontera compara distancias de longitud.",
+        "El eje medial depende de la geometría y tolerancia; ruido de frontera puede alterar topología."
+      ],
+      "valid_domain": [
+        "Frontera cerrada y muestreable; distancias definidas."
+      ],
+      "boundary_conditions": [
+        "En esquinas/singularidades pueden existir múltiples ramas.",
+        "Si frontera degenerada, eje medial no definido."
+      ],
+      "dimensional_checks": [
+        "p,b1,b2,d,ε tienen L.",
+        "La condición de múltiples puntos más cercanos es geométrica y homogénea."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:11",
+      "name": "Differential geometry curvature",
+      "variables": [
+        {
+          "symbol": "r(s)",
+          "meaning": "curva parametrizada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "dos veces diferenciable"
+        },
+        {
+          "symbol": "s",
+          "meaning": "parámetro arco",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "regular"
+        },
+        {
+          "symbol": "κ",
+          "meaning": "curvatura",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "κ=|r'×r''|/|r'|³ asume derivadas respecto del parámetro declarado; si s es arco, simplifica.",
+        "r' no puede ser cero; derivadas deben usar la misma unidad de s."
+      ],
+      "valid_domain": [
+        "Curva regular; derivadas finitas."
+      ],
+      "boundary_conditions": [
+        "Recta produce κ=0.",
+        "Tangente nula invalida fórmula."
+      ],
+      "dimensional_checks": [
+        "Para parámetro arco, r' adimensional y r'' L⁻¹; κ tiene L⁻¹.",
+        "Si parámetro es adimensional, fórmula requiere escala de parámetro coherente."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:12",
+      "name": "Surface mean curvature",
+      "variables": [
+        {
+          "symbol": "κ1,κ2",
+          "meaning": "curvaturas principales",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "H",
+          "meaning": "curvatura media",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "n",
+          "meaning": "normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        }
+      ],
+      "constraints": [
+        "H=(κ1+κ2)/2 suma curvaturas de misma superficie/unidad.",
+        "Convención de signo/orientación de normal debe declararse."
+      ],
+      "valid_domain": [
+        "Superficie dos veces diferenciable; curvaturas finitas."
+      ],
+      "boundary_conditions": [
+        "Plano produce H=0.",
+        "Puntos singulares/filos requieren tratamiento."
+      ],
+      "dimensional_checks": [
+        "κ1,κ2,H tienen L⁻¹; normal adimensional.",
+        "La media conserva dimensión de curvatura."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:13",
+      "name": "Gaussian curvature",
+      "variables": [
+        {
+          "symbol": "κ1,κ2",
+          "meaning": "curvaturas principales",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "K",
+          "meaning": "curvatura gaussiana",
+          "unit": "m⁻²",
+          "dimension": {
+            "L": -2,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "n",
+          "meaning": "normal",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria"
+        }
+      ],
+      "constraints": [
+        "K=κ1κ2 tiene L⁻².",
+        "Curvaturas deben evaluarse en misma escala geométrica y convención."
+      ],
+      "valid_domain": [
+        "Superficie regular; curvaturas finitas."
+      ],
+      "boundary_conditions": [
+        "Plano/cilindro ideal tiene K=0.",
+        "Singularidades de malla requieren estimador estable."
+      ],
+      "dimensional_checks": [
+        "κ1 y κ2 tienen L⁻¹; producto tiene L⁻².",
+        "K no es curvatura lineal."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:14",
+      "name": "Laplacian mesh smoothing",
+      "variables": [
+        {
+          "symbol": "p_i",
+          "meaning": "posición de vértice",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        },
+        {
+          "symbol": "meanNeighbors",
+          "meaning": "promedio vecinos",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "factor de suavizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "rango estable declarado"
+        },
+        {
+          "symbol": "p'_i",
+          "meaning": "posición actualizada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finita"
+        }
+      ],
+      "constraints": [
+        "meanNeighbors−p_i tiene L; λ adimensional.",
+        "La estabilidad/topología depende de pesos de vecindad y paso; cotan weights requieren normalización declarada."
+      ],
+      "valid_domain": [
+        "Malla finita; vecindad no vacía o fallback."
+      ],
+      "boundary_conditions": [
+        "λ=0 conserva malla.",
+        "Vértice aislado no se actualiza."
+      ],
+      "dimensional_checks": [
+        "Diferencia de posiciones tiene L; p' conserva L.",
+        "λ no cambia dimensión."
+      ],
+      "status": "REVIEWED_POINT1"
+    },
+    {
+      "record_key": "D28:15",
+      "name": "Laplacian deformation",
+      "variables": [
+        {
+          "symbol": "p,p'",
+          "meaning": "posiciones original/deformada",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finitas"
+        },
+        {
+          "symbol": "L_op",
+          "meaning": "operador Laplaciano",
+          "unit": "adimensional o m⁻²",
+          "dimension": "según combinatorio/cotan",
+          "domain": "definido"
+        },
+        {
+          "symbol": "constraints",
+          "meaning": "posiciones fijadas",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "consistentes"
+        },
+        {
+          "symbol": "ε",
+          "meaning": "tolerancia solver",
+          "unit": "unidad residual",
+          "dimension": "según operador",
+          "domain": "≥0"
+        }
+      ],
+      "constraints": [
+        "L(p')=L(p) requiere misma definición de Laplaciano y escala en ambos lados.",
+        "L_op combinatorio es adimensional; Laplaciano cotan puede tener escala L⁻² según normalización. No mezclar sin declarar."
+      ],
+      "valid_domain": [
+        "Malla no degenerada; restricciones suficientes para fijar modos rígidos."
+      ],
+      "boundary_conditions": [
+        "Sin restricciones, solución puede no ser única.",
+        "Sistema singular debe detectarse."
+      ],
+      "dimensional_checks": [
+        "Si L_op es combinatorio, salida tiene L; si cotan, residual puede tener L⁻¹ o L⁻² según operador.",
+        "La dimensión exacta del residual depende de normalización de L_op."
+      ],
+      "status": "CONDITIONAL_POINT1_LAPLACIAN_NORMALIZATION_REQUIRED"
+    }
+  ],
+  "validation": {
+    "structural_checks": [
+      "16/16 técnicas incluidas",
+      "Cada técnica contiene variables, restricciones, dominio, condiciones límite y comprobaciones dimensionales",
+      "D28:15 queda condicional hasta fijar la normalización del operador Laplaciano"
+    ],
+    "limitations": [
+      "El operador Laplaciano puede ser combinatorio o cotangente con unidades distintas; la ficha no fija la normalización."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
