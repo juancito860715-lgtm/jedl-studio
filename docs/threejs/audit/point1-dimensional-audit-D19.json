@@ -94,19 +94,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "La escala geométrica no determina por sí sola exposición ni profundidad de campo; declarar distancia focal, sensor, apertura y distancia de enfoque con unidades coherentes.",
+        "La radiancia de escena y la exposición deben transformarse antes de tone mapping; roughness pertenece al material y no es una longitud."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Escena, cámara e iluminación físicamente plausibles; exposición finita y material dentro del dominio del BRDF elegido."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "Apertura→0 implica profundidad de campo idealmente nula; exposición EV=0 implica multiplicador 1; roughness mínima requiere regularización del lóbulo especular."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "EV es logarítmico adimensional; radiancia calibrada usa W·m⁻²·sr⁻¹; escala y distancias tienen L; roughness es adimensional.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -178,19 +176,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "La microamplitud y wavelength son longitudes; frecuencia espacial debe ser recíproca de longitud; microdetalle debe estar por debajo o dentro de la resolución de muestreo.",
+        "Evitar frecuencias sobre Nyquist de textura/pantalla; roughness y amplitud no son intercambiables."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Frecuencias positivas, muestras finitas y amplitudes acotadas por escala del objeto."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "Amplitud microgeométrica cero elimina desplazamiento; frecuencia cero deja de representar detalle periódico."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "frequency·wavelength es adimensional; microAmplitude y wavelength tienen L; roughness es adimensional.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -262,19 +258,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Los pesos de spline deben sumar 1 si la curva es una combinación convexa; puntos de control comparten marco y unidad.",
+        "Tiempo debe mapearse a parámetro u mediante duración declarada; no sumar segundos a u normalizado."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "u∈[0,1], duración positiva, puntos y tangentes finitos."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "u=0 y u=1 corresponden a extremos; duración cero se rechaza; continuidad C0/C1 se declara según transición."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "P_i tiene L; u y pesos son adimensionales; t tiene T y el mapeo u=t/duración es adimensional.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -338,19 +332,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "El contorno se mide en píxeles de salida o se convierte desde unidades de mundo mediante cámara; no mezclar ambas escalas.",
+        "Bandas de sombreado requieren umbrales ordenados en el dominio de N·L; pose 3D y lineart 2D deben compartir cámara/proyección."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Resolución positiva, bandas enteras ≥2, normal unitaria y umbrales ordenados."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "Ancho de contorno cero elimina línea; N·L fuera del rango se satura al dominio definido; silueta de borde debe tener regla de desempate."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "N·L y umbrales son adimensionales; outlineWidth es raster px; fps tiene T⁻¹.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -422,19 +414,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Los umbrales de cuantización deben ser monótonos y corresponder a la misma escala de iluminación; rimPower es exponente adimensional.",
+        "La normal y la dirección de luz deben normalizarse antes del producto escalar."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Normal y luz unitarias; bands entero ≥2; rimPower positivo; thresholds ordenados."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "N·L≤0 y ≥1 deben asignarse a bandas extremas según convención; bandas=1 queda fuera del dominio declarado."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "N·L, thresholds y rimPower son adimensionales; bandas es conteo discreto.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -506,19 +496,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Las escalas XYZ son factores sin unidad; la pose es posición con longitud; la interpolación ease es peso adimensional.",
+        "La interpolación debe operar entre poses en el mismo marco y usar el mismo tiempo de referencia."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Factores de escala positivos; pesos ease en [0,1]; poses y tiempos finitos."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "ease=0 conserva pose inicial; ease=1 alcanza pose final; factor de escala 1 es identidad."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "La interpolación ponderada de posiciones conserva L; ease y escala son adimensionales; tiempo tiene T.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -590,19 +578,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "La longitud de arista y las coordenadas comparten unidad; normales se recalculan tras cambios topológicos; paleta se indexa discretamente.",
+        "No permitir caras degeneradas ni índices de paleta fuera de rango."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "edgeLength>0, faceCount entero positivo, normal unitaria y paletteIndex válido."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "FaceCount=0 produce malla vacía; triángulos de área cero se descartan o reparan explícitamente."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "edgeLength tiene L; normal y color normalizado son adimensionales; conteos e índices son discretos.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -674,19 +660,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "El nivel de subdivisión incrementa topología; declarar esquema y reglas de borde; desplazamiento se aplica en unidad de escena.",
+        "Curvatura debe calcularse en geometría con unidades métricas y no confundirse con roughness de material."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Nivel entero ≥0, malla manifold si el esquema lo requiere, desplazamiento y curvatura finitos."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "Nivel 0 conserva malla base; desplazamiento 0 conserva superficie; bordes abiertos siguen regla de crease/boundary."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "Curvature tiene L⁻¹; displacement y coordenadas tienen L; conteos son discretos.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -758,19 +742,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "La cadencia fps define cuantización temporal; frameIndex=floor(t·fps) y jitter debe estar acotado respecto de escala del objeto.",
+        "Jitter espacial y angular se declaran por separado; no sumar grados a metros."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "fps>0; t≥0; jitter finito; frameIndex entero no negativo."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "t=0 selecciona primer frame; jitter=0 produce animación sin perturbación; último frame usa política de cierre declarada."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "t·fps es adimensional; jitter tiene L; fps tiene T⁻¹; frameIndex es discreto.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -842,19 +824,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "El SDF y el ancho de huella comparten unidad de longitud; suavizado SDF k debe tener L; roughness es parámetro de material separado.",
+        "La deformación de arcilla no puede sumar campos normalizados directamente a distancias sin amplitud dimensional."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "k≥0, SDF finito, fingerprintAmplitude acotada y roughness∈[0,1]."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "k=0 desactiva unión suave; huella de amplitud cero elimina relieve; gradiente SDF nulo requiere normal alternativa."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "d, k y fingerprintAmplitude tienen L; roughness es adimensional.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -926,19 +906,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Difusión D usa L²/T solo si pigmento/agua se modelan en coordenadas físicas; en UV/píxeles hay que convertir el coeficiente.",
+        "Concentración de pigmento y cantidad de agua deben tener definición de estado y límites; la difusión conserva masa bajo borde no-flujo."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "D≥0; concentración no negativa; paso temporal y espaciamiento positivos; solver estable según Δt/Δx²."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "D=0 congela difusión; borde no-flujo conserva masa; concentración no puede hacerse negativa."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "D·t tiene L²; para PDE, D·t/Δx² es adimensional; pigmento normalizado es adimensional.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1002,19 +980,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Ancho de pincel en píxeles es distinto de altura física de impasto; dirección debe ser vector unitario en el plano de trazo.",
+        "La acumulación de impasto se mide en L y requiere una escala física o conversión explícita desde raster."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "strokeWidth>0 px; impastoHeight≥0; roughness∈[0,1]; dirección unitaria."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "impastoHeight=0 produce trazo sin relieve; strokeWidth=0 se rechaza; solapes deben tener regla de composición."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "strokeWidth pertenece a raster; impastoHeight tiene L; dirección y roughness son adimensionales.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1078,19 +1054,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Ancho de línea en píxeles depende de resolución; coordenadas geométricas en metros deben proyectarse antes de rasterizar.",
+        "Paleta es un conjunto discreto; alpha mezcla señales en el mismo espacio de color y con premultiplicación declarada."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "lineWidth>0 px; paletteSize entero ≥1; alpha∈[0,1]; coordenadas finitas."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "alpha=0 es transparente; paletteSize=1 limita a un solo color; recorte de formas en borde de lienzo declarado."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "P tiene L; lineWidth es raster px; paletteSize es conteo; alpha es adimensional.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1146,19 +1120,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Umbral de profundidad requiere profundidad lineal en unidades de cámara; hatchSpacing y lineWidth son unidades raster independientes.",
+        "Luminancia debe calcularse en espacio lineal; la trama se orienta con la superficie o con la pantalla según convención."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Depth finito positivo; hatchSpacing y lineWidth positivos; luminancia finita y rango definido."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "Sin discontinuidad de profundidad no se genera línea de contorno; umbral cero requiere política explícita; bordes del viewport se recortan."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "depthThreshold tiene L; spacing/width son px; luminancia relativa es adimensional.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1214,19 +1186,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Resolución virtual y pixelCell son enteros raster; el escalado debe ser entero o declarar filtrado no entero.",
+        "La geometría 3D se cuantiza después de proyección; fps gobierna muestreo temporal, no tamaño de píxel."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Resolución y pixelCell positivos; pixelCell divide resolución o regla de resto declarada; fps>0."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "pixelCell=1 conserva máxima resolución virtual; resolución inválida se rechaza; letterbox/crop de relación de aspecto definido."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "px es unidad raster discreta; fps tiene T⁻¹; paleta es conteo discreto.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1298,19 +1268,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "voxelSize define escala física; índices i,j,k son enteros y posiciones se obtienen multiplicando por voxelSize.",
+        "Ocupación booleana y materialId son atributos discretos; no tratarlos como magnitudes continuas."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "voxelSize>0; índices enteros dentro de bounds; materialId existe en tabla."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "Ocupación false omite celda; tamaño cero se rechaza; límite de grid define vecinos ausentes."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "voxelSize y posición tienen L; índices y materialId son discretos; occupancy es booleano.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1374,19 +1342,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Coeficiente de extinción fogExtinction tiene L⁻¹ y se combina con distancia para formar opticalDepth adimensional.",
+        "La luz debe declarar si es radiométrica o fotométrica; saturación pertenece a señal de color y no a potencia física."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Extinción≥0; escala positiva; luz finita no negativa; rango de saturación definido."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "Extinción cero elimina atenuación; distancia cero da transmitancia 1; señal fuera de gamut se mapea según política."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "fogExtinction·distance es adimensional; scale tiene L; luminancia/intensidad requiere unidad física declarada.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1458,19 +1424,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Módulo y junta comparten L; conteo de paneles es discreto; emisión debe distinguirse como radiancia calibrada o señal HDR relativa.",
+        "No sumar seamWidth a un índice de panel; la emisión se transforma a espacio de color de salida."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "moduleSize>0; seamWidth≥0 y menor que dimensión mínima; panelCount entero ≥0; emisión finita."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "seamWidth=0 elimina junta; panelCount=0 no genera paneles; módulo de tamaño cero se rechaza."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "moduleSize/seamWidth tienen L; panelCount discreto; emisión radiométrica o relativa declarada.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1542,19 +1506,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "strain es razón ΔL/L adimensional; stiffness N/m solo aplica a respuesta lineal fuerza-desplazamiento; radio y ramas usan geometría L.",
+        "No inferir material biológico real desde estética; declarar si rigidez es parámetro visual o mecánico."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "tubeRadius>0; ángulos finitos; strain dentro de rango constitutivo; stiffness≥0."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "strain=0 implica deformación nula; rigidez cero implica ausencia de restitución elástica en modelo simplificado."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "strain es adimensional; stiffness tiene M·T⁻²; radio tiene L; ángulo rad es adimensional.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1618,19 +1580,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "La transformación afín separa matriz lineal adimensional y traslación con L; scaleRatio debe ser positivo.",
+        "La composición puede ser deliberadamente no física, pero las operaciones deben respetar tipos y marcos."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "P finita; scaleRatio>0; matriz invertible si se requiere mapeo inverso; tiempo finito."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "scaleRatio=1 es identidad de escala; traslación cero no desplaza; singularidad de matriz requiere fallback."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "P y traslación tienen L; scaleRatio y bloque lineal son adimensionales; t tiene T.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1702,19 +1662,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "La coordenada fractal p debe normalizarse con una escala L o multiplicarse por frecuencia L⁻¹ antes de iterar; escapeRadius se aplica en el espacio de estado elegido.",
+        "IterationCount es presupuesto discreto; distinguir fractal en coordenadas físicas de fractal complejo normalizado."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "Iteraciones enteras ≥0; frecuencia positiva; escapeRadius>1 si se usa criterio de escape clásico."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "Iteraciones=0 devuelve estado inicial; frecuencia cero desactiva detalle espacial; radio de escape se compara con norma del mismo espacio."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "frequency·p es adimensional; escapeRadius y estado complejo normalizado son adimensionales; conteo discreto.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1786,19 +1744,17 @@
         }
       ],
       "constraints": [
-        "Cada variable conserva el tipo, dimensión y unidad definidos; solo se combinan magnitudes homogéneas.",
-        "Distinguir espacio físico, UV normalizada, raster, color y parámetros discretos; cualquier conversión debe declararse."
+        "Campo de velocidad requiere integración temporal para producir desplazamiento; no sumar V directamente a posición.",
+        "Partículas usan estados homogéneos y Δt común; presupuesto de partículas es entero."
       ],
       "valid_domain": [
-        "Parámetros finitos y dentro de rangos; escalas y denominadores positivos cuando correspondan.",
-        "La receta debe identificar el espacio de operación y el rango de señal."
+        "V y x finitos; Δt≥0; número de partículas entero ≥0; integrador y condiciones iniciales declarados."
       ],
       "boundary_conditions": [
-        "Amplitud/intensidad nula produce el efecto neutro correspondiente.",
-        "En bordes, singularidades, límites de escala o costuras se aplica continuidad, clamp o fallback explícito."
+        "N_particles=0 produce sistema vacío; V=0 conserva posición; Δt=0 no actualiza estado."
       ],
       "dimensional_checks": [
-        "Longitudes geométricas tienen L; factores normalizados y conteos son adimensionales/discretos.",
+        "V·t tiene L y puede sumarse a x; V tiene L/T; tiempo T; conteo discreto.",
         "Tiempo, frecuencia, píxeles, color y radiometría conservan unidades/tipos propios.",
         "Argumentos de exp, log, sin, cos y funciones de ruido trigonométrico deben ser adimensionales; la salida mantiene su tipo."
       ],
@@ -1809,10 +1765,11 @@
     "structural_checks": [
       "22/22 recetas STYLE-CODE-01 a STYLE-CODE-22 incluidas",
       "Cada receta tiene variables, restricciones, dominio, condiciones límite y verificaciones dimensionales",
-      "Se distingue el atlas explícito de 22 recetas de las 13 etiquetas resumen del dominio D19"
+      "Se distingue el atlas explícito de 22 recetas de las 13 etiquetas resumen del dominio D19",
+      "Las 22 recetas cuentan ahora con restricciones, dominios, límites y comprobaciones dimensionales específicas por técnica; se sustituyeron los textos genéricos repetidos."
     ],
     "limitations": [
-      "La revisión dimensional no valida visualmente resultados ni convierte una dirección artística en ley física; derivaciones y algoritmos se tratan en puntos posteriores."
+      "Las recetas son especificaciones artísticas; se tipan sus parámetros y operaciones sin atribuirles leyes físicas universales. Las fórmulas/algoritmos completos se desarrollan en puntos posteriores."
     ]
   },
   "integrity": {
