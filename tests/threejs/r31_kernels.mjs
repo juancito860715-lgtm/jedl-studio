@@ -40,6 +40,16 @@ export function spatialCell(position,origin,cellSize) {
 export function structureTensorOrientation(jxx,jxy,jyy) {
   return 0.5*Math.atan2(2*jxy,jxx-jyy);
 }
+export function structureTensorFeatures(jxx,jxy,jyy,epsilon=1e-12) {
+  if([jxx,jxy,jyy,epsilon].some(v=>!Number.isFinite(v))||epsilon<=0)throw new RangeError("finite tensor entries and positive epsilon required");
+  if(jxx<0||jyy<0||jxx*jyy-jxy*jxy < -1e-10)throw new RangeError("structure tensor must be positive semidefinite");
+  const trace=jxx+jyy,gap=Math.hypot(jxx-jyy,2*jxy);
+  const lmax=Math.max(0,(trace+gap)/2),lmin=Math.max(0,(trace-gap)/2);
+  const grad=gap<=1e-15?0:.5*Math.atan2(2*jxy,jxx-jyy);
+  const tangent=(grad+Math.PI/2)%Math.PI;
+  const coherence=(lmax-lmin)/(lmax+lmin+epsilon);
+  return [lmax,lmin,grad,tangent,coherence];
+}
 export function dualQuaternionNormalize(qr,qd) {
   const norm=Math.hypot(...qr);
   if (norm===0) throw new RangeError("real quaternion cannot be zero");
