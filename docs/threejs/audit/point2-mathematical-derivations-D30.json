@@ -45,6 +45,10 @@
       "result": "The acoustic wave equation derives from linearized momentum, continuity and compressibility.",
       "limits": [
         "Linear acoustics omits nonlinear high-amplitude effects and boundaries."
+      ],
+      "dimensional_verification": [
+        "p tiene Pa; ρ0 kg/m³; u m/s; c m/s.",
+        "∇²p y (1/c²)∂²p/∂t² tienen Pa/m²."
       ]
     },
     {
@@ -76,6 +80,10 @@
       "result": "Inverse-square attenuation derives from conservation of power over a sphere.",
       "limits": [
         "Reflections, absorption and directivity alter the law."
+      ],
+      "dimensional_verification": [
+        "P tiene W; r² m²; I tiene W/m².",
+        "4π es adimensional; la ley supone fuente puntual isotrópica."
       ]
     },
     {
@@ -112,6 +120,10 @@
       "result": "Doppler shift derives from change in observed wavefront period due to relative motion.",
       "limits": [
         "Formula changes sign according to source/receiver direction; velocities are subsonic in this model."
+      ],
+      "dimensional_verification": [
+        "f y f' tienen Hz=T⁻¹; c,v_listener,v_source tienen L/T.",
+        "Los cocientes de velocidades son adimensionales; periodo T tiene s."
       ]
     },
     {
@@ -143,11 +155,16 @@
         }
       ],
       "assumptions": [
-        "Room approximated linear time-invariant over measurement; same position/orientation."
+        "Room approximated linear time-invariant over measurement; same position/orientation.",
+        "Para convolución continua, h_room tiene unidad inversa de tiempo cuando la transferencia global es adimensional; en tiempo discreto los coeficientes se normalizan según convención."
       ],
       "result": "Room response is convolution because a linear time-invariant acoustic space superposes delayed responses.",
       "limits": [
         "Room changes over time or moving sources require time-varying convolution."
+      ],
+      "dimensional_verification": [
+        "x,y tienen unidad de señal; h_room(t) tiene T⁻¹ para convolución continua con ganancia adimensional.",
+        "En frecuencia, H_room es adimensional si salida/entrada comparten unidad; y conserva unidad de x."
       ]
     },
     {
@@ -179,11 +196,16 @@
         }
       ],
       "assumptions": [
-        "Diffuse late field; volume and equivalent absorption area in SI."
+        "Diffuse late field; volume and equivalent absorption area in SI.",
+        "La constante 0.161 se expresa en s/m para V en m³ y A en m²."
       ],
       "result": "Schroeder/Sabine reverberation estimates derive from exponential energy decay and equivalent absorption.",
       "limits": [
         "Sabine is approximate and assumes sufficiently diffuse field; Eyring may be better at high absorption."
+      ],
+      "dimensional_verification": [
+        "V tiene m³; A absorción equivalente m²; V/A tiene m.",
+        "Constante Sabine 0.161 tiene s/m; RT60 queda en segundos."
       ]
     },
     {
@@ -215,11 +237,16 @@
         }
       ],
       "assumptions": [
-        "HRTF calibrated for listener/head; direction and sample rate known."
+        "HRTF calibrated for listener/head; direction and sample rate known.",
+        "ITD se mide en segundos; ILD se calcula con cociente de magnitudes adimensional antes del logaritmo."
       ],
       "result": "HRTF spatialization derives from filtering each ear with direction-dependent transfer functions.",
       "limits": [
         "HRTF varies by listener; generic HRTF may not localize accurately."
+      ],
+      "dimensional_verification": [
+        "ITD=τ_L−τ_R tiene s; ILD es dB de razón adimensional.",
+        "HRTF es transferencia presión/salida sobre entrada; convolución conserva la unidad de la señal."
       ]
     },
     {
@@ -256,6 +283,10 @@
       "result": "Ambisonics encodes a soundfield as coefficients in a spherical harmonic basis.",
       "limits": [
         "Low SH order cannot represent sharp directional features."
+      ],
+      "dimensional_verification": [
+        "Y_lm y medida angular son adimensionales en SI; a_lm conserva unidad de S.",
+        "La suma SH reconstruye el mismo tipo/unidad de campo sonoro S."
       ]
     },
     {
@@ -292,6 +323,10 @@
       "result": "Equal-power crossfade derives from trigonometric gains whose squared sum is one.",
       "limits": [
         "Equal power does not guarantee constant perceived loudness for correlated signals."
+      ],
+      "dimensional_verification": [
+        "u, g_A y g_B son adimensionales; x_A,x_B,y comparten unidad de señal.",
+        "La potencia media constante requiere señales no correlacionadas o hipótesis estadísticas equivalentes."
       ]
     },
     {
@@ -328,6 +363,10 @@
       "result": "A first-order low-pass derives from a one-pole recursive filter and exponential coefficient.",
       "limits": [
         "One-pole filter is not brick-wall; coefficient approximation depends on discretization."
+      ],
+      "dimensional_verification": [
+        "f_c y f_s tienen T⁻¹; f_c/f_s y α son adimensionales.",
+        "x[n], y[n] conservan unidad de señal."
       ]
     },
     {
@@ -364,17 +403,24 @@
       "result": "Envelope follower derives from discrete exponential smoothing with separate attack/release constants.",
       "limits": [
         "Envelope smoothing is an amplitude follower, not a full loudness/perceptual model."
+      ],
+      "dimensional_verification": [
+        "τ_attack y τ_release tienen T; f_s T⁻¹; 1/(τ f_s) es adimensional.",
+        "a y env smoothing son adimensionales; env conserva unidad de |x|."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "10/10 técnicas cubiertas.",
-      "Cada derivación contiene pasos, supuestos y límites.",
-      "Se distinguen acústica continua, filtros discretos, convolución y representación esférica."
+      "10/10 técnicas D30 cubiertas; ninguna protegida",
+      "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
+      "Wave equation, inverse square y Doppler conservan unidades acústicas",
+      "RIR/HRTF distinguen convolución continua de discreta y tipan impulso",
+      "Sabine produce RT60 en segundos con constante SI",
+      "Ambisonics, crossfade, filtros y envelope follower mantienen escalas de señal coherentes"
     ],
     "limitations": [
-      "Las fórmulas describen modelos ideales; calibración de HRTF, acústica de recinto y percepción se validan aparte."
+      "Los modelos son acústicos idealizados; respuesta real de sala, HRTF individual, absorción dependiente de frecuencia y percepción de loudness requieren calibración y pruebas."
     ]
   },
   "integrity": {
