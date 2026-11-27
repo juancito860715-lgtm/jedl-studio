@@ -359,8 +359,8 @@
       "name": "XPBD: restricciones con compliance",
       "variables": [
         {
-          "symbol": "x_i",
-          "meaning": "posición de partícula",
+          "symbol": "C",
+          "meaning": "distance constraint",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -370,14 +370,13 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m",
-          "domain": "finite values in stated coordinate space"
+          "unit": "m"
         },
         {
-          "symbol": "C",
-          "meaning": "restricción de distancia",
+          "symbol": "grad C",
+          "meaning": "gradient with respect to position",
           "dimension": {
-            "L": 1,
+            "L": 0,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -385,12 +384,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m",
-          "domain": "finite values in stated coordinate space"
+          "unit": "dimensionless"
         },
         {
           "symbol": "w_i",
-          "meaning": "masa inversa",
+          "meaning": "inverse mass",
           "dimension": {
             "L": 0,
             "M": -1,
@@ -400,27 +398,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "kg^-1",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "dt",
-          "meaning": "paso temporal",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 1,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "s",
-          "domain": "finite values in stated coordinate space"
+          "unit": "kg^-1"
         },
         {
           "symbol": "alpha",
-          "meaning": "compliance para C con dimensión de longitud",
+          "meaning": "compliance for distance constraint",
           "dimension": {
             "L": 0,
             "M": -1,
@@ -430,12 +412,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "s^2/kg",
-          "domain": "finite values in stated coordinate space"
+          "unit": "s^2/kg"
         },
         {
           "symbol": "alpha_tilde",
-          "meaning": "compliance escalada",
+          "meaning": "alpha/dt^2",
           "dimension": {
             "L": 0,
             "M": -1,
@@ -445,12 +426,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "kg^-1",
-          "domain": "finite values in stated coordinate space"
+          "unit": "kg^-1"
         },
         {
           "symbol": "lambda",
-          "meaning": "multiplicador XPBD para restricción C de longitud",
+          "meaning": "accumulated XPBD multiplier",
           "dimension": {
             "L": 1,
             "M": 1,
@@ -460,12 +440,27 @@
             "N": 0,
             "J": 0
           },
-          "unit": "kg m",
-          "domain": "finite values in stated coordinate space"
+          "unit": "kg*m"
+        },
+        {
+          "symbol": "dt",
+          "meaning": "time step",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s"
         }
       ],
       "dimensional_findings": [
-        "La tabla de dimensiones asume C(x) con unidad de longitud. Para restricciones angulares/dimensionless cambian las unidades de alpha y lambda; la ficha debe parametrizar la dimensión de C."
+        "For C measured in metres, grad C is dimensionless; Σw_i|grad_i C|² and alpha_tilde both have kg^-1.",
+        "Energy U=1/2 C²/alpha requires alpha in s²/kg. Lambda has kg*m so alpha_tilde*lambda has metres and dx_i=w_i grad_i C dlambda has metres.",
+        "These dimensions are specific to distance constraints; any other C dimension requires recomputing alpha and lambda dimensions."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
@@ -563,8 +558,8 @@
       "name": "Modelo de dispersión microfacet para cabello",
       "variables": [
         {
-          "symbol": "omega_i",
-          "meaning": "dirección incidente unitaria",
+          "symbol": "wi,wo,wh,wm",
+          "meaning": "unit directions in fiber frame",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -574,12 +569,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless unit vector",
-          "domain": "finite values in stated coordinate space"
+          "unit": "dimensionless"
         },
         {
-          "symbol": "omega_o",
-          "meaning": "dirección saliente unitaria",
+          "symbol": "D",
+          "meaning": "microfacet normal distribution",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -589,12 +583,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless unit vector",
-          "domain": "finite values in stated coordinate space"
+          "unit": "sr^-1 under solid-angle convention"
         },
         {
-          "symbol": "alpha",
-          "meaning": "rugosidad GGX",
+          "symbol": "G,R",
+          "meaning": "Smith masking and Fresnel reflectance",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -604,12 +597,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless, positive",
-          "domain": "finite values in stated coordinate space"
+          "unit": "dimensionless"
         },
         {
-          "symbol": "tilt",
-          "meaning": "inclinación de cutícula",
+          "symbol": "beta,alpha",
+          "meaning": "GGX roughness and cuticle tilt",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -619,14 +611,13 @@
             "N": 0,
             "J": 0
           },
-          "unit": "rad",
-          "domain": "finite values in stated coordinate space"
+          "unit": "dimensionless; radians for alpha"
         },
         {
-          "symbol": "radius",
-          "meaning": "radio de fibra",
+          "symbol": "sigma_a",
+          "meaning": "pigment absorption coefficient",
           "dimension": {
-            "L": 1,
+            "L": -1,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -634,14 +625,14 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m",
-          "domain": "finite values in stated coordinate space"
+          "unit": "m^-1"
         }
       ],
       "dimensional_findings": [
-        "La ficha actual no define una BCSDF completa ni la convención dimensional de sus lóbulos; esta tabla solo documenta variables geométricas y GGX alpha."
+        "The NDF, angular variables, dot products, roughness and Fresnel/Smith terms are dimensionless; sigma_a times internal path length must be dimensionless.",
+        "Eq. (12) is a fiber BCSDF, not a planar BRDF; its complete units follow the paper's curve-scattering convention and must not be relabeled as an ordinary BRDF."
       ],
-      "status": "INCOMPLETE_ORIGINAL_FORMULA_DIMENSION_MISMATCH_OR_UNDER_SPECIFIED",
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
     },
     {
@@ -752,8 +743,8 @@
       "name": "Kuwahara anisotrópico multiescala",
       "variables": [
         {
-          "symbol": "C",
-          "meaning": "color lineal muestreado",
+          "symbol": "f",
+          "meaning": "RGB input sample",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -763,14 +754,13 @@
             "N": 0,
             "J": 0
           },
-          "unit": "linear RGB (dimensionless after normalized encoding, otherwise radiometric units)",
-          "domain": "finite values in stated coordinate space"
+          "unit": "8-bit code values 0..255"
         },
         {
-          "symbol": "mu_k",
-          "meaning": "media del sector",
+          "symbol": "sigma_s,sigma_r",
+          "meaning": "spatial Gaussian scales",
           "dimension": {
-            "L": 0,
+            "L": 1,
             "M": 0,
             "T": 0,
             "I": 0,
@@ -778,12 +768,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "same unit as C",
-          "domain": "finite values in stated coordinate space"
+          "unit": "pixels"
         },
         {
-          "symbol": "variance_k",
-          "meaning": "varianza del sector",
+          "symbol": "A,alpha,q",
+          "meaning": "anisotropy and tuning parameters",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -793,12 +782,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "unit(C)^2",
-          "domain": "finite values in stated coordinate space"
+          "unit": "dimensionless"
         },
         {
-          "symbol": "w_k",
-          "meaning": "peso normalizado del sector",
+          "symbol": "m_i,s_i",
+          "meaning": "weighted sector mean and standard deviation",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -808,29 +796,14 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "r",
-          "meaning": "radio/escala del filtro",
-          "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "pixel",
-          "domain": "finite values in stated coordinate space"
+          "unit": "RGB code values"
         }
       ],
       "dimensional_findings": [
-        "La varianza debe usar el cuadrado de la unidad del espacio de color. La función de peso y combinación de escalas aún no están especificadas."
+        "The publication states integer RGB values, e.g. 0..255; q=8 weights are calibrated to that code-value scale. Normalizing RGB to [0,1] changes the output unless the norm/weight parameterization is adjusted.",
+        "The 2009 source defines a single-scale filter per application; it does not specify the manifest's simultaneous multi-scale saliency blend."
       ],
-      "status": "INCOMPLETE_ORIGINAL_FORMULA_DIMENSION_MISMATCH_OR_UNDER_SPECIFIED",
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
     },
     {
@@ -1698,7 +1671,7 @@
       "variables": [
         {
           "symbol": "p_i",
-          "meaning": "posición del agente",
+          "meaning": "agent position",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -1708,12 +1681,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m",
-          "domain": "finite values in stated coordinate space"
+          "unit": "m"
         },
         {
           "symbol": "v_i",
-          "meaning": "velocidad",
+          "meaning": "agent velocity",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -1723,12 +1695,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m/s",
-          "domain": "finite values in stated coordinate space"
+          "unit": "m/s"
         },
         {
-          "symbol": "a_i",
-          "meaning": "aceleración",
+          "symbol": "a_req",
+          "meaning": "behavior acceleration request",
           "dimension": {
             "L": 1,
             "M": 0,
@@ -1738,57 +1709,11 @@
             "N": 0,
             "J": 0
           },
-          "unit": "m/s^2",
-          "domain": "finite values in stated coordinate space"
+          "unit": "m/s^2"
         },
         {
-          "symbol": "S_i",
-          "meaning": "separación/steering",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": -2,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "m/s^2 if pre-scaled",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "A_i",
-          "meaning": "velocidad media vecinal",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": -1,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "m/s",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "C_i",
-          "meaning": "centroide vecinal",
-          "dimension": {
-            "L": 1,
-            "M": 0,
-            "T": 0,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "m",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "w_s",
-          "meaning": "ganancia separación",
+          "symbol": "strength",
+          "meaning": "behavior strength",
           "dimension": {
             "L": 0,
             "M": 0,
@@ -1798,29 +1723,13 @@
             "N": 0,
             "J": 0
           },
-          "unit": "dimensionless if S_i is acceleration",
-          "domain": "finite values in stated coordinate space"
+          "unit": "dimensionless [0,1]"
         },
         {
-          "symbol": "w_a",
-          "meaning": "ganancia alineación",
+          "symbol": "a_max",
+          "meaning": "maximum allocated acceleration",
           "dimension": {
-            "L": 0,
-            "M": 0,
-            "T": -1,
-            "I": 0,
-            "Theta": 0,
-            "N": 0,
-            "J": 0
-          },
-          "unit": "s^-1",
-          "domain": "finite values in stated coordinate space"
-        },
-        {
-          "symbol": "w_c",
-          "meaning": "ganancia cohesión",
-          "dimension": {
-            "L": 0,
+            "L": 1,
             "M": 0,
             "T": -2,
             "I": 0,
@@ -1828,14 +1737,28 @@
             "N": 0,
             "J": 0
           },
-          "unit": "s^-2",
-          "domain": "finite values in stated coordinate space"
+          "unit": "m/s^2"
+        },
+        {
+          "symbol": "dt",
+          "meaning": "time step",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "unit": "s"
         }
       ],
       "dimensional_findings": [
-        "La ficha original suma términos de posición y velocidad como si fueran aceleraciones; deben normalizarse/convertirse a aceleración mediante ganancias dimensionales explícitas."
+        "Reynolds p.29 explicitly defines behavior outputs as acceleration requests truncated to unit magnitude and strength as a fractional attenuation; all requests therefore share acceleration units before allocation.",
+        "The manifest weighted sum mixing position, velocity and acceleration terms is not dimensionally valid as written; it remains an unverified project variant until each steering term is converted to acceleration with dimensional gains."
       ],
-      "status": "INCOMPLETE_ORIGINAL_FORMULA_DIMENSION_MISMATCH_OR_UNDER_SPECIFIED",
+      "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
     },
     {
