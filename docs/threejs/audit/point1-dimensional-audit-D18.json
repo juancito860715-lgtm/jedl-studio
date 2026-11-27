@@ -1,6 +1,6 @@
 {
   "title": "Auditoría dimensional punto 1 — D18 Escalas microscópicas y macroscópicas",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -194,11 +194,109 @@
             "J": 0
           },
           "domain": "fija para reproducibilidad"
+        },
+        {
+          "symbol": "S_i",
+          "meaning": "vector de separación",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vecindario y distancia mínima definidos"
+        },
+        {
+          "symbol": "C_i",
+          "meaning": "vector de cohesión hacia centroide",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "centroide de vecinos válidos"
+        },
+        {
+          "symbol": "F_food",
+          "meaning": "campo de alimento normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito y diferenciable"
+        },
+        {
+          "symbol": "∇F_food",
+          "meaning": "gradiente espacial del alimento",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito"
+        },
+        {
+          "symbol": "O_i",
+          "meaning": "dirección de evasión normalizada",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "unitaria o nula"
+        },
+        {
+          "symbol": "w_s,w_c,w_f,w_o",
+          "meaning": "ganancias para salida de aceleración",
+          "unit": "m²/s²; s⁻²; m²/s²; m/s²",
+          "dimension": "w_s:L²T⁻²; w_c:T⁻²; w_f:L²T⁻²; w_o:LT⁻²",
+          "domain": "finitas y calibradas"
+        },
+        {
+          "symbol": "a_i",
+          "meaning": "aceleración resultante",
+          "unit": "m/s²",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotada"
         }
       ],
       "constraints": [
-        "F(localNeighbors,food,obstacles) debe producir una magnitud definida (aceleración o velocidad objetivo); no sumar términos de unidades distintas.",
-        "La distancia de vecindad usa posiciones y r_n con misma unidad; los obstáculos deben tener representación geométrica tipada."
+        "a_i=w_sS_i+w_cC_i+w_f∇F_food+w_oO_i; cada término debe tener L/T².",
+        "F_food es adimensional: ∇F_food tiene L⁻¹; O_i es dirección adimensional. Las ganancias son respectivamente L²/T², T⁻², L²/T² y L/T².",
+        "v_i′=clamp(v_i+a_iΔt) conserva L/T; p_i′=p_i+v_i′Δt conserva L."
       ],
       "valid_domain": [
         "Población finita; estados y parámetros finitos; radio de vecindad positivo."
@@ -208,8 +306,8 @@
         "Campo food ausente o inválido debe tener fallback determinista."
       ],
       "dimensional_checks": [
-        "p_i y r_n tienen L; v_i tiene L/T.",
-        "food y seed son datos escalares/discretos con unidad declarada; steering debe tiparse como L/T² o L/T."
+        "w_sS_i, w_cC_i, w_f∇F_food y w_oO_i tienen L/T².",
+        "a_iΔt tiene L/T; v_i′Δt tiene L; todas las actualizaciones son homogéneas."
       ]
     },
     {
@@ -436,11 +534,57 @@
             "J": 0
           },
           "domain": "si se interpreta como densidad espacial normalizada"
+        },
+        {
+          "symbol": "R(r)",
+          "meaning": "perfil radial de densidad de probabilidad conceptual",
+          "unit": "m⁻³",
+          "dimension": {
+            "L": -3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "normalizable si se usa interpretación probabilística"
+        },
+        {
+          "symbol": "A(θ,φ)",
+          "meaning": "perfil angular normalizado",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "acotado"
+        },
+        {
+          "symbol": "ΔV",
+          "meaning": "volumen de celda de muestreo",
+          "unit": "m³",
+          "dimension": {
+            "L": 3,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "positivo"
         }
       ],
       "constraints": [
-        "Una densidad de probabilidad espacial física debe integrar a 1 sobre volumen; su unidad es L^-3.",
-        "Si se usa solo para visualización, ψ/ρ visual debe marcarse adimensional y no presentarse como solución cuántica rigurosa."
+        "ψ se mantiene como campo visual adimensional; no se interpreta como función de onda física.",
+        "Si ρ_prob=R(r)A(θ,φ) representa densidad espacial normalizada, R y ρ_prob tienen m⁻³, A es adimensional y ∫ρ_prob dV=1.",
+        "La intensidad de muestra P=ρ_probΔV es adimensional."
       ],
       "valid_domain": [
         "r finito; ángulos válidos; singularidades del origen tratadas por el modelo elegido."
@@ -450,8 +594,8 @@
         "En infinito truncar dominio con error/umbral declarado; no confundir recorte visual con normalización física."
       ],
       "dimensional_checks": [
-        "r tiene L; θ,φ son adimensionales angulares.",
-        "Densidad de probabilidad espacial tiene L^-3; su integral volumétrica es adimensional."
+        "R y ρ_prob tienen L⁻³; A es adimensional; ΔV tiene L³.",
+        "ρ_probΔV y la integral volumétrica son adimensionales; el modelo sigue siendo conceptual/visual."
       ]
     },
     {
@@ -601,8 +745,8 @@
         }
       ],
       "constraints": [
-        "h/H es adimensional; exponencial conserva unidad de ρ0.",
-        "Si ρ0 representa densidad de masa en vez de extinción, debe usarse kg/m³ y una ecuación de transporte correspondiente."
+        "ρ(h)=ρ0exp(−(h−h0)/H) es el coeficiente de extinción efectivo; ρ0 y ρ tienen m⁻¹.",
+        "T=exp(−∫ρ(h(s))ds); no multiplicar por un segundo σ_t si ρ ya representa extinción."
       ],
       "valid_domain": [
         "h≥0; H>0; ρ0≥0; valores finitos."
@@ -612,8 +756,8 @@
         "Para h≫H la densidad tiende a cero; evitar underflow numérico."
       ],
       "dimensional_checks": [
-        "h y H tienen L; h/H es adimensional.",
-        "ρ(h) conserva unidad m^-1 de coeficiente de extinción."
+        "(h−h0)/H es adimensional; ρ conserva m⁻¹.",
+        "∫ρds es adimensional y la transmitancia T no tiene unidad."
       ]
     },
     {
@@ -694,11 +838,41 @@
             "J": 0
           },
           "domain": "si se calcula evolución temporal"
+        },
+        {
+          "symbol": "μ=GM",
+          "meaning": "parámetro gravitacional",
+          "unit": "m³/s²",
+          "dimension": {
+            "L": 3,
+            "M": 0,
+            "T": -2,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "μ>0"
+        },
+        {
+          "symbol": "h_spec",
+          "meaning": "momento angular específico",
+          "unit": "m²/s",
+          "dimension": {
+            "L": 2,
+            "M": 0,
+            "T": -1,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "finito; h_spec=√(μa(1−e²))"
         }
       ],
       "constraints": [
-        "r=a(1−e²)/(1+e cosν): factor racional adimensional, r conserva L.",
-        "Kepler M=E−e sinE opera con ángulos adimensionales; el movimiento medio n tiene T^-1."
+        "r(ν)=a(1−e²)/(1+e cosν) usa a en m y e/ν adimensionales.",
+        "h_spec=√(μa(1−e²)) tiene m²/s; n=√(μ/a³) tiene s⁻¹; M=n(t−t0) es adimensional angular."
       ],
       "valid_domain": [
         "a>0; 0≤e<1 para elipse; denominador positivo; anomalías finitas."
@@ -708,8 +882,8 @@
         "e→1 es límite parabólico; no usar fórmula elíptica como órbita cerrada en e≥1."
       ],
       "dimensional_checks": [
-        "a y r tienen L; e y funciones trigonométricas son adimensionales.",
-        "n·t produce ángulo adimensional; M,E,ν se expresan en radianes."
+        "μa tiene L⁴/T²; su raíz tiene L²/T; n tiene T⁻¹.",
+        "M,E,ν,e son adimensionales angulares/excentricidad; r tiene L."
       ]
     },
     {
@@ -844,22 +1018,38 @@
         },
         {
           "symbol": "ρ0",
-          "meaning": "Escala de densidad/extinción",
-          "unit": "unidad declarada",
-          "dimension": "m⁻¹ si coeficiente de extinción",
+          "meaning": "escala base de coeficiente de extinción volumétrica",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "no negativa"
         },
         {
           "symbol": "ρ",
-          "meaning": "Campo resultante",
-          "unit": "misma unidad que ρ0",
-          "dimension": "hereda dimensión de ρ0",
+          "meaning": "coeficiente de extinción visual resultante",
+          "unit": "m⁻¹",
+          "dimension": {
+            "L": -1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
           "domain": "finito"
         }
       ],
       "constraints": [
-        "Argumentos f_i·p son adimensionales; sumar FBM y ruido filamentario requiere normalización y pesos compatibles.",
-        "Para densidad física, multiplicar campo adimensional por escala ρ0 tipada; no sumar directamente magnitudes con unidades distintas."
+        "ρ(p)=ρ0·clamp(F(p)+β·filament(p),0,ρ_max); F y filament son adimensionales y ρ0 tiene m⁻¹.",
+        "Las frecuencias f_i tienen m⁻¹ para que f_i·p sea adimensional."
       ],
       "valid_domain": [
         "p y frecuencias finitos; ruido acotado; escala no negativa."
@@ -869,8 +1059,8 @@
         "Campo debe limitarse a valores no negativos si representa densidad/extinción."
       ],
       "dimensional_checks": [
-        "p tiene L y f_i tiene L^-1; sus productos son adimensionales.",
-        "ρ0 aporta unidad física; ruido es adimensional y ρ conserva unidad de ρ0."
+        "f_i·p es adimensional; campos de ruido y filament son adimensionales.",
+        "ρ0 y ρ tienen m⁻¹; la transmitancia usa exp(−∫ρds)."
       ]
     },
     {
@@ -951,11 +1141,41 @@
             "J": 0
           },
           "domain": "N_star≥0"
+        },
+        {
+          "symbol": "c",
+          "meaning": "centro de la esfera de muestreo",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "vector finito"
+        },
+        {
+          "symbol": "U",
+          "meaning": "variable radial uniforme opcional para muestreo volumétrico",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "U∈[0,1]"
         }
       ],
       "constraints": [
-        "Muestreo uniforme sobre esfera requiere dirección isotrópica; no muestrear θ uniforme sin corrección sinθ.",
-        "p_i=R·u_i produce longitud L; seed y cantidad son discretos."
+        "Para campo celeste sobre una esfera, p_i=c+R·u_i con u_i uniforme en dirección y ||u_i||=1.",
+        "Para muestreo uniforme dentro del volumen de la esfera, usar r=R·U^(1/3); no usar r=R, que solo muestrea la superficie."
       ],
       "valid_domain": [
         "R>0; N_star entero no negativo; generador pseudoaleatorio definido."
@@ -965,8 +1185,8 @@
         "Reutilizar misma semilla reproduce las mismas posiciones; cambiar R escala todas las posiciones linealmente."
       ],
       "dimensional_checks": [
-        "R tiene L; u_i es adimensional; p_i tiene L.",
-        "N_star y seed_i son conteos/identificadores adimensionales."
+        "R,c,p_i tienen L; u_i y U son adimensionales.",
+        "R·U^(1/3) tiene L; dirección uniforme y radio radial se muestrean por separado."
       ]
     },
     {
@@ -1047,11 +1267,70 @@
             "J": 0
           },
           "domain": "finitos"
+        },
+        {
+          "symbol": "λ",
+          "meaning": "razón entre escalas jerárquicas",
+          "unit": "1",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "λ>0"
+        },
+        {
+          "symbol": "ε_world,k",
+          "meaning": "error geométrico de nivel",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "no negativo"
+        },
+        {
+          "symbol": "f_px",
+          "meaning": "focal en píxeles",
+          "unit": "px",
+          "dimension": "conteo raster",
+          "domain": "positiva"
+        },
+        {
+          "symbol": "z",
+          "meaning": "profundidad de cámara",
+          "unit": "m",
+          "dimension": {
+            "L": 1,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "z>0"
+        },
+        {
+          "symbol": "τ_px",
+          "meaning": "tolerancia de error en pantalla",
+          "unit": "px",
+          "dimension": "conteo raster",
+          "domain": "positiva"
         }
       ],
       "constraints": [
-        "Cada nivel jerárquico debe declarar conversión de escala; posiciones, bounds y tamaños comparten unidad global.",
-        "Las semillas derivadas deben ser deterministas por nodo/identidad para que el orden de generación no cambie el mundo."
+        "scale_k=scale_0·λ^k mantiene dimensión de longitud si λ es adimensional.",
+        "ε_screen,k=f_px·ε_world,k/z tiene px; comparar con τ_px para seleccionar LOD."
       ],
       "valid_domain": [
         "Escalas positivas; jerarquía finita o generable bajo demanda; bounds finitos; LOD con niveles discretos."
@@ -1061,15 +1340,22 @@
         "Fuera de bounds, generar streaming/tiles o devolver ausencia explícita; no asignar datos indefinidos."
       ],
       "dimensional_checks": [
-        "L_level y bounds tienen L; scale_level y LOD son índices adimensionales.",
-        "Las distribuciones usan posiciones de L y parámetros normalizados; semilla no tiene dimensión física."
+        "scale_0 y ε_world,k tienen L; λ es adimensional; z tiene L.",
+        "f_px tiene px; ε_world,k/z es adimensional; ε_screen,k y τ_px tienen px."
       ]
     }
   ],
   "validation": {
     "structural_checks": [
       "12/12 técnicas incluidas",
-      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas"
+      "Cada registro contiene variables tipadas, restricciones, dominio válido, condiciones límite y comprobaciones dimensionales específicas",
+      "D18:1 especifica ganancias de enjambre para salida de aceleración",
+      "D18:4 separa campo visual adimensional de densidad conceptual m⁻³",
+      "D18:6 usa extinción m⁻¹ sin doble coeficiente",
+      "D18:7 incorpora μ y momento angular específico",
+      "D18:9 fija densidad de nebulosa como extinción m⁻¹",
+      "D18:10 distingue muestreo de esfera superficial y volumétrica",
+      "D18:11 incorpora error geométrico y proyección LOD"
     ],
     "limitations": [
       "Átomo estilizado y universo procedural son modelos de visualización; no constituyen por sí mismos simulaciones físicas rigurosas."
