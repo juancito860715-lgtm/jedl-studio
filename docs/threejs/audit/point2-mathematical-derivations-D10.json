@@ -1,6 +1,6 @@
 {
   "title": "Derivaciones matemáticas justificadas — D10 Cielo, nubes, atmósfera y clima",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "branch": "audit/implementation-ready-manifest",
   "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
   "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
@@ -73,38 +73,41 @@
         {
           "step": 1,
           "equation": "α=2π/λ",
-          "justification": "Definir número de onda a partir de longitud de onda."
+          "justification": "Definir número de onda; α tiene unidad m⁻¹."
         },
         {
           "step": 2,
-          "equation": "β_R(λ)=K_R/λ⁴,  [K_R]=L³,  [β_R]=L⁻¹",
-          "justification": "En el régimen dipolar, la sección eficaz de dispersión escala como λ⁻⁴; el coeficiente volumétrico incluye densidad molecular y constante material con unidades L³."
+          "equation": "σ_R(λ)=C_R/λ⁴; [C_R]=m⁶; [σ_R]=m²",
+          "justification": "En régimen dipolar la sección eficaz escala con λ⁻⁴; la constante material aporta m⁶ para que la sección tenga área."
         },
         {
           "step": 3,
-          "equation": "T_R(d,λ)=exp(−β_R(λ)d)",
-          "justification": "Aplicar Beer–Lambert a la pérdida de transmisión."
+          "equation": "β_R(λ)=N_molσ_R(λ)=K_R/λ⁴; K_R=N_molC_R; [K_R]=m³",
+          "justification": "Multiplicar sección eficaz por densidad numérica molecular (m⁻³) produce coeficiente volumétrico de extinción (m⁻¹)."
         },
         {
           "step": 4,
-          "equation": "L_R∝β_R·phase_R·L_sun",
-          "justification": "Calcular contribución dispersada con coeficiente, fase angular y luz incidente."
+          "equation": "T_R(d,λ)=exp(−β_R(λ)d)",
+          "justification": "Aplicar Beer–Lambert a la pérdida de transmisión; profundidad óptica es adimensional."
+        },
+        {
+          "step": 5,
+          "equation": "j_R(ω_o)=β_R∫_{4π}p_R(ω_i,ω_o)L_i(ω_i)dω_i",
+          "justification": "Integrar radiancia incidente ponderada por fase normalizada; β_R convierte radiancia a fuente por longitud."
         }
       ],
       "assumptions": [
-        "λ>0; partículas mucho menores que longitud de onda.",
-        "K incorpora densidad molecular, polarizabilidad y constantes del medio.",
-        "La fase Rayleigh se normaliza sobre esfera.",
-        "K_R incorpora densidad molecular, polarizabilidad y factores del medio; no es adimensional."
+        "Partículas mucho menores que la longitud de onda; medio molecular diluido y dispersión independiente.",
+        "C_R incluye constantes moleculares/polarizabilidad y depende del material y longitud de onda bajo la convención espectral."
       ],
-      "result": "La dependencia λ⁻⁴ procede del régimen de dispersión dipolar de partículas sub-longitud de onda.",
+      "result": "La dependencia λ⁻⁴ deriva del régimen de dispersión dipolar; densidad molecular por sección eficaz produce el coeficiente Rayleigh volumétrico.",
       "limits": [
         "La constante K debe incluir unidades para que β_R tenga L⁻¹; no usar ley λ⁻⁴ sin calibración del medio."
       ],
       "dimensional_verification": [
-        "α=2π/λ tiene L⁻¹; K debe tener L³ para que β_R=K/λ⁴ tenga L⁻¹.",
-        "β_R d es adimensional; la transmitancia T_R queda adimensional.",
-        "La fase Rayleigh tiene sr⁻¹; su integral angular conserva radiancia."
+        "C_R/λ⁴ tiene m⁶/m⁴=m²; N_molσ_R tiene m⁻³·m²=m⁻¹.",
+        "K_R=N_molC_R tiene m³; K_R/λ⁴ tiene m⁻¹; β_Rd es adimensional.",
+        "p_R sr⁻¹·L_i·dω conserva radiancia; β_R multiplica para obtener fuente por longitud."
       ]
     },
     {
@@ -253,38 +256,36 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "p_i(t)=p_{0,i}+v_i t+0.5g t²",
-          "justification": "Integrar trayectoria de gota con velocidad y gravedad constantes."
+          "equation": "p_i(t)=p_{0,i}+v_{rain,i}t",
+          "justification": "Integrar velocidad constante produce desplazamiento lineal en el tiempo, conforme a la ecuación de catálogo."
         },
         {
           "step": 2,
-          "equation": "Δp_world≈v(t)τ_e;  Δp_screen≈J_camera(p)Δp_world",
-          "justification": "Aproximar el desplazamiento durante la exposición y proyectarlo mediante el Jacobiano local de cámara, que convierte longitud de mundo en píxeles."
+          "equation": "Δp_world≈v_rain τ_e",
+          "justification": "Durante el tiempo de exposición τ_e, la gota recorre un desplazamiento físico de longitud."
         },
         {
           "step": 3,
-          "equation": "streakLength=||Δp_screen||",
-          "justification": "La longitud aparente depende de velocidad proyectada y exposición."
+          "equation": "Δp_screen≈J_camera(p)Δp_world",
+          "justification": "El Jacobiano local de proyección convierte un desplazamiento mundo en píxeles; depende de profundidad y cámara."
         },
         {
           "step": 4,
-          "equation": "α=opacity(depth,exposure)",
-          "justification": "Ajustar opacidad por profundidad/tiempo de exposición según modelo visual."
+          "equation": "streakLength_px=||Δp_screen||",
+          "justification": "La longitud aparente es la norma del desplazamiento proyectado; la dirección sigue la velocidad proyectada."
         }
       ],
       "assumptions": [
-        "τ_e≥0; proyección de cámara definida.",
-        "Velocidad, gravedad y posiciones usan unidades compatibles.",
-        "La lluvia procedural no pretende modelar gotas individualmente en fluidodinámica.",
-        "J_camera tiene unidad px/m para proyección local y profundidad fija."
+        "La fórmula de catálogo supone velocidad constante durante una exposición breve.",
+        "El Jacobiano se evalúa localmente en la profundidad de la gota."
       ],
-      "result": "Las estelas se derivan de la trayectoria de una gota durante el tiempo de exposición y su proyección a pantalla.",
+      "result": "La estela de lluvia representa el desplazamiento de una gota durante la exposición de cámara y lo proyecta al plano de imagen.",
       "limits": [
         "La longitud en píxeles depende de cámara, resolución y exposición; no equivale a distancia física."
       ],
       "dimensional_verification": [
-        "p_0 tiene L; v_rain tiene L/T; g tiene L/T²; t y τ_e tienen T.",
-        "Δp_world tiene L; su proyección con Jacobiano de cámara px/L produce estela en px."
+        "v_rain tiene m/s y τ_e s; Δp_world tiene m; p0 y p(t) tienen m.",
+        "J_camera tiene px/m; Δp_screen y streakLength tienen px."
       ]
     },
     {
@@ -298,22 +299,22 @@
         {
           "step": 1,
           "equation": "e_i(t)=exp(−|t−t_i|/τ_i)",
-          "justification": "Crear pulso exponencial alrededor de instante de destello."
+          "justification": "Crear un pulso exponencial centrado en el instante de destello; el exponente es adimensional."
         },
         {
           "step": 2,
           "equation": "b_i(t)=noiseBurst(seed_i,t)",
-          "justification": "Modular el pulso con variación de alta frecuencia reproducible."
+          "justification": "Modular el pulso con ruido temporal acotado y reproducible."
         },
         {
           "step": 3,
           "equation": "flash(t)=Σ_i A_i e_i(t)b_i(t)",
-          "justification": "Superponer eventos de relámpago."
+          "justification": "Superponer eventos; amplitudes A_i se expresan como radiancia y las otras funciones son adimensionales."
         },
         {
           "step": 4,
           "equation": "L(t)=L_base+flash(t)",
-          "justification": "Sumar la energía visual al nivel de iluminación base con clamp/tone map."
+          "justification": "Sumar destellos a la radiancia de base antes de tone mapping, manteniendo una única unidad radiométrica."
         }
       ],
       "assumptions": [
@@ -321,13 +322,13 @@
         "Ruido con semilla fija; amplitud acotada.",
         "Flash se trata como señal luminosa relativa salvo calibración."
       ],
-      "result": "El destello temporal se construye como suma de envolventes exponenciales moduladas por bursts de ruido.",
+      "result": "El relámpago se modela como suma de envolventes exponenciales con amplitudes radiométricas y modulación adimensional.",
       "limits": [
         "La señal no modela propagación electromagnética ni descarga física; es una envolvente artística."
       ],
       "dimensional_verification": [
-        "(t−t_i)/τ_i es adimensional; A_i y flash comparten unidad de señal luminosa.",
-        "noiseBurst y exponencial son adimensionales; suma conserva unidad de A_i."
+        "(t−t_i)/τ_i es adimensional; e_i y noiseBurst son adimensionales.",
+        "A_i, flash y L_base comparten W·m⁻²·sr⁻¹; la suma conserva radiancia."
       ]
     },
     {
@@ -360,8 +361,8 @@
         },
         {
           "step": 5,
-          "equation": "T=exp(−∫ρ(y(s))σ_t ds)",
-          "justification": "Convertir densidad a transmitancia a lo largo del rayo."
+          "equation": "T=exp(−∫ρ(y(s))ds)",
+          "justification": "Como ρ(y) ya es el coeficiente de extinción efectivo m⁻¹, integrar a lo largo del rayo produce profundidad óptica adimensional; no se multiplica por un segundo σ_t."
         }
       ],
       "assumptions": [
@@ -369,13 +370,13 @@
         "ρ_0 no negativa; coeficiente σ_t compatible con escala de densidad.",
         "La dirección de up y referencia y_0 se fijan."
       ],
-      "result": "La niebla de altura deriva de una ecuación diferencial de decaimiento vertical y se integra a lo largo del rayo.",
+      "result": "La niebla de altura deriva de un decaimiento exponencial vertical del coeficiente de extinción y de la integral Beer–Lambert a lo largo del rayo.",
       "limits": [
         "La atmósfera real puede tener capas y variaciones meteorológicas que no siguen una única exponencial."
       ],
       "dimensional_verification": [
-        "k tiene L⁻¹; y−y0 tiene L; exponente es adimensional.",
-        "ρ0 conserva la unidad de densidad normalizada o extinción base que se haya declarado; ρσ_t ds debe ser adimensional."
+        "k tiene m⁻¹; y−y0 tiene m; exponente vertical es adimensional.",
+        "ρ(y) tiene m⁻¹; ∫ρ(y(s))ds es adimensional; T es adimensional."
       ]
     },
     {
@@ -388,23 +389,23 @@
       "derivation": [
         {
           "step": 1,
-          "equation": "dT/ds=−ρσ_tT",
-          "justification": "La transmitancia decrece proporcionalmente a densidad y extinción."
+          "equation": "dT/ds=−ρ(s)T",
+          "justification": "La tasa de pérdida de transmitancia es proporcional al coeficiente de extinción efectivo y a la transmisión presente."
         },
         {
           "step": 2,
-          "equation": "T(s)=exp(−∫_0^sρ(u)σ_tdu)",
-          "justification": "Resolver la ecuación diferencial con T(0)=1."
+          "equation": "dT/T=−ρ(s)ds",
+          "justification": "Separar variables."
         },
         {
           "step": 3,
-          "equation": "ρ constante ⇒ T=exp(−ρσ_t s)",
-          "justification": "Simplificar para densidad homogénea."
+          "equation": "T(s)=exp(−∫₀ˢρ(u)du)",
+          "justification": "Integrar y aplicar T(0)=1."
         },
         {
           "step": 4,
-          "equation": "C_out=T C_scene+(1−T)C_fog",
-          "justification": "Componer escena atenuada con color de niebla en aproximación de un medio homogéneo."
+          "equation": "ρ constante ⇒ T=exp(−ρs); C_out=T C_scene+(1−T)C_fog",
+          "justification": "Para medio homogéneo recuperar la forma de catálogo y componer escena atenuada con color de niebla compatible."
         }
       ],
       "assumptions": [
@@ -412,13 +413,13 @@
         "Color de escena/niebla en mismo espacio lineal.",
         "T∈[0,1]."
       ],
-      "result": "La niebla exponencial se deriva de Beer–Lambert con extinción efectiva ρσ_t.",
+      "result": "La niebla exponencial es la solución de Beer–Lambert cuando ρ representa directamente el coeficiente de extinción efectivo.",
       "limits": [
         "La mezcla de color es una aproximación de una sola dispersión y no integra múltiples scattering."
       ],
       "dimensional_verification": [
-        "ρσ_t tiene L⁻¹; s tiene L; T es adimensional.",
-        "C_scene y C_fog comparten espacio/escala lineal; la mezcla conserva unidad de señal."
+        "ρ tiene m⁻¹; ds tiene m; la integral óptica es adimensional.",
+        "T es adimensional; C_scene y C_fog deben compartir espacio/escala lineal."
       ]
     }
   ],
@@ -428,7 +429,11 @@
       "Cada derivación incluye pasos justificados, supuestos, límites y verificación dimensional",
       "Rayleigh tipa K_R en L³ para producir coeficiente β_R en L⁻¹",
       "Mie/HG integra la fase angular antes de formar la fuente de radiancia",
-      "Rain streak proyecta desplazamiento físico a píxeles mediante Jacobiano de cámara"
+      "Rain streak proyecta desplazamiento físico a píxeles mediante Jacobiano de cámara",
+      "Rayleigh deriva β_R desde densidad molecular y sección eficaz con unidades cerradas",
+      "Rain streaks sigue la ecuación de velocidad constante del catálogo y proyecta por Jacobiano",
+      "Lightning usa amplitudes como radiancia",
+      "Height fog y exponential fog integran directamente el coeficiente de extinción m⁻¹ sin doble factor"
     ],
     "limitations": [
       "Las fórmulas de Rayleigh y HG son modelos atmosféricos aproximados; calibración espectral y parámetros meteorológicos se validan posteriormente."
