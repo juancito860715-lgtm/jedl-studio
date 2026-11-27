@@ -926,10 +926,56 @@
           },
           "unit": "dimensionless",
           "domain": "finite values in stated coordinate space"
+        },
+        {
+          "symbol": "lambda_max,lambda_min",
+          "meaning": "autovalores ordenados del tensor",
+          "unit": "intensity^2/pixel^2",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "lambda_max>=lambda_min>=0"
+        },
+        {
+          "symbol": "theta_gradient,theta_stroke",
+          "meaning": "ángulos de autovectores mayor y menor",
+          "unit": "rad",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "orientation modulo pi"
+        },
+        {
+          "symbol": "epsilon",
+          "meaning": "regularizador del denominador de coherencia",
+          "unit": "same as eigenvalues",
+          "dimension": {
+            "L": 0,
+            "M": 0,
+            "T": 0,
+            "I": 0,
+            "Theta": 0,
+            "N": 0,
+            "J": 0
+          },
+          "domain": "strictly positive"
         }
       ],
       "dimensional_findings": [
-        "Las unidades del tensor dependen de la escala de luminancia y de coordenadas de imagen; theta y coherence son adimensionales."
+        "Las unidades del tensor dependen de la escala de luminancia y de coordenadas de imagen; theta y coherence son adimensionales.",
+        "J y sus autovalores conservan intensidad²/píxel²; epsilon comparte esa escala. Los ángulos y la coherencia son adimensionales."
       ],
       "status": "CONDITIONAL_DIMENSIONAL_REVIEW",
       "scope": "Dimensional audit of named variables and displayed formulations; not a full source derivation or proof of algorithm correctness."
