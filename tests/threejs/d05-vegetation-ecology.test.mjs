@@ -47,7 +47,7 @@ test("leaf geometry is a finite parametric blade with tapered ends",()=>{
  assert.ok(g.boundingBox.max.x-g.boundingBox.min.x>.4);
 });
 test("falling leaf state is random-access deterministic and includes drift",()=>{
- const args={origin:[0,5,0],velocity:[0,0,0],gravity:9.8,time:1,driftAmplitude:[.2,0,.1],seed:3};
+ const args={origin:[0,5,0],velocity:[0,0,0],gravity:9.8,time:1,windAcceleration:[.2,0,.1],seed:3};
  const a=fallingLeafStateAt(args),b=fallingLeafStateAt(args);
  assert.deepEqual(a,b);assert.ok(a.position[1]<5);assert.notDeepEqual(a.rotation,[2,0,0]);
 });
