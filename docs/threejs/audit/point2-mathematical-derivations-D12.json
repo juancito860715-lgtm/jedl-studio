@@ -52,6 +52,10 @@
       "result": "El aspecto de llama se obtiene de ruido animado, envolvente y paleta de color.",
       "limits": [
         "No representa combustión ni transferencia térmica real."
+      ],
+      "dimensional_verification": [
+        "p tiene L; scale espacial tiene L⁻¹ y su producto es argumento de ruido adimensional.",
+        "La escala temporal tiene T⁻¹; amplitude hereda la unidad del campo visual de salida."
       ]
     },
     {
@@ -69,8 +73,8 @@
         },
         {
           "step": 2,
-          "equation": "p_back=p−v(p,t)Δt",
-          "justification": "Usar backtracing para consultar el campo en la posición de origen del movimiento."
+          "equation": "p'(t)=p_0−v_up t−∫₀ᵗu_noise(p(τ),τ)dτ",
+          "justification": "Obtener la coordenada advectada restando el desplazamiento acumulado por velocidad ascendente y campo de distorsión; para velocidad constante, la integral se reduce a u_noise·t."
         },
         {
           "step": 3,
@@ -86,11 +90,16 @@
       "assumptions": [
         "Δt>0; v tiene unidad de longitud/tiempo.",
         "El campo se interpola espacialmente y usa bordes definidos.",
-        "La simulación se mantiene como VFX estilizado."
+        "La simulación se mantiene como VFX estilizado.",
+        "v_up y u_noise son velocidades con unidad L/T; si el ruido es adimensional, se escala mediante ganancia L/T."
       ],
       "result": "La advección semilagrangiana actualiza un campo muestreando hacia atrás a lo largo del flujo.",
       "limits": [
         "No describe dinámica física de combustión ni parámetros reales de propagación."
+      ],
+      "dimensional_verification": [
+        "p y desplazamientos tienen L; v_up y u_noise tienen L/T; multiplicados por t (T) producen L.",
+        "El campo de ruido debe ser adimensional antes de convertirse en velocidad mediante una ganancia con L/T."
       ]
     },
     {
@@ -130,6 +139,10 @@
       "result": "El color se aproxima con una rampa cromática controlada por un parámetro normalizado.",
       "limits": [
         "No es conversión física exacta de radiación de cuerpo negro."
+      ],
+      "dimensional_verification": [
+        "Temperatura T se mide en K; la paleta devuelve RGB normalizado adimensional.",
+        "El mapeo artístico no equivale a radiancia espectral física ni asigna W·m⁻²·sr⁻¹ a RGB."
       ]
     },
     {
@@ -164,11 +177,16 @@
       "assumptions": [
         "τ>0; velocidad y tiempo usan unidades compatibles.",
         "ρ es densidad normalizada de shader.",
-        "La semilla/tiempo se fijan para reproducibilidad."
+        "La semilla/tiempo se fijan para reproducibilidad.",
+        "La coordenada de ruido se normaliza con frecuencia espacial f0 de unidad L⁻¹ antes de evaluar noise."
       ],
       "result": "El humo procedural es un campo de ruido advectado y atenuado temporalmente.",
       "limits": [
         "No modela composición, temperatura, toxicidad ni dinámica real del humo."
+      ],
+      "dimensional_verification": [
+        "p y v t tienen L; la frecuencia espacial aplicada al argumento tiene L⁻¹.",
+        "noise y envelope son adimensionales; density normalizada conserva dimensión 1."
       ]
     },
     {
@@ -208,6 +226,10 @@
       "result": "La expansión visual se anima con una curva temporal y una máscara de volumen/radio, sin modelar dinámica de explosión real.",
       "limits": [
         "Se excluyen parámetros y ecuaciones de presión, energía, fragmentación o daño físico."
+      ],
+      "dimensional_verification": [
+        "Rmax tiene L; t y τ tienen T; t/τ es adimensional; R(t) conserva L.",
+        "density y decaimiento visual son adimensionales; no representan presión, energía ni daño."
       ]
     },
     {
@@ -242,11 +264,16 @@
       "assumptions": [
         "σ>0 y v_visual es parámetro de animación, no velocidad física de onda.",
         "El campo solo controla una máscara gráfica 2D/3D.",
-        "No asociar a presión, choque, daño ni diseño de dispositivos."
+        "No asociar a presión, choque, daño ni diseño de dispositivos.",
+        "El frente es una máscara gráfica normalizada; no se interpreta como presión, densidad energética ni onda de choque física."
       ],
       "result": "El efecto es una banda visual que se desplaza radialmente en pantalla/escena.",
       "limits": [
         "No se deriva ni representa una onda de choque física."
+      ],
+      "dimensional_verification": [
+        "r, v t y σ tienen L; (r−vt)/σ es adimensional.",
+        "front es una máscara adimensional de VFX, no un campo de presión física."
       ]
     },
     {
@@ -286,6 +313,10 @@
       "result": "Un rayo estilizado se construye como línea base más perturbación lateral acotada.",
       "limits": [
         "No modela trayectoria eléctrica ni condiciones físicas de descarga."
+      ],
+      "dimensional_verification": [
+        "linearPath(s) y A_k tienen L; s es adimensional; noise_k(s) adimensional.",
+        "La suma produce trayectoria P(s) con L."
       ]
     },
     {
@@ -325,6 +356,10 @@
       "result": "La ramificación es una construcción geométrica aleatoria controlada sobre una línea visual.",
       "limits": [
         "No representa física de arcos eléctricos ni riesgo eléctrico."
+      ],
+      "dimensional_verification": [
+        "branchPoint y P(s0) tienen L; mainDir y randomCone son direcciones adimensionales.",
+        "La normalización de dirección no cambia su dimensión; el ángulo de apertura es radianes."
       ]
     },
     {
@@ -364,6 +399,10 @@
       "result": "El cono de haz es un sweep con radio linealmente variable.",
       "limits": [
         "La geometría define forma visual; no modela presión ni flujo de energía real."
+      ],
+      "dimensional_verification": [
+        "r0 y r1 tienen L; s es adimensional; radius(s) conserva L.",
+        "La sección transversal y el eje del cono deben compartir marco espacial."
       ]
     },
     {
@@ -403,6 +442,10 @@
       "result": "Soft particles derivan una máscara de opacidad de la diferencia de profundidad para suavizar intersecciones.",
       "limits": [
         "Si depth está no lineal, comparar después de conversión a espacio comparable o usar diferencia normalizada."
+      ],
+      "dimensional_verification": [
+        "sceneDepth, particleDepth y softRange usan la misma unidad/codificación; su cociente es adimensional.",
+        "alpha y clamp output son adimensionales en [0,1]."
       ]
     },
     {
@@ -442,18 +485,23 @@
       "result": "La transparencia convencional se compone mediante ordenación back-to-front y mezcla alfa.",
       "limits": [
         "Para geometría interpenetrada o ciclos de profundidad, usar OIT u otra partición; ordenar solo centros no es exacto."
+      ],
+      "dimensional_verification": [
+        "cameraDepth y la convención de orden usan la misma proyección/codificación.",
+        "La clave de orden es un valor escalar/índice; el ordenamiento no crea una magnitud física."
       ]
     }
   ],
   "validation": {
     "checks": [
-      "11/11 técnicas no protegidas cubiertas.",
-      "Derivaciones de fuego/humo/relámpagos y anillos se limitan a VFX estilizado.",
-      "No se incluyen modelos físicos de presión, daño, descarga o propagación real.",
-      "Dos claves protegidas excluidas."
+      "11/11 técnicas no protegidas cubiertas; D12:9 y D12:10 excluidas por protección",
+      "Cada derivación contiene pasos, resultado, supuestos, límites y verificación dimensional",
+      "Fuego/humo/relámpagos y anillos se mantienen como VFX estilizados no físicos",
+      "Se corrige la advección de llama para integrar un campo de velocidad con unidad L/T",
+      "No se incluyen modelos físicos de presión, daño, descarga o propagación real"
     ],
     "limitations": [
-      "Las expresiones de efectos son controles gráficos y no simulaciones físicas de fenómenos peligrosos."
+      "Este documento deriva únicamente controles visuales. No describe fenómenos peligrosos reales ni constituye una simulación física de explosiones, descargas o daño."
     ]
   },
   "integrity": {
