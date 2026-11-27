@@ -594,5 +594,16 @@ def blend_dual_quaternions(items):
 
 
 
+
+    def test_schlick_fresnel_interior_value_and_monotonicity(self):
+        self.assertAlmostEqual(fresnel_schlick(0.04, 0.5), 0.07)
+        values=[fresnel_schlick(0.04, u/10) for u in range(11)]
+        self.assertTrue(all(values[i] >= values[i+1] for i in range(10)))
+
+    def test_beer_lambert_subdivision_invariance(self):
+        whole=beer_lambert_transmittance(1.7, 2.4)
+        subdivided=math.prod(beer_lambert_transmittance(1.7, 2.4/8) for _ in range(8))
+        self.assertAlmostEqual(whole, subdivided, places=14)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
