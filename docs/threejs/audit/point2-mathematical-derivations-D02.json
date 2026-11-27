@@ -1,0 +1,484 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D02 Modelado procedural y geometría",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D02",
+    "record_count": 11,
+    "excluded_protected_records": 5,
+    "excluded_keys": [
+      "D02:8",
+      "D02:9",
+      "D02:10",
+      "D02:11",
+      "D02:12"
+    ],
+    "excluded_reason": "Preservados sin reauditoría conforme al mapa Crimson Loong."
+  },
+  "records": [
+    {
+      "record_key": "D02:0",
+      "name": "Primitivas geométricas",
+      "starting_principles": [
+        "Una superficie regular puede parametrizarse con dos parámetros u,v.",
+        "Las ecuaciones implícitas y paramétricas representan la misma geometría desde formas distintas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P(u,v)=(x(u,v),y(u,v),z(u,v))",
+          "justification": "Definir una aplicación desde un dominio paramétrico bidimensional a coordenadas 3D."
+        },
+        {
+          "step": 2,
+          "equation": "Esfera: P(θ,φ)=c+r(sinφ cosθ, cosφ, sinφ sinθ)",
+          "justification": "Tomar radio r constante y usar coordenadas esféricas; la norma de P−c es r."
+        },
+        {
+          "step": 3,
+          "equation": "Cilindro: P(θ,y)=c+(r cosθ,y,r sinθ)",
+          "justification": "Mantener radio radial constante alrededor del eje y y dejar libre la coordenada axial."
+        },
+        {
+          "step": 4,
+          "equation": "Toro: P(u,v)=c+((R+r cos v)cos u, r sin v, (R+r cos v)sin u)",
+          "justification": "Girar un círculo de radio menor r cuyo centro está a distancia R del eje; R>r produce toro anular."
+        }
+      ],
+      "assumptions": [
+        "Parámetros angulares en radianes y dominios acotados.",
+        "Las primitivas usan parámetros positivos y centro/orientación definidos.",
+        "La parametrización puede tener singularidades en polos o costuras que requieren tratamiento de malla."
+      ],
+      "result": "Las primitivas se construyen evaluando P en una rejilla paramétrica y conectando muestras adyacentes.",
+      "limits": [
+        "La caja y otras superficies con aristas no son superficies C¹ globales; se construyen por caras/parches y se duplican normales en discontinuidades."
+      ]
+    },
+    {
+      "record_key": "D02:1",
+      "name": "BufferGeometry manual",
+      "starting_principles": [
+        "Una malla triangular se define por una lista de vértices y una lista de índices.",
+        "Cada triángulo referencia tres índices válidos de la lista de posiciones."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "V={p_0,…,p_{N−1}},  p_i∈R³",
+          "justification": "Almacenar cada posición en un arreglo compacto de atributos."
+        },
+        {
+          "step": 2,
+          "equation": "I={(i_0,i_1,i_2),…}, 0≤i_k<N",
+          "justification": "Cada tripleta indexa un triángulo; el orden determina orientación."
+        },
+        {
+          "step": 3,
+          "equation": "e_1=p_1−p_0; e_2=p_2−p_0",
+          "justification": "Obtener dos aristas del triángulo."
+        },
+        {
+          "step": 4,
+          "equation": "n=normalize(e_1×e_2)",
+          "justification": "El producto cruzado es perpendicular al plano y su normalización produce normal unitaria."
+        }
+      ],
+      "assumptions": [
+        "Vértices en un marco y unidad comunes.",
+        "Triángulos no degenerados para calcular normales.",
+        "Índices enteros dentro del rango del arreglo."
+      ],
+      "result": "La geometría renderizable queda determinada por atributos V y topología I; normales, UV y colores se añaden como atributos independientes.",
+      "limits": [
+        "El producto cruzado es cero para triángulos degenerados; el winding debe ser consistente para culling y normales."
+      ]
+    },
+    {
+      "record_key": "D02:2",
+      "name": "Superficie paramétrica",
+      "starting_principles": [
+        "Una superficie suave es una aplicación P(u,v) diferenciable.",
+        "Los vectores tangentes se obtienen derivando respecto de cada parámetro."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P(u,v)=(x(u,v),y(u,v),z(u,v))",
+          "justification": "Definir la posición espacial a partir de parámetros."
+        },
+        {
+          "step": 2,
+          "equation": "P_u=∂P/∂u;  P_v=∂P/∂v",
+          "justification": "Calcular las direcciones tangentes del parche."
+        },
+        {
+          "step": 3,
+          "equation": "N=normalize(P_u×P_v)",
+          "justification": "El producto cruzado genera una dirección normal al plano tangente local."
+        },
+        {
+          "step": 4,
+          "equation": "P_grid[i,j]=P(u_i,v_j)",
+          "justification": "Muestrear el dominio en una rejilla y conectar celdas para obtener triángulos."
+        }
+      ],
+      "assumptions": [
+        "P es al menos C¹ donde se calcula la normal.",
+        "P_u×P_v no es cero en la región regular.",
+        "Los dominios y el sentido de muestreo se declaran."
+      ],
+      "result": "La malla aproxima el parche; el error geométrico depende del paso de muestreo y de la curvatura local.",
+      "limits": [
+        "En singularidades paramétricas o costuras, la normal puede no estar definida o la malla necesita duplicación de vértices."
+      ]
+    },
+    {
+      "record_key": "D02:3",
+      "name": "Superficie de revolución",
+      "starting_principles": [
+        "Un perfil plano describe radio r(u) y altura y(u) respecto de un eje.",
+        "Rotar un punto alrededor del eje y conserva su radio y su coordenada axial."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(u)=(r(u),y(u),0)",
+          "justification": "Representar el perfil en el semiplano radial-axial."
+        },
+        {
+          "step": 2,
+          "equation": "R_y(θ)=[[cosθ,0,sinθ],[0,1,0],[−sinθ,0,cosθ]]",
+          "justification": "Usar la matriz ortogonal de rotación alrededor del eje y."
+        },
+        {
+          "step": 3,
+          "equation": "P(u,θ)=R_y(θ)C(u)=(r(u)cosθ,y(u),−r(u)sinθ)",
+          "justification": "Aplicar la rotación al perfil; el signo de z depende de la convención de handedness."
+        },
+        {
+          "step": 4,
+          "equation": "P(u,θ+2π)=P(u,θ)",
+          "justification": "La periodicidad angular cierra la superficie alrededor del eje."
+        }
+      ],
+      "assumptions": [
+        "Perfil r(u)≥0 y parámetros finitos.",
+        "Ángulo en radianes y eje de revolución fijo.",
+        "El signo de la coordenada z debe coincidir con la convención de cámara/escena."
+      ],
+      "result": "Una curva 2D genera un parche 3D al barrerla por un ángulo completo.",
+      "limits": [
+        "En r(u)=0 el anillo colapsa a un punto; las costuras θ=0/2π requieren tratamiento de UV y normales."
+      ]
+    },
+    {
+      "record_key": "D02:4",
+      "name": "Extrusión",
+      "starting_principles": [
+        "Un perfil C(u) define la sección inicial.",
+        "Un vector d define la dirección y longitud del barrido."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "C(u)∈R³",
+          "justification": "Partir de la curva de sección."
+        },
+        {
+          "step": 2,
+          "equation": "P(s,u)=C(u)+s d,  s∈[0,1]",
+          "justification": "Para cada u, trasladar el punto del perfil a lo largo del segmento parametrizado por s."
+        },
+        {
+          "step": 3,
+          "equation": "∂P/∂s=d;  ∂P/∂u=C'(u)",
+          "justification": "Las derivadas describen dirección de extrusión y tangente del perfil."
+        },
+        {
+          "step": 4,
+          "equation": "N=normalize(C'(u)×d)",
+          "justification": "Cuando perfil y dirección no son paralelos, el producto cruzado produce normal lateral local."
+        }
+      ],
+      "assumptions": [
+        "d es constante en extrusión lineal; para trayectorias variables se requiere sweep.",
+        "El perfil y d comparten marco/unidad.",
+        "C'(u)×d no es nulo en la superficie lateral regular."
+      ],
+      "result": "La extrusión es la suma de la curva con un desplazamiento lineal parametrizado.",
+      "limits": [
+        "Tapa inicial/final y paredes laterales se triangulan por separado; autointersecciones del perfil requieren validación."
+      ]
+    },
+    {
+      "record_key": "D02:5",
+      "name": "Sweep por curva",
+      "starting_principles": [
+        "Una curva central C(s) determina la trayectoria.",
+        "Cada sección transversal se coloca en un plano perpendicular a la tangente.",
+        "Un marco ortonormal local define la orientación de la sección."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T(s)=C'(s)/||C'(s)||",
+          "justification": "Normalizar la derivada de la trayectoria para obtener tangente unitaria."
+        },
+        {
+          "step": 2,
+          "equation": "B(s)=T(s)×N(s)",
+          "justification": "Completar una base ortogonal local con normal N y binormal B."
+        },
+        {
+          "step": 3,
+          "equation": "Q(s,θ)=N(s)cosθ+B(s)sinθ",
+          "justification": "Parametrizar una dirección unitaria en el plano normal."
+        },
+        {
+          "step": 4,
+          "equation": "P(s,θ)=C(s)+r(s)Q(s,θ)",
+          "justification": "Desplazar el centro de la sección radialmente en el plano perpendicular a la curva."
+        }
+      ],
+      "assumptions": [
+        "C'(s) no nula; N,T,B forman marco ortonormal.",
+        "r(s)≥0 y perfil circular; perfiles arbitrarios sustituyen Q por una curva local.",
+        "El marco varía de forma suficientemente suave."
+      ],
+      "result": "El sweep transporta una sección a lo largo de la curva central y genera una superficie tubular.",
+      "limits": [
+        "Un marco de Frenet puede girar bruscamente en regiones de curvatura casi nula; preferir transporte paralelo para estabilidad."
+      ]
+    },
+    {
+      "record_key": "D02:6",
+      "name": "Sweep con marco paralelo",
+      "starting_principles": [
+        "La tangente cambia entre muestras consecutivas.",
+        "El marco debe rotar lo mínimo necesario para alinear la tangente anterior con la nueva, evitando torsión artificial."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "T_i=normalize(C_{i+1}−C_i)",
+          "justification": "Aproximar la tangente en cada segmento de la polilínea."
+        },
+        {
+          "step": 2,
+          "equation": "a=T_{i−1}×T_i;  c=T_{i−1}·T_i",
+          "justification": "El producto cruzado define eje de giro y el producto punto define coseno del ángulo."
+        },
+        {
+          "step": 3,
+          "equation": "θ=atan2(||a||,c)",
+          "justification": "Obtener el ángulo de rotación mínimo entre tangentes."
+        },
+        {
+          "step": 4,
+          "equation": "N_i=R(axis=a/||a||,θ)N_{i−1};  B_i=T_i×N_i",
+          "justification": "Transportar la normal por la rotación mínima y reconstruir binormal."
+        },
+        {
+          "step": 5,
+          "equation": "N_i=normalize(N_i−(N_i·T_i)T_i)",
+          "justification": "Eliminar error numérico de componente tangencial y reortonormalizar."
+        }
+      ],
+      "assumptions": [
+        "Tangentes consecutivas no son exactamente antiparalelas sin una regla especial.",
+        "Para ||a||≈0 y c>0 se conserva el marco; para c≈−1 se elige eje perpendicular de respaldo.",
+        "La curva muestreada mantiene continuidad suficiente."
+      ],
+      "result": "El transporte paralelo propaga una base ortonormal con la mínima rotación entre segmentos, reduciendo el giro espurio de tubos.",
+      "limits": [
+        "La discretización y el paso de muestreo influyen en estabilidad; en cúspides la tangente no es única."
+      ]
+    },
+    {
+      "record_key": "D02:7",
+      "name": "Subdivision surfaces",
+      "starting_principles": [
+        "Catmull–Clark refina una malla poligonal mediante puntos de cara, arista y vértice.",
+        "Las reglas promedian puntos con pesos que dependen de la conectividad."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F_f=(1/n_f)Σ_{v∈f}P_v",
+          "justification": "Definir punto de cara como promedio de los vértices de la cara."
+        },
+        {
+          "step": 2,
+          "equation": "E_e=(P_a+P_b+F_{f_1}+F_{f_2})/4",
+          "justification": "Para una arista interior, promediar sus dos extremos y los puntos de las dos caras adyacentes."
+        },
+        {
+          "step": 3,
+          "equation": "P'_v=(F̄_v+2Ē_v+(n_v−3)P_v)/n_v",
+          "justification": "Regla estándar de actualización de vértice interior Catmull–Clark con n_v caras incidentes."
+        },
+        {
+          "step": 4,
+          "equation": "Reemplazar cada cara por subcaras conectadas a puntos de arista/cara",
+          "justification": "Construir la topología refinada que converge a una superficie límite suave bajo condiciones regulares."
+        }
+      ],
+      "assumptions": [
+        "La fórmula de arista interior requiere dos caras adyacentes; bordes y creases usan reglas específicas.",
+        "La malla y su conectividad son válidas; pesos de promedio son adimensionales.",
+        "No es una única regla universal para todos los esquemas de subdivisión."
+      ],
+      "result": "Cada iteración refina topología y actualiza posiciones mediante promedios locales; las iteraciones sucesivas aproximan la superficie límite.",
+      "limits": [
+        "La topología no manifold, caras degeneradas y reglas de borde inconsistentes pueden invalidar la convergencia esperada."
+      ]
+    },
+    {
+      "record_key": "D02:13",
+      "name": "Fractales geométricos",
+      "starting_principles": [
+        "La autosimilitud se obtiene aplicando transformaciones contractivas a una forma inicial.",
+        "Cada rama o subestructura es una copia transformada de un estado anterior."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P_0 = geometría semilla",
+          "justification": "Definir la forma inicial."
+        },
+        {
+          "step": 2,
+          "equation": "P_{n+1}^{(j)}=A_j P_n+b_j",
+          "justification": "Aplicar una transformación afín por cada regla j; A_j cambia orientación/escala y b_j traslada."
+        },
+        {
+          "step": 3,
+          "equation": "||A_j||<1",
+          "justification": "La contracción hace que las copias reduzcan escala y permite convergencia a un atractor bajo condiciones del sistema iterado."
+        },
+        {
+          "step": 4,
+          "equation": "P_n = ⋃_{j_1,…,j_n} (A_{j_1}…A_{j_n}P_0 + traslaciones compuestas)",
+          "justification": "Expandir la recurrencia muestra que cada nivel contiene composiciones de las reglas anteriores."
+        }
+      ],
+      "assumptions": [
+        "Las reglas son finitas y deterministas o usan semilla reproducible.",
+        "Las transformaciones son contractivas para garantizar atractor compacto en el caso clásico.",
+        "La profundidad n es finita en una implementación."
+      ],
+      "result": "La estructura fractal se genera por composición repetida de un conjunto pequeño de transformaciones.",
+      "limits": [
+        "Si alguna transformación no es contractiva, la convergencia clásica no queda garantizada; controlar ramificación y profundidad para limitar coste."
+      ]
+    },
+    {
+      "record_key": "D02:14",
+      "name": "Marching Cubes",
+      "starting_principles": [
+        "Un campo escalar f se conoce en los vértices de una celda cúbica.",
+        "La superficie buscada es el conjunto de puntos donde f(p)=iso.",
+        "Dentro de una arista se aproxima f linealmente."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "f(t)≈(1−t)f_A+t f_B,  t∈[0,1]",
+          "justification": "Interpolación lineal del campo entre extremos de la arista."
+        },
+        {
+          "step": 2,
+          "equation": "iso=(1−t)f_A+t f_B",
+          "justification": "Imponer que el punto interpolado pertenezca al isovalor."
+        },
+        {
+          "step": 3,
+          "equation": "t=(iso−f_A)/(f_B−f_A)",
+          "justification": "Despejar t cuando f_A≠f_B."
+        },
+        {
+          "step": 4,
+          "equation": "p_iso=p_A+t(p_B−p_A)",
+          "justification": "Usar el mismo parámetro para interpolar posición del cruce."
+        },
+        {
+          "step": 5,
+          "equation": "Clasificar 8 vértices por signo(f_i−iso) y triangularizar según tabla",
+          "justification": "El patrón binario identifica qué aristas cruzan el isovalor y qué conectividad local aproximada emitir."
+        }
+      ],
+      "assumptions": [
+        "Campo continuo o suficientemente muestreado; interpolación lineal local.",
+        "f_A≠f_B para la fórmula directa; igualdad exacta requiere regla de vértice.",
+        "Tabla de casos y winding coherentes."
+      ],
+      "result": "El algoritmo aproxima la isosuperficie por triángulos cuyos vértices se interpolan sobre aristas que cambian de signo.",
+      "limits": [
+        "Ambigüedades de conectividad en algunas configuraciones requieren variantes/asymptotic decider; resolución de grid limita detalle."
+      ]
+    },
+    {
+      "record_key": "D02:15",
+      "name": "Stop-motion procedural con microjitter determinista",
+      "starting_principles": [
+        "El movimiento se evalúa en tiempos discretos separados por el periodo de muestreo.",
+        "La variación por fotograma debe ser función determinista de índice y semilla.",
+        "La perturbación debe acotarse por amplitud y unidad del canal."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "k=floor(t f_s)",
+          "justification": "Multiplicar tiempo por frecuencia de muestreo produce número de fotograma y aplicar piso selecciona el índice entero."
+        },
+        {
+          "step": 2,
+          "equation": "t_q=k/f_s",
+          "justification": "Reconstruir el instante cuantizado correspondiente al inicio del fotograma."
+        },
+        {
+          "step": 3,
+          "equation": "h_k=hash(k,seed,channel)∈[0,1)",
+          "justification": "Generar un valor pseudoaleatorio reproducible para cada fotograma/canal."
+        },
+        {
+          "step": 4,
+          "equation": "ε_k=A(2h_k−1)∈[−A,A]",
+          "justification": "Transformar el hash uniforme a perturbación simétrica acotada."
+        },
+        {
+          "step": 5,
+          "equation": "pose_k=F(t_q)+ε_k",
+          "justification": "Aplicar la pose muestreada y sumar perturbación en la misma unidad del canal."
+        }
+      ],
+      "assumptions": [
+        "f_s>0; hash determinista y semilla fija.",
+        "A tiene unidad del canal: longitud para posición, radianes para rotación o adimensional para morph weight.",
+        "La perturbación angular se aplica mediante representación angular/cuaternión compatible, no sumando radianes a posiciones."
+      ],
+      "result": "El movimiento queda cuantizado en fotogramas y el jitter se reproduce exactamente al mantener índice, semilla, canal y función base.",
+      "limits": [
+        "La continuidad temporal se rompe deliberadamente entre muestras; amplitudes grandes ocultan lectura de pose."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "11 derivaciones completas para las 11 claves no protegidas.",
+      "Cada paso incluye ecuación y justificación.",
+      "Se declaran convenciones paramétricas, límites y singularidades.",
+      "Los cinco registros protegidos no se modifican ni se reauditan."
+    ],
+    "limitations": [
+      "Estas derivaciones establecen la base matemática; las variantes numéricas, algoritmos completos y pseudocódigo se desarrollan en los puntos 3 y 4."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
