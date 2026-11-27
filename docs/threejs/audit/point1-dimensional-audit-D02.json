@@ -89,7 +89,8 @@
       ],
       "dimensional_checks": [
         "Puntos, radios y dimensiones de primitivas usan L; parámetros angulares son adimensionales en radianes.",
-        "Los índices y conteos de segmentos son discretos y no se suman a longitudes."
+        "Los índices y conteos de segmentos son discretos y no se suman a longitudes.",
+        "El escalado de la primitiva transforma longitudes por un factor adimensional; el resultado conserva coordenadas L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -170,7 +171,8 @@
       ],
       "dimensional_checks": [
         "Posiciones de atributo tienen L; normales/direcciones son adimensionales; UV son adimensionales.",
-        "Índices de vértice son enteros y deben estar dentro del rango de posiciones."
+        "Índices de vértice son enteros y deben estar dentro del rango de posiciones.",
+        "Los índices de BufferGeometry son discretos; las posiciones tienen L y atributos como normales/UV conservan tipos distintos."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -236,7 +238,8 @@
       ],
       "dimensional_checks": [
         "u,v son adimensionales; P(u,v) tiene L en cada componente.",
-        "Derivadas ∂P/∂u y ∂P/∂v tienen L si u,v son normalizados."
+        "Derivadas ∂P/∂u y ∂P/∂v tienen L si u,v son normalizados.",
+        "P(u,v) debe devolver tres coordenadas con la misma unidad de longitud; el dominio paramétrico u,v es adimensional si se normaliza."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -317,7 +320,8 @@
       ],
       "dimensional_checks": [
         "r(u) y y(u) tienen L; θ es adimensional angular; P conserva L.",
-        "El producto r·sinθ y r·cosθ tiene L."
+        "El producto r·sinθ y r·cosθ tiene L.",
+        "r(u) y y(u) tienen L; θ es angular adimensional y las funciones seno/coseno no alteran la unidad de posición."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -413,7 +417,8 @@
       ],
       "dimensional_checks": [
         "C(u), s y d deben tener tipos coherentes: si s es longitud, d es dirección unitaria y s·d tiene L.",
-        "El parámetro de curva u es adimensional; C(u) conserva L."
+        "El parámetro de curva u es adimensional; C(u) conserva L.",
+        "C(u) y s·d deben compartir L; si d es unitario, s tiene L y la extrusión conserva dimensión espacial."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -509,7 +514,8 @@
       ],
       "dimensional_checks": [
         "C(s) y r(s) tienen L; el marco N/B es adimensional; el producto r·N conserva L.",
-        "Si s es arco, tiene L; la parametrización normalizada debe declararse para derivadas."
+        "Si s es arco, tiene L; la parametrización normalizada debe declararse para derivadas.",
+        "C(s) y r(s) tienen L; N y B son direcciones unitarias y rN/rB conservan L."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -590,7 +596,8 @@
       ],
       "dimensional_checks": [
         "T,N,B son vectores unitarios adimensionales; C(s) tiene L.",
-        "La derivada respecto a longitud de arco tiene dimensión L⁻¹."
+        "La derivada respecto a longitud de arco tiene dimensión L⁻¹.",
+        "T,N,B son adimensionales y ortonormales; las derivadas se escalan de acuerdo con el parámetro de curva declarado."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -671,7 +678,8 @@
       ],
       "dimensional_checks": [
         "Vértices nuevos son combinaciones afines de vértices con pesos adimensionales; conservan L.",
-        "El número de iteraciones y valence son conteos discretos."
+        "El número de iteraciones y valence son conteos discretos.",
+        "Las reglas de subdivisión combinan coordenadas L mediante pesos adimensionales; los índices de caras son discretos."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -752,7 +760,8 @@
       ],
       "dimensional_checks": [
         "Transformaciones fractales tienen escala adimensional; traslaciones geométricas tienen L.",
-        "Cada iteración debe preservar tipo espacial y acotar crecimiento/overflow."
+        "Cada iteración debe preservar tipo espacial y acotar crecimiento/overflow.",
+        "Las transformaciones fractales deben declarar escala adimensional y traslación L; cada iteración conserva el tipo geométrico."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -833,7 +842,8 @@
       ],
       "dimensional_checks": [
         "Valores escalares y isolevel comparten unidad de campo; t de interpolación es adimensional.",
-        "Vértices interpolados conservan L; el denominador v_b−v_a no puede ser cero sin regla de caso."
+        "Vértices interpolados conservan L; el denominador v_b−v_a no puede ser cero sin regla de caso.",
+        "El parámetro de interpolación t es adimensional; los vértices emitidos conservan L y el isovalor conserva unidad del campo."
       ],
       "status": "REVIEWED_POINT1"
     },
@@ -929,7 +939,8 @@
       ],
       "dimensional_checks": [
         "t y fps tienen T y T⁻¹; t·fps es adimensional; t_q conserva T.",
-        "El jitter posicional tiene L y el angular radianes; no sumar ambas magnitudes."
+        "El jitter posicional tiene L y el angular radianes; no sumar ambas magnitudes.",
+        "t·fps es adimensional; jitter de posición tiene L y jitter angular se expresa en radianes."
       ],
       "status": "REVIEWED_POINT1"
     }
@@ -938,7 +949,8 @@
     "structural_checks": [
       "11/16 registros no protegidos incluidos; 5 claves protegidas excluidas",
       "Todos los registros incluidos contienen variables, restricciones, dominio, condiciones límite y al menos dos comprobaciones dimensionales",
-      "Cada comprobación distingue unidades geométricas, parámetros, índices y tiempo según la técnica"
+      "Cada comprobación distingue unidades geométricas, parámetros, índices y tiempo según la técnica",
+      "Se añadió una segunda comprobación dimensional específica a cada registro D02 para completar la matriz de validación."
     ],
     "limitations": [
       "Las cinco técnicas protegidas no se reauditan. Derivaciones completas y pruebas numéricas pertenecen a puntos posteriores."
