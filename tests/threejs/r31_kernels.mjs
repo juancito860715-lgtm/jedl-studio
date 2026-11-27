@@ -186,6 +186,25 @@ export function volumeComposite(segments) {
   }
   return [radiance,trans];
 }
+export function doubleReflectionFrame(x0,x1,t0,t1,r0) {
+  const dot=(a,b)=>a.reduce((s,v,i)=>s+v*b[i],0);
+  const sub=(a,b)=>a.map((v,i)=>v-b[i]);
+  const reflect=(v,axis)=>{
+    const denom=dot(axis,axis);
+    if(denom<1e-20)throw new RangeError("degenerate reflection vector");
+    const scale=2*dot(axis,v)/denom;
+    return v.map((a,i)=>a-scale*axis[i]);
+  };
+  for(const v of [x0,x1,t0,t1,r0])if(v.length!==3||v.some(a=>!Number.isFinite(a)))throw new RangeError("inputs must be finite 3-vectors");
+  if(Math.abs(Math.hypot(...t0)-1)>1e-6||Math.abs(Math.hypot(...t1)-1)>1e-6)throw new RangeError("tangents must be unit");
+  if(Math.abs(Math.hypot(...r0)-1)>1e-6||Math.abs(dot(t0,r0))>1e-6)throw new RangeError("initial reference vector must be unit and orthogonal");
+  const v1=sub(x1,x0),rL=reflect(r0,v1),tL=reflect(t0,v1),v2=sub(t1,tL);
+  const raw=reflect(rL,v2),len=Math.hypot(...raw);
+  if(len<1e-12)throw new RangeError("transported normal is degenerate");
+  const r=raw.map(v=>v/len);
+  const s=[t1[1]*r[2]-t1[2]*r[1],t1[2]*r[0]-t1[0]*r[2],t1[0]*r[1]-t1[1]*r[0]];
+  return [r,s,[...t1]];
+}
 export function regularizedPlaneQef(constraints,center,regularization) {
   if(!Number.isFinite(regularization)||regularization<0)throw new RangeError("regularization must be finite and nonnegative");
   if(center.length!==3||center.some(v=>!Number.isFinite(v)))throw new RangeError("center must be a finite 3-vector");
