@@ -119,11 +119,12 @@ jobs:
             --dimensions docs/threejs/audit/r31-symbol-dimension-audit.json \
             --report threejs-readiness-report.json > readiness-gate.log 2>&1
           READY_EXIT=$?
+          export JSON_EXIT PY_EXIT JS_EXIT STRUCT_EXIT READY_EXIT
           python - <<'PY'
-          import json
-          codes={"json":int("$JSON_EXIT"),"python_tests":int("$PY_EXIT"),
-                 "javascript_tests":int("$JS_EXIT"),"structural_audit":int("$STRUCT_EXIT"),
-                 "readiness_gate":int("$READY_EXIT")}
+          import json,os
+          codes={"json":int(os.environ["JSON_EXIT"]),"python_tests":int(os.environ["PY_EXIT"]),
+                 "javascript_tests":int(os.environ["JS_EXIT"]),"structural_audit":int(os.environ["STRUCT_EXIT"]),
+                 "readiness_gate":int(os.environ["READY_EXIT"])}
           result={"status":"PASS" if all(v==0 for v in codes.values()) else "FAIL",
                   "exit_codes":codes}
           open("global-test-status.json","w").write(json.dumps(result,indent=2)+"\n")
