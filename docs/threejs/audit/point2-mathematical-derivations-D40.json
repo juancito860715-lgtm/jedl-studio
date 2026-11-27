@@ -1,0 +1,538 @@
+{
+  "title": "Derivaciones matemáticas justificadas — D40 Geometría avanzada, superficies, topología y reconstrucción",
+  "version": "1.0.0",
+  "branch": "audit/implementation-ready-manifest",
+  "source_manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+  "protected_crimson_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821",
+  "scope": {
+    "domain_id": "D40",
+    "record_count": 14,
+    "excluded_protected_records": 0,
+    "excluded_reason": "No hay técnicas D40 protegidas."
+  },
+  "records": [
+    {
+      "record_key": "D40:0",
+      "name": "Catmull–Clark subdivision",
+      "starting_principles": [
+        "Malla poligonal válida; reglas de borde/crease definidas."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "F=(v_1+v_2+v_3+v_4)/4",
+          "justification": "Promediar vértices de cara."
+        },
+        {
+          "step": 2,
+          "equation": "E=(P_1+P_2+F_1+F_2)/4",
+          "justification": "Combinar extremos de arista y centros de caras adyacentes."
+        },
+        {
+          "step": 3,
+          "equation": "V'=(F̄+2Ē+(n−3)V)/n",
+          "justification": "Promediar contribuciones de caras, aristas y vértice según valence n."
+        },
+        {
+          "step": 4,
+          "equation": "rebuild quads and iterate",
+          "justification": "Construir nueva topología y repetir."
+        }
+      ],
+      "assumptions": [
+        "Malla poligonal válida; reglas de borde/crease definidas."
+      ],
+      "result": "Catmull–Clark suaviza mallas mediante puntos de cara/arista/vértice y refinamiento de quads.",
+      "limits": [
+        "Topología irregular y reglas de borde alteran superficie límite."
+      ]
+    },
+    {
+      "record_key": "D40:1",
+      "name": "Loop subdivision",
+      "starting_principles": [
+        "Malla triangular; valence n≥3 en interior; límites de borde declarados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "β=(1/n)(5/8−(3/8+1/4 cos(2π/n))²)",
+          "justification": "Definir peso de vecino según valence."
+        },
+        {
+          "step": 2,
+          "equation": "v'=(1−nβ)v+βΣ_iv_i",
+          "justification": "Combinar vértice actual y vecinos."
+        },
+        {
+          "step": 3,
+          "equation": "edge points use 3/8 endpoints +1/8 opposite vertices",
+          "justification": "Definir puntos nuevos en aristas interiores."
+        },
+        {
+          "step": 4,
+          "equation": "split each triangle into four",
+          "justification": "Refinar topología triangular."
+        }
+      ],
+      "assumptions": [
+        "Malla triangular; valence n≥3 en interior; límites de borde declarados."
+      ],
+      "result": "Loop subdivision suaviza mallas triangulares con pesos dependientes de valence.",
+      "limits": [
+        "Pesos y reglas de borde afectan suavidad; triángulos degenerados son problemáticos."
+      ]
+    },
+    {
+      "record_key": "D40:2",
+      "name": "NURBS surface",
+      "starting_principles": [
+        "Grados y vectores de nudos válidos; pesos no negativos o denominador no nulo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "N_{i,p}(u) from Cox–de Boor",
+          "justification": "Construir bases spline."
+        },
+        {
+          "step": 2,
+          "equation": "W(u,v)=Σ_iΣ_jN_i,pM_j,qw_ijP_ij",
+          "justification": "Acumular puntos de control ponderados."
+        },
+        {
+          "step": 3,
+          "equation": "S(u,v)=W(u,v)/Σ_iΣ_jN_i,pM_j,qw_ij",
+          "justification": "Normalizar por suma de pesos racionales."
+        },
+        {
+          "step": 4,
+          "equation": "tessellate S(u,v)",
+          "justification": "Muestrear superficie para malla renderizable."
+        }
+      ],
+      "assumptions": [
+        "Grados y vectores de nudos válidos; pesos no negativos o denominador no nulo."
+      ],
+      "result": "NURBS combina bases B-spline racionales y puntos de control.",
+      "limits": [
+        "Evaluación exacta depende de bases y knots; trims requieren manejo adicional."
+      ]
+    },
+    {
+      "record_key": "D40:3",
+      "name": "B-spline basis Cox–de Boor",
+      "starting_principles": [
+        "Knot vector no decreciente; términos con denominador cero se definen como cero."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "N_{i,0}(u)=1 if u_i≤u<u_{i+1}",
+          "justification": "Definir base por intervalos de nudos."
+        },
+        {
+          "step": 2,
+          "equation": "N_{i,p}=((u−u_i)/(u_{i+p}−u_i))N_{i,p−1}",
+          "justification": "Añadir contribución izquierda."
+        },
+        {
+          "step": 3,
+          "equation": "+(u_{i+p+1}−u)/(u_{i+p+1}−u_{i+1})N_{i+1,p−1}",
+          "justification": "Añadir contribución derecha."
+        },
+        {
+          "step": 4,
+          "equation": "zero denominator term=0",
+          "justification": "Manejar nudos repetidos sin división indefinida."
+        }
+      ],
+      "assumptions": [
+        "Knot vector no decreciente; términos con denominador cero se definen como cero."
+      ],
+      "result": "Cox–de Boor construye recursivamente bases spline de grado creciente.",
+      "limits": [
+        "Nudos repetidos y extremos requieren convención half-open."
+      ]
+    },
+    {
+      "record_key": "D40:4",
+      "name": "Bezier curve",
+      "starting_principles": [
+        "Puntos de control en mismo espacio; t∈[0,1]."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "B(t)=Σ_i C(n,i)(1−t)^(n−i)t^iP_i",
+          "justification": "Definir combinación Bernstein."
+        },
+        {
+          "step": 2,
+          "equation": "B(0)=P_0; B(1)=P_n",
+          "justification": "Evaluar extremos."
+        },
+        {
+          "step": 3,
+          "equation": "B'(0)=n(P_1−P_0); B'(1)=n(P_n−P_{n−1})",
+          "justification": "Derivar tangentes extremas."
+        },
+        {
+          "step": 4,
+          "equation": "0≤t≤1",
+          "justification": "El peso Bernstein es no negativo y suma uno."
+        }
+      ],
+      "assumptions": [
+        "Puntos de control en mismo espacio; t∈[0,1]."
+      ],
+      "result": "Bezier evalúa curva como combinación Bernstein de puntos de control.",
+      "limits": [
+        "Curva queda dentro de envolvente convexa pero no pasa por controles interiores."
+      ]
+    },
+    {
+      "record_key": "D40:5",
+      "name": "De Casteljau",
+      "starting_principles": [
+        "t∈[0,1]; interpolación afín."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "P_i^(0)=P_i",
+          "justification": "Inicializar puntos de control."
+        },
+        {
+          "step": 2,
+          "equation": "P_i^(r)=(1−t)P_i^(r−1)+tP_{i+1}^(r−1)",
+          "justification": "Interpolar vecinos sucesivamente."
+        },
+        {
+          "step": 3,
+          "equation": "B(t)=P_0^(n)",
+          "justification": "El último punto tras n niveles es punto de curva."
+        },
+        {
+          "step": 4,
+          "equation": "triangle of points supports subdivision",
+          "justification": "El triángulo permite separar curva en dos subcurvas exactas."
+        }
+      ],
+      "assumptions": [
+        "t∈[0,1]; interpolación afín."
+      ],
+      "result": "De Casteljau evalúa y subdivide Bezier mediante interpolación lineal repetida.",
+      "limits": [
+        "Error de punto flotante puede afectar subdivisión cerca de extremos."
+      ]
+    },
+    {
+      "record_key": "D40:6",
+      "name": "Discrete differential geometry cotangent Laplacian",
+      "starting_principles": [
+        "Triángulos no degenerados; masa y pesos definidos."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "w_ij=(cotα_ij+cotβ_ij)/2",
+          "justification": "Derivar peso cotangente de ángulos opuestos."
+        },
+        {
+          "step": 2,
+          "equation": "(Lx)_i=Σ_jw_ij(x_i−x_j)",
+          "justification": "Ensamblar Laplaciano discreto."
+        },
+        {
+          "step": 3,
+          "equation": "M^{-1}Lx",
+          "justification": "Normalizar por matriz de masa para aproximar Laplace–Beltrami."
+        },
+        {
+          "step": 4,
+          "equation": "solve diffusion/smoothing",
+          "justification": "Usar operador para difusión o suavizado."
+        }
+      ],
+      "assumptions": [
+        "Triángulos no degenerados; masa y pesos definidos."
+      ],
+      "result": "El Laplaciano cotangente aproxima Laplace–Beltrami en malla triangular.",
+      "limits": [
+        "Ángulos obtusos pueden producir pesos negativos y comportamiento no deseado."
+      ]
+    },
+    {
+      "record_key": "D40:7",
+      "name": "Mean curvature flow",
+      "starting_principles": [
+        "Superficie diferenciable; normal y signo de curvatura consistentes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "E_area=∫_S dA",
+          "justification": "Definir área de superficie."
+        },
+        {
+          "step": 2,
+          "equation": "gradientArea=−2Hn",
+          "justification": "La variación primera de área es proporcional a curvatura media y normal."
+        },
+        {
+          "step": 3,
+          "equation": "∂x/∂t=−Hn",
+          "justification": "Elegir flujo de descenso de área con convención de signo."
+        },
+        {
+          "step": 4,
+          "equation": "discretize and integrate",
+          "justification": "Actualizar malla por pasos temporales."
+        }
+      ],
+      "assumptions": [
+        "Superficie diferenciable; normal y signo de curvatura consistentes."
+      ],
+      "result": "Mean curvature flow deriva de descenso de área por curvatura media.",
+      "limits": [
+        "Flujo encoge superficie y puede cambiar topología."
+      ]
+    },
+    {
+      "record_key": "D40:8",
+      "name": "Marching Cubes",
+      "starting_principles": [
+        "Campo escalar continuo/interpolable; casos ambiguos tratados."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "case=sign(V_i−iso) for 8 corners",
+          "justification": "Clasificar vértices del cubo."
+        },
+        {
+          "step": 2,
+          "equation": "edge crossing if signs differ",
+          "justification": "Identificar aristas atravesadas."
+        },
+        {
+          "step": 3,
+          "equation": "t=(iso−V_a)/(V_b−V_a)",
+          "justification": "Interpolar punto de cruce."
+        },
+        {
+          "step": 4,
+          "equation": "lookup triangulation case",
+          "justification": "Emitir triángulos según tabla de configuración."
+        },
+        {
+          "step": 5,
+          "equation": "N=normalize(∇V)",
+          "justification": "Calcular normal del campo."
+        }
+      ],
+      "assumptions": [
+        "Campo escalar continuo/interpolable; casos ambiguos tratados."
+      ],
+      "result": "Marching Cubes extrae triángulos donde campo escalar cruza isovalor.",
+      "limits": [
+        "Tablas ambiguas pueden generar agujeros; MC33 resuelve algunos casos."
+      ]
+    },
+    {
+      "record_key": "D40:9",
+      "name": "Dual Contouring",
+      "starting_principles": [
+        "Intersecciones y normales coherentes; QEF regularizable."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "H={(p_i,n_i)}",
+          "justification": "Recolectar intersecciones y normales Hermite."
+        },
+        {
+          "step": 2,
+          "equation": "Q(x)=Σ_i(n_i·(x−p_i))²",
+          "justification": "Construir error cuadrático de planos tangentes."
+        },
+        {
+          "step": 3,
+          "equation": "x*=argmin_x Q(x)",
+          "justification": "Resolver mínimos cuadrados por celda."
+        },
+        {
+          "step": 4,
+          "equation": "connect neighboring active cells",
+          "justification": "Conectar vértices según cambios de signo."
+        }
+      ],
+      "assumptions": [
+        "Intersecciones y normales coherentes; QEF regularizable."
+      ],
+      "result": "Dual Contouring ubica vértice por celda minimizando QEF.",
+      "limits": [
+        "QEF mal condicionado requiere regularización y constraints."
+      ]
+    },
+    {
+      "record_key": "D40:10",
+      "name": "Eikonal equation para SDF",
+      "starting_principles": [
+        "Campo signed distance; φ diferenciable casi en todas partes."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "d(p)=distance(p,∂Ω) with sign",
+          "justification": "Definir campo de distancia."
+        },
+        {
+          "step": 2,
+          "equation": "|∇φ|=1 away from medial axis",
+          "justification": "La distancia exacta cambia a razón unitaria en regiones regulares."
+        },
+        {
+          "step": 3,
+          "equation": "φ_t+sign(φ_0)(|∇φ|−1)=0",
+          "justification": "Usar PDE de reinicialización para recuperar propiedad de distancia."
+        },
+        {
+          "step": 4,
+          "equation": "preserve zero level set",
+          "justification": "Mantener superficie φ=0 durante reinicialización."
+        }
+      ],
+      "assumptions": [
+        "Campo signed distance; φ diferenciable casi en todas partes."
+      ],
+      "result": "Eikonal caracteriza campos de distancia con gradiente unitario.",
+      "limits": [
+        "En eje medial la distancia no es diferenciable; gradiente no único."
+      ]
+    },
+    {
+      "record_key": "D40:11",
+      "name": "Boolean SDF operations",
+      "starting_principles": [
+        "Campos SDF con misma unidad, marco y convención de signo."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "union=min(a,b)",
+          "justification": "Unión de sólidos por mínimo de SDF."
+        },
+        {
+          "step": 2,
+          "equation": "intersection=max(a,b)",
+          "justification": "Intersección por máximo."
+        },
+        {
+          "step": 3,
+          "equation": "difference=max(a,−b)",
+          "justification": "Diferencia sustrayendo campo invertido."
+        },
+        {
+          "step": 4,
+          "equation": "smooth variants add compact correction",
+          "justification": "Suavizar operación mediante término dependiente de diferencia."
+        }
+      ],
+      "assumptions": [
+        "Campos SDF con misma unidad, marco y convención de signo."
+      ],
+      "result": "Boolean SDF expresa operaciones CSG con min/max.",
+      "limits": [
+        "Smooth operations alteran volumen y distancia exacta."
+      ]
+    },
+    {
+      "record_key": "D40:12",
+      "name": "Generalized winding number",
+      "starting_principles": [
+        "Orientación de triángulos coherente; punto no en superficie singular."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "Ω_tri(p)=2atan2(det(a,b,c),denominator)",
+          "justification": "Calcular ángulo sólido orientado de triángulo visto desde p."
+        },
+        {
+          "step": 2,
+          "equation": "w(p)=(1/4π)Σ_triΩ_tri(p)",
+          "justification": "Sumar y normalizar ángulos sólidos."
+        },
+        {
+          "step": 3,
+          "equation": "inside iff |w|≈1; outside≈0",
+          "justification": "Clasificar interior/exterior según winding."
+        },
+        {
+          "step": 4,
+          "equation": "threshold with tolerance",
+          "justification": "Manejar mallas imperfectas y ruido numérico."
+        }
+      ],
+      "assumptions": [
+        "Orientación de triángulos coherente; punto no en superficie singular."
+      ],
+      "result": "Winding number clasifica interior/exterior sumando ángulos sólidos orientados.",
+      "limits": [
+        "Orientación inconsistente invierte winding; mallas abiertas complican clasificación."
+      ]
+    },
+    {
+      "record_key": "D40:13",
+      "name": "Dual Contouring R31",
+      "starting_principles": [
+        "QEF y conectividad por celda definidos; λ≥0."
+      ],
+      "derivation": [
+        {
+          "step": 1,
+          "equation": "p_i,n_i from edge crossings",
+          "justification": "Obtener datos Hermite por celda."
+        },
+        {
+          "step": 2,
+          "equation": "Q(x)=Σ_i(n_i·(x−p_i))²+λ||x−x_c||²",
+          "justification": "Añadir regularización hacia centro de celda."
+        },
+        {
+          "step": 3,
+          "equation": "x*=argmin Q(x)",
+          "justification": "Resolver sistema normal pequeño."
+        },
+        {
+          "step": 4,
+          "equation": "connect across sign-changing edges",
+          "justification": "Generar topología de la superficie."
+        }
+      ],
+      "assumptions": [
+        "QEF y conectividad por celda definidos; λ≥0."
+      ],
+      "result": "La variante R31 regulariza QEF para estabilizar la posición de vértice por celda.",
+      "limits": [
+        "Regularización excesiva desplaza vértices hacia centro y suaviza rasgos."
+      ]
+    }
+  ],
+  "validation": {
+    "checks": [
+      "14/14 técnicas cubiertas, incluida investigación R31 de Dual Contouring.",
+      "Cada derivación contiene pasos, supuestos y límites.",
+      "Se distinguen subdivisión, splines, geometría diferencial, isosuperficies y clasificación topológica."
+    ],
+    "limitations": [
+      "La precisión depende de malla, tolerancias y tratamiento de degeneraciones; validación numérica se realizará en punto 5."
+    ]
+  },
+  "integrity": {
+    "manifest_blob_sha": "6377a50c10f7a33797e7db45de410f864b8bac5d",
+    "protected_map_blob_sha": "33cb73c8b720b0c7a9219cfb6c6bdc0643802821"
+  }
+}
